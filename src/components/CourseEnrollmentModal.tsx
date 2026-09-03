@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { AcademyCourse, COMPANY_CONTACT } from '../data/vixoraContent';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
+import { BankPaymentDetailsCard } from './BankPaymentDetailsCard';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;

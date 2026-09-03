@@ -5,11 +5,15 @@ import {
   Bot,
   Code2,
   BarChart3,
-  PenTool,
+  GraduationCap,
   Sparkles,
-  CheckCircle,
-  Users,
-  HardDrive
+  ShieldCheck,
+  Zap,
+  MessageCircle,
+  HardDrive,
+  CheckCircle2,
+  TrendingUp,
+  Cpu
 } from 'lucide-react';
 import { BRAND_CONFIG, getImageFallbacks, getDirectImageUrl } from '../data/brandConfig';
 
@@ -24,7 +28,7 @@ export function Hero({
   onExploreServices,
   onOpenDriveWorkspace,
 }: HeroProps) {
-  const [activeNode, setActiveNode] = useState<string | null>(null);
+  const [activeTelemetry, setActiveTelemetry] = useState<string | null>(null);
   const fallbacks = getImageFallbacks(BRAND_CONFIG.heroBackground.imageUrl);
   const [bgIdx, setBgIdx] = useState(0);
   const [bgLoadError, setBgLoadError] = useState(false);
@@ -39,375 +43,313 @@ export function Hero({
 
   const currentBgSrc = fallbacks[bgIdx] || getDirectImageUrl(BRAND_CONFIG.heroBackground.imageUrl);
 
+  const telemetryItems = [
+    {
+      id: 'ai',
+      title: 'Agentic AI Systems',
+      subtitle: 'Autonomous workflows & LLM orchestration',
+      status: 'Active Pipeline',
+      icon: Bot,
+      color: 'from-purple-500/20 to-indigo-500/10 border-purple-500/40 text-purple-300',
+      badge: 'v3.5 Engine',
+      position: 'top-4 left-2 sm:left-4'
+    },
+    {
+      id: 'software',
+      title: 'Custom Engineering',
+      subtitle: 'High-concurrency full-stack architecture',
+      status: '99.99% Uptime',
+      icon: Code2,
+      color: 'from-blue-500/20 to-cyan-500/10 border-cyan-500/40 text-cyan-300',
+      badge: 'Cloud Native',
+      position: 'bottom-20 left-2 sm:left-6'
+    },
+    {
+      id: 'growth',
+      title: 'Growth & Media Buying',
+      subtitle: 'Targeted ROI & conversion funnels',
+      status: '10x Avg ROAS',
+      icon: BarChart3,
+      color: 'from-fuchsia-500/20 to-purple-500/10 border-fuchsia-500/40 text-fuchsia-300',
+      badge: 'Performance',
+      position: 'top-8 right-2 sm:right-4'
+    },
+    {
+      id: 'academy',
+      title: 'Executive Academy',
+      subtitle: 'Hands-on AI & development certification',
+      status: 'Enrollments Open',
+      icon: GraduationCap,
+      color: 'from-indigo-500/20 to-purple-500/10 border-indigo-500/40 text-indigo-300',
+      badge: 'Certified',
+      position: 'bottom-16 right-2 sm:right-6'
+    }
+  ];
+
   return (
     <section
       id="hero"
-      className="relative pt-28 pb-16 sm:pt-36 sm:pb-24 overflow-hidden bg-[#070314]"
+      className="relative min-h-[92vh] sm:min-h-[96vh] pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
     >
-      {/* Custom Hero Background Image with Atmospheric Overlay */}
+      {/* 🌌 High-Fidelity Custom Background Image Canvas */}
       {currentBgSrc && !bgLoadError && (
         <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none">
           <img
             src={currentBgSrc}
-            alt="Hero Background"
+            alt="Vixora Digital Hub 3D Cyber Environment"
             referrerPolicy="no-referrer"
             onError={handleImageError}
-            className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000 opacity-90"
+            className="w-full h-full object-cover object-right lg:object-center scale-100 transition-all duration-1000 ease-out"
           />
-          {/* Atmospheric Dark & Purple Gradient Overlay for WCAG AA readability */}
-          <div
-            className="absolute inset-0 bg-gradient-to-b from-[#070314]/80 via-[#070314]/70 to-[#070314]"
-            style={{
-              backgroundColor: `rgba(7, 3, 20, ${BRAND_CONFIG.heroBackground.overlayOpacity || 0.75})`
-            }}
+
+          {/* Left-Side Dark Vignette to guarantee pristine text readability on all viewports */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#070314] via-[#070314]/85 lg:via-[#070314]/65 to-transparent z-10" />
+
+          {/* Top & Bottom seamless blending into Navbar and following page sections */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#070314]/90 via-transparent to-[#070314] z-10" />
+
+          {/* Subtle Cyber Neon Grid Texture */}
+          <div 
+            className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-10" 
           />
         </div>
       )}
 
-      {/* Dynamic Cosmic & Neon Purple Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1100px] h-[550px] bg-gradient-to-b from-purple-600/20 via-indigo-600/15 to-transparent blur-[140px] -z-10 pointer-events-none rounded-full" />
-      <div className="absolute top-20 right-10 w-96 h-96 bg-purple-500/10 blur-[120px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-80 h-80 bg-blue-600/10 blur-[100px] -z-10 pointer-events-none" />
+      {/* Atmospheric Ambient Glows behind the 3D mark */}
+      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse" />
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-      {/* Cyber Grid Pattern Overlay */}
-      <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#8B5CF6_1px,transparent_1px)] [background-size:24px_24px] -z-10" 
-      />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-6 items-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
-          {/* Left Column: Headlines, Value Proposition & CTAs */}
-          <div className="lg:col-span-6 space-y-6 text-center lg:text-left z-10">
-            {/* Top Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 border border-purple-500/30 text-purple-300 shadow-sm shadow-purple-500/10 backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-              <span className="font-mono text-[11px] uppercase tracking-widest text-purple-300">
-                TECHNOLOGY. AUTOMATION. GROWTH.
+          {/* ========================================================= */}
+          {/* LEFT COLUMN: Headline, Value Proposition, Action CTAs & Proof */}
+          {/* ========================================================= */}
+          <div className="lg:col-span-6 xl:col-span-7 space-y-6 sm:space-y-8 text-center lg:text-left">
+            
+            {/* Top Super-Badge */}
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-semibold bg-purple-950/70 border border-purple-500/40 text-purple-200 shadow-lg shadow-purple-500/15 backdrop-blur-xl">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-400"></span>
+              </span>
+              <span className="font-mono text-[11px] uppercase tracking-wider font-bold text-purple-200">
+                VIXORA DIGITAL HUB &bull; AI &bull; SOFTWARE &bull; GROWTH
               </span>
             </div>
 
-            {/* 3-Tier Dynamic Hero Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold tracking-tight text-white leading-[1.12]">
-              <span>Build Smarter.</span>
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-300 to-indigo-300">
-                Automate Faster.
-              </span>
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-300 to-blue-400">
-                Grow Greater.
-              </span>
-            </h1>
+            {/* Main Power Headline */}
+            <div className="space-y-2">
+              <h1 className="text-4xl sm:text-5xl lg:text-[62px] xl:text-[68px] font-black tracking-tight text-white leading-[1.08]">
+                <span>Build Smarter.</span>
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-300 drop-shadow-[0_0_35px_rgba(168,85,247,0.4)]">
+                  Automate Faster.
+                </span>
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-sky-300 to-cyan-400">
+                  Scale Infinitely.
+                </span>
+              </h1>
+            </div>
 
-            {/* Supporting Description */}
-            <p className="text-base sm:text-lg text-neutral-300/90 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
-              We help businesses and organizations transform ideas into powerful digital solutions using AI, software, and strategy that drive real results.
+            {/* Description Paragraph */}
+            <p className="text-base sm:text-lg lg:text-xl text-neutral-300 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              We help ambitious businesses and organizations transform bold ideas into high-impact digital realities through custom enterprise software, autonomous AI agent workflows, and ROI-driven digital growth.
             </p>
 
-            {/* Primary Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
+            {/* Action Buttons Matrix */}
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
+              {/* Primary Start Project CTA */}
               <button
                 id="hero-start-project-btn"
                 onClick={onOpenProjectModal}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] text-white shadow-lg shadow-purple-600/35 transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] text-white shadow-xl shadow-purple-600/40 hover:shadow-purple-500/50 transition-all duration-300 cursor-pointer border border-purple-400/30"
               >
                 <span>Start Your Project</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-purple-200" />
               </button>
 
+              {/* Secondary Explore Solutions */}
               <button
                 id="hero-explore-solutions-btn"
                 onClick={onExploreServices}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/80 hover:border-purple-500/50 transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-sm font-semibold bg-[#110A2E]/80 hover:bg-[#1C1145] text-neutral-200 border border-purple-500/30 hover:border-purple-400/60 shadow-lg shadow-black/40 backdrop-blur-md transition-all cursor-pointer"
               >
+                <Sparkles className="w-4 h-4 text-purple-400" />
                 <span>Explore Solutions</span>
-                <Play className="w-3.5 h-3.5 fill-current text-neutral-400" />
               </button>
 
+              {/* Direct WhatsApp Instant Consultation */}
+              <a
+                id="hero-whatsapp-direct-btn"
+                href={BRAND_CONFIG.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-4 rounded-xl text-xs font-semibold bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 hover:text-emerald-200 border border-emerald-600/40 hover:border-emerald-500 transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-400" />
+                <span>WhatsApp Desk</span>
+              </a>
+
+              {/* Google Drive PRD Workspace Launcher */}
               <button
                 id="hero-drive-hub-btn"
                 onClick={onOpenDriveWorkspace}
-                title="Open Google Drive Requirements PRD Analyzer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-xl text-xs font-medium text-purple-300 hover:text-white bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/40 transition-all cursor-pointer"
+                title="Launch Google Drive Requirements PRD Analyzer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-4 rounded-xl text-xs font-medium text-purple-300 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 border border-purple-800/40 transition-all cursor-pointer"
               >
-                <HardDrive className="w-3.5 h-3.5 text-purple-400" />
+                <HardDrive className="w-4 h-4 text-purple-400" />
                 <span>Drive PRD Hub</span>
               </button>
             </div>
 
-            {/* Social Proof Stack (Avatars + 200+ Businesses) */}
-            <div className="pt-4 flex items-center justify-center lg:justify-start gap-3.5">
-              <div className="flex -space-x-2.5 overflow-hidden">
-                <img
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                  alt="Client avatar"
-                />
-                <img
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                  alt="Client avatar"
-                />
-                <img
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80"
-                  alt="Client avatar"
-                />
-                <img
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                  alt="Client avatar"
-                />
+            {/* Proof Metrics & Credibility Strip */}
+            <div className="pt-4 border-t border-purple-900/30">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+                <div className="p-3 rounded-xl bg-[#0E0728]/60 border border-purple-500/20 backdrop-blur-sm">
+                  <div className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-1">
+                    <span>99.8%</span>
+                    <ShieldCheck className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div className="text-[11px] text-neutral-400 font-medium">On-Time Delivery</div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#0E0728]/60 border border-purple-500/20 backdrop-blur-sm">
+                  <div className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-1">
+                    <span>50+</span>
+                    <Zap className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div className="text-[11px] text-neutral-400 font-medium">Solutions Launched</div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#0E0728]/60 border border-purple-500/20 backdrop-blur-sm">
+                  <div className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-1">
+                    <span>10x</span>
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div className="text-[11px] text-neutral-400 font-medium">Workflow ROI</div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#0E0728]/60 border border-purple-500/20 backdrop-blur-sm">
+                  <div className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-1">
+                    <span>24/7</span>
+                    <Cpu className="w-4 h-4 text-fuchsia-400" />
+                  </div>
+                  <div className="text-[11px] text-neutral-400 font-medium">SLA Support</div>
+                </div>
               </div>
-              <p className="text-xs sm:text-sm text-neutral-300 font-medium">
-                Trusted by <span className="text-purple-300 font-semibold">200+ businesses</span> and growing
-              </p>
+
+              {/* Social Proof Stack (Avatars + Rating) */}
+              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                <div className="flex -space-x-2.5 overflow-hidden">
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                    alt="Client avatar"
+                  />
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+                    alt="Client avatar"
+                  />
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80"
+                    alt="Client avatar"
+                  />
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-purple-950 object-cover"
+                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
+                    alt="Client avatar"
+                  />
+                </div>
+                <div className="text-xs text-neutral-300">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {'★'.repeat(5)}
+                    <span className="font-bold text-white ml-1">4.9 / 5.0</span>
+                  </div>
+                  <span className="text-neutral-400">Trusted by <span className="text-purple-300 font-semibold">200+ organizations</span> globally</span>
+                </div>
+              </div>
             </div>
+
           </div>
 
-          {/* Right Column: 3D Illuminated Futuristic "V" Centerpiece & Floating Solution Nodes */}
-          <div className="lg:col-span-6 relative flex items-center justify-center min-h-[480px] sm:min-h-[540px]">
+          {/* ========================================================= */}
+          {/* RIGHT COLUMN: Holographic HUD floating around the 3D V artwork */}
+          {/* ========================================================= */}
+          <div className="lg:col-span-6 xl:col-span-5 relative min-h-[460px] sm:min-h-[520px] flex items-center justify-center">
             
-            {/* Ambient Base Stage Glow */}
+            {/* Ambient Lighting Ring highlighting the background's 3D V Monolith */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[340px] sm:w-[460px] h-[340px] sm:h-[460px] rounded-full bg-purple-600/20 blur-[90px] animate-pulse" />
-              <div className="w-[200px] sm:w-[280px] h-[200px] sm:h-[280px] rounded-full bg-blue-500/25 blur-[60px]" />
+              <div className="w-[320px] sm:w-[420px] h-[320px] sm:h-[420px] rounded-full bg-purple-600/25 blur-[100px] animate-pulse" />
             </div>
 
-            {/* Connecting Geometric Cyber Tracer Lines (SVG) */}
-            <svg 
-              className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible"
-              viewBox="0 0 600 500"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Line to Top-Left Node (AI Automation) */}
-              <path 
-                d="M 190 120 L 260 190 L 300 240" 
-                stroke="url(#purpleGlowLine)" 
-                strokeWidth="1.5" 
-                strokeDasharray="4 4"
-                className="opacity-70"
-              />
-              {/* Line to Bottom-Left Node (Software Solutions) */}
-              <path 
-                d="M 180 320 L 250 290 L 300 260" 
-                stroke="url(#blueGlowLine)" 
-                strokeWidth="1.5" 
-                strokeDasharray="4 4"
-                className="opacity-70"
-              />
-              {/* Line to Top-Right Node (Digital Marketing) */}
-              <path 
-                d="M 420 140 L 360 200 L 300 240" 
-                stroke="url(#purpleGlowLine)" 
-                strokeWidth="1.5" 
-                strokeDasharray="4 4"
-                className="opacity-70"
-              />
-              {/* Line to Bottom-Right Node (Creative & Branding) */}
-              <path 
-                d="M 430 330 L 360 300 L 300 260" 
-                stroke="url(#purpleGlowLine)" 
-                strokeWidth="1.5" 
-                strokeDasharray="4 4"
-                className="opacity-70"
-              />
-
-              {/* Glowing Gradients Definition */}
-              <defs>
-                <linearGradient id="purpleGlowLine" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#A855F7" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#6366F1" stopOpacity="0.2" />
-                </linearGradient>
-                <linearGradient id="blueGlowLine" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#818CF8" stopOpacity="0.2" />
-                </linearGradient>
-              </defs>
-            </svg>
-
-            {/* Central 3D Podium & Neon "V" Monolith */}
-            <div className="relative z-10 flex flex-col items-center justify-center">
+            {/* Floating Interactive Holographic Telemetry Chips around the 3D Emblem */}
+            <div className="relative w-full h-full min-h-[460px] flex items-center justify-center">
               
-              {/* 3D Glass Geometric "V" Emblem */}
-              <div className="relative w-44 h-48 sm:w-56 sm:h-60 flex items-center justify-center group">
-                {/* Backlight Aura */}
-                <div className="absolute inset-0 bg-gradient-to-t from-purple-600 via-indigo-500 to-cyan-400 opacity-60 blur-2xl rounded-full transform group-hover:scale-110 transition-transform duration-700" />
-                
-                {/* Monolith 3D SVG Shape */}
-                <svg
-                  className="w-full h-full drop-shadow-[0_0_35px_rgba(168,85,247,0.75)] filter transform group-hover:-translate-y-1 transition-transform duration-500"
-                  viewBox="0 0 200 220"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <linearGradient id="vLeftFacet" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#3B82F6" />
-                      <stop offset="40%" stopColor="#6366F1" />
-                      <stop offset="100%" stopColor="#9333EA" />
-                    </linearGradient>
-                    <linearGradient id="vRightFacet" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#A855F7" />
-                      <stop offset="50%" stopColor="#7C3AED" />
-                      <stop offset="100%" stopColor="#4338CA" />
-                    </linearGradient>
-                    <linearGradient id="vFrontGloss" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.6" />
-                      <stop offset="30%" stopColor="#C084FC" stopOpacity="0.2" />
-                      <stop offset="100%" stopColor="#7E22CE" stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="vNeonEdge" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#67E8F9" />
-                      <stop offset="50%" stopColor="#C084FC" />
-                      <stop offset="100%" stopColor="#F472B6" />
-                    </linearGradient>
-                  </defs>
+              {telemetryItems.map((item) => {
+                const IconComponent = item.icon;
+                const isHovered = activeTelemetry === item.id;
 
-                  {/* Left Arm of 3D 'V' */}
-                  <polygon
-                    points="30,25 78,25 100,165 65,165"
-                    fill="url(#vLeftFacet)"
-                  />
-                  {/* Left Arm Bevel Highlight */}
-                  <polygon
-                    points="30,25 45,25 82,165 65,165"
-                    fill="url(#vFrontGloss)"
-                  />
-
-                  {/* Right Arm of 3D 'V' (Origami Wing) */}
-                  <polygon
-                    points="170,25 122,25 100,165 135,165"
-                    fill="url(#vRightFacet)"
-                  />
-                  {/* Right Arm Sharp Edge */}
-                  <polygon
-                    points="122,25 145,25 118,165 100,165"
-                    fill="url(#vFrontGloss)"
-                  />
-
-                  {/* Inner Vertex 3D Shadow/Depth Core */}
-                  <polygon
-                    points="78,25 122,25 100,165"
-                    fill="#1E1035"
-                    opacity="0.55"
-                  />
-
-                  {/* Neon Glow Outer Tracer */}
-                  <polyline
-                    points="30,25 100,168 170,25"
-                    stroke="url(#vNeonEdge)"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  
-                  {/* Center Core Light Pulse */}
-                  <circle cx="100" cy="165" r="5" fill="#E0E7FF" filter="drop-shadow(0 0 8px #38BDF8)" />
-                </svg>
-              </div>
-
-              {/* 3D Multi-Tiered Illuminated Stage / Podium */}
-              <div className="relative -mt-8 flex flex-col items-center">
-                {/* Top Tier Disc */}
-                <div className="w-48 sm:w-64 h-7 rounded-[100%] bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 border-2 border-purple-400/80 shadow-[0_0_30px_rgba(168,85,247,0.8)]" />
-                
-                {/* Mid Tier Stage Body */}
-                <div className="w-56 sm:w-76 h-8 -mt-3.5 rounded-[100%] bg-gradient-to-b from-[#200F48] to-[#0D0524] border border-purple-500/40 shadow-inner" />
-                
-                {/* Bottom Base Ring with Neon Ambient Ripple */}
-                <div className="w-68 sm:w-92 h-10 -mt-4 rounded-[100%] bg-[#080218] border border-purple-600/30 shadow-[0_15px_40px_rgba(124,58,237,0.4)] flex items-center justify-center">
-                  <div className="w-[85%] h-[60%] rounded-[100%] border border-cyan-400/30 blur-[1px]" />
-                </div>
-              </div>
-            </div>
-
-            {/* 4 Floating Cyber Solution Cards Connected to the Hub */}
-            
-            {/* 1. TOP-LEFT: AI Automation */}
-            <div 
-              onMouseEnter={() => setActiveNode('ai')}
-              onMouseLeave={() => setActiveNode(null)}
-              className={`absolute top-2 sm:top-6 left-0 sm:left-2 z-20 max-w-[210px] p-3 rounded-2xl bg-[#0F0A26]/90 border ${
-                activeNode === 'ai' ? 'border-purple-400 shadow-lg shadow-purple-500/30' : 'border-purple-500/30'
-              } backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 shrink-0">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-white">AI Automation</div>
-                  <div className="text-[10px] text-neutral-300 leading-tight">
-                    Smart workflows that save time and scale your business.
+                return (
+                  <div
+                    key={item.id}
+                    onMouseEnter={() => setActiveTelemetry(item.id)}
+                    onMouseLeave={() => setActiveTelemetry(null)}
+                    onClick={() => {
+                      if (item.id === 'academy') {
+                        window.location.href = BRAND_CONFIG.academyDomain;
+                      } else if (item.id === 'ai' || item.id === 'software') {
+                        onExploreServices();
+                      } else {
+                        onOpenProjectModal();
+                      }
+                    }}
+                    className={`absolute ${item.position} z-30 max-w-[210px] sm:max-w-[230px] p-3 sm:p-3.5 rounded-2xl bg-[#0C0624]/85 hover:bg-[#140B38]/95 border ${
+                      isHovered ? 'border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.4)] scale-105' : 'border-purple-500/30 shadow-lg shadow-black/60'
+                    } backdrop-blur-xl transition-all duration-300 cursor-pointer group`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-xl bg-gradient-to-br ${item.color} border shrink-0 group-hover:scale-110 transition-transform`}>
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">
+                            {item.title}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-neutral-300/80 leading-tight">
+                          {item.subtitle}
+                        </p>
+                        <div className="pt-1 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="text-[9px] font-mono text-purple-300/90 uppercase tracking-wider">
+                            {item.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
+                );
+              })}
 
-            {/* 2. BOTTOM-LEFT: Software Solutions */}
-            <div 
-              onMouseEnter={() => setActiveNode('software')}
-              onMouseLeave={() => setActiveNode(null)}
-              className={`absolute bottom-6 sm:bottom-12 left-0 sm:left-4 z-20 max-w-[210px] p-3 rounded-2xl bg-[#0F0A26]/90 border ${
-                activeNode === 'software' ? 'border-blue-400 shadow-lg shadow-blue-500/30' : 'border-blue-500/30'
-              } backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 shrink-0">
-                  <Code2 className="w-4 h-4" />
+              {/* Central Interactive Portal Action to trigger solutions */}
+              <button
+                onClick={onExploreServices}
+                className="relative z-20 group flex flex-col items-center justify-center p-6 rounded-full bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30 hover:border-purple-400/80 shadow-[0_0_40px_rgba(168,85,247,0.3)] backdrop-blur-md transition-all duration-300 cursor-pointer"
+                title="Click to explore the Vixora Hub Ecosystem"
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-purple-600/50 group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-5 h-5 text-white animate-spin [animation-duration:8s]" />
                 </div>
-                <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-white">Software Solutions</div>
-                  <div className="text-[10px] text-neutral-300 leading-tight">
-                    Custom software built for performance and growth.
-                  </div>
-                </div>
-              </div>
-            </div>
+                <span className="mt-2 text-[10px] font-mono font-semibold uppercase tracking-widest text-purple-200 group-hover:text-white transition-colors">
+                  Explore Ecosystem
+                </span>
+              </button>
 
-            {/* 3. TOP-RIGHT: Digital Marketing */}
-            <div 
-              onMouseEnter={() => setActiveNode('marketing')}
-              onMouseLeave={() => setActiveNode(null)}
-              className={`absolute top-4 sm:top-10 right-0 sm:right-2 z-20 max-w-[210px] p-3 rounded-2xl bg-[#0F0A26]/90 border ${
-                activeNode === 'marketing' ? 'border-purple-400 shadow-lg shadow-purple-500/30' : 'border-purple-500/30'
-              } backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shrink-0">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-white">Digital Marketing</div>
-                  <div className="text-[10px] text-neutral-300 leading-tight">
-                    Data-driven strategies that boost your brand and revenue.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. BOTTOM-RIGHT: Creative & Branding */}
-            <div 
-              onMouseEnter={() => setActiveNode('branding')}
-              onMouseLeave={() => setActiveNode(null)}
-              className={`absolute bottom-4 sm:bottom-10 right-0 sm:right-4 z-20 max-w-[210px] p-3 rounded-2xl bg-[#0F0A26]/90 border ${
-                activeNode === 'branding' ? 'border-fuchsia-400 shadow-lg shadow-fuchsia-500/30' : 'border-fuchsia-500/30'
-              } backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-xl bg-fuchsia-600/20 text-fuchsia-400 border border-fuchsia-500/30 shrink-0">
-                  <PenTool className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-white">Creative & Branding</div>
-                  <div className="text-[10px] text-neutral-300 leading-tight">
-                    Designs that communicate value and build trust.
-                  </div>
-                </div>
-              </div>
             </div>
 
           </div>

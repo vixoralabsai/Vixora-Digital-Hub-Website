@@ -42,13 +42,13 @@ import {
 import { AcademyCourse, CourseSyllabusModule, ACADEMY_COURSES } from '../data/vixoraContent';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
 import { WhatsAppContactButton } from '../components/WhatsAppContactButton';
+import { BankPaymentDetailsCard } from '../components/BankPaymentDetailsCard';
 
 interface CourseLandingPageProps {
   course: AcademyCourse;
   onBackToAcademy: () => void;
   onEnroll: (course: AcademyCourse) => void;
   onSelectCourse?: (course: AcademyCourse) => void;
-  onOpenSubdomainGuide: () => void;
   onNavigateHome: () => void;
 }
 
@@ -57,7 +57,6 @@ export function CourseLandingPage({
   onBackToAcademy,
   onEnroll,
   onSelectCourse,
-  onOpenSubdomainGuide,
   onNavigateHome
 }: CourseLandingPageProps) {
   const [expandedModules, setExpandedModules] = useState<{ [key: number]: boolean }>({ 0: true, 1: true });
@@ -130,9 +129,11 @@ export function CourseLandingPage({
     document.body.removeChild(link);
   };
 
+  const isDataAnalysisCourse = course.slug === 'data-analysis-cohort';
   const isPremiumCourse = course.slug === 'ai-automation-digital-business-systems';
   const isBeginnerCourse = course.slug === 'ai-automation-digital-skills';
 
+  const dataAnalysisCourse = ACADEMY_COURSES.find(c => c.slug === 'data-analysis-cohort') || course;
   const massMarketCourse = ACADEMY_COURSES.find(c => c.slug === 'ai-automation-digital-skills') || course;
   const premiumCourse = ACADEMY_COURSES.find(c => c.slug === 'ai-automation-digital-business-systems') || course;
 
@@ -163,19 +164,21 @@ export function CourseLandingPage({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={onOpenSubdomainGuide}
-              className="text-neutral-400 hover:text-purple-300 underline decoration-purple-500/40 transition-colors cursor-pointer text-[11px]"
+            <a
+              href={BRAND_CONFIG.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors text-[11px]"
             >
-              Subdomain DNS Guide
-            </button>
+              Admissions Desk WhatsApp
+            </a>
             <span className="text-neutral-700">&bull;</span>
-            <button
-              onClick={onNavigateHome}
-              className="text-neutral-400 hover:text-white transition-colors cursor-pointer text-[11px]"
+            <a
+              href={BRAND_CONFIG.domain}
+              className="text-neutral-400 hover:text-white transition-colors text-[11px]"
             >
               Main Site ({BRAND_CONFIG.cleanDomain})
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -256,7 +259,14 @@ export function CourseLandingPage({
 
               {/* Bold Playful Display Title */}
               <h1 className="text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white tracking-tight leading-[1.15]">
-                {isPremiumCourse ? (
+                {isDataAnalysisCourse ? (
+                  <>
+                    Your Laptop Already Has the Power to Change Your Career.{' '}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-200 underline decoration-amber-400/40 decoration-wavy decoration-2">
+                      You Just Haven't Learned to Use It Yet.
+                    </span>
+                  </>
+                ) : isPremiumCourse ? (
                   <>
                     Stop Using AI Tools. Start Building{' '}
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-200 underline decoration-amber-400/40 decoration-wavy decoration-2">
@@ -299,9 +309,9 @@ export function CourseLandingPage({
 
                 <div className="flex items-center gap-1.5 text-xs font-mono text-neutral-300">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-bold text-white">{isPremiumCourse ? 'Strict Cohort Cap (12 Max)' : '78+ students enrolled'}</span>
+                  <span className="font-bold text-white">{isDataAnalysisCourse ? '16-Week Intensive Cohort' : isPremiumCourse ? 'Strict Cohort Cap (12 Max)' : '78+ students enrolled'}</span>
                   <span className="text-neutral-500">&bull;</span>
-                  <span className="text-amber-400 font-semibold">{course.seatsRemaining} seats left in next cohort</span>
+                  <span className="text-amber-400 font-semibold">{course.seatsRemaining} seats left at early price</span>
                 </div>
               </div>
 
@@ -313,9 +323,9 @@ export function CourseLandingPage({
                     className="relative px-7 py-4 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-neutral-950 shadow-xl shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <div className="absolute -top-3 -right-2 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-red-600 text-white shadow-md flex items-center gap-1">
-                      <Flame className="w-2.5 h-2.5" /> {isPremiumCourse ? '60% OFF · REG ₦150K+' : '14% OFF'}
+                      <Flame className="w-2.5 h-2.5" /> {isDataAnalysisCourse ? 'SAVE ₦5,000 EARLY' : isPremiumCourse ? '60% OFF · REG ₦150K+' : '14% OFF'}
                     </div>
-                    <span>{isPremiumCourse ? 'Apply for Premium — ₦60,000' : `Apply Now — ${course.tuition}`}</span>
+                    <span>{isDataAnalysisCourse ? 'Apply Now — Early Price ₦60,000' : isPremiumCourse ? 'Apply for Premium — ₦60,000' : `Apply Now — ${course.tuition}`}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
 
@@ -328,11 +338,11 @@ export function CourseLandingPage({
                 </div>
 
                 <div className="text-xs font-mono text-neutral-400 flex flex-wrap items-center gap-2">
-                  <span>12 weeks</span>
+                  <span>{course.duration}</span>
                   <span>&bull;</span>
-                  <span className="text-purple-300">{isPremiumCourse ? 'Advanced Implementation' : 'Beginner-friendly'}</span>
+                  <span className="text-purple-300">{isDataAnalysisCourse ? 'Online & Physical' : isPremiumCourse ? 'Advanced Implementation' : 'Beginner-friendly'}</span>
                   <span>&bull;</span>
-                  <span className="text-emerald-400">{isPremiumCourse ? 'Direct Mentorship Included' : 'Certificate + Real Project'}</span>
+                  <span className="text-emerald-400">{isDataAnalysisCourse ? 'Beginner to Professional · Certificate Included' : isPremiumCourse ? 'Direct Mentorship Included' : 'Certificate + Real Project'}</span>
                 </div>
               </div>
 
@@ -425,11 +435,18 @@ export function CourseLandingPage({
           
           <div className="text-center space-y-3 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-widest text-red-400 bg-red-950/50 px-3 py-1 rounded-full border border-red-800/40">
-              <Zap className="w-3.5 h-3.5" /> {isPremiumCourse ? 'THE CEILING EFFECT' : 'The Real Gap in Today\'s Market'}
+              <Zap className="w-3.5 h-3.5" /> {isDataAnalysisCourse ? 'THE REAL DATA GAP' : isPremiumCourse ? 'THE CEILING EFFECT' : 'The Real Gap in Today\'s Market'}
             </div>
             
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              {isPremiumCourse ? (
+              {isDataAnalysisCourse ? (
+                <>
+                  Every Business Is Sitting on Data.{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-300">
+                    Almost Nobody Knows How to Read It.
+                  </span>
+                </>
+              ) : isPremiumCourse ? (
                 <>
                   Knowing AI tools gets you noticed.{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-300">
@@ -449,13 +466,53 @@ export function CourseLandingPage({
 
           <div className="space-y-4">
             <p className="text-sm sm:text-base text-neutral-300 text-center max-w-2xl mx-auto">
-              {isPremiumCourse
+              {isDataAnalysisCourse
+                ? 'Companies everywhere are collecting more data than ever — sales numbers, customer records, marketing performance — and drowning in spreadsheets nobody has time to make sense of:'
+                : isPremiumCourse
                 ? 'There is a stark difference between someone who "knows ChatGPT" and someone who builds an autonomous workflow that saves a business 10 hours a week — and clients know the difference too:'
                 : 'Right now, somewhere, someone with zero extra talent is:'}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {isPremiumCourse ? (
+              {isDataAnalysisCourse ? (
+                <>
+                  <div className="p-6 rounded-2xl bg-[#120B29] border border-purple-900/40 hover:border-red-500/40 transition-all space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center font-bold text-base border border-red-500/20">
+                      📊
+                    </div>
+                    <h3 className="text-base font-bold text-white">
+                      Drowning in Spreadsheets
+                    </h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                      Companies collect gigabytes of raw data but lack people who can diagnose where money is lost and where growth is hidden.
+                    </p>
+                  </div>
+
+                  <div className="p-6 rounded-2xl bg-[#120B29] border border-purple-900/40 hover:border-amber-500/40 transition-all space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base border border-amber-500/20">
+                      💼
+                    </div>
+                    <h3 className="text-base font-bold text-white">
+                      High-Paying Global Demand
+                    </h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                      They don't need another person who only opens Excel. They need analysts who extract actionable business decisions.
+                    </p>
+                  </div>
+
+                  <div className="p-6 rounded-2xl bg-[#120B29] border border-purple-900/40 hover:border-purple-500/40 transition-all space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-base border border-purple-500/20">
+                      🎯
+                    </div>
+                    <h3 className="text-base font-bold text-white">
+                      A Structured Roadmap
+                    </h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                      Random YouTube tutorials don't teach real-world data pipelines or portfolio proof. You need structured, project-based mastery.
+                    </p>
+                  </div>
+                </>
+              ) : isPremiumCourse ? (
                 <>
                   <div className="p-6 rounded-2xl bg-[#120B29] border border-purple-900/40 hover:border-red-500/40 transition-all space-y-3">
                     <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center font-bold text-base border border-red-500/20">
@@ -537,7 +594,9 @@ export function CourseLandingPage({
             {/* Agitation Callout Box */}
             <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-red-950/40 via-[#1A0F35] to-purple-950/40 border border-red-500/30 text-center space-y-3 max-w-3xl mx-auto mt-6">
               <p className="text-sm sm:text-base text-neutral-200 leading-relaxed font-medium">
-                {isPremiumCourse
+                {isDataAnalysisCourse
+                  ? '"The tools aren\'t the hard part. Excel, SQL, and Power BI are all learnable. What\'s missing for most people is a structured path that takes them from zero to actually employable — not another 3-hour YouTube tutorial that goes nowhere."'
+                  : isPremiumCourse
                   ? '"If you already understand the basics of AI, staying at that level isn\'t safe — it\'s a ceiling. The people getting real income and real clients right now are the ones who went further: who learned to build, implement, and sell systems, not just use tools."'
                   : '"It\'s not that they\'re smarter. It\'s that they learned the tools before everyone else caught on. Every month you wait, the gap gets wider — and the \'I\'ll learn it eventually\' plan quietly becomes \'I never learned it at all.\'"'}
               </p>
@@ -557,7 +616,14 @@ export function CourseLandingPage({
             </div>
             
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              {isPremiumCourse ? (
+              {isDataAnalysisCourse ? (
+                <>
+                  From Raw Data to Real Decisions —{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-400">
+                    With the Exact Tools Employers Ask For
+                  </span>
+                </>
+              ) : isPremiumCourse ? (
                 <>
                   From "I Know How AI Works" to{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-400">
@@ -575,7 +641,11 @@ export function CourseLandingPage({
             </h2>
 
             <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-3xl mx-auto pt-2">
-              {isPremiumCourse ? (
+              {isDataAnalysisCourse ? (
+                <>
+                  <strong className="text-white">The Data Analysis Cohort</strong> is a 16-week, project-based program that takes you through the full analyst toolkit: <strong className="text-amber-300">Excel → SQL → Power BI → AI-Assisted Analysis</strong>. You won't just learn what a pivot table is. You'll clean real messy datasets, write SQL queries that answer real business questions, build interactive Power BI dashboards, and finish with a portfolio-ready capstone project.
+                </>
+              ) : isPremiumCourse ? (
                 <>
                   <strong className="text-white">AI Automation & Digital Business Systems</strong> is Vixora Academy's advanced, implementation-focused program for people ready to go beyond tools and start building. You'll learn to design, build, and deploy AI-powered automations and solutions — the kind organizations and clients actually pay for — with hands-on mentorship, real business projects, and direct support.
                 </>
@@ -589,7 +659,33 @@ export function CourseLandingPage({
 
           {/* 3-Step Transformation Path */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {isPremiumCourse ? (
+            {isDataAnalysisCourse ? (
+              <>
+                <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-3 relative overflow-hidden">
+                  <div className="text-xs font-mono text-purple-400 font-bold">PHASE 1 (WEEKS 1-4)</div>
+                  <h3 className="text-lg font-bold text-white">Excel & Data Cleaning Mastery</h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Master formulas (XLOOKUP, nested logic), clean messy datasets with Power Query, and build dynamic Pivot Table dashboards.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-3 relative overflow-hidden">
+                  <div className="text-xs font-mono text-amber-400 font-bold">PHASE 2 (WEEKS 5-8)</div>
+                  <h3 className="text-lg font-bold text-white">Relational Databases & SQL</h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Query real business databases with SELECT, multi-table JOINs, CASE logic, math aggregations, and window functions.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-3 relative overflow-hidden">
+                  <div className="text-xs font-mono text-emerald-400 font-bold">PHASE 3 (WEEKS 9-16)</div>
+                  <h3 className="text-lg font-bold text-white">Power BI, AI & Portfolio Capstone</h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Build interactive DAX dashboards, accelerate analysis with AI, and deliver an end-to-end Capstone defense for hiring managers.
+                  </p>
+                </div>
+              </>
+            ) : isPremiumCourse ? (
               <>
                 <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-3 relative overflow-hidden">
                   <div className="text-xs font-mono text-purple-400 font-bold">PHASE 1 (WEEKS 1-4)</div>

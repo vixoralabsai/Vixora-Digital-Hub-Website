@@ -14,7 +14,6 @@ import {
   Cpu,
   Bot,
   Globe,
-  Settings,
   Clock,
   CreditCard,
   Layers,
@@ -27,7 +26,6 @@ interface AcademyPageProps {
   onOpenProjectModal: () => void;
   onSelectCourse: (course: AcademyCourse) => void;
   onEnrollCourse: (course: AcademyCourse) => void;
-  onOpenSubdomainGuide: () => void;
   onNavigateHome: () => void;
 }
 
@@ -35,16 +33,16 @@ export function AcademyPage({
   onOpenProjectModal,
   onSelectCourse,
   onEnrollCourse,
-  onOpenSubdomainGuide,
   onNavigateHome
 }: AcademyPageProps) {
   const [selectedTrack, setSelectedTrack] = useState<string>('All Tracks');
 
   const tracks = [
     'All Tracks',
+    'Data & Analytics',
+    'Business Automation',
     'Engineering & AI',
     'Executive & Leadership',
-    'Business Automation',
     'Design & Marketing'
   ];
 
@@ -84,25 +82,28 @@ export function AcademyPage({
               <span className="font-semibold">{BRAND_CONFIG.cleanAcademyDomain}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-1" />
             </div>
-            <span className="text-neutral-500 text-[11px] hidden sm:inline">
-              Official Vixora Digital Academy Subdomain Portal
+            <span className="text-neutral-400 text-[11px] hidden sm:inline">
+              Live Official Vixora Academy Subdomain Portal
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={onOpenSubdomainGuide}
-              className="px-3 py-1 rounded-lg text-xs font-mono bg-purple-900/30 text-purple-300 border border-purple-700/50 hover:bg-purple-900/50 transition-colors flex items-center gap-1.5 cursor-pointer"
+            <a
+              href={BRAND_CONFIG.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 rounded-lg text-xs font-medium bg-emerald-950/50 text-emerald-300 border border-emerald-700/50 hover:bg-emerald-900/60 transition-colors flex items-center gap-1.5"
             >
-              <Settings className="w-3 h-3 text-purple-400" /> Subdomain DNS Setup Guide
-            </button>
+              Admissions Desk WhatsApp
+            </a>
             <span className="text-neutral-700 hidden sm:inline">&bull;</span>
-            <button
-              onClick={onNavigateHome}
-              className="text-neutral-400 hover:text-white transition-colors cursor-pointer text-[11px] hidden sm:inline"
+            <a
+              href={BRAND_CONFIG.domain}
+              className="text-neutral-400 hover:text-white transition-colors text-[11px] flex items-center gap-1"
             >
-              Return to Main Hub ({BRAND_CONFIG.cleanDomain})
-            </button>
+              <span>Main Hub ({BRAND_CONFIG.cleanDomain})</span>
+              <ArrowUpRight className="w-3 h-3 text-neutral-500" />
+            </a>
           </div>
         </div>
       </div>
@@ -133,17 +134,20 @@ export function AcademyPage({
               Request Corporate In-House Cohort
             </button>
             <button
-              onClick={onOpenSubdomainGuide}
-              className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 transition-colors flex items-center gap-2 cursor-pointer"
+              onClick={() => {
+                const el = document.getElementById('catalog');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-purple-500/30 hover:border-purple-400 transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <Globe className="w-4 h-4 text-purple-400" /> Subdomain DNS Configuration
+              <BookOpen className="w-4 h-4 text-purple-400" /> Browse Program Tracks
             </button>
           </div>
         </div>
       </section>
 
       {/* Course Catalog Showcase */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <section id="catalog" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-purple-400">

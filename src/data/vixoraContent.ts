@@ -125,7 +125,7 @@ export interface AcademyCourse {
   subtitle: string;
   badge: string;
   level: 'All Levels' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Executive';
-  track: 'Engineering & AI' | 'Executive & Leadership' | 'Business Automation' | 'Design & Marketing';
+  track: 'Data & Analytics' | 'Engineering & AI' | 'Executive & Leadership' | 'Business Automation' | 'Design & Marketing';
   format: string;
   duration: string;
   commitment: string;
@@ -646,7 +646,196 @@ export const LATEST_INSIGHTS: InsightItem[] = [
   }
 ];
 
+export const BANK_PAYMENT_DETAILS = {
+  bankName: "OPay",
+  accountName: "VIXORA DIGITAL HUB",
+  accountNumber: "6112986232"
+};
+
 export const ACADEMY_COURSES: AcademyCourse[] = [
+  {
+    id: "course-data-analysis-cohort",
+    slug: "data-analysis-cohort",
+    title: "Data Analysis Cohort",
+    subtitle: "In 16 weeks, go from \"I have a laptop and curiosity\" to a working data analyst who can clean messy data, write SQL, build Power BI dashboards, and tell a story businesses actually act on.",
+    badge: "🔥 Early Price: ₦60,000",
+    level: "Beginner",
+    track: "Data & Analytics",
+    format: "16-Week Hybrid Cohort (Online & Physical)",
+    duration: "16 Weeks",
+    commitment: "5-6 hrs/week (Flexible Bite-Sized Sessions & Practical Labs)",
+    nextCohortDate: "November 9, 2026",
+    tuition: "₦60,000",
+    tuitionNote: "Early applicant price: ₦60,000 (Standard: ₦65,000). Limited seats, ends soon.",
+    seatsRemaining: 10,
+    targetAudience: "Students, Graduates, Job Seekers, Freelancers, Professionals, and Complete Beginners.",
+    description: "A 16-week, project-based program that takes you through the full analyst toolkit: Excel → SQL → Power BI → AI-Assisted Analysis. You won't just learn what a pivot table is. You'll clean real messy datasets, write SQL queries that answer real business questions, build interactive Power BI dashboards, and finish with a portfolio-ready capstone project.",
+    heroPitch: "Your laptop already has the power to change your career. You just haven't learned to use it yet. In 16 weeks, go from raw data to real decisions with Excel, SQL, Power BI, and AI-assisted analysis.",
+    highlights: [
+      "16 weeks of structured, project-based training with zero fluff",
+      "12 comprehensive modules: Excel, SQL, Power BI & AI-assisted analysis",
+      "Multiple real portfolio projects (Sales Dashboard, Customer Analysis, Marketing Performance, SQL Business Analysis, BI Dashboard)",
+      "A full Final Capstone Project — real analyst-level work, start to finish",
+      "Official Vixora Certificate of Completion upon graduation",
+      "Online & Physical hybrid access — learn however suits you",
+      "Career + freelancing guidance to turn your skill into income"
+    ],
+    outcomes: [
+      "Clean messy, unreliable datasets into analysis-ready business models with Excel & Power Query",
+      "Write professional SQL queries (SELECT, JOINs, CASE, aggregations, and window functions)",
+      "Build interactive Power BI dashboards with DAX measures and cross-filtered analytics",
+      "Leverage AI tools for automated formula generation, SQL debugging, and fast reporting",
+      "Present data insights using the Finding → Evidence → Meaning → Recommendation framework",
+      "Package dashboard-building, reporting, and data analysis as high-income freelance services"
+    ],
+    prerequisites: [
+      "A laptop with internet access",
+      "Zero prior coding, math, or statistics background required (taught from the ground up)",
+      "No expensive software — learn tools businesses already use daily",
+      "Curiosity and willingness to practice hands-on projects"
+    ],
+    curriculum: [
+      "Module 1 — Introduction to Data Analysis (The Analyst Workflow)",
+      "Module 2 — Excel Fundamentals (Formulas & Business Sales Project)",
+      "Module 3 — Data Cleaning & Preparation (Messy Data into Insights)",
+      "Module 4 — Data Analysis with Excel (Statistics, Trends & Pivot Tables)",
+      "Module 5 — Data Visualization (Chart Principles & Visual Storytelling)",
+      "Module 6 — SQL for Data Analysis (Queries, JOINs & Customer Database)",
+      "Module 7 — Power BI (DAX, Modeling & Interactive BI Dashboards)",
+      "Module 8 — AI for Data Analysis (AI Formulas, SQL Generation & Debugging)",
+      "Module 9 — Business & Real-World Data Analysis (Sales, Marketing & Ops)",
+      "Module 10 — Data Storytelling & Reporting (Executive Presentations)",
+      "Module 11 — Data Analyst Portfolio (Showcase Ready for Hiring Managers)",
+      "Module 12 — From Skill to Opportunity (Careers, Freelancing & Proposals)",
+      "🏆 Final Capstone Project — Complete Real-World Business Analysis"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2 (Module 1 & 2)",
+        title: "Introduction to Data Analysis & Excel Fundamentals",
+        description: "Understand what data analysis actually is, the types of data you'll work with, and the full process every analyst follows: Ask → Collect → Clean → Analyze → Visualize → Communicate → Decide. Master essential Excel formulas, functions, text/date tools, and build a real Business Sales Analysis project.",
+        topics: [
+          "The Data Analysis lifecycle & types of structured/unstructured business data",
+          "Essential Excel formulas, functions, text and date manipulation tools",
+          "Cell referencing, XLOOKUP / VLOOKUP, logic formulas (IF, IFS), and error handling",
+          "Business Sales Analysis project: Structuring workbooks and automated KPI metrics"
+        ],
+        handsOnLab: "Build an automated Business Sales Analysis model in Excel with structured lookups and summary metrics."
+      },
+      {
+        week: "Weeks 3-4 (Module 3 & 4)",
+        title: "Data Cleaning, Preparation & Analysis with Excel",
+        description: "Learn to turn messy, unreliable data into clean, analysis-ready datasets — the unglamorous skill that separates real analysts from beginners. Move from cleaning to insight: descriptive statistics, growth rates, trends, Pivot Tables, and building your first interactive dashboard.",
+        topics: [
+          "Handling missing values, duplicate records, inconsistent formatting, and outliers",
+          "Power Query basics for transforming and reshaping raw data imports",
+          "Descriptive statistics, variance, growth rates, margins, and seasonal trends",
+          "Advanced Pivot Tables, calculated fields, dynamic slicers, and interactive dashboard design"
+        ],
+        handsOnLab: "Clean an authentic messy multi-year transactional dataset and build an interactive Excel Sales & Margin Pivot Dashboard."
+      },
+      {
+        week: "Weeks 5-6 (Module 5 & 6)",
+        title: "Data Visualization & SQL for Data Analysis",
+        description: "Learn to choose the right chart, apply visualization principles, and turn a plain dataset into a report that tells a clear business story. Master SQL from SELECT statements to JOINs, aggregations, CASE statements, subqueries, and window functions — culminating in a Customer & Sales Database project.",
+        topics: [
+          "Visual hierarchy, chart selection matrix, formatting, and reducing cognitive load",
+          "Relational databases: Tables, primary keys, foreign keys, and entity relationships",
+          "Writing SQL queries: SELECT, WHERE, GROUP BY, HAVING, ORDER BY, and math aggregations",
+          "Multi-table JOINs (INNER, LEFT, RIGHT), subqueries, CASE statements, and window functions"
+        ],
+        handsOnLab: "Query a multi-table Customer & Sales Database to extract revenue cohorts, retention rates, and top customer segments."
+      },
+      {
+        week: "Weeks 7-8 (Module 7 & 8)",
+        title: "Power BI Business Intelligence & AI for Data Analysis",
+        description: "Import, clean, and model data in Power BI; build custom DAX measures; and design professional, interactive Business Intelligence dashboards. Learn to use AI as a genuine analysis accelerator — generating and explaining formulas, writing and debugging SQL, and speeding up reporting while keeping human judgment in control.",
+        topics: [
+          "Power BI architecture, data modeling, star schemas, and active relationships",
+          "DAX fundamentals: CALCULATE, RELATED, time intelligence, and custom business KPIs",
+          "Designing executive-ready visual dashboards with cross-filtering and drill-throughs",
+          "AI for Data Analysis: Generating and explaining formulas, debugging SQL, and accelerating exploratory analysis"
+        ],
+        handsOnLab: "Build a production-ready, interactive Power BI Executive Operations & Revenue Dashboard with dynamic DAX metrics."
+      },
+      {
+        week: "Weeks 9-11 (Module 9 & 10)",
+        title: "Business Data Analysis & Data Storytelling & Reporting",
+        description: "Apply everything to realistic business scenarios across sales, marketing, finance, customers, and operations — answering the questions real companies ask. Learn to summarize findings, write executive summaries, and present insights using the Finding → Evidence → Meaning → Recommendation framework.",
+        topics: [
+          "Domain analysis: CAC, LTV, churn velocity, marketing ROI, and operational bottleneck diagnostics",
+          "Diagnosing business anomalies: 'Why did revenue drop?' and 'What should we do next?'",
+          "The 4-part Storytelling Framework: Finding → Evidence → Meaning → Recommendation",
+          "Writing 1-page executive summaries and slide decks for non-technical stakeholders"
+        ],
+        handsOnLab: "Conduct a full business diagnostics review on a declining commercial product and present a slide deck with clear executive recommendations."
+      },
+      {
+        week: "Weeks 12-16 (Module 11, 12 & Final Capstone)",
+        title: "Data Analyst Portfolio, Freelancing & Final Capstone Project",
+        description: "Build a professional portfolio showcasing your Excel, SQL, and Power BI projects — documented the way hiring managers and clients expect. Turn your skills into income by exploring career pathways (Data Analyst, BI Analyst, Reporting Analyst) and learning freelancing fundamentals. Complete and defend your comprehensive Final Capstone Project.",
+        topics: [
+          "Documenting and packaging projects on GitHub / Notion / portfolio sites the way hiring managers expect",
+          "Career pathways: Data Analyst, BI Analyst, Reporting Analyst, and Operations Analyst roles",
+          "Freelancing fundamentals: Packaging dashboard & data services, pricing, client outreach, and proposal writing",
+          "Final Capstone Project: End-to-end raw data ingestion, cleaning, SQL queries, Power BI dashboard, and executive presentation"
+        ],
+        handsOnLab: "Complete and present your full Final Capstone Project covering raw data to executive strategic recommendations."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "End-to-End Enterprise Sales & Revenue Intelligence Dashboard",
+        description: "A complete data analysis system transforming multi-year messy sales spreadsheets into an automated Power BI dashboard with dynamic DAX metrics and trend forecasting.",
+        technologies: ["Excel", "Power Query", "Power BI", "DAX", "AI Data Tools"]
+      },
+      {
+        title: "Customer Retention & Lifetime Value SQL Database Analysis",
+        description: "A comprehensive relational database analysis querying 50,000+ customer records to identify churn patterns, repeat purchase velocity, and high-value customer cohorts.",
+        technologies: ["PostgreSQL / MySQL", "SQL Subqueries & Window Functions", "Data Modeling"]
+      },
+      {
+        title: "Executive Business Diagnostic Report & Strategic Presentation",
+        description: "A polished stakeholder deliverable diagnosing a company's marketing and revenue drop, presenting actionable business findings with the Finding-Evidence-Meaning-Recommendation framework.",
+        technologies: ["Data Storytelling", "Excel Pivot Reporting", "Executive Summary Decks"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Senior Data Analysts & BI Engineers",
+        role: "Lead Instructors & Head of Data Analytics, Vixora Academy",
+        bio: "Practicing data analysts and business intelligence specialists who build analytics infrastructure for enterprises and mentor beginners into employable professionals.",
+        companyBackground: "Vixora Academy Certified Instructors"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need a math or coding background?",
+        a: "No. The program takes you from beginner to professional — every tool and concept is taught from the ground up."
+      },
+      {
+        q: "Is this online or in-person?",
+        a: "Both — the cohort runs hybrid, so you can learn online, in person, or a mix of both."
+      },
+      {
+        q: "What tools will I actually learn?",
+        a: "Excel, SQL, and Power BI as your core tools, plus Power Query, AI tools, and Google Sheets as supporting skills."
+      },
+      {
+        q: "Will I have something to show employers or clients afterward?",
+        a: "Yes — you'll build a full portfolio (Sales Dashboard, Customer Analysis, SQL projects, Power BI dashboard) plus a Final Capstone Project you can present as real analyst work."
+      },
+      {
+        q: "What if I want to freelance instead of getting a job?",
+        a: "Module 12 covers freelancing fundamentals — packaging your services, finding clients, and writing proposals — so both paths are covered."
+      },
+      {
+        q: "What happens after I apply?",
+        a: "You'll receive confirmation and next steps, including your cohort start date and how to secure your seat at the early price."
+      }
+    ],
+    certificateType: "Vixora Certificate of Professional Completion in Data Analysis"
+  },
   {
     id: "course-ai-automation-digital-skills",
     slug: "ai-automation-digital-skills",

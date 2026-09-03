@@ -33,9 +33,9 @@ export function BrandLogo({
   };
 
   const heightClasses = {
-    sm: 'h-8 sm:h-9 max-w-[160px]',
-    md: 'h-10 sm:h-11 md:h-12 max-w-[220px] sm:max-w-[260px]',
-    lg: 'h-12 sm:h-16 max-w-[300px]'
+    sm: 'h-8 sm:h-9 max-w-[180px]',
+    md: 'h-10 sm:h-12 md:h-14 max-w-[260px] sm:max-w-[320px]',
+    lg: 'h-14 sm:h-20 max-w-[380px]'
   };
 
   const currentSrc = fallbackList[currentIdx] || getDirectImageUrl(targetUrl);
