@@ -196,6 +196,7 @@ export default function App() {
             course={selectedCourse}
             onBackToAcademy={() => handleNavigate('academy')}
             onEnroll={handleEnrollInCourse}
+            onSelectCourse={handleSelectCourse}
             onOpenSubdomainGuide={() => setSubdomainGuideModalOpen(true)}
             onNavigateHome={() => handleNavigate('home')}
           />

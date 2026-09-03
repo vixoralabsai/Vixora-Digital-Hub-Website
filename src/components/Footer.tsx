@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { COMPANY_CONTACT } from '../data/vixoraContent';
 import { BRAND_CONFIG } from '../data/brandConfig';
+import { BrandLogo } from './BrandLogo';
 
 interface FooterProps {
   onOpenDriveWorkspace: () => void;
@@ -20,7 +21,6 @@ interface FooterProps {
 export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }: FooterProps) {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
-  const [logoLoadError, setLogoLoadError] = useState(false);
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,44 +41,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
               onClick={() => onNavigate('home')}
               className="flex items-center gap-3 text-left cursor-pointer group"
             >
-              {BRAND_CONFIG.logo.imageUrl && !logoLoadError ? (
-                <div className="flex items-center gap-2">
-                  <img
-                    src={BRAND_CONFIG.logo.imageUrl}
-                    alt={BRAND_CONFIG.logo.altText || BRAND_CONFIG.name}
-                    onError={() => setLogoLoadError(true)}
-                    className="h-8 sm:h-9 w-auto max-w-[160px] object-contain group-hover:opacity-90 transition-opacity"
-                  />
-                </div>
-              ) : (
-                <>
-                  <div className="relative w-8 h-8 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-[0_0_12px_rgba(168,85,247,0.7)]">
-                      <defs>
-                        <linearGradient id="footerVLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#3B82F6" />
-                          <stop offset="100%" stopColor="#8B5CF6" />
-                        </linearGradient>
-                        <linearGradient id="footerVRight" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#A855F7" />
-                          <stop offset="100%" stopColor="#6366F1" />
-                        </linearGradient>
-                      </defs>
-                      <polygon points="6,6 16,6 20,32 13,32" fill="url(#footerVLeft)" />
-                      <polygon points="34,6 24,6 20,32 27,32" fill="url(#footerVRight)" />
-                      <polyline points="6,6 20,33 34,6" stroke="#C084FC" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-extrabold text-lg tracking-tight text-white">
-                      Vixora Digital Hub
-                    </span>
-                    <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest">
-                      Software • AI • Automation
-                    </span>
-                  </div>
-                </>
-              )}
+              <BrandLogo size="md" />
             </button>
 
             <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-sm">

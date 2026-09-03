@@ -37,6 +37,7 @@ export interface BrandConfig {
   address: string;
   logo: {
     imageUrl: string;
+    secondaryImageUrl?: string;
     darkImageUrl?: string;
     altText: string;
   };
@@ -83,17 +84,68 @@ export const BRAND_CONFIG: BrandConfig = {
   whatsappUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
   address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Innovation Center",
   logo: {
-    // ⬇️ Paste your custom logo image link here:
-    imageUrl: "", 
-    darkImageUrl: "",
+    // ⬇️ Logos configured from provided links:
+    imageUrl: "https://i.imgur.com/QOLJJP8.png", 
+    secondaryImageUrl: "https://i.imgur.com/swGpVmW.png",
+    darkImageUrl: "https://i.imgur.com/swGpVmW.png",
     altText: "Vixora Digital Hub Logo"
   },
   heroBackground: {
-    // ⬇️ Paste your custom hero section background image link here:
-    imageUrl: "", 
-    overlayOpacity: 0.80
+    // ⬇️ Custom hero section background image:
+    imageUrl: "https://i.imgur.com/lP5Ub4o.png", 
+    overlayOpacity: 0.75
   }
 };
+
+/**
+ * Extracts an Imgur image ID if the URL matches an Imgur link
+ */
+export function extractImgurId(url?: string): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  const imgurMatch = trimmed.match(/^https?:\/\/(?:[a-z0-9.]+\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z0-9]+)?/i);
+  return (imgurMatch && imgurMatch[1]) ? imgurMatch[1] : null;
+}
+
+/**
+ * Helper to normalize and convert any image URL (including imgur albums/pages) into a direct image CDN link.
+ * Uses a multi-CDN proxy approach (wsrv.nl / i.imgur.com) to bypass hotlink blocking.
+ */
+export function getDirectImageUrl(url?: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  
+  const imgurId = extractImgurId(trimmed);
+  if (imgurId) {
+    // Use wsrv.nl proxy as primary since Imgur often returns 403 Forbidden to foreign referrers/iframes
+    return `https://wsrv.nl/?url=https://i.imgur.com/${imgurId}.png`;
+  }
+  
+  return trimmed;
+}
+
+/**
+ * Generates an array of fallback URLs for resilient image loading
+ */
+export function getImageFallbacks(url?: string): string[] {
+  if (!url) return [];
+  const trimmed = url.trim();
+  if (!trimmed) return [];
+
+  const imgurId = extractImgurId(trimmed);
+  if (imgurId) {
+    return [
+      `https://wsrv.nl/?url=https://i.imgur.com/${imgurId}.png`,
+      `https://i.imgur.com/${imgurId}.png`,
+      `https://i.imgur.com/${imgurId}.jpg`,
+      `https://images.weserv.nl/?url=https://i.imgur.com/${imgurId}.png`,
+      `https://cdn.statically.io/img/i.imgur.com/${imgurId}.png`
+    ];
+  }
+
+  return [trimmed];
+}
 
 /**
  * Helper to generate pre-filled WhatsApp click-to-chat links

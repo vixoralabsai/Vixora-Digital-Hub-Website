@@ -7,6 +7,7 @@ import {
   HardDrive
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../data/brandConfig';
+import { BrandLogo } from './BrandLogo';
 
 interface NavbarProps {
   onOpenProjectModal: () => void;
@@ -23,7 +24,6 @@ export function Navbar({
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [logoLoadError, setLogoLoadError] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,49 +64,7 @@ export function Navbar({
             onClick={() => handleItemClick('home')}
             className="flex items-center gap-3 group focus:outline-none cursor-pointer text-left"
           >
-            {BRAND_CONFIG.logo.imageUrl && !logoLoadError ? (
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={BRAND_CONFIG.logo.imageUrl}
-                  alt={BRAND_CONFIG.logo.altText || BRAND_CONFIG.name}
-                  onError={() => setLogoLoadError(true)}
-                  className="h-8 sm:h-9 w-auto max-w-[160px] sm:max-w-[200px] object-contain group-hover:opacity-90 transition-opacity"
-                />
-              </div>
-            ) : (
-              <>
-                {/* 3D Geometric Faceted 'V' Icon */}
-                <div className="relative w-9 h-9 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-[0_0_12px_rgba(168,85,247,0.7)]">
-                    <defs>
-                      <linearGradient id="navVLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#3B82F6" />
-                        <stop offset="100%" stopColor="#8B5CF6" />
-                      </linearGradient>
-                      <linearGradient id="navVRight" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#A855F7" />
-                        <stop offset="100%" stopColor="#6366F1" />
-                      </linearGradient>
-                    </defs>
-                    <polygon points="6,6 16,6 20,32 13,32" fill="url(#navVLeft)" />
-                    <polygon points="34,6 24,6 20,32 27,32" fill="url(#navVRight)" />
-                    <polygon points="16,6 24,6 20,32" fill="#180B2B" opacity="0.6" />
-                    <polyline points="6,6 20,33 34,6" stroke="#C084FC" strokeWidth="1.2" strokeLinecap="round" />
-                  </svg>
-                </div>
-
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-lg tracking-wider text-white">
-                      VIXORA
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-semibold tracking-widest text-neutral-400 uppercase -mt-1">
-                    DIGITAL HUB
-                  </span>
-                </div>
-              </>
-            )}
+            <BrandLogo size="md" />
           </button>
 
           {/* Desktop Navigation Links */}

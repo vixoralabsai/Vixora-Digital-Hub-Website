@@ -11,7 +11,7 @@ import {
   Users,
   HardDrive
 } from 'lucide-react';
-import { BRAND_CONFIG } from '../data/brandConfig';
+import { BRAND_CONFIG, getImageFallbacks, getDirectImageUrl } from '../data/brandConfig';
 
 interface HeroProps {
   onOpenProjectModal: () => void;
@@ -25,7 +25,19 @@ export function Hero({
   onOpenDriveWorkspace,
 }: HeroProps) {
   const [activeNode, setActiveNode] = useState<string | null>(null);
+  const fallbacks = getImageFallbacks(BRAND_CONFIG.heroBackground.imageUrl);
+  const [bgIdx, setBgIdx] = useState(0);
   const [bgLoadError, setBgLoadError] = useState(false);
+
+  const handleImageError = () => {
+    if (bgIdx + 1 < fallbacks.length) {
+      setBgIdx(prev => prev + 1);
+    } else {
+      setBgLoadError(true);
+    }
+  };
+
+  const currentBgSrc = fallbacks[bgIdx] || getDirectImageUrl(BRAND_CONFIG.heroBackground.imageUrl);
 
   return (
     <section
@@ -33,19 +45,20 @@ export function Hero({
       className="relative pt-28 pb-16 sm:pt-36 sm:pb-24 overflow-hidden bg-[#070314]"
     >
       {/* Custom Hero Background Image with Atmospheric Overlay */}
-      {BRAND_CONFIG.heroBackground.imageUrl && !bgLoadError && (
+      {currentBgSrc && !bgLoadError && (
         <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none">
           <img
-            src={BRAND_CONFIG.heroBackground.imageUrl}
+            src={currentBgSrc}
             alt="Hero Background"
-            onError={() => setBgLoadError(true)}
-            className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000"
+            referrerPolicy="no-referrer"
+            onError={handleImageError}
+            className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000 opacity-90"
           />
           {/* Atmospheric Dark & Purple Gradient Overlay for WCAG AA readability */}
           <div
-            className="absolute inset-0 bg-gradient-to-b from-[#070314]/85 via-[#070314]/75 to-[#070314]"
+            className="absolute inset-0 bg-gradient-to-b from-[#070314]/80 via-[#070314]/70 to-[#070314]"
             style={{
-              backgroundColor: `rgba(7, 3, 20, ${BRAND_CONFIG.heroBackground.overlayOpacity || 0.8})`
+              backgroundColor: `rgba(7, 3, 20, ${BRAND_CONFIG.heroBackground.overlayOpacity || 0.75})`
             }}
           />
         </div>

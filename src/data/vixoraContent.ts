@@ -648,6 +648,337 @@ export const LATEST_INSIGHTS: InsightItem[] = [
 
 export const ACADEMY_COURSES: AcademyCourse[] = [
   {
+    id: "course-ai-automation-digital-skills",
+    slug: "ai-automation-digital-skills",
+    title: "AI Automation & Digital Skills",
+    subtitle: "While most people are still asking ChatGPT to write birthday messages, you'll be building automations, creating AI content, and getting paid for skills the market is desperate for — no tech background required.",
+    badge: "🔥 Early Bird: ₦30,000",
+    level: "Beginner",
+    track: "Business Automation",
+    format: "12-Week Hybrid Cohort (Online + Practical Sessions)",
+    duration: "12 Weeks",
+    commitment: "4-5 hrs/week (Flexible Bite-Sized Sessions)",
+    nextCohortDate: "October 26, 2026",
+    tuition: "₦30,000",
+    tuitionNote: "Early applicant rate (Standard: ₦35,000). Limited cohort seats available.",
+    seatsRemaining: 14,
+    targetAudience: "Students, Job Seekers, Small Business Owners, Entrepreneurs, and Complete Beginners.",
+    description: "A 12-week, hands-on program built for complete beginners who want to go from 'I've heard of ChatGPT' to 'I automate things for a living' — without writing a single line of code. Master AI productivity tools, scroll-stopping content generation, Make/Zapier/Notion automations, document handling, and client freelancing monetization.",
+    heroPitch: "Everyone's talking about AI. In 12 weeks, you'll actually know how to use it — build automations, create AI content, and get paid for in-demand skills.",
+    highlights: [
+      "12 weeks of structured, hands-on training with zero fluff",
+      "5 comprehensive modules: AI tools, content, automation, documents & monetization",
+      "A real, practical project for your portfolio — not just theory",
+      "Official Vixora Certificate of Completion upon graduation",
+      "Beginner-friendly teaching — zero coding or tech background needed",
+      "Hybrid access — learn online or in practical sessions with community support"
+    ],
+    outcomes: [
+      "Master ChatGPT & frontier AI tools to work 10x faster and clearer",
+      "Create scroll-stopping AI-generated images, videos & high-accuracy prompts",
+      "Build automated workflows with Make, Zapier & Notion to replace repetitive tasks",
+      "Automate PDF & document processing so tedious paperwork runs itself",
+      "Turn your new skills into income — freelancing, skill packaging & client acquisition"
+    ],
+    prerequisites: [
+      "A laptop or smartphone with internet access",
+      "Zero coding or tech background required (if you can send a WhatsApp message, you can do this)",
+      "Willingness to practice hands-on projects"
+    ],
+    curriculum: [
+      "Module 1 — AI Tools Fundamentals (ChatGPT & Prompt Mastery)",
+      "Module 2 — AI Content Creation (Images, Videos & Creative Generation)",
+      "Module 3 — Simple Automation (Make, Zapier & Notion Workflows)",
+      "Module 4 — PDF & Document Automation (Paperwork Streamlining)",
+      "Module 5 — Making Money With AI Skills (Freelancing & Client Acquisition)"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2 (Module 1)",
+        title: "AI Tools Fundamentals",
+        description: "Master ChatGPT and other leading AI tools to work faster, think clearer, and get more done in less time — the foundation everything else is built on.",
+        topics: [
+          "Understanding Large Language Models without tech jargon",
+          "Prompt Engineering: The precise syntax to get exact results every time",
+          "ChatGPT, Claude & Perplexity workflows for research & writing",
+          "Building customized GPTs and reusable personal productivity assistants"
+        ],
+        handsOnLab: "Build your customized personal AI Productivity Assistant tailored to your career or business."
+      },
+      {
+        week: "Weeks 3-4 (Module 2)",
+        title: "AI Content Creation",
+        description: "Learn to create scroll-stopping AI-generated images and videos, and master the art of prompting so the AI gives you exactly what you want, every time.",
+        topics: [
+          "Photorealistic AI image generation with Midjourney & Ideogram",
+          "Generating realistic voiceovers, avatars & videos with Runway & ElevenLabs",
+          "Social media content repurposing pipelines and hooks",
+          "Graphic design and branding assets creation without Photoshop"
+        ],
+        handsOnLab: "Create a complete visual branding & social media content campaign using 100% AI generation."
+      },
+      {
+        week: "Weeks 5-7 (Module 3)",
+        title: "Simple Automation (Make, Zapier & Notion)",
+        description: "Get hands-on with Make, Zapier, and Notion to automate the repetitive tasks that eat up your day — the same skills businesses pay freelancers to set up.",
+        topics: [
+          "Visual automation basics: Triggers, actions & data passing",
+          "Automating lead notifications from forms to WhatsApp & email",
+          "Connecting Notion databases to Google Sheets and calendar apps",
+          "Building automated client onboarding & task dispatch pipelines"
+        ],
+        handsOnLab: "Deploy a live 3-step automation that collects customer inquiries and dispatches instant WhatsApp notifications."
+      },
+      {
+        week: "Weeks 8-9 (Module 4)",
+        title: "PDF & Document Automation",
+        description: "Stop drowning in paperwork. Learn to automate document handling and processing so tedious admin work runs itself.",
+        topics: [
+          "Extracting structured data from receipts, invoices & PDF contracts",
+          "Automated report generation and document summarization",
+          "Connecting cloud folders (Google Drive / Dropbox) to auto-parsers",
+          "Eliminating hours of manual data entry and spreadsheet typing"
+        ],
+        handsOnLab: "Build an automated PDF Invoice Reader that extracts line items into a structured spreadsheet instantly."
+      },
+      {
+        week: "Weeks 10-12 (Module 5)",
+        title: "Making Money With AI Skills",
+        description: "Turn everything you've learned into income — how to freelance, package your skills, and find your first paying clients.",
+        topics: [
+          "Packaging automation & AI services into high-ticket freelance offers",
+          "Creating an irresistible portfolio with your course capstone projects",
+          "Finding paying clients on Upwork, LinkedIn, WhatsApp & local businesses",
+          "Pricing your services: Charging for value, not hourly time"
+        ],
+        handsOnLab: "Publish your live Capstone Portfolio Website and pitch your first 3 prospective clients."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "End-to-End Business Automation & Lead Pipeline",
+        description: "A complete no-code automation system connecting customer forms, WhatsApp alerts, Google Drive filing, and automated client onboarding.",
+        technologies: ["Make.com", "Zapier", "ChatGPT API", "Notion", "WhatsApp API", "Google Workspace"]
+      },
+      {
+        title: "AI-Powered Content Creation & Social Media Suite",
+        description: "A rapid content generation engine that produces branded graphics, video scripts, synthetic voiceovers, and scheduled social posts.",
+        technologies: ["Midjourney", "ElevenLabs", "ChatGPT", "Canva AI", "Airtable"]
+      },
+      {
+        title: "Automated Document Parser & Invoice Manager",
+        description: "An administrative tool that monitors incoming emails, extracts structured data from attached PDF invoices, and logs expenses into spreadsheets.",
+        technologies: ["Make.com", "AI Document Parser", "Google Sheets", "Gmail Automation"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Digital Hub Instructors & AI Practitioners",
+        role: "Head of AI Automation Training, Vixora Academy",
+        bio: "Veteran automation architects who build real client systems and teach beginners with zero tech jargon.",
+        companyBackground: "Vixora Academy Certified Instructors"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need any tech or coding experience?",
+        a: "None at all. This course is built specifically for beginners — if you can use WhatsApp, you can do this."
+      },
+      {
+        q: "I'm busy. Can I really keep up?",
+        a: "The program is hybrid and structured around real-life schedules. You'll get practical, bite-sized sessions — not a full-time commitment."
+      },
+      {
+        q: "Is this really beginner-friendly, or will I get lost?",
+        a: "Every module starts from zero. Nobody gets left behind — the whole point is to make AI simple, not intimidating."
+      },
+      {
+        q: "What happens after I apply?",
+        a: "You'll receive confirmation and next steps, including your cohort start date and how to secure your seat at the early price."
+      },
+      {
+        q: "What if I finish and still don't know how to make money from this?",
+        a: "Module 5 is built specifically to bridge learning into earning — freelancing strategy and finding your first clients are baked into the curriculum, not an afterthought."
+      }
+    ],
+    certificateType: "Vixora Certificate of Completion in AI Automation & Digital Skills"
+  },
+  {
+    id: "course-ai-automation-digital-business-systems",
+    slug: "ai-automation-digital-business-systems",
+    title: "AI Automation & Digital Business Systems",
+    subtitle: "This isn't the \"learn the basics\" course. This is where you build real automations, real client systems, and a real freelance or business income — with direct mentorship the whole way.",
+    badge: "🔥 Early Bird: ₦60,000 (Reg ₦150,000+)",
+    level: "Advanced",
+    track: "Business Automation",
+    format: "12-Week Implementation & Mentorship-Led Cohort",
+    duration: "12 Weeks",
+    commitment: "5-6 hrs/week (Implementation Labs + Mentorship)",
+    nextCohortDate: "November 2, 2026",
+    tuition: "₦60,000",
+    tuitionNote: "Early bird rate: ₦60,000 (Standard: ₦65,000 — regular value ₦100,000 – ₦150,000+). Includes direct mentorship, client acquisition training & real client projects.",
+    seatsRemaining: 8,
+    targetAudience: "Professionals, Business Owners, Agency Founders, Freelancers, Consultants, and Digital Skills Graduates ready to build & monetize AI systems.",
+    description: "Vixora Academy's advanced, implementation-focused program for people ready to go beyond tools and start building. You'll learn to design, build, and deploy AI-powered automations and solutions — the kind organizations and clients actually pay for — with hands-on mentorship, real business projects, and direct support.",
+    heroPitch: "Stop using AI tools. Start building AI systems businesses pay for — real automations, real client systems, and a real income stream with direct mentorship.",
+    highlights: [
+      "Advanced, implementation-focused curriculum (not a repeat of the basics)",
+      "Direct mentorship and higher-touch support throughout",
+      "Real business projects — building your actual portfolio, not sample exercises",
+      "Client acquisition training — finding and closing clients, not just theory",
+      "Access to an active community of other builders",
+      "A clear path to freelance or service-business income"
+    ],
+    outcomes: [
+      "Architect multi-step advanced automations with Make, Zapier, Notion, n8n & GHL",
+      "Deliver professional-level AI image and video production assets for paying clients",
+      "Deploy business process & PDF automation systems solving high-ticket operational pain points",
+      "Build custom AI tools and web products using Vibe Coding without a traditional dev background",
+      "Master end-to-end client acquisition, discovery calls, scoping, and retaining recurring contracts"
+    ],
+    prerequisites: [
+      "Basic comfort with AI tools (ChatGPT, prompting fundamentals)",
+      "General digital literacy — this is the advanced track, not a from-zero start",
+      "Laptop with reliable internet connection and willingness to build real projects"
+    ],
+    curriculum: [
+      "Module 1 — Advanced AI Workflows (Make, Zapier, Notion, n8n & GHL)",
+      "Module 2 — Advanced Prompting & AI Production (Client & Business Media)",
+      "Module 3 — Business Process & PDF Automation (Operational Pain Points)",
+      "Module 4 — Vibe Coding & AI-Powered Solutions (Custom Web Tools)",
+      "Module 5 — Client & Project Implementation (First Call to Delivery)",
+      "Module 6 — Freelancing & Service Business (Packaging Offers & Retainers)",
+      "Module 7 — Mentorship, Community & Capstone Client Deployments"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2 (Module 1)",
+        title: "Advanced AI Workflows",
+        description: "Go beyond the basics with Make, Zapier, Notion, n8n, and GHL — building serious, multi-step automations that solve real business problems.",
+        topics: [
+          "Multi-step conditional logic, error routers, and fallback handlers in Make.com",
+          "Self-hosted & cloud n8n workflows for complex enterprise integrations",
+          "GoHighLevel (GHL) CRM automation, pipeline triggers & SMS/email sequences",
+          "Notion databases as real-time automation control centers and dashboards"
+        ],
+        handsOnLab: "Build and deploy a multi-channel lead routing & onboarding automation engine with Make and n8n."
+      },
+      {
+        week: "Weeks 3-4 (Module 2)",
+        title: "Advanced Prompting & AI Production",
+        description: "Professional-level prompting, plus AI image and video production built for client and business use — not just personal projects.",
+        topics: [
+          "System prompts, multi-persona chains, and structured JSON output extraction",
+          "Commercial AI image generation, consistent character & brand style matching",
+          "AI video commercials, dynamic voice cloning, and lip-syncing for client ads",
+          "Building automated batch content production pipelines"
+        ],
+        handsOnLab: "Create an end-to-end commercial video ad campaign asset pack for a real business client."
+      },
+      {
+        week: "Weeks 5-6 (Module 3)",
+        title: "Business Process & PDF Automation",
+        description: "Design automation systems that solve real operational pain points for businesses — the kind of work clients will pay premium rates for.",
+        topics: [
+          "Automated PDF extraction, invoice OCR, and receipt parsing with AI models",
+          "Document generation pipelines (contract generation, proposals, automated reports)",
+          "ERP & accounting software sync (QuickBooks, Google Sheets, Airtable)",
+          "Human-in-the-loop review queues for compliance and quality control"
+        ],
+        handsOnLab: "Deploy an automated invoice ingestion and financial summary system that saves 15+ hours/week."
+      },
+      {
+        week: "Weeks 7-8 (Module 4)",
+        title: "Vibe Coding & AI-Powered Solutions",
+        description: "Learn to build working AI-powered tools and products, even without a traditional developer background.",
+        topics: [
+          "Modern AI-assisted code generation (Cursor, Claude Code, Lovable, Replit)",
+          "Building micro-SaaS calculators, lead magnets, and customer client portals",
+          "Integrating Gemini and OpenAI APIs into web interfaces with secure backends",
+          "Deploying fast, responsive web apps with zero devops hassle"
+        ],
+        handsOnLab: "Build and publish a live, functional AI-powered web tool that prospective clients can test."
+      },
+      {
+        week: "Weeks 9-10 (Module 5)",
+        title: "Client & Project Implementation",
+        description: "Take a project from first conversation to delivered solution — the exact process professionals use to run real client work.",
+        topics: [
+          "Conducting discovery calls & diagnosing high-value automation opportunities",
+          "Writing winning scopes of work (SOW), PRDs, and implementation milestones",
+          "Client onboarding, environment staging, and testing protocols",
+          "Handover documentation, Loom video walk-throughs, and client training"
+        ],
+        handsOnLab: "Package a complete client proposal with detailed scope, architecture diagram, and milestone pricing."
+      },
+      {
+        week: "Weeks 11-12 (Module 6 & 7)",
+        title: "Freelancing, Service Business & Mentorship",
+        description: "Package your skills into a service business, find and close clients, build recurring retainers, and receive direct 1-on-1 mentorship.",
+        topics: [
+          "High-ticket service packaging & recurring monthly maintenance retainers",
+          "Cold outreach, inbound LinkedIn funnels, and closing discovery calls",
+          "Pricing your work (from ₦200k fixed projects to $2,500/mo retainers)",
+          "Graduation review, portfolio polishing, and peer mastermind community"
+        ],
+        handsOnLab: "Launch your official automation service landing page & portfolio with active client outreach."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Enterprise Multi-App Lead & Automation Engine",
+        description: "A production-grade n8n, Make.com, and GHL multi-system automation integrating webhook routers, CRM pipelines, and autonomous client notifications.",
+        technologies: ["n8n", "Make.com", "GoHighLevel", "OpenAI / Gemini API", "Notion", "PostgreSQL"]
+      },
+      {
+        title: "AI-Generated Commercial Production Suite & Client Asset Pipeline",
+        description: "An automated commercial media pipeline producing consistent-character visual campaigns, promotional AI video clips, voiceovers, and scheduled deliverables.",
+        technologies: ["Midjourney v6", "Runway Gen-3 / Kling", "ElevenLabs", "Claude 3.7", "Airtable"]
+      },
+      {
+        title: "Autonomous Invoice Ingestion & Document Intelligence Portal",
+        description: "An operational enterprise tool that monitors email inboxes, parses PDF invoices via OCR, reconciles ledger items, and triggers payment receipts.",
+        technologies: ["Make.com", "AI Document OCR", "Google Sheets / QuickBooks", "Zapier", "Slack API"]
+      },
+      {
+        title: "Custom AI Micro-SaaS Tool (Vibe Coding Capstone)",
+        description: "A deployed, client-facing web application with custom prompt logic and interactive UI built using modern AI code generation.",
+        technologies: ["React / Vite", "Tailwind CSS", "Gemini API", "Cloud Run / Vercel"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Digital Hub Senior Systems Engineers & Mentors",
+        role: "Director of Enterprise AI Architecture & Training",
+        bio: "Senior automation specialists and business architects who build production automations for high-growth enterprises and guide students 1-on-1.",
+        companyBackground: "Vixora Digital Hub Senior Practitioners"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need to take the Mass Market course first?",
+        a: "Not required, but you should already be comfortable with basic AI tools and general digital literacy — Premium builds from there, it doesn't start from zero."
+      },
+      {
+        q: "How is this different from the Mass Market course?",
+        a: "Mass Market teaches you to use AI. Premium teaches you to build and monetize AI systems — with direct mentorship, real client-style projects, and a path to freelance/business income."
+      },
+      {
+        q: "What kind of support do I get?",
+        a: "Direct mentorship, community access, and higher-touch guidance through real project work — not just pre-recorded lessons."
+      },
+      {
+        q: "Can I really start earning from this?",
+        a: "Yes — client acquisition and freelancing strategy are built directly into the curriculum, and real business projects give you portfolio proof to show prospective clients."
+      },
+      {
+        q: "What if I'm not sure Premium is right for me yet?",
+        a: "Start with the Mass Market track — you can move up into Premium whenever you're ready. See the Choose Your Path comparison table on this page."
+      }
+    ],
+    certificateType: "Vixora Certificate of Advanced Mastery in AI Automation & Digital Business Systems"
+  },
+  {
     id: "course-fullstack-ai",
     slug: "fullstack-ai-engineering",
     title: "Full-Stack & Autonomous AI Engineering Cohort",
