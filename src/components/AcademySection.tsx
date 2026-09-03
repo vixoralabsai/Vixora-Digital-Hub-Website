@@ -11,7 +11,7 @@ import {
   Sparkles,
   Play
 } from 'lucide-react';
-import { COMPANY_CONTACT } from '../data/vixoraContent';
+import { WhatsAppContactButton } from './WhatsAppContactButton';
 
 interface AcademySectionProps {
   onOpenProjectModal: () => void;
@@ -195,14 +195,12 @@ export function AcademySection({ onOpenProjectModal }: AcademySectionProps) {
                   <span>Apply for Enrollment / Corporate Booking</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-                <a
-                  href={COMPANY_CONTACT.whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2.5 rounded-xl text-xs font-medium bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 text-center transition-colors"
-                >
-                  Chat with Academy Advisor on WhatsApp
-                </a>
+                <WhatsAppContactButton
+                  variant="secondary"
+                  label="Chat with Academy Advisor (US & Nigeria)"
+                  message="Hello Vixora Academy Admissions, I have a question about course cohorts and syllabus tracks."
+                  className="w-full"
+                />
               </div>
             </div>
           </div>

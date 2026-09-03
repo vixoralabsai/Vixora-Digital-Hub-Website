@@ -11,6 +11,7 @@ import {
   Users,
   HardDrive
 } from 'lucide-react';
+import { BRAND_CONFIG } from '../data/brandConfig';
 
 interface HeroProps {
   onOpenProjectModal: () => void;
@@ -24,12 +25,32 @@ export function Hero({
   onOpenDriveWorkspace,
 }: HeroProps) {
   const [activeNode, setActiveNode] = useState<string | null>(null);
+  const [bgLoadError, setBgLoadError] = useState(false);
 
   return (
     <section
       id="hero"
       className="relative pt-28 pb-16 sm:pt-36 sm:pb-24 overflow-hidden bg-[#070314]"
     >
+      {/* Custom Hero Background Image with Atmospheric Overlay */}
+      {BRAND_CONFIG.heroBackground.imageUrl && !bgLoadError && (
+        <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none">
+          <img
+            src={BRAND_CONFIG.heroBackground.imageUrl}
+            alt="Hero Background"
+            onError={() => setBgLoadError(true)}
+            className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000"
+          />
+          {/* Atmospheric Dark & Purple Gradient Overlay for WCAG AA readability */}
+          <div
+            className="absolute inset-0 bg-gradient-to-b from-[#070314]/85 via-[#070314]/75 to-[#070314]"
+            style={{
+              backgroundColor: `rgba(7, 3, 20, ${BRAND_CONFIG.heroBackground.overlayOpacity || 0.8})`
+            }}
+          />
+        </div>
+      )}
+
       {/* Dynamic Cosmic & Neon Purple Glows */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1100px] h-[550px] bg-gradient-to-b from-purple-600/20 via-indigo-600/15 to-transparent blur-[140px] -z-10 pointer-events-none rounded-full" />
       <div className="absolute top-20 right-10 w-96 h-96 bg-purple-500/10 blur-[120px] -z-10 pointer-events-none" />

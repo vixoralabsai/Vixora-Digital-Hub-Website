@@ -15,22 +15,73 @@ import { CallToAction } from './components/CallToAction';
 import { Footer } from './components/Footer';
 import { StartProjectModal } from './components/StartProjectModal';
 import { DriveWorkspaceModal } from './components/DriveWorkspaceModal';
+import { CourseEnrollmentModal } from './components/CourseEnrollmentModal';
+import { SubdomainGuideModal } from './components/SubdomainGuideModal';
+import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
 
 // Standalone Pages
 import { AboutPage } from './pages/AboutPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { AcademyPage } from './pages/AcademyPage';
+import { CourseLandingPage } from './pages/CourseLandingPage';
 import { ResourcesPage } from './pages/ResourcesPage';
+import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 
-export type PageType = 'home' | 'about' | 'portfolio' | 'academy' | 'resources';
+export type PageType = 'home' | 'about' | 'portfolio' | 'academy' | 'academy-course' | 'resources';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
+  const [selectedCourse, setSelectedCourse] = useState<AcademyCourse | null>(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [driveWorkspaceOpen, setDriveWorkspaceOpen] = useState(false);
+  const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
+  const [courseForEnrollment, setCourseForEnrollment] = useState<AcademyCourse | null>(null);
+  const [subdomainGuideModalOpen, setSubdomainGuideModalOpen] = useState(false);
 
-  // Scroll to top on page transition
-  const handleNavigate = (page: string, sectionId?: string) => {
+  // Parse initial query parameter or subdomain / hash if provided
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const courseSlug = urlParams.get('course');
+      const subdomain = urlParams.get('subdomain');
+      const pageParam = urlParams.get('page');
+
+      // Check if hostname is an academy subdomain
+      const isAcademyHost =
+        window.location.hostname.startsWith('academy.') ||
+        window.location.hostname.includes('academy');
+
+      if (courseSlug) {
+        const found = ACADEMY_COURSES.find(c => c.slug === courseSlug || c.id === courseSlug);
+        if (found) {
+          setSelectedCourse(found);
+          setCurrentPage('academy-course');
+          return;
+        }
+      }
+
+      if (subdomain === 'academy' || isAcademyHost || pageParam === 'academy') {
+        setCurrentPage('academy');
+      } else if (pageParam && ['about', 'portfolio', 'resources', 'academy'].includes(pageParam)) {
+        setCurrentPage(pageParam as PageType);
+      }
+    } catch {
+      // safe fallback
+    }
+  }, []);
+
+  // Universal Navigation Handler
+  const handleNavigate = (page: string, sectionId?: string, courseSlug?: string) => {
+    if (page === 'academy-course' && courseSlug) {
+      const found = ACADEMY_COURSES.find(c => c.slug === courseSlug || c.id === courseSlug);
+      if (found) {
+        setSelectedCourse(found);
+        setCurrentPage('academy-course');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+
     const validPage = (page as PageType) || 'home';
     setCurrentPage(validPage);
 
@@ -44,6 +95,17 @@ export default function App() {
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleSelectCourse = (course: AcademyCourse) => {
+    setSelectedCourse(course);
+    setCurrentPage('academy-course');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleEnrollInCourse = (course: AcademyCourse) => {
+    setCourseForEnrollment(course);
+    setEnrollmentModalOpen(true);
   };
 
   const handleExploreServices = () => {
@@ -122,6 +184,20 @@ export default function App() {
         {currentPage === 'academy' && (
           <AcademyPage
             onOpenProjectModal={() => setProjectModalOpen(true)}
+            onSelectCourse={handleSelectCourse}
+            onEnrollCourse={handleEnrollInCourse}
+            onOpenSubdomainGuide={() => setSubdomainGuideModalOpen(true)}
+            onNavigateHome={() => handleNavigate('home')}
+          />
+        )}
+
+        {currentPage === 'academy-course' && selectedCourse && (
+          <CourseLandingPage
+            course={selectedCourse}
+            onBackToAcademy={() => handleNavigate('academy')}
+            onEnroll={handleEnrollInCourse}
+            onOpenSubdomainGuide={() => setSubdomainGuideModalOpen(true)}
+            onNavigateHome={() => handleNavigate('home')}
           />
         )}
 
@@ -151,6 +227,22 @@ export default function App() {
         isOpen={driveWorkspaceOpen}
         onClose={() => setDriveWorkspaceOpen(false)}
       />
+
+      {/* Course Enrollment & Admissions Modal */}
+      <CourseEnrollmentModal
+        isOpen={enrollmentModalOpen}
+        course={courseForEnrollment}
+        onClose={() => setEnrollmentModalOpen(false)}
+      />
+
+      {/* Subdomain DNS & Routing Setup Guide Modal */}
+      <SubdomainGuideModal
+        isOpen={subdomainGuideModalOpen}
+        onClose={() => setSubdomainGuideModalOpen(false)}
+      />
+
+      {/* Persistent Floating WhatsApp Inbound Live Connect Widget */}
+      <FloatingWhatsAppWidget />
     </div>
   );
 }

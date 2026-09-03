@@ -1,5 +1,5 @@
 import { ArrowRight, MessageSquare, Sparkles, ShieldCheck, PhoneCall } from 'lucide-react';
-import { COMPANY_CONTACT } from '../data/vixoraContent';
+import { WhatsAppContactButton } from './WhatsAppContactButton';
 
 interface CallToActionProps {
   onOpenProjectModal: () => void;
@@ -30,21 +30,18 @@ export function CallToAction({ onOpenProjectModal }: CallToActionProps) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
             <button
               onClick={onOpenProjectModal}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-all cursor-pointer"
             >
               <span>Start Your Project Now</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
-            <a
-              href={COMPANY_CONTACT.whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl text-sm font-semibold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 transition-all shadow-md shadow-emerald-950/50"
-            >
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
-              <span>Instant WhatsApp Discussion</span>
-            </a>
+            <WhatsAppContactButton
+              variant="secondary"
+              label="Instant WhatsApp Discussion (US & Nigeria)"
+              message="Hello Vixora Hub Engineering Team, I would like to schedule a project consultation."
+              className="w-full sm:w-auto"
+            />
           </div>
 
           <div className="pt-6 border-t border-neutral-800/80 flex flex-wrap items-center justify-center gap-6 text-xs text-neutral-400">

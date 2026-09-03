@@ -92,14 +92,59 @@ export interface InsightItem {
   author: string;
 }
 
+export interface CourseSyllabusModule {
+  week: string;
+  title: string;
+  description: string;
+  topics: string[];
+  handsOnLab: string;
+}
+
+export interface CourseCapstone {
+  title: string;
+  description: string;
+  technologies: string[];
+}
+
+export interface CourseInstructor {
+  name: string;
+  role: string;
+  bio: string;
+  companyBackground: string;
+}
+
+export interface CourseFaq {
+  q: string;
+  a: string;
+}
+
 export interface AcademyCourse {
   id: string;
+  slug: string;
   title: string;
+  subtitle: string;
+  badge: string;
+  level: 'All Levels' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Executive';
+  track: 'Engineering & AI' | 'Executive & Leadership' | 'Business Automation' | 'Design & Marketing';
   format: string;
   duration: string;
+  commitment: string;
+  nextCohortDate: string;
+  tuition: string;
+  tuitionNote: string;
+  seatsRemaining: number;
   targetAudience: string;
   description: string;
+  heroPitch: string;
+  highlights: string[];
+  outcomes: string[];
+  prerequisites: string[];
   curriculum: string[];
+  weeklySyllabus: CourseSyllabusModule[];
+  capstoneProjects: CourseCapstone[];
+  instructors: CourseInstructor[];
+  faqs: CourseFaq[];
+  certificateType: string;
 }
 
 // -------------------------------------------------------------
@@ -604,56 +649,611 @@ export const LATEST_INSIGHTS: InsightItem[] = [
 export const ACADEMY_COURSES: AcademyCourse[] = [
   {
     id: "course-fullstack-ai",
+    slug: "fullstack-ai-engineering",
     title: "Full-Stack & Autonomous AI Engineering Cohort",
-    format: "12-Week Live Cohort + Lab",
-    duration: "12 Weeks (Part-time)",
-    targetAudience: "Software Developers & Technical Founders",
-    description: "Master modern full-stack development with React 19, FastAPI, LangChain, autonomous agent swarms, and vector RAG databases.",
+    subtitle: "Architect production SaaS, agentic workflows, LangGraph pipelines, and low-latency microservices from zero to scale.",
+    badge: "Flagship Engineering Cohort",
+    level: "Advanced",
+    track: "Engineering & AI",
+    format: "12-Week Live Cohort + Project Lab",
+    duration: "12 Weeks",
+    commitment: "6-8 hrs/week (Live sessions + Labs)",
+    nextCohortDate: "October 14, 2026",
+    tuition: "$1,850",
+    tuitionNote: "Or 3 monthly installments of $650. Corporate sponsorship accepted.",
+    seatsRemaining: 6,
+    targetAudience: "Software Engineers, Full-Stack Developers, Technical Leads, and Ambitious Builders looking to master modern AI engineering.",
+    description: "Go beyond toy prompts and basic API wrappers. Learn how to architect enterprise-grade AI applications with deterministic execution, self-healing agent swarms, vector retrieval, pgvector indexing, and production deployment.",
+    heroPitch: "Become the top 1% of modern engineers who can design, code, and deploy resilient autonomous AI systems from database schema to clean frontend UI.",
+    highlights: [
+      "Live code reviews by senior AI infrastructure leads",
+      "Deploy 3 real-world production capstones to your portfolio",
+      "Private Discord mastermind & direct office hours",
+      "Official Vixora Certified AI Engineer credential"
+    ],
+    outcomes: [
+      "Master TypeScript, React 19, FastAPI, and async Python backends",
+      "Build multi-agent autonomous teams with LangGraph and StateGraph",
+      "Implement high-recall Hybrid RAG with pgvector and semantic re-ranking",
+      "Containerize and deploy with Docker, Fly.io, and Cloud Run"
+    ],
+    prerequisites: [
+      "Working knowledge of JavaScript/TypeScript or Python",
+      "Basic familiarity with REST APIs and databases",
+      "Git version control essentials"
+    ],
     curriculum: [
-      "Advanced TypeScript, React 19 & Next.js App Router",
-      "Python Microservices with FastAPI & Async I/O",
-      "Building Agentic AI Swarms with LangGraph & n8n",
-      "Vector Search & pgvector on PostgreSQL",
-      "Docker, Cloud Deployment & CI/CD Pipelines"
-    ]
+      "Advanced TypeScript & React 19 Next-Gen Architectures",
+      "High-Performance Python Microservices with FastAPI",
+      "Agentic AI Swarms, State Machines & LangGraph",
+      "Production RAG: Chunking, Embeddings & pgvector",
+      "Observability, Token Budgets, Eval Frameworks & Cloud Deploy"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2",
+        title: "Modern Full-Stack Foundation & High-Concurrency APIs",
+        description: "Set up enterprise TypeScript environments, asynchronous Python microservices with FastAPI, Pydantic schemas, and JWT auth architectures.",
+        topics: [
+          "React 19 Server Components & State Management",
+          "FastAPI Async Lifespans & Dependency Injection",
+          "PostgreSQL connection pooling with AsyncPG & Prisma",
+          "Structured JSON response contracts & schema validation"
+        ],
+        handsOnLab: "Build an authenticated multi-tenant backend API with real-time SSE event streaming."
+      },
+      {
+        week: "Weeks 3-5",
+        title: "Autonomous Agent Swarms & Deterministic Orchestration",
+        description: "Move from single LLM calls to multi-agent architectures using LangGraph, tool-calling protocols, and human-in-the-loop validation.",
+        topics: [
+          "StateGraph design: Cycles, branching, and state checkpointing",
+          "Tool-calling standards with function signatures & error fallbacks",
+          "Self-correcting code & data verification agents",
+          "Orchestrating multi-model pipelines (Gemini 2.5, Claude 3.5, GPT-4o)"
+        ],
+        handsOnLab: "Deploy an Autonomous Research & Fact-Checking Agent that searches, verifies, and generates structured reports."
+      },
+      {
+        week: "Weeks 6-8",
+        title: "Enterprise RAG: Vector Databases, Chunking & Semantic Search",
+        description: "Architect production retrieval pipelines that prevent hallucinations and scale to millions of corporate documents.",
+        topics: [
+          "Document parsing: PDFs, Markdown, Notion, and Google Drive",
+          "Context-aware chunking strategies & embedding benchmarks",
+          "Hybrid Search: Combining BM25 keyword search with pgvector cosine similarity",
+          "Cross-encoder re-ranking and citation generation"
+        ],
+        handsOnLab: "Build an Enterprise Knowledge Base Assistant with source document page citations and role-based access control."
+      },
+      {
+        week: "Weeks 9-10",
+        title: "Evaluation, Observability & Token Cost Engineering",
+        description: "Learn how to monitor LLM performance in production, measure latency, track hallucination rates, and optimize token usage.",
+        topics: [
+          "Prompt engineering vs. fine-tuning economics",
+          "Setting up Langfuse / OpenInference observability traces",
+          "Automated LLM-as-a-Judge test suites for regression testing",
+          "Rate-limiting, semantic caching with Redis, and fallback queues"
+        ],
+        handsOnLab: "Implement an automated evaluation pipeline that scores your agent's response accuracy before shipping."
+      },
+      {
+        week: "Weeks 11-12",
+        title: "Capstone Defense & Production Cloud Deployment",
+        description: "Package your full-stack AI system into Docker containers and deploy with CI/CD to scalable cloud infrastructure.",
+        topics: [
+          "Multi-stage Docker builds for Python and Node",
+          "Container orchestration on Google Cloud Run & Fly.io",
+          "Domain setup, SSL, CORS, and rate limiting reverse proxies",
+          "Final Capstone Project live showcase to hiring partners & clients"
+        ],
+        handsOnLab: "Deploy your production-grade Capstone application with a custom domain, CI/CD, and live monitoring."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Autonomous RFP & Technical Proposal Synthesizer",
+        description: "A complete multi-agent application that ingests 100+ page enterprise RFP documents, parses requirements, and coordinates 3 specialized agents to draft compliant technical proposals.",
+        technologies: ["React 19", "FastAPI", "LangGraph", "pgvector", "PostgreSQL", "Docker"]
+      },
+      {
+        title: "Real-Time Voice & Screen Co-Pilot for Support Engineers",
+        description: "Low-latency multimodal assistant that monitors support tickets, analyzes error logs, and suggests deterministic code fixes with verified regression tests.",
+        technologies: ["TypeScript", "Gemini Multimodal Live API", "FastAPI", "WebSockets", "Tailwind CSS"]
+      },
+      {
+        title: "Self-Healing Data Scraping & Market Intelligence Pipeline",
+        description: "An autonomous agent swarm that browses competitor websites, recovers automatically when DOM structures change, and updates Postgres analytics dashboards.",
+        technologies: ["Python", "Playwright", "FastAPI", "Supabase", "Redis"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Dr. Marcus Vance",
+        role: "Head of AI Engineering, Vixora Labs",
+        bio: "Former Principal Architect with 12+ years of experience scaling distributed systems and deep learning infrastructure.",
+        companyBackground: "Ex-Google Cloud & Autonomous Systems Lead"
+      },
+      {
+        name: "Elena Rostova",
+        role: "Senior Full-Stack & Agentic Architect",
+        bio: "Specialist in high-throughput React architectures and LangGraph orchestration pipelines.",
+        companyBackground: "Vixora Digital Hub Senior Architect"
+      }
+    ],
+    faqs: [
+      {
+        q: "What is the time commitment required?",
+        a: "Expect approximately 6-8 hours per week: 3 hours of live interactive lectures/labs, and 3-5 hours of hands-on project building and mentor reviews."
+      },
+      {
+        q: "Are the live sessions recorded if I miss one?",
+        a: "Yes! Every live session, code-along, and Q&A is recorded in high definition and posted to your private student portal within 2 hours with all repository links."
+      },
+      {
+        q: "Do you offer corporate or employer reimbursement support?",
+        a: "Yes! Over 60% of our students are sponsored by their employers. We provide formal syllabus documents, tax invoices, and learning justification templates."
+      },
+      {
+        q: "Will I receive a verifiable certificate?",
+        a: "Yes, graduates who successfully complete their capstone project receive a blockchain-verified Vixora Certified AI Engineer credential and portfolio endorsement."
+      }
+    ],
+    certificateType: "Vixora Certified Full-Stack AI Engineer (VC-FAIE)"
   },
   {
     id: "course-executive-ai",
+    slug: "executive-ai-strategy",
     title: "AI Strategy & Autonomous Operations for Executives",
-    format: "4-Week Executive Masterclass",
-    duration: "4 Weeks (Interactive)",
-    targetAudience: "C-Suite, Directors & Business Leaders",
-    description: "Strategic framework for evaluating enterprise AI opportunities, model procurement, data governance, security compliance, and measurable ROI.",
+    subtitle: "A no-fluff strategic masterclass for C-suite leaders and directors to deploy AI profitably and mitigate organizational risk.",
+    badge: "Executive Leadership Track",
+    level: "Executive",
+    track: "Executive & Leadership",
+    format: "4-Week Executive Cohort (Interactive Masterclass)",
+    duration: "4 Weeks",
+    commitment: "3-4 hrs/week (Evening/Weekend executive slots)",
+    nextCohortDate: "October 20, 2026",
+    tuition: "$2,400",
+    tuitionNote: "Includes 1-on-1 private strategy audit for your enterprise roadmap.",
+    seatsRemaining: 4,
+    targetAudience: "CEOs, CTOs, CIOs, Managing Directors, VPs of Operations, and Business Owners.",
+    description: "Cut through the AI hype and understand the actual unit economics, enterprise security frameworks, workflow transformations, and governance models required to build an AI-native organization.",
+    heroPitch: "Lead your organization's AI transformation with strategic clarity, proven ROI frameworks, and executive governance.",
+    highlights: [
+      "1-on-1 enterprise AI audit with Vixora Managing Partners",
+      "Executive templates: AI Vendor RFP, ROI Calculator & Governance Policies",
+      "Exclusive peer network of fellow C-suite leaders and founders",
+      "Private executive briefing on emerging frontier models"
+    ],
+    outcomes: [
+      "Identify high-ROI automation vectors across sales, ops, and product",
+      "Establish strict enterprise data security and compliance guardrails",
+      "Evaluate build vs. buy decisions for proprietary AI systems",
+      "Create a 12-month company-wide AI adoption roadmap"
+    ],
+    prerequisites: [
+      "Executive, Director, or Senior Management role",
+      "No coding background required; focus is on strategy, economics & execution"
+    ],
     curriculum: [
-      "Enterprise AI Landscape & Model Selection Economics",
-      "Identifying 10x ROI Automation Opportunities",
-      "Data Governance, Privacy & Security Protocols",
-      "Building and Leading AI-Augmented Teams"
-    ]
+      "The Modern Enterprise AI Landscape & Unit Economics",
+      "Mapping 10x ROI Automation Vectors across Business Units",
+      "Security, IP Protection, SOC2 & Regulatory Compliance",
+      "Leading AI-Augmented Teams & Change Management"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 1",
+        title: "Frontier AI Landscape, Architecture & Unit Economics",
+        description: "Deconstruct the true capabilities of modern LLMs, reasoning models, and agent architectures without confusing technical jargon.",
+        topics: [
+          "Foundation Models vs. Open Weights vs. Specialized SLMs",
+          "Understanding token economics, inference costs & API budgets",
+          "Demystifying RAG, Agent Swarms, and Fine-Tuning",
+          "Identifying false promises and vendor vaporware"
+        ],
+        handsOnLab: "Perform an executive unit-cost audit for 3 potential enterprise AI use cases."
+      },
+      {
+        week: "Week 2",
+        title: "High-ROI Opportunity Mapping & Workflow Deconstruction",
+        description: "Systematically map your organization's highest-cost manual workflows and design autonomous replacement systems.",
+        topics: [
+          "The Automation Matrix: Impact vs. Feasibility scoring",
+          "Transforming Customer Support, Operations, and Finance pipelines",
+          "Human-in-the-loop safety nets and approval thresholds",
+          "Calculating payback periods and productivity multiples"
+        ],
+        handsOnLab: "Create an Executive Business Case & ROI Projection for your company's #1 automation priority."
+      },
+      {
+        week: "Week 3",
+        title: "Security, IP Sovereignty & Data Governance Guardrails",
+        description: "Protect proprietary corporate data, prevent IP leakage, and maintain compliance across international regulatory standards.",
+        topics: [
+          "Zero-data retention agreements with model providers",
+          "Private VPC deployment vs. public cloud APIs",
+          "GDPR, HIPAA, and EU AI Act compliance essentials",
+          "Creating enforceable internal employee AI usage guidelines"
+        ],
+        handsOnLab: "Draft a comprehensive Corporate AI Governance Policy tailored to your sector."
+      },
+      {
+        week: "Week 4",
+        title: "Execution Roadmap, Talent Strategy & 1-on-1 Advisory",
+        description: "Synthesize your company's 12-month implementation roadmap and review during your private advisory session.",
+        topics: [
+          "Hiring AI engineering talent vs. upskilling existing staff",
+          "Structuring build-vs-buy contracts with software agencies",
+          "Executive communication & board alignment strategies",
+          "Continuous iteration & maintaining technological agility"
+        ],
+        handsOnLab: "Finalize your company's 12-Month Enterprise AI Transformation Blueprint."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Enterprise AI Transformation & ROI Blueprint",
+        description: "A board-ready strategic document detailing the target architecture, budget allocation, vendor selection criteria, and expected 18-month ROI for your organization.",
+        technologies: ["ROI Financial Models", "Risk Matrix", "Governance Framework", "Vendor RFP Template"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Arthur Sterling",
+        role: "Managing Partner & Strategic Lead",
+        bio: "Former enterprise technology director with 15+ years advising Fortune 500 executives on digital transformation.",
+        companyBackground: "Vixora Digital Hub Strategy Office"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need any programming experience?",
+        a: "No. This course is specifically engineered for business leaders, executives, and strategists. All concepts are translated into business impact, unit economics, and operational frameworks."
+      },
+      {
+        q: "How does the 1-on-1 private strategy audit work?",
+        a: "During Week 4, you will have a dedicated 60-minute confidential consultation with Vixora Managing Partners to audit your organization's proprietary roadmap."
+      }
+    ],
+    certificateType: "Vixora Executive AI Strategist Certificate"
   },
   {
     id: "course-workflow-automation",
+    slug: "enterprise-workflow-automation",
     title: "Enterprise Workflow Automation with n8n & Python",
-    format: "6-Week Hands-on Bootcamp",
+    subtitle: "Build self-hosted, resilient automation pipelines that connect CRMs, databases, AI models, and communication channels without recurring SaaS fees.",
+    badge: "High-Demand Practical Skills",
+    level: "Intermediate",
+    track: "Business Automation",
+    format: "6-Week Hands-On Bootcamp",
     duration: "6 Weeks",
-    targetAudience: "Operations Managers, Devs & Growth Marketers",
-    description: "Learn to build self-hosted, resilient workflow automations that connect CRMs, databases, AI models, and communication channels without recurring Zapier fees.",
+    commitment: "5 hrs/week (Live sessions + Workflows)",
+    nextCohortDate: "November 3, 2026",
+    tuition: "$950",
+    tuitionNote: "Includes lifetime access to Vixora's proprietary n8n template library (50+ workflows).",
+    seatsRemaining: 9,
+    targetAudience: "Operations Managers, Automation Specialists, Growth Engineers, and Technical Consultants.",
+    description: "Replace costly Zapier subscriptions with self-hosted, unmetered n8n workflows integrated with custom Python logic, vector search, webhooks, and enterprise databases.",
+    heroPitch: "Master self-hosted, scalable automation and eliminate manual operational bottlenecks across your entire organization.",
+    highlights: [
+      "Access to 50+ battle-tested enterprise n8n workflow templates",
+      "Learn self-hosting with Docker, SSL, and webhook security",
+      "Integrate OpenAI, Claude, and open-source models directly into workflows",
+      "Build custom Python nodes for complex business logic"
+    ],
+    outcomes: [
+      "Deploy self-hosted n8n on Docker with automatic backups and failovers",
+      "Automate CRM synchronization (HubSpot, Salesforce) with zero data loss",
+      "Build AI-powered document parsers, lead qualifiers, and invoice processors",
+      "Save thousands of dollars annually in third-party automation bills"
+    ],
+    prerequisites: [
+      "Basic understanding of APIs, JSON data, and webhooks",
+      "No advanced programming required, basic Python/JavaScript is a bonus"
+    ],
     curriculum: [
-      "Self-Hosting n8n with Docker & Webhooks",
-      "Custom Python & JavaScript Function Nodes",
-      "Integrating OpenAI, Anthropic & Local LLMs",
-      "Automated PDF Invoicing, Parsing & CRM Sync"
-    ]
+      "Self-Hosting n8n on Cloud Infrastructure with Docker",
+      "Mastering Webhooks, JSON Transformations & Custom Code Nodes",
+      "Embedding AI Models: Sentiment, Summarization & Data Extraction",
+      "Automated PDF Invoicing, Parsing, Email & CRM Synchronization",
+      "Error Handling, Queueing, Rate Limiting & Enterprise Security"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2",
+        title: "Self-Hosting n8n & Architecture Fundamentals",
+        description: "Deploy n8n on Docker/VPS, configure SSL reverse proxies, webhook security, and understand the node execution model.",
+        topics: [
+          "Docker Compose setup with Postgres persistence",
+          "Securing endpoints with API keys, basic auth & rate limiting",
+          "JSON payload manipulation with JavaScript expressions",
+          "Working with complex arrays, merging, and filtering nodes"
+        ],
+        handsOnLab: "Spin up your own production-grade n8n instance and connect your first live webhook trigger."
+      },
+      {
+        week: "Weeks 3-4",
+        title: "AI Nodes, Vector Search & Document Intelligence",
+        description: "Integrate LLMs directly into visual workflows to summarize emails, extract unstructured PDF tables, and route tickets.",
+        topics: [
+          "LangChain nodes in n8n: Memory, Output Parsers & Agents",
+          "Extracting structured JSON from messy invoices and contracts",
+          "Vector embeddings and similarity searches in workflow nodes",
+          "Autonomous triage of incoming lead emails with sentiment scoring"
+        ],
+        handsOnLab: "Build an AI Invoice & Receipt Extractor that parses PDFs from email and updates Postgres + Notion automatically."
+      },
+      {
+        week: "Weeks 5-6",
+        title: "Enterprise Integration, Failovers & Retainer Monetization",
+        description: "Connect multi-app stacks (Slack, Salesforce, Stripe, PostgreSQL), handle network failures gracefully, and package workflows as consulting retainers.",
+        topics: [
+          "Error-trigger workflows, automatic retries & Slack alerting",
+          "Handling rate limits on third-party APIs (Stripe, HubSpot)",
+          "Building automated client onboarding & provisioning portals",
+          "Packaging and pricing automation retainers for clients"
+        ],
+        handsOnLab: "Deploy an End-to-End Client Onboarding & Billing Pipeline that synchronizes 5 distinct platforms simultaneously."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Autonomous Lead Enrichment & CRM Routing Engine",
+        description: "A high-speed workflow that intercepts incoming web form leads, searches LinkedIn & company registries via API, scores fit with Gemini AI, and routes to sales reps in Slack.",
+        technologies: ["n8n", "Docker", "PostgreSQL", "Gemini AI", "Slack API", "HubSpot"]
+      },
+      {
+        title: "Automated Multi-Channel Content Repurposing Pipeline",
+        description: "Ingests long-form videos/audio, generates transcriptions via Whisper, produces 5 platform-specific social posts with AI, and queues drafts in social managers.",
+        technologies: ["n8n", "Whisper", "Claude 3.5", "Buffer API", "Airtable"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Devon Chen",
+        role: "Lead Automation Engineer, Vixora Labs",
+        bio: "Built and maintains hundreds of mission-critical enterprise workflows powering millions in ARR.",
+        companyBackground: "Automation Lead & n8n Specialist"
+      }
+    ],
+    faqs: [
+      {
+        q: "Why use self-hosted n8n instead of Zapier or Make?",
+        a: "Zapier charges per task, making high-volume workflows cost hundreds or thousands every month. Self-hosted n8n runs on your own server with unlimited workflows and executions for just a $5-10/mo hosting bill, while keeping all data private."
+      }
+    ],
+    certificateType: "Vixora Certified Automation Specialist (VCAS)"
+  },
+  {
+    id: "course-ai-product-design",
+    slug: "ai-product-design-ui-ux",
+    title: "AI-Native Product Design, UI/UX & Design Systems",
+    subtitle: "Design generative interfaces, canvas workflows, agent state visualizers, and scalable token systems in Figma.",
+    badge: "Design & UX Masterclass",
+    level: "Intermediate",
+    track: "Design & Marketing",
+    format: "6-Week Live Workshop",
+    duration: "6 Weeks",
+    commitment: "4-6 hrs/week",
+    nextCohortDate: "November 10, 2026",
+    tuition: "$1,100",
+    tuitionNote: "Includes the complete Vixora Obsidian Design System UI Kit in Figma.",
+    seatsRemaining: 8,
+    targetAudience: "UI/UX Designers, Product Designers, Design Leads, and Frontend Engineers.",
+    description: "Traditional static UI patterns fail when designing for nondeterministic AI experiences. Learn to craft streaming text interactions, agent feedback loops, canvas workspaces, and modern dark-mode design systems.",
+    heroPitch: "Design the next generation of AI-native products with modern visual craft, tokenized design systems, and seamless generative interactions.",
+    highlights: [
+      "Access to the complete Vixora Obsidian Design Kit (.fig)",
+      "Design for streaming, latency, hallucinations, and confidence scores",
+      "Interactive prototyping with Figma variables and generative plugins",
+      "Live portfolio critiques from top product design directors"
+    ],
+    outcomes: [
+      "Design generative UI patterns that build user trust and clarity",
+      "Build scalable token systems (colors, typography, radii, elevation)",
+      "Prototype complex canvas and conversational interfaces in Figma",
+      "Deliver engineering-ready specifications with zero friction"
+    ],
+    prerequisites: [
+      "Familiarity with Figma fundamentals (Auto-layout, components)",
+      "Basic understanding of digital product design principles"
+    ],
+    curriculum: [
+      "The Anatomy of AI-Native Interfaces & Mental Models",
+      "Tokenized Design Systems: Cosmic Dark Themes & Neon Accents",
+      "Streaming States, Latency Feedback & Confidence Indicators",
+      "Canvas & Infinite Workspace UX Patterns",
+      "Design System Handoff & Frontend Code Synchronization"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2",
+        title: "Foundations of AI UI & The Vixora Token System",
+        description: "Master modern typography ratios, mathematical spacing, dark palette saturation, and building atomic components.",
+        topics: [
+          "Eliminating AI Slop: Principles of genuine craft and typography pairing",
+          "Building mathematical 8pt spacing and nested corner radius rules",
+          "Figma variables: Semantic tokens for light and dark modes",
+          "Crafting high-contrast accessible inputs and control states"
+        ],
+        handsOnLab: "Build a comprehensive Design Token Architecture & Component Library in Figma."
+      },
+      {
+        week: "Weeks 3-4",
+        title: "Designing for Nondeterministic AI & Generative UX",
+        description: "Solve the core UX challenges of AI: handling latency, streaming states, hallucinations, and prompt affordances.",
+        topics: [
+          "Streaming typography effects & micro-interaction physics",
+          "Confidence ratings, source citations & rollback controls",
+          "Human-in-the-loop approval drawers and modal patterns",
+          "Multimodal inputs: Combining voice, image, and text triggers"
+        ],
+        handsOnLab: "Design an AI Copilot Interface featuring streaming responses, citation drawers, and confidence scores."
+      },
+      {
+        week: "Weeks 5-6",
+        title: "Infinite Canvas Workspaces & Production Handoff",
+        description: "Design node-based visual editors and canvas workspaces for modern agent workflows, and prepare developer-ready tokens.",
+        topics: [
+          "Spatial UI: Pan, zoom, minimaps, and infinite node connections",
+          "State transition animations and micro-copy for AI interactions",
+          "Exporting Figma tokens to Tailwind CSS variables automatically",
+          "Final capstone review & portfolio case study presentation"
+        ],
+        handsOnLab: "Design an Interactive Agent Workflow Builder on an infinite canvas with complete node configurations."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Next-Gen AI Canvas & Workspace Studio",
+        description: "A complete end-to-end Figma prototype of a multi-modal canvas workspace featuring node connections, live agent execution pills, and citation inspectors.",
+        technologies: ["Figma Variables", "Component Architecture", "Design Tokens", "Tailwind CSS Handoff"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Soren Morales",
+        role: "Head of Design & Brand Identity, Vixora Hub",
+        bio: "Award-winning designer with 10+ years crafting premium brand systems and AI-first software interfaces.",
+        companyBackground: "Vixora Design Systems Lead"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I get full access to the Vixora Figma files?",
+        a: "Yes! All enrolled students receive our complete production design system file with 200+ components, token collections, and dark/light variants."
+      }
+    ],
+    certificateType: "Vixora Certified AI Product Designer"
+  },
+  {
+    id: "course-generative-media-marketing",
+    slug: "generative-media-advertising",
+    title: "Generative Media, UGC Ad Automation & Media Buying",
+    subtitle: "Scale high-converting paid social campaigns with AI video generation, automated creative testing, and ROAS optimization.",
+    badge: "Growth & Creative Track",
+    level: "All Levels",
+    track: "Design & Marketing",
+    format: "4-Week Intensive Sprint",
+    duration: "4 Weeks",
+    commitment: "4 hrs/week",
+    nextCohortDate: "November 17, 2026",
+    tuition: "$850",
+    tuitionNote: "Includes AI video generation credit vouchers for workshop labs.",
+    seatsRemaining: 12,
+    targetAudience: "Growth Marketers, Media Buyers, Brand Founders, and Creative Directors.",
+    description: "Lower customer acquisition costs by generating hundreds of personalized UGC video ads, testing hooks algorithmically, and managing scalable campaigns across Meta, TikTok, and Google Ads.",
+    heroPitch: "Generate 50+ high-converting ad variations in minutes and master high-velocity media buying with AI creative pipelines.",
+    highlights: [
+      "Access to prompt engineering templates for Midjourney, Runway & ElevenLabs",
+      "Automated video editing pipelines for TikTok & Meta Reels",
+      "Media buying strategies for scaling past $50k/month ad spend",
+      "Live ad creative teardowns and conversion audits"
+    ],
+    outcomes: [
+      "Generate hyper-realistic AI avatars and voiceovers that convert",
+      "Build automated split-testing workflows for video hooks and CTAs",
+      "Lower blended CAC / CPA by 30-50% with creative volume",
+      "Master programmatic media buying on Meta and TikTok"
+    ],
+    prerequisites: [
+      "Basic familiarity with social media marketing or ad platforms (Meta Ads / TikTok Ads)"
+    ],
+    curriculum: [
+      "AI Creative Synthesis: Avatars, Voice Cloning & Scriptwriting",
+      "High-Conversion UGC Frameworks & 3-Second Hook Formulas",
+      "Automated Video Assembly & Dynamic Captions",
+      "Data-Driven Media Buying, Scaling Budgets & ROAS Attribution"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 1",
+        title: "AI Scriptwriting, Voice Cloning & Avatar Generation",
+        description: "Master viral direct-response copywriting and produce photorealistic synthetic talent.",
+        topics: [
+          "Direct response scripting frameworks (Hook, Problem, Solution, CTA)",
+          "Voice cloning and emotional cadence control with ElevenLabs",
+          "Generating realistic human avatars and lip-syncing pipelines",
+          "B-roll generation using Midjourney and Runway Gen-3"
+        ],
+        handsOnLab: "Produce 5 unique synthetic UGC ad videos from scratch with voiceover and lip-sync."
+      },
+      {
+        week: "Week 2",
+        title: "Automating Dynamic Video Assembly & Hook Variations",
+        description: "Build automated rendering pipelines that generate 20+ hook combinations from a single script.",
+        topics: [
+          "Programmatic video rendering with Remotion and Python",
+          "Dynamic auto-captions, sound effects & viral pacing",
+          "A/B testing top-of-funnel hooks in the first 3 seconds",
+          "Batch processing assets for TikTok, Instagram Reels, and YouTube Shorts"
+        ],
+        handsOnLab: "Set up an automated batch pipeline that generates 15 video variations in under 10 minutes."
+      },
+      {
+        week: "Week 3",
+        title: "Meta & TikTok Media Buying Strategies for 2026",
+        description: "Deploy creative testing frameworks to isolate winning hooks without burning ad spend.",
+        topics: [
+          "Dynamic Creative Testing (DCT) setup on Meta Ads Manager",
+          "TikTok Spark Ads & organic-to-paid amplification",
+          "Budget scaling rules and bid cap strategies",
+          "Analyzing creative fatigue and refresh cycles"
+        ],
+        handsOnLab: "Launch a live DCT testing campaign with your generated variations and establish attribution tracking."
+      },
+      {
+        week: "Week 4",
+        title: "Attribution, ROAS Optimization & Retainer Scaling",
+        description: "Analyze blended metrics (MER, CAC, LTV) and package creative-as-a-service retainers for clients.",
+        topics: [
+          "Server-side tracking (CAPI) and attribution modeling",
+          "Calculating true Marginal ROAS and customer lifetime value",
+          "Packaging generative ad production as a $5k/mo agency service",
+          "Final campaign performance review & certificate award"
+        ],
+        handsOnLab: "Present a complete 30-day Campaign Scale Plan with projected ROAS and budget allocation."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Omnichannel Generative Ad Campaign & Growth Engine",
+        description: "A complete launch-ready ad campaign featuring 20 AI UGC video variations, automated landing page personalization, and Meta/TikTok media buying structure.",
+        technologies: ["Runway Gen-3", "ElevenLabs", "Midjourney", "Meta Ads Manager", "TikTok Ads"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Nadia Thorne",
+        role: "Director of Growth & Paid Media, Vixora Hub",
+        bio: "Managed over $15M in profitable ad spend across D2C and B2B SaaS platforms.",
+        companyBackground: "Vixora Media Collective"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need high-end video editing software like Premiere or After Effects?",
+        a: "No! We teach cloud-based AI tools and automated pipelines that do not require expensive hardware or prior editing experience."
+      }
+    ],
+    certificateType: "Vixora Certified Growth & Media Specialist"
   }
 ];
 
+import { BRAND_CONFIG } from './brandConfig';
+export { BRAND_CONFIG };
+
 export const COMPANY_CONTACT = {
-  email: "hello@vixora.com",
-  secondaryEmail: "vixoralabsai@gmail.com",
-  phone: "+1 (800) 849-6721",
-  whatsappNumber: "+18008496721",
-  whatsappUrl: "https://wa.me/18008496721?text=Hello%20Vixora%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
-  address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Center",
+  email: BRAND_CONFIG.email,
+  secondaryEmail: BRAND_CONFIG.secondaryEmail,
+  phone: BRAND_CONFIG.phone,
+  whatsappNumber: BRAND_CONFIG.whatsappNumber,
+  whatsappUrl: BRAND_CONFIG.whatsappUrl,
+  domain: BRAND_CONFIG.domain,
+  academyDomain: BRAND_CONFIG.academyDomain,
+  address: BRAND_CONFIG.address,
   socials: [
     { name: "Twitter / X", url: "https://twitter.com", icon: "Twitter" },
     { name: "LinkedIn", url: "https://linkedin.com", icon: "Linkedin" },
@@ -661,3 +1261,4 @@ export const COMPANY_CONTACT = {
     { name: "YouTube", url: "https://youtube.com", icon: "Youtube" }
   ]
 };
+

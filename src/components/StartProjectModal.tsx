@@ -7,8 +7,10 @@ import {
   ShieldCheck,
   Calendar,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  ExternalLink
 } from 'lucide-react';
+import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
 
 interface StartProjectModalProps {
   isOpen: boolean;
@@ -28,6 +30,7 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
     description: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showWhatsAppOptions, setShowWhatsAppOptions] = useState(false);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -82,8 +85,8 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
     setIsSubmitted(true);
   };
 
-  const generateWhatsAppMessage = () => {
-    const text = `Hello Vixora Hub Team!%0A%0AI would like to start a project:%0A- Name: ${encodeURIComponent(
+  const getWhatsAppMessageText = () => {
+    return `Hello Vixora Hub Team!%0A%0AI would like to start a project:%0A- Name: ${encodeURIComponent(
       formData.name || 'Client'
     )}%0A- Company: ${encodeURIComponent(
       formData.company || 'Not Specified'
@@ -98,7 +101,19 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
     )}%0A- Description: ${encodeURIComponent(
       formData.description || 'Discussing project scope.'
     )}`;
-    return `https://wa.me/18008496721?text=${text}`;
+  };
+
+  const generateWhatsAppUrl = (channel: 'us' | 'ng') => {
+    const rawText = `Hello Vixora Hub Team!\n\nI would like to start a project:\n- Name: ${
+      formData.name || 'Client'
+    }\n- Company: ${
+      formData.company || 'Not Specified'
+    }\n- Services: ${
+      selectedServices.join(', ')
+    }\n- Industry: ${industry}\n- Budget: ${budgetRange}\n- Timeline: ${timeline}\n- Scope: ${
+      formData.description || 'Discussing project requirements.'
+    }`;
+    return getWhatsAppUrl(channel, rawText);
   };
 
   return (
@@ -153,25 +168,43 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-              <a
-                href={generateWhatsAppMessage()}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition-all"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>Fast-Track on WhatsApp</span>
-              </a>
+            <div className="space-y-3 pt-4 max-w-md mx-auto">
+              <div className="text-xs font-semibold text-neutral-300 font-mono flex items-center justify-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Fast-Track Direct WhatsApp Dispatch:</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <a
+                  href={generateWhatsAppUrl('us')}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition-all text-center"
+                >
+                  <span>🇺🇸 🌐 US / Global</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+
+                <a
+                  href={generateWhatsAppUrl('ng')}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition-all text-center"
+                >
+                  <span>🇳🇬 Nigeria (08114542934)</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
               <button
                 type="button"
                 onClick={() => {
                   setIsSubmitted(false);
                   onClose();
                 }}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-medium bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors"
+                className="w-full py-2.5 rounded-xl text-xs font-medium bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors"
               >
-                Done & Close
+                Done & Close Window
               </button>
             </div>
           </div>
@@ -336,15 +369,59 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
                   Cancel
                 </button>
 
-                <a
-                  href={generateWhatsAppMessage()}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>WhatsApp</span>
-                </a>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowWhatsAppOptions(!showWhatsAppOptions)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>WhatsApp</span>
+                  </button>
+
+                  {showWhatsAppOptions && (
+                    <div className="absolute right-0 bottom-full mb-2 w-72 bg-[#0C061F] border border-emerald-500/40 rounded-2xl p-2.5 shadow-2xl shadow-emerald-950/90 z-30 space-y-1.5 text-xs text-left animate-in fade-in zoom-in-95">
+                      <div className="px-2 py-1 text-[11px] font-mono text-neutral-400 border-b border-neutral-800 flex justify-between items-center">
+                        <span>Select Inbound Line:</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      </div>
+                      <a
+                        href={generateWhatsAppUrl('us')}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setShowWhatsAppOptions(false)}
+                        className="p-2 rounded-xl bg-neutral-900 hover:bg-emerald-950/60 border border-neutral-800 hover:border-emerald-500/40 flex items-center justify-between text-neutral-200 hover:text-white transition-all group"
+                      >
+                        <div>
+                          <div className="font-semibold text-white flex items-center gap-1.5">
+                            <span>🇺🇸 🌐</span> US & Global
+                          </div>
+                          <div className="text-[10px] font-mono text-emerald-400">
+                            {BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber}
+                          </div>
+                        </div>
+                        <ExternalLink className="w-3 h-3 text-neutral-500 group-hover:text-emerald-400" />
+                      </a>
+                      <a
+                        href={generateWhatsAppUrl('ng')}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setShowWhatsAppOptions(false)}
+                        className="p-2 rounded-xl bg-neutral-900 hover:bg-emerald-950/60 border border-neutral-800 hover:border-emerald-500/40 flex items-center justify-between text-neutral-200 hover:text-white transition-all group"
+                      >
+                        <div>
+                          <div className="font-semibold text-white flex items-center gap-1.5">
+                            <span>🇳🇬</span> Nigeria
+                          </div>
+                          <div className="text-[10px] font-mono text-emerald-400">
+                            {BRAND_CONFIG.whatsapp.nigeria.displayNumber}
+                          </div>
+                        </div>
+                        <ExternalLink className="w-3 h-3 text-neutral-500 group-hover:text-emerald-400" />
+                      </a>
+                    </div>
+                  )}
+                </div>
 
                 <button
                   type="submit"
