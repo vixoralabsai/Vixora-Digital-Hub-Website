@@ -33,9 +33,9 @@ export function BrandLogo({
   };
 
   const heightClasses = {
-    sm: 'h-7 max-w-[130px]',
-    md: 'h-8 sm:h-9 max-w-[170px]',
-    lg: 'h-10 sm:h-12 max-w-[220px]'
+    sm: 'h-8 sm:h-9 max-w-[160px]',
+    md: 'h-10 sm:h-11 md:h-12 max-w-[220px] sm:max-w-[260px]',
+    lg: 'h-12 sm:h-16 max-w-[300px]'
   };
 
   const currentSrc = fallbackList[currentIdx] || getDirectImageUrl(targetUrl);
@@ -48,7 +48,7 @@ export function BrandLogo({
           alt={BRAND_CONFIG.logo.altText || BRAND_CONFIG.name}
           referrerPolicy="no-referrer"
           onError={handleImgError}
-          className={`${heightClasses[size]} w-auto object-contain transition-opacity duration-300 ${imgClassName}`}
+          className={`${heightClasses[size]} w-auto object-contain object-left drop-shadow-md transition-opacity duration-300 ${imgClassName}`}
         />
       </div>
     );

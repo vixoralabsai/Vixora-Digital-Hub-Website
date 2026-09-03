@@ -84,16 +84,16 @@ export const BRAND_CONFIG: BrandConfig = {
   whatsappUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
   address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Innovation Center",
   logo: {
-    // ⬇️ Logos configured from provided links:
-    imageUrl: "https://i.imgur.com/QOLJJP8.png", 
-    secondaryImageUrl: "https://i.imgur.com/swGpVmW.png",
-    darkImageUrl: "https://i.imgur.com/swGpVmW.png",
+    // ⬇️ Brand logo image files:
+    imageUrl: "/images/brand-logo-1.png", 
+    secondaryImageUrl: "/images/brand-logo-2.png",
+    darkImageUrl: "/images/brand-logo-2.png",
     altText: "Vixora Digital Hub Logo"
   },
   heroBackground: {
-    // ⬇️ Custom hero section background image:
-    imageUrl: "https://i.imgur.com/lP5Ub4o.png", 
-    overlayOpacity: 0.75
+    // ⬇️ Hero section background image:
+    imageUrl: "/images/hero-background.png", 
+    overlayOpacity: 0.65
   }
 };
 
@@ -103,23 +103,31 @@ export const BRAND_CONFIG: BrandConfig = {
 export function extractImgurId(url?: string): string | null {
   if (!url) return null;
   const trimmed = url.trim();
+  
+  // Specific mappings for known album/page hashes
+  if (trimmed.includes('lP5Ub4o')) return 'hV70o1X';
+  if (trimmed.includes('QOLJJP8')) return '7APTK1Z';
+  if (trimmed.includes('swGpVmW')) return 'swGpVmW';
+
   const imgurMatch = trimmed.match(/^https?:\/\/(?:[a-z0-9.]+\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z0-9]+)?/i);
   return (imgurMatch && imgurMatch[1]) ? imgurMatch[1] : null;
 }
 
 /**
- * Helper to normalize and convert any image URL (including imgur albums/pages) into a direct image CDN link.
- * Uses a multi-CDN proxy approach (wsrv.nl / i.imgur.com) to bypass hotlink blocking.
+ * Helper to normalize and convert any image URL into a direct image CDN link.
  */
 export function getDirectImageUrl(url?: string): string {
   if (!url) return '';
   const trimmed = url.trim();
   if (!trimmed) return '';
   
+  if (trimmed.startsWith('/') || trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+
   const imgurId = extractImgurId(trimmed);
   if (imgurId) {
-    // Use wsrv.nl proxy as primary since Imgur often returns 403 Forbidden to foreign referrers/iframes
-    return `https://wsrv.nl/?url=https://i.imgur.com/${imgurId}.png`;
+    return `https://i.imgur.com/${imgurId}.png`;
   }
   
   return trimmed;
@@ -133,14 +141,23 @@ export function getImageFallbacks(url?: string): string[] {
   const trimmed = url.trim();
   if (!trimmed) return [];
 
+  // Local assets fallbacks
+  if (trimmed === '/images/brand-logo-1.png') {
+    return ['/images/brand-logo-1.png', 'https://i.imgur.com/7APTK1Z.png', '/images/brand-logo-2.png'];
+  }
+  if (trimmed === '/images/brand-logo-2.png') {
+    return ['/images/brand-logo-2.png', 'https://i.imgur.com/swGpVmW.png', '/images/brand-logo-1.png'];
+  }
+  if (trimmed === '/images/hero-background.png') {
+    return ['/images/hero-background.png', 'https://i.imgur.com/hV70o1X.png'];
+  }
+
   const imgurId = extractImgurId(trimmed);
   if (imgurId) {
     return [
-      `https://wsrv.nl/?url=https://i.imgur.com/${imgurId}.png`,
       `https://i.imgur.com/${imgurId}.png`,
       `https://i.imgur.com/${imgurId}.jpg`,
-      `https://images.weserv.nl/?url=https://i.imgur.com/${imgurId}.png`,
-      `https://cdn.statically.io/img/i.imgur.com/${imgurId}.png`
+      `https://wsrv.nl/?url=https://i.imgur.com/${imgurId}.png`
     ];
   }
 
