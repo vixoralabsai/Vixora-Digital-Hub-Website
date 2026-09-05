@@ -62,3 +62,108 @@ export interface SearchState {
   scannedCount: number;
   error: string | null;
 }
+
+export type ProjectStatusType =
+  | 'Discovery & Scoping'
+  | 'In Development'
+  | 'In Review & QA'
+  | 'Live in Production'
+  | 'On Hold';
+
+export type ProjectHealthType = 'On Track' | 'Ahead of Schedule' | 'Attention Needed';
+
+export interface ProjectMilestoneItem {
+  id: string;
+  title: string;
+  phase: string;
+  dueDate: string;
+  status: 'completed' | 'in_progress' | 'upcoming';
+  completedDate?: string;
+  deliverables: string[];
+  notes?: string;
+}
+
+export interface ProjectDeadline {
+  id: string;
+  title: string;
+  date: string;
+  daysRemaining: number;
+  type: 'Sprint Review' | 'Deliverable Signoff' | 'Staging Deployment' | 'Live Launch' | 'Payment Milestone' | 'Security Audit';
+  urgency: 'high' | 'normal' | 'low';
+  assignedTo: string;
+  description?: string;
+}
+
+export interface ProjectFile {
+  id: string;
+  name: string;
+  category: 'PRD & Specs' | 'UI/UX & Figma' | 'Architecture & Code' | 'Reports & QA' | 'Invoices & Legal';
+  type: 'pdf' | 'doc' | 'figma' | 'code' | 'zip' | 'link';
+  size?: string;
+  uploadedAt: string;
+  url: string;
+  description?: string;
+  isDriveLinked?: boolean;
+}
+
+export interface ProjectActivity {
+  id: string;
+  timestamp: string;
+  author: string;
+  avatarText: string;
+  action: string;
+  details?: string;
+  category: 'deployment' | 'milestone' | 'document' | 'message' | 'ticket';
+}
+
+export interface ClientTicket {
+  id: string;
+  subject: string;
+  category: 'Bug Report' | 'Feature Change' | 'Scope Adjustment' | 'Access & Infrastructure' | 'General Query';
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Open' | 'In Review' | 'In Progress' | 'Resolved';
+  createdAt: string;
+  description: string;
+  response?: string;
+}
+
+export interface ClientProject {
+  id: string;
+  accessCode: string; // e.g. VX-84920
+  clientName: string;
+  clientEmail: string;
+  company: string;
+  projectName: string;
+  tagline: string;
+  status: ProjectStatusType;
+  health: ProjectHealthType;
+  progress: number; // 0 to 100
+  startDate: string;
+  targetDeliveryDate: string;
+  budgetTier: string;
+  services: string[];
+  leadEngineer: {
+    name: string;
+    role: string;
+    email: string;
+    phoneWhatsApp: string;
+  };
+  projectManager: {
+    name: string;
+    role: string;
+    email: string;
+    phoneWhatsApp: string;
+  };
+  milestones: ProjectMilestoneItem[];
+  upcomingDeadlines: ProjectDeadline[];
+  files: ProjectFile[];
+  activities: ProjectActivity[];
+  tickets?: ClientTicket[];
+  stagingUrl?: string;
+  productionUrl?: string;
+  repoUrl?: string;
+  figmaUrl?: string;
+  driveFolderUrl?: string;
+  notes?: string;
+}
+

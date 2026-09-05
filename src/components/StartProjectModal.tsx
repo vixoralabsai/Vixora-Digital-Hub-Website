@@ -8,16 +8,19 @@ import {
   Calendar,
   Sparkles,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  LayoutDashboard
 } from 'lucide-react';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
+import { createProjectFromConsultation, setClientAuthSession } from '../services/clientProjectService';
 
 interface StartProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onNavigateToDashboard?: () => void;
 }
 
-export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
+export function StartProjectModal({ isOpen, onClose, onNavigateToDashboard }: StartProjectModalProps) {
   const [selectedServices, setSelectedServices] = useState<string[]>(['Software Development']);
   const [budgetRange, setBudgetRange] = useState<string>('$5,000 - $15,000');
   const [timeline, setTimeline] = useState<string>('4 - 8 Weeks');
@@ -30,6 +33,7 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
     description: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [createdAccessCode, setCreatedAccessCode] = useState<string>('');
   const [showWhatsAppOptions, setShowWhatsAppOptions] = useState(false);
 
   // Close modal on Escape key
@@ -82,8 +86,34 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const newProj = createProjectFromConsultation({
+        clientName: formData.name,
+        clientEmail: formData.email,
+        company: formData.company,
+        phone: formData.phone,
+        services: selectedServices,
+        budgetRange,
+        timeline,
+        description: formData.description
+      });
+      setCreatedAccessCode(newProj.accessCode);
+
+      // Auto-set session for immediate seamless dashboard access
+      setClientAuthSession({
+        clientName: newProj.clientName,
+        clientEmail: newProj.clientEmail,
+        company: newProj.company,
+        accessCode: newProj.accessCode,
+        authenticatedVia: 'access_code',
+        loginTime: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Failed to register project consultation:', err);
+    }
     setIsSubmitted(true);
   };
+
 
   const getWhatsAppMessageText = () => {
     return `Hello Vixora Hub Team!%0A%0AI would like to start a project:%0A- Name: ${encodeURIComponent(
@@ -157,6 +187,17 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
             </p>
 
             <div className="p-4 rounded-2xl bg-neutral-950/80 border border-purple-900/30 max-w-md mx-auto text-left text-xs space-y-2">
+              {createdAccessCode && (
+                <div className="p-2.5 rounded-xl bg-purple-950/80 border border-purple-600/40 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-mono uppercase text-purple-300">Your Project Access Code:</div>
+                    <div className="text-base font-mono font-black text-amber-300 tracking-wider">{createdAccessCode}</div>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
+                    Live Tracked
+                  </span>
+                </div>
+              )}
               <div className="font-mono text-neutral-400">
                 Selected Scope: <span className="text-purple-300 font-semibold">{selectedServices.join(', ')}</span>
               </div>
@@ -167,6 +208,25 @@ export function StartProjectModal({ isOpen, onClose }: StartProjectModalProps) {
                 Budget: <span className="text-emerald-400 font-semibold">{budgetRange}</span>
               </div>
             </div>
+
+            {onNavigateToDashboard && (
+              <div className="max-w-md mx-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSubmitted(false);
+                    onClose();
+                    onNavigateToDashboard();
+                  }}
+                  className="w-full py-3.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Open Project in Client Dashboard</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
 
             <div className="space-y-3 pt-4 max-w-md mx-auto">
               <div className="text-xs font-semibold text-neutral-300 font-mono flex items-center justify-center gap-1.5">

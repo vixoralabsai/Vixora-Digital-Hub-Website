@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TrustedBy } from './components/TrustedBy';
@@ -24,109 +24,257 @@ import { PortfolioPage } from './pages/PortfolioPage';
 import { AcademyPage } from './pages/AcademyPage';
 import { CourseLandingPage } from './pages/CourseLandingPage';
 import { ResourcesPage } from './pages/ResourcesPage';
+import { ClientDashboardPage } from './pages/ClientDashboardPage';
+import { PagesDirectoryPage } from './pages/PagesDirectoryPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+
 import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
+import { ThemeProvider } from './context/ThemeContext';
+import { getPostBySlug } from './data/categoriesData';
 
-export type PageType = 'home' | 'about' | 'portfolio' | 'academy' | 'academy-course' | 'resources';
+export type PageType =
+  | 'home'
+  | 'about'
+  | 'portfolio'
+  | 'academy'
+  | 'academy-course'
+  | 'resources'
+  | 'dashboard'
+  | 'pages-directory'
+  | 'categories';
 
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageType>('home');
-  const [selectedCourse, setSelectedCourse] = useState<AcademyCourse | null>(null);
+interface RouteState {
+  page: PageType;
+  path: string;
+  categorySlug?: string;
+  subcategorySlug?: string;
+  postSlug?: string;
+  courseSlug?: string;
+}
+
+function parseLocationPath(pathname: string, search: string): RouteState {
+  const cleanPath = pathname.replace(/\/+$/, '') || '/';
+  const urlParams = new URLSearchParams(search);
+  const pageParam = urlParams.get('page');
+  const courseParam = urlParams.get('course');
+
+  // 1. Query parameter overrides (legacy compatibility)
+  if (courseParam) {
+    return {
+      page: 'academy-course',
+      path: `/academy/${courseParam}`,
+      courseSlug: courseParam
+    };
+  }
+
+  if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'dashboard'].includes(pageParam)) {
+    return {
+      page: pageParam as PageType,
+      path: `/pages/${pageParam}`
+    };
+  }
+
+  // 2. Canonical /pages permalinks
+  if (cleanPath === '/pages') {
+    return { page: 'pages-directory', path: '/pages' };
+  }
+  if (cleanPath === '/pages/about' || cleanPath === '/about') {
+    return { page: 'about', path: '/pages/about' };
+  }
+  if (cleanPath === '/pages/portfolio' || cleanPath === '/portfolio') {
+    return { page: 'portfolio', path: '/pages/portfolio' };
+  }
+  if (cleanPath === '/pages/academy' || cleanPath === '/academy') {
+    return { page: 'academy', path: '/pages/academy' };
+  }
+  if (cleanPath === '/pages/resources' || cleanPath === '/resources') {
+    return { page: 'resources', path: '/pages/resources' };
+  }
+  if (cleanPath === '/pages/dashboard' || cleanPath === '/dashboard') {
+    return { page: 'dashboard', path: '/pages/dashboard' };
+  }
+
+  // 3. Academy Course paths: /academy/:courseSlug
+  if (cleanPath.startsWith('/academy/')) {
+    const slug = cleanPath.replace('/academy/', '');
+    return {
+      page: 'academy-course',
+      path: cleanPath,
+      courseSlug: slug
+    };
+  }
+
+  // 4. Categories, Subcategories & Posts:
+  // Format:
+  // - /categories
+  // - /categories/:category
+  // - /categories/:category/:subcategory
+  // - /categories/:category/:subcategory/:postTitle
+  // - /categories/:category/:postTitle
+  if (cleanPath === '/categories') {
+    return {
+      page: 'categories',
+      path: '/categories'
+    };
+  }
+
+  if (cleanPath.startsWith('/categories/')) {
+    const parts = cleanPath.replace('/categories/', '').split('/').filter(Boolean);
+    if (parts.length === 1) {
+      // Could be /categories/:categorySlug
+      return {
+        page: 'categories',
+        path: cleanPath,
+        categorySlug: parts[0]
+      };
+    } else if (parts.length === 2) {
+      // Check if parts[1] is a post or a subcategory
+      const potentialPost = getPostBySlug(parts[1], parts[0]);
+      if (potentialPost) {
+        return {
+          page: 'categories',
+          path: cleanPath,
+          categorySlug: parts[0],
+          postSlug: parts[1]
+        };
+      }
+      return {
+        page: 'categories',
+        path: cleanPath,
+        categorySlug: parts[0],
+        subcategorySlug: parts[1]
+      };
+    } else if (parts.length >= 3) {
+      // /categories/:categorySlug/:subcategorySlug/:postSlug
+      return {
+        page: 'categories',
+        path: cleanPath,
+        categorySlug: parts[0],
+        subcategorySlug: parts[1],
+        postSlug: parts[2]
+      };
+    }
+  }
+
+  // Default Home
+  return { page: 'home', path: '/' };
+}
+
+function AppContent() {
+  const [route, setRoute] = useState<RouteState>(() =>
+    parseLocationPath(
+      typeof window !== 'undefined' ? window.location.pathname : '/',
+      typeof window !== 'undefined' ? window.location.search : ''
+    )
+  );
+
+  const [selectedCourse, setSelectedCourse] = useState<AcademyCourse | null>(() => {
+    if (route.courseSlug) {
+      return ACADEMY_COURSES.find(c => c.slug === route.courseSlug || c.id === route.courseSlug) || null;
+    }
+    return null;
+  });
+
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [driveWorkspaceOpen, setDriveWorkspaceOpen] = useState(false);
   const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [courseForEnrollment, setCourseForEnrollment] = useState<AcademyCourse | null>(null);
 
-  // Parse initial query parameter or subdomain / hash if provided
+  // Sync course when route changes
   useEffect(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const courseSlug = urlParams.get('course');
-      const subdomain = urlParams.get('subdomain');
-      const pageParam = urlParams.get('page');
+    if (route.courseSlug) {
+      const found = ACADEMY_COURSES.find(c => c.slug === route.courseSlug || c.id === route.courseSlug);
+      if (found) setSelectedCourse(found);
+    }
+  }, [route.courseSlug]);
 
-      // Check if hostname is an academy subdomain
-      const isAcademyHost =
+  // Handle browser back and forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const parsed = parseLocationPath(window.location.pathname, window.location.search);
+      setRoute(parsed);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Universal Navigation Handler supporting permalinks
+  const handleNavigate = useCallback(
+    (page: string, sectionId?: string, courseSlug?: string, customPath?: string) => {
+      const isAlreadyAcademyHost = typeof window !== 'undefined' && (
         window.location.hostname.startsWith('academy.') ||
-        window.location.hostname.includes('academy');
+        window.location.hostname.includes('academy')
+      );
 
-      if (courseSlug) {
-        const found = ACADEMY_COURSES.find(c => c.slug === courseSlug || c.id === courseSlug);
-        if (found) {
-          setSelectedCourse(found);
-          setCurrentPage('academy-course');
-          return;
+      // Determine canonical target URL
+      let targetPath = customPath;
+      if (!targetPath) {
+        if (page === 'home') {
+          targetPath = sectionId ? `/#${sectionId}` : '/';
+        } else if (page === 'pages-directory') {
+          targetPath = '/pages';
+        } else if (page === 'about') {
+          targetPath = '/pages/about';
+        } else if (page === 'portfolio') {
+          targetPath = '/pages/portfolio';
+        } else if (page === 'academy') {
+          targetPath = '/pages/academy';
+        } else if (page === 'resources') {
+          targetPath = '/pages/resources';
+        } else if (page === 'dashboard') {
+          targetPath = '/pages/dashboard';
+        } else if (page === 'categories') {
+          targetPath = '/categories';
+        } else if (page === 'academy-course' && courseSlug) {
+          targetPath = `/academy/${courseSlug}`;
+        } else {
+          targetPath = `/${page}`;
         }
       }
 
-      if (subdomain === 'academy' || isAcademyHost || pageParam === 'academy') {
-        setCurrentPage('academy');
-      } else if (pageParam && ['about', 'portfolio', 'resources', 'academy'].includes(pageParam)) {
-        setCurrentPage(pageParam as PageType);
-      }
-    } catch {
-      // safe fallback
-    }
-  }, []);
-
-  // Universal Navigation Handler
-  const handleNavigate = (page: string, sectionId?: string, courseSlug?: string) => {
-    const isAlreadyAcademyHost = typeof window !== 'undefined' && (
-      window.location.hostname.startsWith('academy.') ||
-      window.location.hostname.includes('academy')
-    );
-
-    if (page === 'academy') {
-      if (!isAlreadyAcademyHost) {
+      // External academy host handling if needed
+      if (page === 'academy' && !isAlreadyAcademyHost && window.location.hostname.includes('vixora.com')) {
         window.location.href = BRAND_CONFIG.academyDomain;
         return;
       }
-      setCurrentPage('academy');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
 
-    if (page === 'academy-course' && courseSlug) {
-      if (!isAlreadyAcademyHost) {
+      if (page === 'academy-course' && courseSlug && !isAlreadyAcademyHost && window.location.hostname.includes('vixora.com')) {
         window.location.href = `${BRAND_CONFIG.academyDomain}/?page=academy-course&course=${encodeURIComponent(courseSlug)}`;
         return;
       }
-      const found = ACADEMY_COURSES.find(c => c.slug === courseSlug || c.id === courseSlug);
-      if (found) {
-        setSelectedCourse(found);
-        setCurrentPage('academy-course');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+
+      // Update browser history with clean permalink
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', targetPath);
       }
-    }
 
-    const validPage = (page as PageType) || 'home';
-    setCurrentPage(validPage);
+      // Parse and set internal state
+      const parsed = parseLocationPath(
+        targetPath.split('#')[0] || '/',
+        targetPath.includes('?') ? targetPath.split('?')[1] : ''
+      );
+      setRoute(parsed);
 
-    if (sectionId && validPage === 'home') {
-      setTimeout(() => {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 50);
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+      if (sectionId && (page === 'home' || targetPath.startsWith('/#'))) {
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 50);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    []
+  );
 
   const handleSelectCourse = (course: AcademyCourse) => {
-    const isAlreadyAcademyHost = typeof window !== 'undefined' && (
-      window.location.hostname.startsWith('academy.') ||
-      window.location.hostname.includes('academy')
-    );
-    if (!isAlreadyAcademyHost) {
-      window.location.href = `${BRAND_CONFIG.academyDomain}/?page=academy-course&course=${encodeURIComponent(course.slug)}`;
-      return;
-    }
     setSelectedCourse(course);
-    setCurrentPage('academy-course');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    handleNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`);
   };
 
   const handleEnrollInCourse = (course: AcademyCourse) => {
@@ -135,12 +283,8 @@ export default function App() {
   };
 
   const handleExploreServices = () => {
-    if (currentPage !== 'home') {
-      setCurrentPage('home');
-      setTimeout(() => {
-        const el = document.getElementById('solutions');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
+    if (route.page !== 'home') {
+      handleNavigate('home', 'solutions', undefined, '/#solutions');
     } else {
       const el = document.getElementById('solutions');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -148,10 +292,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070314] text-neutral-100 font-sans selection:bg-purple-600 selection:text-white antialiased">
-      {/* 1. Global Navigation Bar */}
+    <div className="min-h-screen bg-[#070314] text-neutral-100 font-sans selection:bg-purple-600 selection:text-white antialiased transition-colors duration-200">
+      {/* 1. Streamlined Navigation Bar with Subcategories & Permalinks */}
       <Navbar
-        currentPage={currentPage}
+        currentPage={route.page}
+        currentPath={route.path}
         onNavigate={handleNavigate}
         onOpenProjectModal={() => setProjectModalOpen(true)}
         onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
@@ -159,7 +304,7 @@ export default function App() {
 
       {/* Main Dynamic View Content */}
       <main>
-        {currentPage === 'home' && (
+        {route.page === 'home' && (
           <div className="animate-in fade-in duration-200">
             {/* 1. Hero Section with 3D V Monolith & Floating Cyber Nodes */}
             <Hero
@@ -168,10 +313,10 @@ export default function App() {
               onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
             />
 
-            {/* 2. Client Logos Ribbon ("Some of our amazing clients") */}
+            {/* 2. Client Logos Ribbon */}
             <TrustedBy />
 
-            {/* 3. Key Metrics Bar (150+ Projects, 200+ Clients, 15+ Industries, 5+ Years) */}
+            {/* 3. Key Metrics Bar */}
             <BusinessMetrics />
 
             {/* 4. Complete Digital Solutions Grid */}
@@ -194,41 +339,67 @@ export default function App() {
           </div>
         )}
 
-        {currentPage === 'about' && (
+        {route.page === 'about' && (
           <AboutPage
             onOpenProjectModal={() => setProjectModalOpen(true)}
             onNavigate={handleNavigate}
           />
         )}
 
-        {currentPage === 'portfolio' && (
+        {route.page === 'portfolio' && (
           <PortfolioPage
             onOpenProjectModal={() => setProjectModalOpen(true)}
           />
         )}
 
-        {currentPage === 'academy' && (
+        {route.page === 'academy' && (
           <AcademyPage
             onOpenProjectModal={() => setProjectModalOpen(true)}
             onSelectCourse={handleSelectCourse}
             onEnrollCourse={handleEnrollInCourse}
-            onNavigateHome={() => handleNavigate('home')}
+            onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
           />
         )}
 
-        {currentPage === 'academy-course' && selectedCourse && (
+        {route.page === 'academy-course' && selectedCourse && (
           <CourseLandingPage
             course={selectedCourse}
-            onBackToAcademy={() => handleNavigate('academy')}
+            onBackToAcademy={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}
             onEnroll={handleEnrollInCourse}
             onSelectCourse={handleSelectCourse}
-            onNavigateHome={() => handleNavigate('home')}
+            onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
           />
         )}
 
-        {currentPage === 'resources' && (
+        {route.page === 'resources' && (
           <ResourcesPage
             onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+            onOpenProjectModal={() => setProjectModalOpen(true)}
+          />
+        )}
+
+        {route.page === 'dashboard' && (
+          <ClientDashboardPage
+            onOpenProjectModal={() => setProjectModalOpen(true)}
+            onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+            onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
+          />
+        )}
+
+        {route.page === 'pages-directory' && (
+          <PagesDirectoryPage
+            onNavigate={handleNavigate}
+            onOpenProjectModal={() => setProjectModalOpen(true)}
+            onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+          />
+        )}
+
+        {route.page === 'categories' && (
+          <CategoriesPage
+            categorySlug={route.categorySlug}
+            subcategorySlug={route.subcategorySlug}
+            postSlug={route.postSlug}
+            onNavigate={handleNavigate}
             onOpenProjectModal={() => setProjectModalOpen(true)}
           />
         )}
@@ -245,6 +416,7 @@ export default function App() {
       <StartProjectModal
         isOpen={projectModalOpen}
         onClose={() => setProjectModalOpen(false)}
+        onNavigateToDashboard={() => handleNavigate('dashboard', undefined, undefined, '/pages/dashboard')}
       />
 
       {/* Google Drive Workspace & PRD Generator Modal */}
@@ -265,3 +437,13 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+

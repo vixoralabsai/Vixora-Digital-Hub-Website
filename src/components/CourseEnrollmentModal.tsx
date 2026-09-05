@@ -315,6 +315,15 @@ export function CourseEnrollmentModal({
                     </p>
                   </div>
                 </div>
+
+                {fundingType === 'self' && (
+                  <div className="pt-2">
+                    <BankPaymentDetailsCard
+                      courseTitle={course.title}
+                      tuitionAmount={course.tuition}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Goals */}

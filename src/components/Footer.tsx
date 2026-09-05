@@ -15,7 +15,7 @@ import { BrandLogo } from './BrandLogo';
 interface FooterProps {
   onOpenDriveWorkspace: () => void;
   onOpenProjectModal: () => void;
-  onNavigate: (page: string, sectionId?: string, courseSlug?: string) => void;
+  onNavigate: (page: string, sectionId?: string, courseSlug?: string, customPath?: string) => void;
 }
 
 export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }: FooterProps) {
@@ -38,7 +38,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
           {/* Brand & Mission */}
           <div className="lg:col-span-4 space-y-4">
             <button
-              onClick={() => onNavigate('home')}
+              onClick={() => onNavigate('home', undefined, undefined, '/')}
               className="flex items-center gap-3 text-left cursor-pointer group"
             >
               <BrandLogo size="md" />
@@ -110,14 +110,15 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
             {/* Quick Links */}
             <div className="space-y-3">
               <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                Quick Links
+                Platform Pages
               </h4>
               <ul className="space-y-2 text-xs text-neutral-400">
-                <li><button onClick={() => onNavigate('home')} className="hover:text-white transition-colors cursor-pointer">Home</button></li>
-                <li><button onClick={() => onNavigate('about')} className="hover:text-white transition-colors cursor-pointer">About Us</button></li>
-                <li><button onClick={() => onNavigate('portfolio')} className="hover:text-white transition-colors cursor-pointer">Portfolio & Work</button></li>
-                <li><button onClick={() => onNavigate('academy')} className="hover:text-white transition-colors cursor-pointer">Vixora Academy</button></li>
-                <li><button onClick={() => onNavigate('resources')} className="hover:text-white transition-colors cursor-pointer">Resources & Insights</button></li>
+                <li><button onClick={() => onNavigate('home', undefined, undefined, '/')} className="hover:text-white transition-colors cursor-pointer">Home</button></li>
+                <li><button onClick={() => onNavigate('dashboard', undefined, undefined, '/pages/dashboard')} className="text-amber-300 hover:text-amber-200 font-semibold transition-colors cursor-pointer flex items-center gap-1"><span>Client Portal</span> <span className="text-[9px] bg-amber-950 px-1.5 py-0.2 rounded border border-amber-500/40 text-amber-300">Live</span></button></li>
+                <li><button onClick={() => onNavigate('about', undefined, undefined, '/pages/about')} className="hover:text-white transition-colors cursor-pointer">About Us</button></li>
+                <li><button onClick={() => onNavigate('portfolio', undefined, undefined, '/pages/portfolio')} className="hover:text-white transition-colors cursor-pointer">Portfolio & Work</button></li>
+                <li><button onClick={() => onNavigate('pages-directory', undefined, undefined, '/pages')} className="text-purple-300 hover:text-white transition-colors cursor-pointer">Pages Directory (/pages)</button></li>
+                <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories')} className="text-purple-300 hover:text-white transition-colors cursor-pointer">Taxonomy (/categories)</button></li>
                 <li><button onClick={onOpenProjectModal} className="hover:text-purple-400 text-purple-300 font-semibold transition-colors cursor-pointer">Book Consultation</button></li>
               </ul>
             </div>
@@ -128,11 +129,11 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
                 Our Solutions
               </h4>
               <ul className="space-y-2 text-xs text-neutral-400">
-                <li><button onClick={() => onNavigate('home', 'solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Website Development</button></li>
-                <li><button onClick={() => onNavigate('home', 'solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Software Development</button></li>
-                <li><button onClick={() => onNavigate('home', 'solutions')} className="hover:text-white transition-colors cursor-pointer text-left">AI & Automation</button></li>
-                <li><button onClick={() => onNavigate('home', 'solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Digital Marketing</button></li>
-                <li><button onClick={() => onNavigate('home', 'solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Creative & Branding</button></li>
+                <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Website Development</button></li>
+                <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Software Development</button></li>
+                <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">AI & Automation</button></li>
+                <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Digital Marketing</button></li>
+                <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Creative & Branding</button></li>
               </ul>
             </div>
 
@@ -140,35 +141,36 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
             <div className="space-y-3">
               <div className="flex items-center gap-1.5">
                 <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                  Academy & Labs
+                  Academy Programs
                 </h4>
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800/40">
-                  Subdomain
+                  Cohorts
                 </span>
               </div>
               <ul className="space-y-2 text-xs text-neutral-400">
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'fullstack-ai-engineering')} className="hover:text-white transition-colors cursor-pointer text-left">Full-Stack AI Engineering</button></li>
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'executive-ai-strategy')} className="hover:text-white transition-colors cursor-pointer text-left">Executive AI Strategy</button></li>
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'enterprise-workflow-automation')} className="hover:text-white transition-colors cursor-pointer text-left">Enterprise n8n Automation</button></li>
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-product-design-ui-ux')} className="hover:text-white transition-colors cursor-pointer text-left">AI Product Design & UI/UX</button></li>
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'generative-media-advertising')} className="hover:text-white transition-colors cursor-pointer text-left">Generative Media & Ads</button></li>
-                <li><button onClick={() => onNavigate('academy')} className="hover:text-purple-300 text-purple-400 font-semibold transition-colors cursor-pointer text-left">Explore All 5 Courses &rarr;</button></li>
+                <li><button onClick={() => onNavigate('academy-course', undefined, 'data-analysis-cohort', '/academy/data-analysis-cohort')} className="hover:text-white transition-colors cursor-pointer text-left">Data Analysis Cohort</button></li>
+                <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-automation-digital-business-systems', '/academy/ai-automation-digital-business-systems')} className="hover:text-white transition-colors cursor-pointer text-left">AI Automation Systems</button></li>
+                <li><button onClick={() => onNavigate('academy-course', undefined, 'complete-ai-digital-skills-freelancing-mastery', '/academy/complete-ai-digital-skills-freelancing-mastery')} className="hover:text-white transition-colors cursor-pointer text-left">AI Skills & Freelance</button></li>
+                <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-native-product-design-ui-ux', '/academy/ai-native-product-design-ui-ux')} className="hover:text-white transition-colors cursor-pointer text-left">AI Product Design & UI/UX</button></li>
+                <li><button onClick={() => onNavigate('academy', undefined, undefined, '/pages/academy')} className="hover:text-purple-300 text-purple-400 font-semibold transition-colors cursor-pointer text-left">All Academy Programs &rarr;</button></li>
               </ul>
             </div>
 
-            {/* Knowledge & Tools */}
+            {/* Knowledge & Taxonomy */}
             <div className="space-y-3">
               <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                Knowledge & Tools
+                Taxonomy & Posts
               </h4>
               <ul className="space-y-2 text-xs text-neutral-400">
-                <li><button onClick={() => onNavigate('resources')} className="hover:text-white transition-colors cursor-pointer text-left">Engineering Blog</button></li>
-                <li><button onClick={() => onNavigate('resources')} className="hover:text-white transition-colors cursor-pointer text-left">Whitepaper Downloads</button></li>
+                <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/ai-automation')} className="hover:text-white transition-colors cursor-pointer text-left">AI & Automation</button></li>
+                <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/software-engineering')} className="hover:text-white transition-colors cursor-pointer text-left">Software Engineering</button></li>
+                <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/growth-marketing')} className="hover:text-white transition-colors cursor-pointer text-left">Growth & Media Buying</button></li>
+                <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/branding-design')} className="hover:text-white transition-colors cursor-pointer text-left">Branding & Product Design</button></li>
                 <li><button onClick={onOpenDriveWorkspace} className="text-purple-300 hover:text-white font-medium transition-colors cursor-pointer text-left flex items-center gap-1">
                   <HardDrive className="w-3 h-3" />
                   <span>Drive PRD Hub</span>
                 </button></li>
-                <li><button onClick={() => onNavigate('resources')} className="hover:text-white transition-colors cursor-pointer text-left">FAQs</button></li>
+                <li><button onClick={() => onNavigate('resources', undefined, undefined, '/pages/resources')} className="hover:text-white transition-colors cursor-pointer text-left">Resources & Whitepapers</button></li>
               </ul>
             </div>
           </div>
