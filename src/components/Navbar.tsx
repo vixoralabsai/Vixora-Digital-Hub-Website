@@ -511,13 +511,27 @@ export function Navbar({
       {/* Clean Mobile Accordion Navigation */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0A051C]/98 border-b border-purple-900/30 px-5 py-6 space-y-4 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-200 shadow-2xl max-h-[85vh] overflow-y-auto">
-          {/* Quick Home link */}
-          <button
-            onClick={() => handleNavClick('home', undefined, undefined, '/')}
-            className="w-full text-left py-2 px-3 text-sm font-bold text-white hover:bg-purple-950/40 rounded-xl"
-          >
-            Home
-          </button>
+          {/* Mobile Drawer Header with Mobile Logo */}
+          <div className="flex items-center justify-between pb-3 border-b border-purple-900/30">
+            <button
+              onClick={() => handleNavClick('home', undefined, undefined, '/')}
+              className="flex items-center gap-3 text-left cursor-pointer"
+            >
+              <BrandLogo variant="mobile" size="md" responsive={false} />
+              <div>
+                <div className="text-xs font-bold text-white tracking-wider flex items-center gap-1.5">
+                  <span>VIXORA DIGITAL HUB</span>
+                </div>
+                <div className="text-[10px] text-purple-400 font-mono">Software • AI • Automation</div>
+              </div>
+            </button>
+            <button
+              onClick={() => handleNavClick('home', undefined, undefined, '/')}
+              className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-purple-950/60 text-purple-300 border border-purple-800/40 hover:bg-purple-900/60 cursor-pointer"
+            >
+              Home
+            </button>
+          </div>
 
           {/* Section 1: Services */}
           <div className="border-t border-purple-900/30 pt-3 space-y-1">

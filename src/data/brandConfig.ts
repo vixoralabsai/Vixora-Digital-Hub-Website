@@ -38,6 +38,7 @@ export interface BrandConfig {
   logo: {
     imageUrl: string;
     secondaryImageUrl?: string;
+    mobileImageUrl?: string;
     darkImageUrl?: string;
     altText: string;
   };
@@ -84,10 +85,11 @@ export const BRAND_CONFIG: BrandConfig = {
   whatsappUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
   address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Innovation Center",
   logo: {
-    // ⬇️ Brand logo image files:
-    imageUrl: "/images/brand-logo-1.png", 
-    secondaryImageUrl: "/images/brand-logo-2.png",
-    darkImageUrl: "/images/brand-logo-2.png",
+    // ⬇️ Brand logo image files (unified for both desktop and mobile, hosted locally):
+    imageUrl: "/images/brand-logo-horizontal.png", 
+    secondaryImageUrl: "/images/brand-logo-horizontal.png",
+    mobileImageUrl: "/images/brand-logo-horizontal.png",
+    darkImageUrl: "/images/brand-logo-horizontal.png",
     altText: "Vixora Digital Hub Logo"
   },
   heroBackground: {
@@ -101,35 +103,16 @@ export const BRAND_CONFIG: BrandConfig = {
  * Extracts an Imgur image ID if the URL matches an Imgur link
  */
 export function extractImgurId(url?: string): string | null {
-  if (!url) return null;
-  const trimmed = url.trim();
-  
-  // Specific mappings for known album/page hashes
-  if (trimmed.includes('lP5Ub4o')) return 'hV70o1X';
-  if (trimmed.includes('QOLJJP8')) return '7APTK1Z';
-  if (trimmed.includes('swGpVmW')) return 'swGpVmW';
-
-  const imgurMatch = trimmed.match(/^https?:\/\/(?:[a-z0-9.]+\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z0-9]+)?/i);
-  return (imgurMatch && imgurMatch[1]) ? imgurMatch[1] : null;
+  return null;
 }
 
 /**
- * Helper to normalize and convert any image URL into a direct image CDN link.
+ * Helper to normalize and convert any image URL into a direct image link.
  */
 export function getDirectImageUrl(url?: string): string {
   if (!url) return '';
   const trimmed = url.trim();
   if (!trimmed) return '';
-  
-  if (trimmed.startsWith('/') || trimmed.startsWith('data:')) {
-    return trimmed;
-  }
-
-  const imgurId = extractImgurId(trimmed);
-  if (imgurId) {
-    return `https://i.imgur.com/${imgurId}.png`;
-  }
-  
   return trimmed;
 }
 
@@ -137,31 +120,28 @@ export function getDirectImageUrl(url?: string): string {
  * Generates an array of fallback URLs for resilient image loading
  */
 export function getImageFallbacks(url?: string): string[] {
-  if (!url) return [];
+  if (!url) return ['/images/brand-logo-horizontal.png'];
   const trimmed = url.trim();
-  if (!trimmed) return [];
+  if (!trimmed) return ['/images/brand-logo-horizontal.png'];
 
-  // Local assets fallbacks
-  if (trimmed === '/images/brand-logo-1.png') {
-    return ['/images/brand-logo-1.png', 'https://i.imgur.com/7APTK1Z.png', '/images/brand-logo-2.png'];
-  }
-  if (trimmed === '/images/brand-logo-2.png') {
-    return ['/images/brand-logo-2.png', 'https://i.imgur.com/swGpVmW.png', '/images/brand-logo-1.png'];
-  }
-  if (trimmed === '/images/hero-background.png') {
-    return ['/images/hero-background.png', 'https://i.imgur.com/hV70o1X.png'];
-  }
-
-  const imgurId = extractImgurId(trimmed);
-  if (imgurId) {
+  // Local assets fallbacks (100% local, no region-blocked external CDNs)
+  if (
+    trimmed.includes('brand-logo') ||
+    trimmed.includes('vixora') ||
+    trimmed.includes('logo')
+  ) {
     return [
-      `https://i.imgur.com/${imgurId}.png`,
-      `https://i.imgur.com/${imgurId}.jpg`,
-      `https://wsrv.nl/?url=https://i.imgur.com/${imgurId}.png`
+      '/images/brand-logo-horizontal.png',
+      '/images/brand-logo-mobile.png',
+      '/images/vixora-icon.png',
+      '/images/brand-logo-1.png'
     ];
   }
+  if (trimmed.includes('hero-background')) {
+    return ['/images/hero-background.png'];
+  }
 
-  return [trimmed];
+  return [trimmed, '/images/brand-logo-horizontal.png'];
 }
 
 /**

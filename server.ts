@@ -178,6 +178,9 @@ Provide a direct, helpful, and concise answer with actionable technical clarity.
   }
 });
 
+// Serve public directory for static assets (images, logos)
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 // Vite Middleware for Development & Static fallback for Production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
