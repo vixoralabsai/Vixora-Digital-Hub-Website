@@ -1,5 +1,23 @@
-import { BUSINESS_METRICS } from '../data/vixoraContent';
-import { Activity, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+const BUSINESS_METRICS = [
+  {
+    value: "15+",
+    label: "Projects Completed",
+    subtext: "Successfully delivered digital projects for clients.",
+    highlight: "Proven Delivery"
+  },
+  {
+    value: "8",
+    label: "Businesses Served",
+    subtext: "Businesses supported with digital solutions and services.",
+    highlight: "Client Experience"
+  },
+  {
+    value: "3",
+    label: "Industries Served",
+    subtext: "Experience delivering solutions across multiple business sectors.",
+    highlight: "Industry Reach"
+  }
+];
 
 export function BusinessMetrics() {
   return (
@@ -7,18 +25,17 @@ export function BusinessMetrics() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-3">
-            <span>PERFORMANCE TRACK RECORD</span>
+            <span>OUR TRACK RECORD</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 tracking-tight">
             Proven Scale in Numbers
           </h2>
           <p className="mt-2 text-sm sm:text-base text-neutral-400">
-            Real measurable metrics achieved through software reliability, agentic AI deployment, and client partnership.
+            A snapshot of the businesses, projects, and industries Vixora has served.
           </p>
         </div>
 
-        {/* 5 Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-5xl mx-auto">
           {BUSINESS_METRICS.map((metric, idx) => (
             <div
               key={idx}
