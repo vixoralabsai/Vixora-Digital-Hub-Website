@@ -11,37 +11,21 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('vixora_theme');
-      if (saved === 'light' || saved === 'dark') return saved;
-      // Default to dark as primary brand aesthetic
-      return 'dark';
-    }
-    return 'dark';
-  });
+  // Vixora Digital Hub uses a fixed light corporate theme.
+  // Previous saved dark preferences are intentionally migrated to light.
+  const [theme, setThemeState] = useState<Theme>('light');
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'light') {
-      root.classList.add('light-theme');
-      root.classList.remove('dark');
-      root.setAttribute('data-theme', 'light');
-    } else {
-      root.classList.remove('light-theme');
-      root.classList.add('dark');
-      root.setAttribute('data-theme', 'dark');
-    }
-    localStorage.setItem('vixora_theme', theme);
-  }, [theme]);
+    root.classList.add('light-theme');
+    root.classList.remove('dark');
+    root.setAttribute('data-theme', 'light');
+    localStorage.setItem('vixora_theme', 'light');
+  }, []);
 
-  const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
+  // Kept for component compatibility; the public Vixora theme is light-only.
+  const toggleTheme = () => setThemeState('light');
+  const setTheme = () => setThemeState('light');
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
