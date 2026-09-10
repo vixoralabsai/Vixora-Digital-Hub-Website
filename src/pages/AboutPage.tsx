@@ -1,19 +1,9 @@
-import { useState } from 'react';
 import {
   ShieldCheck,
   Zap,
   Lock,
   Cpu,
-  CheckCircle2,
-  Users,
-  Award,
-  ArrowRight,
-  Globe2,
-  Code2,
   Sparkles,
-  Layers,
-  Clock,
-  Compass
 } from 'lucide-react';
 import { ProcessSection } from '../components/ProcessSection';
 import { TechnologiesSection } from '../components/TechnologiesSection';
@@ -26,51 +16,51 @@ interface AboutPageProps {
 export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
   const coreValues = [
     {
-      title: 'Zero Tech Debt & Production Quality',
-      desc: 'We do not build disposable prototypes. We engineer resilient, clean-code TypeScript and Python systems with strict typing, automated CI/CD, and scalable cloud topologies.',
+      title: 'Practical Technology That Delivers',
+      desc: 'We focus on building useful digital solutions that solve real business problems—from websites and software to AI-powered workflows and automation.',
       icon: ShieldCheck,
-      badge: 'Code Integrity',
+      badge: 'Impact',
     },
     {
-      title: 'True Autonomous AI, Not Just Wrappers',
-      desc: 'We build production-ready agent swarms, vector RAG pipelines, and automated multi-step deterministic workflows that save human hours and create actual enterprise value.',
+      title: 'AI That Works for Your Business',
+      desc: 'We apply AI automation, intelligent workflows, and creative AI tools to help businesses reduce repetitive work, improve operations, and move faster.',
       icon: Cpu,
-      badge: 'Deep Tech',
+      badge: 'AI & Automation',
     },
     {
-      title: 'Full Client Code & Asset Ownership',
-      desc: 'No vendor lock-in. Every line of backend code, UI design token in Figma, database schema, and deployment credential belongs 100% to your organization.',
+      title: 'Your Business, Your Assets',
+      desc: 'We build with long-term ownership in mind. Your digital products, brand assets, content, and business systems should remain useful and accessible to your organization.',
       icon: Lock,
-      badge: 'Sovereignty',
+      badge: 'Ownership',
     },
     {
-      title: 'End-to-End Strategic Partnership',
-      desc: 'From initial technical discovery to post-launch scaling and internal team training via Vixora Academy, we stay aligned with your commercial growth metrics.',
+      title: 'Technology + Growth',
+      desc: 'We connect technology with business growth through software, websites, branding, marketing, media, automation, and practical digital training.',
       icon: Zap,
-      badge: 'Agility',
+      badge: 'Growth',
     },
   ];
 
   const milestones = [
     {
-      year: '2021',
-      title: 'Vixora Founded',
-      desc: 'Started as a boutique software and digital consultancy helping high-growth startups scale their digital presence.',
+      year: '01',
+      title: 'Understand the Business',
+      desc: 'We start by understanding your goals, challenges, customers, and the outcome you want to achieve.',
     },
     {
-      year: '2022',
-      title: 'Enterprise Software & Cloud',
-      desc: 'Expanded into full-stack SaaS architecture, custom ERPs, and resilient cloud microservices.',
+      year: '02',
+      title: 'Design the Right Solution',
+      desc: 'We turn the business need into a clear digital strategy, product direction, workflow, or creative plan.',
     },
     {
-      year: '2023',
-      title: 'Vixora AI Labs & Swarm Workflows',
-      desc: 'Pioneered custom AI agents, automated workflow orchestration, and generative multimedia tools.',
+      year: '03',
+      title: 'Build & Implement',
+      desc: 'We create and deploy practical solutions across software, websites, AI automation, branding, media, and digital systems.',
     },
     {
-      year: '2024+',
-      title: 'Global Hub & Vixora Academy',
-      desc: 'Surpassed 200+ clients across 15+ industries and launched corporate workforce AI upskilling programs.',
+      year: '04',
+      title: 'Grow With the System',
+      desc: 'We help you improve, maintain, and get more value from your digital systems as your business grows.',
     },
   ];
 
@@ -87,11 +77,11 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-            Engineering the Digital & AI Infrastructure for Modern Business
+            Technology, AI & Digital Growth for Modern Businesses
           </h1>
 
           <p className="text-base sm:text-lg text-neutral-300 max-w-3xl mx-auto font-normal leading-relaxed">
-            Vixora Digital Hub is a full-spectrum technology, AI automation, and strategic growth collective. We partner with ambitious enterprises, startups, and institutions to turn ambitious ideas into scalable market realities.
+            Vixora Digital Hub helps businesses turn ideas into practical digital solutions. We combine software development, websites, AI automation, branding, marketing, media, and digital education to help organizations work better and grow.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-4">
@@ -105,7 +95,7 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
               onClick={() => onNavigate('portfolio')}
               className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-700 hover:border-purple-500/40 transition-all cursor-pointer"
             >
-              View Client Case Studies
+              View Our Work
             </button>
           </div>
         </div>
@@ -115,13 +105,13 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="text-xs font-mono uppercase tracking-widest text-purple-400">
-            OUR OPERATING PRINCIPLES
+            WHAT WE STAND FOR
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-            Why Visionary Leaders Choose Vixora
+            Why Businesses Choose Vixora
           </h2>
           <p className="text-sm text-neutral-400">
-            We bridge the gap between bleeding-edge artificial intelligence and rock-solid software engineering.
+            We combine technology, creativity, and practical business thinking to build solutions that are useful—not technology for technology’s sake.
           </p>
         </div>
 
@@ -153,21 +143,22 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
         </div>
       </section>
 
-      {/* Embedded 7-Step Lifecycle */}
       <ProcessSection />
 
-      {/* Embedded Technologies Matrix */}
       <TechnologiesSection />
 
-      {/* Company Milestones Timeline */}
+      {/* How We Work */}
       <section className="py-20 border-t border-purple-900/30 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="text-xs font-mono uppercase tracking-widest text-purple-400">
-            OUR JOURNEY
+            HOW WE WORK
           </div>
           <h2 className="text-3xl font-extrabold text-white">
-            Milestones of Innovation
+            From Idea to Real-World Impact
           </h2>
+          <p className="text-sm text-neutral-400">
+            A simple approach that keeps the technology connected to the business outcome.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -190,16 +181,16 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
       <section className="py-16 text-center max-w-4xl mx-auto px-4">
         <div className="p-10 rounded-3xl bg-gradient-to-b from-purple-950/60 to-neutral-950 border border-purple-500/30 space-y-5">
           <h3 className="text-2xl sm:text-3xl font-bold text-white">
-            Ready to Build With an Engineering-First Partner?
+            Ready to Build Something That Moves Your Business Forward?
           </h3>
           <p className="text-sm text-neutral-300 max-w-xl mx-auto">
-            Schedule a technical discovery session to review your product roadmap, automation requirements, and growth goals.
+            Tell us what you are trying to build, improve, automate, or grow—and let’s explore the right solution together.
           </p>
           <button
             onClick={onOpenProjectModal}
             className="px-8 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30 transition-all cursor-pointer"
           >
-            Book Strategy Call
+            Start a Conversation
           </button>
         </div>
       </section>
