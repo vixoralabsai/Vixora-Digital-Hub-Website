@@ -1,16 +1,5 @@
 import { useState } from 'react';
-import {
-  GraduationCap,
-  BookOpen,
-  Users,
-  Calendar,
-  CheckCircle2,
-  ArrowRight,
-  Terminal,
-  Award,
-  Sparkles,
-  Play
-} from 'lucide-react';
+import { CheckCircle2, ArrowRight, Award } from 'lucide-react';
 import { WhatsAppContactButton } from './WhatsAppContactButton';
 
 interface AcademySectionProps {
@@ -67,130 +56,102 @@ export function AcademySection({ onOpenProjectModal }: AcademySectionProps) {
   const currentTrack = tracks.find((t) => t.id === selectedTrack) || tracks[0];
 
   return (
-    <section id="academy" className="py-24 bg-neutral-950 relative">
+    <section id="academy" className="py-24 bg-[#F7F7FC] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="max-w-3xl mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-[#480878] bg-[#480878]/5 border border-[#480878]/15 mb-3">
             <span>EDUCATION & TALENT ENGINE</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight">
             Vixora Academy & Corporate Training
           </h2>
-          <p className="mt-3 text-base sm:text-lg text-neutral-400 font-normal">
+          <p className="mt-3 text-base sm:text-lg text-[#5F6078] font-normal">
             Bridging the global tech talent gap by training developers and corporate teams in modern software architecture, LLM systems, and automated operations.
           </p>
         </div>
 
-        {/* Track Switcher */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-10">
           {tracks.map((t) => {
             const isSelected = t.id === selectedTrack;
             return (
               <button
                 key={t.id}
-                onClick={() => setSelectedTrack(t.id as any)}
+                onClick={() => setSelectedTrack(t.id as 'academy' | 'corporate' | 'masterclass')}
                 className={`p-5 rounded-xl text-left border transition-all flex flex-col justify-between ${
                   isSelected
-                    ? 'bg-blue-950/40 border-blue-500/80 shadow-lg shadow-blue-500/10'
-                    : 'bg-neutral-900/70 border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900'
+                    ? 'bg-[#480878]/10 border-[#9030F8]/60 shadow-lg shadow-[#480878]/10'
+                    : 'bg-white border-[#E5E5F0] hover:border-[#9030F8]/40 hover:bg-[#F7F7FC]'
                 }`}
               >
                 <div>
-                  <span
-                    className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded uppercase ${
-                      isSelected ? 'bg-blue-500 text-white' : 'bg-neutral-800 text-neutral-400'
-                    }`}
-                  >
+                  <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded uppercase ${
+                    isSelected ? 'bg-[#480878] text-white' : 'bg-[#F7F7FC] text-[#5F6078] border border-[#E5E5F0]'
+                  }`}>
                     {t.target}
                   </span>
-                  <h3
-                    className={`text-base font-bold mt-2.5 ${
-                      isSelected ? 'text-blue-300' : 'text-neutral-200'
-                    }`}
-                  >
+                  <h3 className={`text-base font-bold mt-2.5 ${isSelected ? 'text-[#480878]' : 'text-[#000048]'}`}>
                     {t.title}
                   </h3>
                 </div>
-                <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
-                  {t.subtitle}
-                </p>
+                <p className="text-xs text-[#5F6078] mt-2 line-clamp-2">{t.subtitle}</p>
               </button>
             );
           })}
         </div>
 
-        {/* Detailed Curriculum / Syllabus Container */}
-        <div className="p-7 sm:p-9 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-2xl">
+        <div className="p-7 sm:p-9 rounded-2xl bg-white border border-[#E5E5F0] shadow-xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-6">
               <div>
-                <span className="text-xs font-mono text-blue-400 uppercase font-semibold">
-                  Course Architecture
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white mt-1">
-                  {currentTrack.title}
-                </h3>
-                <p className="text-sm text-neutral-300 mt-1">
-                  {currentTrack.subtitle}
-                </p>
+                <span className="text-xs font-mono text-[#7000F8] uppercase font-semibold">Course Architecture</span>
+                <h3 className="text-2xl sm:text-3xl font-bold text-[#000048] mt-1">{currentTrack.title}</h3>
+                <p className="text-sm text-[#5F6078] mt-1">{currentTrack.subtitle}</p>
               </div>
 
               <div className="space-y-2.5">
-                <p className="text-xs font-mono uppercase text-neutral-500 tracking-wider">
-                  Curriculum Highlights:
-                </p>
+                <p className="text-xs font-mono uppercase text-[#5F6078] tracking-wider">Curriculum Highlights:</p>
                 {currentTrack.topics.map((top, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-200"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#000048]">
+                    <CheckCircle2 className="w-4 h-4 text-[#9030F8] shrink-0 mt-0.5" />
                     <span>{top}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-300 flex items-center gap-3">
-                <Award className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="p-4 rounded-xl bg-[#F7F7FC] border border-[#E5E5F0] text-xs text-[#5F6078] flex items-center gap-3">
+                <Award className="w-5 h-5 text-[#7000F8] shrink-0" />
                 <div>
-                  <strong className="text-white block font-medium">
-                    Certification & Capstone:
-                  </strong>
+                  <strong className="text-[#000048] block font-medium">Certification & Capstone:</strong>
                   {currentTrack.deliverable}
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-5 p-6 rounded-xl bg-neutral-950 border border-neutral-800 space-y-5">
+            <div className="lg:col-span-5 p-6 rounded-xl bg-[#F7F7FC] border border-[#E5E5F0] space-y-5">
               <div className="space-y-1">
-                <h4 className="text-base font-bold text-white">
-                  Next Cohort Registration
-                </h4>
-                <p className="text-xs text-neutral-400">
-                  Applications are reviewed on a rolling basis. Small cohort sizes for hands-on mentorship.
-                </p>
+                <h4 className="text-base font-bold text-[#000048]">Next Cohort Registration</h4>
+                <p className="text-xs text-[#5F6078]">Applications are reviewed on a rolling basis. Small cohort sizes for hands-on mentorship.</p>
               </div>
 
               <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between text-xs py-2 border-b border-neutral-800">
-                  <span className="text-neutral-400">Format</span>
-                  <span className="font-semibold text-white">Live Virtual + Code Lab</span>
+                <div className="flex items-center justify-between text-xs py-2 border-b border-[#E5E5F0]">
+                  <span className="text-[#5F6078]">Format</span>
+                  <span className="font-semibold text-[#000048]">Live Virtual + Code Lab</span>
                 </div>
-                <div className="flex items-center justify-between text-xs py-2 border-b border-neutral-800">
-                  <span className="text-neutral-400">Mentorship</span>
-                  <span className="font-semibold text-white">1-on-1 Senior Staff Engineers</span>
+                <div className="flex items-center justify-between text-xs py-2 border-b border-[#E5E5F0]">
+                  <span className="text-[#5F6078]">Mentorship</span>
+                  <span className="font-semibold text-[#000048]">1-on-1 Senior Staff Engineers</span>
                 </div>
-                <div className="flex items-center justify-between text-xs py-2 border-b border-neutral-800">
-                  <span className="text-neutral-400">Prerequisites</span>
-                  <span className="font-semibold text-white">Basic Programming / Logic</span>
+                <div className="flex items-center justify-between text-xs py-2 border-b border-[#E5E5F0]">
+                  <span className="text-[#5F6078]">Prerequisites</span>
+                  <span className="font-semibold text-[#000048]">Basic Programming / Logic</span>
                 </div>
               </div>
 
               <div className="pt-2 flex flex-col gap-2.5">
                 <button
                   onClick={onOpenProjectModal}
-                  className="w-full py-3 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl text-xs font-semibold bg-[#480878] hover:bg-[#7000F8] text-white shadow-md shadow-[#480878]/20 transition-all flex items-center justify-center gap-2"
                 >
                   <span>Apply for Enrollment / Corporate Booking</span>
                   <ArrowRight className="w-3.5 h-3.5" />
