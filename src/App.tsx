@@ -17,6 +17,7 @@ import { StartProjectModal } from './components/StartProjectModal';
 import { DriveWorkspaceModal } from './components/DriveWorkspaceModal';
 import { CourseEnrollmentModal } from './components/CourseEnrollmentModal';
 import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
+import { ScrollProgressBar } from './components/ScrollProgressBar';
 
 // Standalone Pages
 import { AboutPage } from './pages/AboutPage';
@@ -293,6 +294,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#070314] text-neutral-100 font-sans selection:bg-purple-600 selection:text-white antialiased transition-colors duration-200">
+      {/* Viewport Top Scroll Progress Indicator for Long-Form Pages */}
+      <ScrollProgressBar currentPage={route.page} />
+
       {/* 1. Streamlined Navigation Bar with Subcategories & Permalinks */}
       <Navbar
         currentPage={route.page}
