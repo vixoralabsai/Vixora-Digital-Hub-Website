@@ -31,7 +31,6 @@ export interface BrandConfig {
     nigeria: WhatsAppChannel;
     defaultUrl: string;
   };
-  // Fallback flat fields for backward compatibility
   whatsappNumber: string;
   whatsappUrl: string;
   address: string;
@@ -85,30 +84,22 @@ export const BRAND_CONFIG: BrandConfig = {
   whatsappUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
   address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Innovation Center",
   logo: {
-    // ⬇️ Brand logo image files (unified for both desktop and mobile, hosted locally):
-    imageUrl: "/images/brand-logo-horizontal.png", 
-    secondaryImageUrl: "/images/brand-logo-horizontal.png",
-    mobileImageUrl: "/images/brand-logo-horizontal.png",
-    darkImageUrl: "/images/brand-logo-horizontal.png",
+    imageUrl: "/images/vixora-digital-hub-logo.png",
+    secondaryImageUrl: "/images/vixora-digital-hub-logo.png",
+    mobileImageUrl: "/images/vixora-digital-hub-logo.png",
+    darkImageUrl: "/images/vixora-digital-hub-logo.png",
     altText: "Vixora Digital Hub Logo"
   },
   heroBackground: {
-    // ⬇️ Hero section background image:
-    imageUrl: "/images/hero-background.png", 
+    imageUrl: "/images/hero-background.png",
     overlayOpacity: 0.65
   }
 };
 
-/**
- * Extracts an Imgur image ID if the URL matches an Imgur link
- */
 export function extractImgurId(url?: string): string | null {
   return null;
 }
 
-/**
- * Helper to normalize and convert any image URL into a direct image link.
- */
 export function getDirectImageUrl(url?: string): string {
   if (!url) return '';
   const trimmed = url.trim();
@@ -116,21 +107,18 @@ export function getDirectImageUrl(url?: string): string {
   return trimmed;
 }
 
-/**
- * Generates an array of fallback URLs for resilient image loading
- */
 export function getImageFallbacks(url?: string): string[] {
-  if (!url) return ['/images/brand-logo-horizontal.png'];
+  if (!url) return ['/images/vixora-digital-hub-logo.png'];
   const trimmed = url.trim();
-  if (!trimmed) return ['/images/brand-logo-horizontal.png'];
+  if (!trimmed) return ['/images/vixora-digital-hub-logo.png'];
 
-  // Local assets fallbacks (100% local, no region-blocked external CDNs)
   if (
     trimmed.includes('brand-logo') ||
     trimmed.includes('vixora') ||
     trimmed.includes('logo')
   ) {
     return [
+      '/images/vixora-digital-hub-logo.png',
       '/images/brand-logo-horizontal.png',
       '/images/brand-logo-mobile.png',
       '/images/vixora-icon.png',
@@ -141,12 +129,9 @@ export function getImageFallbacks(url?: string): string[] {
     return ['/images/hero-background.png'];
   }
 
-  return [trimmed, '/images/brand-logo-horizontal.png'];
+  return [trimmed, '/images/vixora-digital-hub-logo.png'];
 }
 
-/**
- * Helper to generate pre-filled WhatsApp click-to-chat links
- */
 export function getWhatsAppUrl(
   channel: 'us' | 'ng' = 'us',
   customMessage?: string
