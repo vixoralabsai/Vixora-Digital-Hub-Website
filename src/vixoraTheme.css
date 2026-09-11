@@ -1,0 +1,105 @@
+/* VIXORA DIGITAL HUB — GLOBAL LIGHT BRAND OVERRIDES
+ * Keeps the existing component library intact while correcting contrast
+ * and enforcing the locked Vixora palette across every route.
+ */
+
+:root { color-scheme: light; }
+
+[class~="text-neutral-950"],
+[class~="text-neutral-900"],
+[class~="text-neutral-800"],
+[class~="text-neutral-700"],
+[class~="text-neutral-600"],
+[class~="text-neutral-200"] { color: #000048 !important; }
+
+[class~="text-neutral-500"],
+[class~="text-neutral-400"],
+[class~="text-neutral-300"] { color: #5F6078 !important; }
+
+[class~="text-purple-950"],
+[class~="text-purple-900"],
+[class~="text-purple-800"],
+[class~="text-purple-700"],
+[class~="text-purple-600"],
+[class~="text-purple-500"],
+[class~="text-purple-400"] { color: #480878 !important; }
+[class~="text-purple-300"] { color: #7000F8 !important; }
+
+[class~="text-indigo-950"],
+[class~="text-indigo-900"],
+[class~="text-indigo-800"],
+[class~="text-indigo-700"],
+[class~="text-indigo-600"],
+[class~="text-indigo-500"],
+[class~="text-indigo-400"] { color: #480878 !important; }
+[class~="text-indigo-300"] { color: #7000F8 !important; }
+
+[class~="bg-neutral-50"],
+[class~="bg-neutral-100"],
+[class~="bg-neutral-900"],
+[class~="bg-neutral-950"] { background-color: #FFFFFF !important; }
+[class~="bg-neutral-200"],
+[class~="bg-neutral-800"] { background-color: #F7F7FC !important; }
+
+.bg-white [class~="text-white"],
+.bg-\[\#F7F7FC\] [class~="text-white"],
+.bg-\[\#FFFFFF\] [class~="text-white"],
+[class~="bg-neutral-50"] [class~="text-white"],
+[class~="bg-neutral-100"] [class~="text-white"],
+[class~="bg-neutral-900"] [class~="text-white"],
+[class~="bg-neutral-950"] [class~="text-white"] { color: #000048 !important; }
+
+[class~="bg-[#070314]"],
+[class~="bg-[#0A051A]"],
+[class~="bg-[#0A051C]"],
+[class~="bg-[#0D0621]"],
+[class~="bg-[#0B061A]"],
+[class~="bg-[#0C061F]"],
+[class~="bg-[#0C0620]"],
+[class~="bg-[#0E0722]"] { background-color: #FFFFFF !important; }
+
+[class~="bg-[#0E0728]/60"],
+[class~="bg-[#110A2E]/80"] { background-color: rgba(247,247,252,.96) !important; }
+[class~="bg-[#1C1145]"] { background-color: #F0E8FF !important; }
+
+[class~="border-neutral-800"],
+[class~="border-neutral-700"],
+[class~="border-neutral-600"] { border-color: #E5E5F0 !important; }
+
+[class~="bg-purple-600"] { background-color: #480878 !important; }
+[class~="bg-purple-500"] { background-color: #7000F8 !important; }
+[class~="bg-purple-400"] { background-color: #9030F8 !important; }
+[class~="bg-indigo-600"] { background-color: #480878 !important; }
+[class~="bg-indigo-500"] { background-color: #7000F8 !important; }
+
+[class~="bg-purple-50"],
+[class~="bg-purple-950"] { background-color: #F7F7FC !important; }
+[class~="bg-purple-900"] { background-color: #F0E8FF !important; }
+
+[class~="bg-[#070314]/92"] {
+  background-color: rgba(0,0,72,.96) !important;
+  border-color: rgba(255,255,255,.14) !important;
+}
+
+.nav-dropdown-container [class~="bg-[#0b0620]/95"] {
+  background-color: rgba(255,255,255,.98) !important;
+  border-color: #E5E5F0 !important;
+  box-shadow: 0 20px 45px rgba(0,0,72,.16) !important;
+}
+.nav-dropdown-container [class~="text-white"] { color: #000048 !important; }
+.nav-dropdown-container [class~="text-neutral-400"],
+.nav-dropdown-container [class~="text-neutral-500"] { color: #5F6078 !important; }
+.nav-dropdown-container [class~="hover:bg-purple-950/60"]:hover { background-color: #F7F7FC !important; }
+
+[class~="from-[#070314]"],
+[class~="to-[#070314]"] { --tw-gradient-from: #FFFFFF !important; --tw-gradient-to: #FFFFFF !important; }
+[class~="via-[#070314]/85"] { --tw-gradient-via: rgba(255,255,255,.88) !important; }
+[class~="via-[#070314]/65"] { --tw-gradient-via: rgba(255,255,255,.68) !important; }
+
+[class~="bg-[#08082F]"] { background-color: #08082F !important; }
+
+input, select, textarea { background-color: #FFFFFF; color: #000048; border-color: #E5E5F0; }
+input::placeholder, textarea::placeholder { color: #5F6078; }
+
+#theme-toggle-btn,
+button[aria-label="Toggle Theme"] { display: none !important; }
