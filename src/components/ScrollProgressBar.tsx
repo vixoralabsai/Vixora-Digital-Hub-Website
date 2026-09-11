@@ -1,84 +1,47 @@
 import { useState, useEffect } from 'react';
 
 interface ScrollProgressBarProps {
+  activePages?: string[];
   currentPage?: string;
-  targetPages?: string[];
 }
 
-/**
- * Subtle viewport top scroll progress bar for long-form pages.
- * Defaults to targeting reading/long-form views like About, Academy, Course Landing, and Resources.
- */
 export function ScrollProgressBar({
-  currentPage,
-  targetPages = ['about', 'academy', 'academy-course', 'resources', 'categories'],
+  activePages = ['about', 'academy', 'academy-course', 'resources', 'categories', 'portfolio', 'student-portal', 'certificate-portal'],
+  currentPage = ''
 }: ScrollProgressBarProps) {
-  const [progress, setProgress] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-
-  const isTargetPage = !currentPage || targetPages.includes(currentPage);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    if (!isTargetPage) {
-      setProgress(0);
-      setIsVisible(false);
-      return;
-    }
-
-    let ticking = false;
-
-    const calculateScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-      const totalScrollable = scrollHeight - clientHeight;
-
-      if (totalScrollable <= 100) {
-        setIsVisible(false);
-        setProgress(0);
-        return;
-      }
-
-      const currentProgress = Math.min(Math.max(scrollTop / totalScrollable, 0), 1);
-      setProgress(currentProgress);
-      setIsVisible(currentProgress > 0.005);
-    };
-
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          calculateScroll();
-          ticking = false;
-        });
-        ticking = true;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      if (scrollHeight > 0) {
+        const progress = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
+        setScrollProgress(progress);
+      } else {
+        setScrollProgress(0);
       }
     };
 
-    // Calculate immediately on mount / page change
-    calculateScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
+    handleScroll();
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, [currentPage, isTargetPage]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentPage]);
 
-  if (!isTargetPage || !isVisible) {
+  // Only render if on long-form pages or if activePages allows
+  if (activePages.length > 0 && !activePages.includes(currentPage)) {
     return null;
   }
 
   return (
-    <div
-      id="vixora-scroll-progress-container"
-      className="fixed top-0 left-0 right-0 h-[3px] z-[60] pointer-events-none overflow-hidden bg-purple-950/20"
+    <div 
+      className="fixed top-0 left-0 right-0 z-[100] h-[3px] bg-transparent pointer-events-none"
       aria-hidden="true"
     >
       <div
-        id="vixora-scroll-progress-bar"
-        className="h-full w-full bg-gradient-to-r from-[#480878] via-[#7000F8] via-[#9030F8] to-[#38BDF8] transition-transform duration-100 ease-out origin-left shadow-[0_0_10px_rgba(144,48,248,0.85)]"
-        style={{
-          transform: `scaleX(${progress})`,
-        }}
+        className="h-full bg-gradient-to-r from-[#480878] via-[#7000F8] to-[#000048] transition-[width] duration-75 ease-out shadow-[0_0_8px_rgba(112,0,248,0.5)]"
+        style={{ width: `${scrollProgress}%` }}
       />
     </div>
   );

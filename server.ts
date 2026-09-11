@@ -3,6 +3,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import { portalRouter } from './server/studentPortalServer.js';
 
 dotenv.config();
 
@@ -10,6 +11,9 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '15mb' }));
+
+// Mount Student & Certificate Portal APIs with Rate Limiting
+app.use('/api', portalRouter);
 
 // Lazy initialization of Gemini client
 let aiClient: GoogleGenAI | null = null;

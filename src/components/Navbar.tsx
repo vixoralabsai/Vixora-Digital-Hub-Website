@@ -20,7 +20,8 @@ import {
   Briefcase,
   Users,
   FileText,
-  Sparkles
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../data/brandConfig';
 import { BrandLogo } from './BrandLogo';
@@ -268,6 +269,40 @@ export function Navbar({
                     </div>
                     <div className="text-[11px] text-neutral-400">Beginner-friendly AI workflows for earning income</div>
                   </button>
+
+                  <div className="pt-2 pb-1 border-t border-purple-900/40">
+                    <div className="px-2 py-0.5 text-[9px] font-mono uppercase tracking-widest text-purple-300">
+                      Credentials & Portals
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleNavClick('student-portal', undefined, undefined, '/pages/student-portal')}
+                    className="w-full p-2.5 rounded-xl hover:bg-purple-950/60 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <div>
+                        <div className="text-xs font-semibold text-white group-hover:text-purple-300">Student Portal</div>
+                        <div className="text-[10px] text-neutral-400">Email login & adaptive rate limiting</div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300" />
+                  </button>
+
+                  <button
+                    onClick={() => handleNavClick('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
+                    className="w-full p-2.5 rounded-xl hover:bg-purple-950/60 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                      <div>
+                        <div className="text-xs font-semibold text-white group-hover:text-purple-300">Certificate Portal</div>
+                        <div className="text-[10px] text-neutral-400">Verified credentials & auto-email dispatch</div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300" />
+                  </button>
                 </div>
               )}
             </div>
@@ -435,6 +470,21 @@ export function Navbar({
               ) : (
                 <Moon className="w-4 h-4 text-purple-600 animate-in spin-in-180 duration-200" />
               )}
+            </button>
+
+            {/* Student & Certificate Portal Quick CTA */}
+            <button
+              id="nav-student-portal-btn"
+              onClick={() => handleNavClick('student-portal', undefined, undefined, '/pages/student-portal')}
+              title="Student Academic Portal & Certificate Verification"
+              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer shadow-xs ${
+                currentPage === 'student-portal' || currentPage === 'certificate-portal'
+                  ? 'bg-purple-600 text-white border-purple-400 shadow-purple-600/30'
+                  : 'bg-neutral-900/90 hover:bg-neutral-800 text-purple-300 hover:text-white border-purple-500/30 hover:border-purple-500/50'
+              }`}
+            >
+              <Award className="w-3.5 h-3.5 text-amber-400" />
+              <span>Student Portal</span>
             </button>
 
             {/* Client Portal Quick CTA */}
@@ -615,6 +665,22 @@ export function Navbar({
                 >
                   AI Digital Skills & Freelance (6 Wks)
                 </button>
+                <div className="pt-2 border-t border-purple-900/30">
+                  <button
+                    onClick={() => handleNavClick('student-portal', undefined, undefined, '/pages/student-portal')}
+                    className="w-full text-left py-2 px-3 text-xs font-bold text-emerald-400 flex items-center gap-2"
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Student Portal (Login)</span>
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
+                    className="w-full text-left py-2 px-3 text-xs font-bold text-amber-400 flex items-center gap-2"
+                  >
+                    <Award className="w-4 h-4" />
+                    <span>Certificate Portal & Verification</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -149,7 +149,14 @@ export function CourseLandingPage({
       {/* 1. Subdomain Breadcrumb Header */}
       <div className="bg-[#0A051B] border-b border-purple-900/40 py-2.5 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="p-1 bg-white rounded-xl shadow-xs flex items-center justify-center">
+              <img
+                src="/images/vixora-academy-logo.jpg"
+                alt="Vixora Academy"
+                className="h-6 w-auto object-contain rounded-md"
+              />
+            </div>
             <button
               onClick={onBackToAcademy}
               className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
@@ -161,6 +168,9 @@ export function CourseLandingPage({
               <Globe className="w-3 h-3 text-purple-400" />
               <span>{BRAND_CONFIG.cleanAcademyDomain}/course/{course.slug}</span>
             </div>
+            <span className="text-purple-300 text-[11px] hidden md:inline">
+              Dean: Sarumi Hammad
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1092,7 +1102,7 @@ export function CourseLandingPage({
                 <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
                   <div className="text-emerald-400 font-bold text-lg">✅ Official Certificate</div>
                   <p className="text-xs text-neutral-300 leading-relaxed">
-                    Verifiable Vixora Certificate of Completion upon graduation to showcase on your LinkedIn & CV.
+                    Verifiable Vixora Certificate of Completion upon graduation, cryptographically anchored and signed by Dean Sarumi Hammad to showcase on your LinkedIn & CV.
                   </p>
                 </div>
 

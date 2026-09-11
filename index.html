@@ -17,19 +17,5 @@
   <body class="bg-[#F7F7FC] text-[#000048] font-sans antialiased selection:bg-[#480878] selection:text-white min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Keep the Academy brand as a separate destination from the main Vixora Hub.
-      document.addEventListener('click', function (event) {
-        const target = event.target instanceof Element ? event.target : null;
-        const academyControl = target && target.closest('button, a');
-        if (!academyControl) return;
-        const label = (academyControl.textContent || '').trim();
-        if (label === 'Academy' || label === 'All Academy Programs') {
-          event.preventDefault();
-          event.stopPropagation();
-          window.location.href = 'https://academy.vixoradigitalhub.com';
-        }
-      }, true);
-    </script>
   </body>
 </html>

@@ -28,6 +28,7 @@ import { ResourcesPage } from './pages/ResourcesPage';
 import { ClientDashboardPage } from './pages/ClientDashboardPage';
 import { PagesDirectoryPage } from './pages/PagesDirectoryPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { StudentPortalPage } from './pages/StudentPortalPage';
 
 import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
@@ -43,7 +44,9 @@ export type PageType =
   | 'resources'
   | 'dashboard'
   | 'pages-directory'
-  | 'categories';
+  | 'categories'
+  | 'student-portal'
+  | 'certificate-portal';
 
 interface RouteState {
   page: PageType;
@@ -52,6 +55,7 @@ interface RouteState {
   subcategorySlug?: string;
   postSlug?: string;
   courseSlug?: string;
+  certId?: string;
 }
 
 function parseLocationPath(pathname: string, search: string): RouteState {
@@ -59,6 +63,7 @@ function parseLocationPath(pathname: string, search: string): RouteState {
   const urlParams = new URLSearchParams(search);
   const pageParam = urlParams.get('page');
   const courseParam = urlParams.get('course');
+  const certParam = urlParams.get('cert') || urlParams.get('id') || undefined;
 
   // 1. Query parameter overrides (legacy compatibility)
   if (courseParam) {
@@ -69,16 +74,28 @@ function parseLocationPath(pathname: string, search: string): RouteState {
     };
   }
 
-  if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'dashboard'].includes(pageParam)) {
+  if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'dashboard', 'student-portal', 'certificate-portal'].includes(pageParam)) {
     return {
       page: pageParam as PageType,
-      path: `/pages/${pageParam}`
+      path: `/pages/${pageParam}`,
+      certId: certParam
     };
   }
 
   // 2. Canonical /pages permalinks
   if (cleanPath === '/pages') {
     return { page: 'pages-directory', path: '/pages' };
+  }
+  if (cleanPath === '/pages/student-portal' || cleanPath === '/student-portal' || cleanPath === '/portal') {
+    return { page: 'student-portal', path: '/pages/student-portal', certId: certParam };
+  }
+  if (
+    cleanPath === '/pages/certificate-portal' ||
+    cleanPath === '/certificate-portal' ||
+    cleanPath === '/verify' ||
+    cleanPath === '/verify-certificate'
+  ) {
+    return { page: 'certificate-portal', path: '/pages/certificate-portal', certId: certParam };
   }
   if (cleanPath === '/pages/about' || cleanPath === '/about') {
     return { page: 'about', path: '/pages/about' };
@@ -362,6 +379,7 @@ function AppContent() {
             onSelectCourse={handleSelectCourse}
             onEnrollCourse={handleEnrollInCourse}
             onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
+            onNavigateToStudentPortal={() => handleNavigate('student-portal', undefined, undefined, '/student-portal')}
           />
         )}
 
@@ -405,6 +423,14 @@ function AppContent() {
             postSlug={route.postSlug}
             onNavigate={handleNavigate}
             onOpenProjectModal={() => setProjectModalOpen(true)}
+          />
+        )}
+
+        {(route.page === 'student-portal' || route.page === 'certificate-portal') && (
+          <StudentPortalPage
+            initialTab={route.page === 'certificate-portal' ? (route.certId ? 'certificates' : 'verify') : 'dashboard'}
+            initialCertId={route.certId}
+            onNavigateToCourse={(slug) => handleNavigate('academy-course', undefined, slug, `/academy/${slug}`)}
           />
         )}
       </main>

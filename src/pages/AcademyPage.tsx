@@ -27,13 +27,15 @@ interface AcademyPageProps {
   onSelectCourse: (course: AcademyCourse) => void;
   onEnrollCourse: (course: AcademyCourse) => void;
   onNavigateHome: () => void;
+  onNavigateToStudentPortal?: () => void;
 }
 
 export function AcademyPage({
   onOpenProjectModal,
   onSelectCourse,
   onEnrollCourse,
-  onNavigateHome
+  onNavigateHome,
+  onNavigateToStudentPortal
 }: AcademyPageProps) {
   const [selectedTrack, setSelectedTrack] = useState<string>('All Tracks');
 
@@ -77,14 +79,16 @@ export function AcademyPage({
       <div className="bg-[#000048] border-b border-[#480878]/40 py-3 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <img
-              src="/images/vixora-academy-logo.jpg"
-              alt="Vixora Academy"
-              className="h-10 w-auto max-w-[190px] object-contain bg-white rounded-md p-1"
-            />
+            <div className="p-1 bg-white rounded-xl shadow-xs flex items-center justify-center">
+              <img
+                src="/images/vixora-academy-logo.jpg"
+                alt="Vixora Academy"
+                className="h-10 w-auto max-w-[200px] object-contain rounded-lg"
+              />
+            </div>
             <div className="hidden sm:block">
-              <div className="text-xs font-semibold text-white">Vixora Academy</div>
-              <div className="text-[10px] text-white/70">Learn. Apply. Earn.</div>
+              <div className="text-xs font-bold text-white">Vixora Academy</div>
+              <div className="text-[10px] text-purple-200">Learn. Apply. Earn. • Dean: Sarumi Hammad</div>
             </div>
           </div>
           <a
@@ -136,14 +140,18 @@ export function AcademyPage({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#9030F8]/10 blur-[140px] rounded-full pointer-events-none -z-10" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <img
-            src="/images/vixora-academy-logo.jpg"
-            alt="Vixora Academy — Learn. Apply. Earn."
-            className="mx-auto w-auto h-24 sm:h-28 md:h-32 max-w-[420px] object-contain"
-          />
+          <div className="flex justify-center">
+            <div className="p-3 bg-white rounded-3xl shadow-xl border border-purple-100/90 inline-flex items-center justify-center">
+              <img
+                src="/images/vixora-academy-logo.jpg"
+                alt="Vixora Academy — Learn. Apply. Earn."
+                className="mx-auto w-auto h-28 sm:h-36 md:h-40 max-w-[340px] sm:max-w-[420px] object-contain rounded-2xl"
+              />
+            </div>
+          </div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#480878]/5 border border-[#480878]/20 text-[#480878]">
             <GraduationCap className="w-3.5 h-3.5 text-[#9030F8]" />
-            <span className="font-mono uppercase tracking-widest text-[11px]">Vixora Academy & Live Cohorts</span>
+            <span className="font-mono uppercase tracking-widest text-[11px]">Vixora Academy & Live Cohorts • Dean: Sarumi Hammad</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#000048] tracking-tight leading-tight">
@@ -281,6 +289,55 @@ export function AcademyPage({
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Academic Directorate & Dean Leadership Banner */}
+      <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] text-white p-8 sm:p-12 shadow-xl relative overflow-hidden border border-white/10">
+          <div 
+            className="absolute -right-8 -bottom-10 w-80 h-80 opacity-10 pointer-events-none rounded-full bg-contain bg-no-repeat bg-center"
+            style={{ backgroundImage: `url('/images/vixora-academy-logo.jpg')` }}
+          />
+
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+              <div className="p-3 bg-white rounded-2xl shadow-lg shrink-0 flex items-center justify-center">
+                <img
+                  src="/images/vixora-academy-logo.jpg"
+                  alt="Vixora Academy — Learn. Apply. Earn."
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-widest bg-white/15 text-purple-200 border border-white/20">
+                  <Award className="w-3.5 h-3.5 text-amber-300" />
+                  Academic Directorate
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white">
+                  Sarumi Hammad
+                </h3>
+                <p className="text-sm font-semibold text-purple-200">
+                  Dean, Vixora Academy
+                </p>
+                <p className="text-xs sm:text-sm text-purple-100/90 max-w-xl leading-relaxed pt-1">
+                  Directing curriculum rigor, enterprise capstone evaluations, and cryptographically verified graduate certifications across all autonomous AI, cloud engineering, and data programs.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 flex flex-col sm:flex-row items-center gap-3">
+              {onNavigateToStudentPortal && (
+                <button
+                  onClick={onNavigateToStudentPortal}
+                  className="px-6 py-3 rounded-xl text-xs font-bold bg-white text-[#000048] hover:bg-purple-50 transition-all shadow-md cursor-pointer flex items-center gap-2"
+                >
+                  <GraduationCap className="w-4 h-4 text-[#7000F8]" />
+                  <span>Student & Certificate Portal</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 

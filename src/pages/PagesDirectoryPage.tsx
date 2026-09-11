@@ -9,7 +9,8 @@ import {
   HardDrive,
   ExternalLink,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Award
 } from 'lucide-react';
 
 interface PagesDirectoryPageProps {
@@ -47,6 +48,22 @@ export function PagesDirectoryPage({
       badge: "Education",
       icon: GraduationCap,
       description: "16-week and 12-week intensive cohorts in Data Analysis, AI Automation, and Digital Business Systems."
+    },
+    {
+      title: "Vixora Academy Student Portal",
+      path: "/pages/student-portal",
+      pageKey: "student-portal",
+      badge: "Student Access",
+      icon: GraduationCap,
+      description: "Student coursework progress, email authentication with rate-limiting, and enrollment verification."
+    },
+    {
+      title: "Certificate Portal & Verification",
+      path: "/pages/certificate-portal",
+      pageKey: "certificate-portal",
+      badge: "Credentials",
+      icon: Award,
+      description: "Cryptographic credential lookup, automated email dispatch to graduates, and printable PDF diplomas."
     },
     {
       title: "Secure Client Project Portal",

@@ -12,13 +12,15 @@ import {
   Sparkles,
   MessageSquare,
   HardDrive,
-  Plus
+  Plus,
+  Award
 } from 'lucide-react';
 import { ClientAuthGate } from '../components/dashboard/ClientAuthGate';
 import { ProjectStatusOverview } from '../components/dashboard/ProjectStatusOverview';
 import { DeadlinesScheduleView } from '../components/dashboard/DeadlinesScheduleView';
 import { ProjectFilesRepository } from '../components/dashboard/ProjectFilesRepository';
 import { ProjectActivityAndTickets } from '../components/dashboard/ProjectActivityAndTickets';
+import { IssueCertificatePanel } from '../components/IssueCertificatePanel';
 import {
   getClientAuthSession,
   setClientAuthSession,
@@ -47,7 +49,7 @@ export function ClientDashboardPage({
   const [session, setSession] = useState<ClientAuthSession | null>(null);
   const [allProjects, setAllProjects] = useState<ClientProject[]>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'deadlines' | 'files' | 'activity'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'deadlines' | 'files' | 'activity' | 'credentials'>('overview');
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
 
   // Initialize session and projects
@@ -285,6 +287,18 @@ export function ClientDashboardPage({
             <Activity className="w-4 h-4" />
             <span>Audit & Tickets</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('credentials')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              activeTab === 'credentials'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <Award className="w-4 h-4 text-amber-400" />
+            <span>Academy & Credentials</span>
+          </button>
         </div>
 
         {/* Main Tab Views */}
@@ -317,6 +331,26 @@ export function ClientDashboardPage({
               project={currentProject}
               onSubmitTicket={handleSubmitTicket}
             />
+          )}
+
+          {activeTab === 'credentials' && (
+            <div className="space-y-6">
+              <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-800/40 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Vixora Academy Credential Directorate</h3>
+                  <p className="text-xs text-purple-300 mt-0.5">
+                    Issue verifiable completion certificates and dispatch automated email credentials to cohort graduates.
+                  </p>
+                </div>
+                <a
+                  href="/pages/student-portal"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 transition-colors"
+                >
+                  Open Full Student Portal &rarr;
+                </a>
+              </div>
+              <IssueCertificatePanel />
+            </div>
           )}
         </div>
       </div>
