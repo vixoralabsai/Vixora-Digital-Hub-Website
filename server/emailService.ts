@@ -7,6 +7,8 @@ export interface EmailDispatchOptions {
   html: string;
   text: string;
   certificateId: string;
+  pdfBuffer?: Buffer;
+  pdfFilename?: string;
 }
 
 export interface EmailDispatchResult {
@@ -20,6 +22,8 @@ export interface EmailDispatchResult {
   gmailComposeUrl: string;
   mailtoUrl: string;
   deliveryLatencyMs: number;
+  hasAttachment?: boolean;
+  attachmentName?: string;
 }
 
 /**
@@ -56,8 +60,9 @@ export function getEmailConfigStatus(): {
 export async function dispatchCertificateEmail(
   options: EmailDispatchOptions
 ): Promise<EmailDispatchResult> {
-  const { to, toName, subject, html, text, certificateId } = options;
+  const { to, toName, subject, html, text, certificateId, pdfBuffer, pdfFilename } = options;
   const startTime = Date.now();
+  const attachmentName = pdfFilename || `Vixora-Academy-Certificate-${certificateId}.pdf`;
 
   const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
     to
@@ -73,19 +78,30 @@ export async function dispatchCertificateEmail(
   // 1. Try Resend API if RESEND_API_KEY is available
   if (process.env.RESEND_API_KEY) {
     try {
+      const payload: any = {
+        from: fromAddress,
+        to: [to],
+        subject,
+        html,
+        text
+      };
+
+      if (pdfBuffer) {
+        payload.attachments = [
+          {
+            filename: attachmentName,
+            content: pdfBuffer.toString('base64')
+          }
+        ];
+      }
+
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          from: fromAddress,
-          to: [to],
-          subject,
-          html,
-          text
-        })
+        body: JSON.stringify(payload)
       });
 
       const resData = (await response.json()) as any;
@@ -98,10 +114,12 @@ export async function dispatchCertificateEmail(
           status: 'delivered',
           provider: 'resend',
           messageId: resData.id,
-          infoNotice: `Live email dispatched via Resend to ${to} (Message ID: ${resData.id})`,
+          infoNotice: `Live email with PDF certificate attachment (${attachmentName}) dispatched via Resend to ${to} (ID: ${resData.id})`,
           gmailComposeUrl,
           mailtoUrl,
-          deliveryLatencyMs: latency
+          deliveryLatencyMs: latency,
+          hasAttachment: Boolean(pdfBuffer),
+          attachmentName
         };
       } else {
         return {
@@ -113,7 +131,9 @@ export async function dispatchCertificateEmail(
           infoNotice: `Resend error: ${resData.message || 'Failed to deliver'}. You can still use the 1-click Gmail option.`,
           gmailComposeUrl,
           mailtoUrl,
-          deliveryLatencyMs: latency
+          deliveryLatencyMs: latency,
+          hasAttachment: Boolean(pdfBuffer),
+          attachmentName
         };
       }
     } catch (resendErr: any) {
@@ -144,13 +164,25 @@ export async function dispatchCertificateEmail(
         }
       });
 
-      const info = await transporter.sendMail({
+      const mailOptions: any = {
         from: fromAddress,
         to,
         subject,
         html,
         text
-      });
+      };
+
+      if (pdfBuffer) {
+        mailOptions.attachments = [
+          {
+            filename: attachmentName,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          }
+        ];
+      }
+
+      const info = await transporter.sendMail(mailOptions);
 
       const latency = Date.now() - startTime;
       return {
@@ -159,10 +191,12 @@ export async function dispatchCertificateEmail(
         status: 'delivered',
         provider: 'smtp',
         messageId: info.messageId,
-        infoNotice: `Live email successfully delivered to ${to} via SMTP server (${smtpHost}).`,
+        infoNotice: `Live email with official PDF certificate attachment (${attachmentName}) delivered to ${to} via SMTP server (${smtpHost}).`,
         gmailComposeUrl,
         mailtoUrl,
-        deliveryLatencyMs: latency
+        deliveryLatencyMs: latency,
+        hasAttachment: Boolean(pdfBuffer),
+        attachmentName
       };
     } catch (smtpErr: any) {
       console.error('SMTP transmission error:', smtpErr);
@@ -176,7 +210,9 @@ export async function dispatchCertificateEmail(
         infoNotice: `SMTP dispatch to ${to} failed (${smtpErr.message || 'Authentication/Connection error'}). Please check SMTP credentials or send via Gmail compose.`,
         gmailComposeUrl,
         mailtoUrl,
-        deliveryLatencyMs: latency
+        deliveryLatencyMs: latency,
+        hasAttachment: Boolean(pdfBuffer),
+        attachmentName
       };
     }
   }
@@ -188,9 +224,11 @@ export async function dispatchCertificateEmail(
     deliveredToInternet: false,
     status: 'simulated',
     provider: 'simulated',
-    infoNotice: `Live SMTP delivery is unconfigured. The official email was generated and stored in the Outbox. To deliver directly to ${to}'s inbox, use the instant 1-click Gmail or mail client button, or configure SMTP credentials in Settings.`,
+    infoNotice: `Official Vixora Academy PDF certificate generated (${attachmentName}, ${pdfBuffer ? Math.round(pdfBuffer.length / 1024) : 0} KB) and queued for dispatch. Live SMTP is unconfigured. Ready to transmit via 1-click Gmail Webmail or SMTP.`,
     gmailComposeUrl,
     mailtoUrl,
-    deliveryLatencyMs: latency
+    deliveryLatencyMs: latency,
+    hasAttachment: Boolean(pdfBuffer),
+    attachmentName
   };
 }

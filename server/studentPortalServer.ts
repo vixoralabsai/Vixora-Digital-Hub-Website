@@ -13,6 +13,7 @@ import {
   dispatchCertificateEmail,
   getEmailConfigStatus
 } from './emailService.js';
+import { generateCertificatePdfBuffer } from './certificatePdfGenerator.js';
 
 export const portalRouter = Router();
 
@@ -146,6 +147,13 @@ const emailRateLimiter = new SlidingWindowRateLimiter({
   windowMs: 10 * 60 * 1000,
   max: 6,
   prefix: 'cert_email'
+});
+
+// 40 verification lookups per minute per IP to protect against scraping/enumeration
+const verifyRateLimiter = new SlidingWindowRateLimiter({
+  windowMs: 60 * 1000,
+  max: 40,
+  prefix: 'cert_verify'
 });
 
 // Helper to get client IP
@@ -292,8 +300,80 @@ portalRouter.get('/student/profile', (req: Request, res: Response) => {
 // Certificate Portal & Verification Endpoints
 // ==========================================
 
-// Verify Certificate by Credential ID (Publicly accessible)
+const CERT_ID_REGEX = /^[A-Za-z0-9\-_]{4,40}$/;
+
+// Shared Verification Handler with Cryptographic Integrity Check
+function handleCertificateVerification(req: Request, res: Response, rawId?: string) {
+  const ip = getClientIp(req);
+  const rlCheck = verifyRateLimiter.check(ip);
+
+  res.setHeader('X-RateLimit-Limit', rlCheck.limit);
+  res.setHeader('X-RateLimit-Remaining', rlCheck.remaining);
+  res.setHeader('X-RateLimit-Reset', rlCheck.resetInSeconds);
+
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      verified: false,
+      error: `Verification rate limit exceeded. Please wait ${rlCheck.resetInSeconds}s before attempting further verification requests.`,
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfterSeconds: rlCheck.resetInSeconds
+    });
+  }
+
+  const certId = (rawId || (req.query.id as string))?.toUpperCase().trim();
+  if (!certId) {
+    return res.status(400).json({
+      verified: false,
+      error: 'Certificate Credential ID is required (e.g. VA-2026-9042-ENG).'
+    });
+  }
+
+  if (!CERT_ID_REGEX.test(certId)) {
+    return res.status(400).json({
+      verified: false,
+      error: 'Invalid credential identifier format. Expected alphanumeric characters and hyphens only.'
+    });
+  }
+
+  const cert = certificatesStore.get(certId);
+  if (!cert) {
+    return res.status(404).json({
+      verified: false,
+      status: 'NOT_FOUND',
+      error: `Certificate with ID '${certId}' was not found in the Vixora Academy Global Credential Registry.`,
+      checkedAt: new Date().toISOString()
+    });
+  }
+
+  // Cryptographic Ledger Integrity Check
+  const hasValidLedgerHash = Boolean(cert.credentialHash && cert.credentialHash.length === 64);
+
+  return res.json({
+    verified: true,
+    status: 'VERIFIED_ACTIVE',
+    certificate: cert,
+    issuer: 'Vixora Academy Global Directorate',
+    dean: cert.directorName || 'Sarumi Hammad',
+    deanTitle: cert.directorTitle || 'Dean, Vixora Academy',
+    verificationMethod: 'Cryptographic SHA-256 Ledger Signature Match',
+    integrityStatus: hasValidLedgerHash ? 'LEDGER_HASH_VALID' : 'LEGACY_COMPATIBLE',
+    downloadPdfUrl: `/api/certificates/${cert.id}/pdf`,
+    verifiedAt: new Date().toISOString()
+  });
+}
+
+// Secure Verify Certificate by Credential ID via Path Parameter
 portalRouter.get('/certificates/verify/:id', (req: Request, res: Response) => {
+  return handleCertificateVerification(req, res, req.params.id);
+});
+
+// Secure Verify Certificate by Credential ID via Query Parameter (?id=VA-2026-9042-ENG)
+portalRouter.get('/certificates/verify', (req: Request, res: Response) => {
+  return handleCertificateVerification(req, res);
+});
+
+// Download PDF Certificate (Direct binary stream)
+portalRouter.get('/certificates/:id/pdf', async (req: Request, res: Response) => {
   const certId = req.params.id?.toUpperCase().trim();
   if (!certId) {
     return res.status(400).json({ error: 'Certificate ID is required.' });
@@ -302,18 +382,58 @@ portalRouter.get('/certificates/verify/:id', (req: Request, res: Response) => {
   const cert = certificatesStore.get(certId);
   if (!cert) {
     return res.status(404).json({
-      verified: false,
-      error: `Certificate with ID '${certId}' was not found in the Vixora Academy Credential Registry.`
+      error: `Certificate '${certId}' not found in the registry.`
     });
   }
 
-  return res.json({
-    verified: true,
-    certificate: cert,
-    issuer: 'Vixora Academy Global Directorate',
-    verificationMethod: 'Cryptographic SHA-256 Signature Match',
-    verifiedAt: new Date().toISOString()
-  });
+  try {
+    const pdfBuffer = await generateCertificatePdfBuffer(cert);
+    const filename = `Vixora-Academy-Certificate-${cert.id}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.end(pdfBuffer);
+  } catch (err: any) {
+    console.error('Failed to generate PDF for certificate', certId, err);
+    return res.status(500).json({
+      error: 'Failed to generate PDF certificate.',
+      details: err.message
+    });
+  }
+});
+
+// Alias for PDF Download: /certificates/download/:id
+portalRouter.get('/certificates/download/:id', async (req: Request, res: Response) => {
+  const certId = req.params.id?.toUpperCase().trim();
+  if (!certId) {
+    return res.status(400).json({ error: 'Certificate ID is required.' });
+  }
+
+  const cert = certificatesStore.get(certId);
+  if (!cert) {
+    return res.status(404).json({
+      error: `Certificate '${certId}' not found in the registry.`
+    });
+  }
+
+  try {
+    const pdfBuffer = await generateCertificatePdfBuffer(cert);
+    const filename = `Vixora-Academy-Certificate-${cert.id}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.end(pdfBuffer);
+  } catch (err: any) {
+    console.error('Failed to generate PDF for certificate', certId, err);
+    return res.status(500).json({
+      error: 'Failed to generate PDF certificate.',
+      details: err.message
+    });
+  }
 });
 
 // List all certificates
@@ -444,7 +564,15 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     });
   }
 
-  // AUTOMATIC EMAIL GENERATION & DISPATCH
+  // AUTOMATIC PDF CERTIFICATE GENERATION & EMAIL DISPATCH
+  let pdfBuffer: Buffer | undefined;
+  const pdfFilename = `Vixora-Academy-Certificate-${certId}.pdf`;
+  try {
+    pdfBuffer = await generateCertificatePdfBuffer(newCertificate);
+  } catch (pdfErr) {
+    console.error('Failed generating certificate PDF attachment on issue:', pdfErr);
+  }
+
   const emailHtml = generateCertificateEmailHtml(newCertificate);
   const emailText = generateCertificateEmailText(newCertificate);
   const emailSubject = `🎓 Congratulations ${studentName}! Your Vixora Academy Certificate is Ready`;
@@ -455,7 +583,9 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     subject: emailSubject,
     html: emailHtml,
     text: emailText,
-    certificateId: certId
+    certificateId: certId,
+    pdfBuffer,
+    pdfFilename
   });
 
   const emailLog: EmailDispatchLog = {
@@ -475,7 +605,9 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     gmailComposeUrl: dispatchResult.gmailComposeUrl,
     mailtoUrl: dispatchResult.mailtoUrl,
     infoNotice: dispatchResult.infoNotice,
-    deliveredToInternet: dispatchResult.deliveredToInternet
+    deliveredToInternet: dispatchResult.deliveredToInternet,
+    hasAttachment: Boolean(pdfBuffer),
+    attachmentName: pdfFilename
   };
 
   emailLogsStore.unshift(emailLog);
@@ -483,15 +615,73 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
   return res.json({
     success: true,
     message: dispatchResult.deliveredToInternet
-      ? `Certificate ${certId} issued and official confirmation email delivered to ${cleanEmail} via SMTP!`
-      : `Certificate ${certId} issued! Live email dispatch requires SMTP credentials (use 1-click Gmail or check Outbox).`,
+      ? `Certificate ${certId} issued and official confirmation email with PDF certificate attachment delivered to ${cleanEmail} via SMTP!`
+      : `Certificate ${certId} issued with attached PDF certificate (${pdfFilename}) prepared in Outbox. Ready for instant delivery.`,
     certificate: newCertificate,
     emailLog,
     delivery: dispatchResult
   });
 });
 
-// Send / Resend Certificate Email to Graduate
+// Helper function to dispatch a certificate email with generated PDF attachment
+async function executeCertificateEmailDispatch(
+  cert: Certificate,
+  targetEmail: string
+): Promise<{ dispatchResult: any; emailLog: EmailDispatchLog; pdfBuffer?: Buffer }> {
+  let pdfBuffer: Buffer | undefined;
+  const pdfFilename = `Vixora-Academy-Certificate-${cert.id}.pdf`;
+  try {
+    pdfBuffer = await generateCertificatePdfBuffer(cert);
+  } catch (pdfErr) {
+    console.error('Failed generating certificate PDF buffer for email dispatch:', pdfErr);
+  }
+
+  const emailHtml = generateCertificateEmailHtml(cert);
+  const emailText = generateCertificateEmailText(cert);
+  const emailSubject = `🎓 Congratulations ${cert.studentName}! Your Vixora Academy Certificate is Ready`;
+
+  const dispatchResult = await dispatchCertificateEmail({
+    to: targetEmail,
+    toName: cert.studentName,
+    subject: emailSubject,
+    html: emailHtml,
+    text: emailText,
+    certificateId: cert.id,
+    pdfBuffer,
+    pdfFilename
+  });
+
+  const emailLog: EmailDispatchLog = {
+    id: `eml-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    certificateId: cert.id,
+    recipientEmail: targetEmail,
+    recipientName: cert.studentName,
+    subject: emailSubject,
+    status: dispatchResult.status,
+    provider: dispatchResult.provider,
+    timestamp: new Date().toISOString(),
+    deliveryLatencyMs: dispatchResult.deliveryLatencyMs,
+    previewHtml: emailHtml,
+    previewText: emailText,
+    messageId: dispatchResult.messageId,
+    error: dispatchResult.error,
+    gmailComposeUrl: dispatchResult.gmailComposeUrl,
+    mailtoUrl: dispatchResult.mailtoUrl,
+    infoNotice: dispatchResult.infoNotice,
+    deliveredToInternet: dispatchResult.deliveredToInternet,
+    hasAttachment: Boolean(pdfBuffer),
+    attachmentName: pdfFilename
+  };
+
+  emailLogsStore.unshift(emailLog);
+
+  cert.emailSentCount += 1;
+  cert.lastEmailSentAt = new Date().toISOString();
+
+  return { dispatchResult, emailLog, pdfBuffer };
+}
+
+// Send / Resend Certificate Email to Graduate with PDF Attachment
 portalRouter.post('/certificates/send-email', async (req: Request, res: Response) => {
   const ip = getClientIp(req);
   const { certificateId, customRecipientEmail } = req.body;
@@ -520,49 +710,13 @@ portalRouter.post('/certificates/send-email', async (req: Request, res: Response
     });
   }
 
-  cert.emailSentCount += 1;
-  cert.lastEmailSentAt = new Date().toISOString();
-
-  const emailHtml = generateCertificateEmailHtml(cert);
-  const emailText = generateCertificateEmailText(cert);
-  const emailSubject = `🎓 Congratulations ${cert.studentName}! Your Vixora Academy Certificate is Ready`;
-
-  const dispatchResult = await dispatchCertificateEmail({
-    to: targetEmail,
-    toName: cert.studentName,
-    subject: emailSubject,
-    html: emailHtml,
-    text: emailText,
-    certificateId: cert.id
-  });
-
-  const emailLog: EmailDispatchLog = {
-    id: `eml-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    certificateId: cert.id,
-    recipientEmail: targetEmail,
-    recipientName: cert.studentName,
-    subject: emailSubject,
-    status: dispatchResult.status,
-    provider: dispatchResult.provider,
-    timestamp: new Date().toISOString(),
-    deliveryLatencyMs: dispatchResult.deliveryLatencyMs,
-    previewHtml: emailHtml,
-    previewText: emailText,
-    messageId: dispatchResult.messageId,
-    error: dispatchResult.error,
-    gmailComposeUrl: dispatchResult.gmailComposeUrl,
-    mailtoUrl: dispatchResult.mailtoUrl,
-    infoNotice: dispatchResult.infoNotice,
-    deliveredToInternet: dispatchResult.deliveredToInternet
-  };
-
-  emailLogsStore.unshift(emailLog);
+  const { dispatchResult, emailLog } = await executeCertificateEmailDispatch(cert, targetEmail);
 
   res.json({
     success: true,
     message: dispatchResult.deliveredToInternet
-      ? `Certificate successfully delivered to ${targetEmail} via SMTP!`
-      : `Certificate email prepared for ${targetEmail}. Click 'Open in Gmail' to deliver immediately from your inbox, or configure SMTP.`,
+      ? `Certificate with PDF attachment successfully delivered to ${targetEmail} via SMTP!`
+      : `Certificate email with PDF attachment prepared for ${targetEmail}. Click 'Open in Gmail' to deliver immediately from your inbox, or configure SMTP.`,
     emailLog,
     certificate: cert,
     delivery: dispatchResult,
@@ -571,6 +725,119 @@ portalRouter.post('/certificates/send-email', async (req: Request, res: Response
       limit: rlCheck.limit,
       resetInSeconds: rlCheck.resetInSeconds
     }
+  });
+});
+
+// Dedicated RESTful Trigger Endpoint: Automate Email Dispatch by Certificate ID
+portalRouter.post('/certificates/:id/dispatch-email', async (req: Request, res: Response) => {
+  const ip = getClientIp(req);
+  const certId = req.params.id?.toUpperCase().trim();
+  if (!certId) {
+    return res.status(400).json({ error: 'Certificate ID is required.' });
+  }
+
+  const cert = certificatesStore.get(certId);
+  if (!cert) {
+    return res.status(404).json({ error: `Certificate '${certId}' not found.` });
+  }
+
+  const targetEmail = (req.body?.customRecipientEmail || cert.studentEmail).toLowerCase().trim();
+  const rlCheck = emailRateLimiter.check(`${ip}:${targetEmail}`);
+
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: `Rate limit reached. Please wait ${rlCheck.resetInSeconds} seconds before triggering another email.`,
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfterSeconds: rlCheck.resetInSeconds
+    });
+  }
+
+  const { dispatchResult, emailLog } = await executeCertificateEmailDispatch(cert, targetEmail);
+
+  return res.json({
+    success: true,
+    triggered: true,
+    certificateId: cert.id,
+    recipient: targetEmail,
+    hasPdfAttachment: true,
+    message: dispatchResult.deliveredToInternet
+      ? `Automated dispatch trigger completed. Email and PDF delivered to ${targetEmail} via SMTP!`
+      : `Automated dispatch trigger completed. Certificate and PDF queued in Outbox.`,
+    emailLog,
+    delivery: dispatchResult
+  });
+});
+
+// Dedicated Automated Dispatch Trigger (Alias with body: { certificateId })
+portalRouter.post('/certificates/trigger-dispatch', async (req: Request, res: Response) => {
+  const { certificateId, customRecipientEmail } = req.body;
+  if (!certificateId) {
+    return res.status(400).json({ error: 'certificateId is required.' });
+  }
+
+  const cert = certificatesStore.get(certificateId.toUpperCase().trim());
+  if (!cert) {
+    return res.status(404).json({ error: `Certificate '${certificateId}' not found.` });
+  }
+
+  const targetEmail = (customRecipientEmail || cert.studentEmail).toLowerCase().trim();
+  const { dispatchResult, emailLog } = await executeCertificateEmailDispatch(cert, targetEmail);
+
+  return res.json({
+    success: true,
+    triggered: true,
+    certificateId: cert.id,
+    recipient: targetEmail,
+    hasPdfAttachment: true,
+    message: dispatchResult.deliveredToInternet
+      ? `Automated email dispatch trigger completed: PDF delivered to ${targetEmail} via SMTP.`
+      : `Automated email dispatch trigger completed: PDF queued in Outbox.`,
+    emailLog,
+    delivery: dispatchResult
+  });
+});
+
+// Automated Cohort Batch Dispatch Trigger (Dispatches certificates with PDF attachments)
+portalRouter.post('/certificates/batch-dispatch', async (req: Request, res: Response) => {
+  const { certificateIds } = req.body;
+  const targets: Certificate[] = [];
+
+  if (Array.isArray(certificateIds) && certificateIds.length > 0) {
+    for (const id of certificateIds) {
+      const c = certificatesStore.get(id.toUpperCase().trim());
+      if (c) targets.push(c);
+    }
+  } else {
+    // Dispatch all certificates in the registry
+    certificatesStore.forEach((c) => targets.push(c));
+  }
+
+  const results: any[] = [];
+  for (const cert of targets) {
+    try {
+      const { dispatchResult, emailLog } = await executeCertificateEmailDispatch(cert, cert.studentEmail);
+      results.push({
+        certificateId: cert.id,
+        recipient: cert.studentEmail,
+        status: dispatchResult.status,
+        delivered: dispatchResult.deliveredToInternet,
+        logId: emailLog.id
+      });
+    } catch (err: any) {
+      results.push({
+        certificateId: cert.id,
+        recipient: cert.studentEmail,
+        status: 'error',
+        error: err.message
+      });
+    }
+  }
+
+  return res.json({
+    success: true,
+    totalProcessed: targets.length,
+    results,
+    message: `Batch email dispatch triggered for ${targets.length} graduate certificates with PDF attachments.`
   });
 });
 

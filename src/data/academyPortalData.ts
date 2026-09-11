@@ -71,6 +71,8 @@ export interface EmailDispatchLog {
   mailtoUrl?: string;
   infoNotice?: string;
   deliveredToInternet?: boolean;
+  hasAttachment?: boolean;
+  attachmentName?: string;
 }
 
 export interface RateLimitState {
