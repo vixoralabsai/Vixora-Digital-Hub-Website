@@ -18,6 +18,8 @@ import { DriveWorkspaceModal } from './components/DriveWorkspaceModal';
 import { CourseEnrollmentModal } from './components/CourseEnrollmentModal';
 import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
 import { ScrollProgressBar } from './components/ScrollProgressBar';
+import { AcademyNavbar } from './components/AcademyNavbar';
+import { AcademyFooter } from './components/AcademyFooter';
 
 // Standalone Pages
 import { AboutPage } from './pages/AboutPage';
@@ -175,6 +177,17 @@ function parseLocationPath(pathname: string, search: string): RouteState {
     }
   }
 
+  // Check if accessing via academy subdomain
+  const isAcademyHost = typeof window !== 'undefined' && (
+    window.location.hostname === 'academy.vixoradigitalhub.com' ||
+    window.location.hostname.startsWith('academy.') ||
+    urlParams.get('subdomain') === 'academy'
+  );
+
+  if (isAcademyHost && (cleanPath === '/' || cleanPath === '')) {
+    return { page: 'academy', path: '/pages/academy' };
+  }
+
   // Default Home
   return { page: 'home', path: '/' };
 }
@@ -253,14 +266,25 @@ function AppContent() {
         }
       }
 
-      // External academy host handling if needed
-      if (page === 'academy' && !isAlreadyAcademyHost && window.location.hostname.includes('vixora.com')) {
+      // Check if we are on the production main hub domain
+      const isProductionHubHost = typeof window !== 'undefined' && (
+        window.location.hostname === 'vixoradigitalhub.com' ||
+        window.location.hostname === 'www.vixoradigitalhub.com'
+      );
+
+      // On production domain, redirect all academy requests to academy.vixoradigitalhub.com
+      if (page === 'academy' && isProductionHubHost && !isAlreadyAcademyHost) {
         window.location.href = BRAND_CONFIG.academyDomain;
         return;
       }
 
-      if (page === 'academy-course' && courseSlug && !isAlreadyAcademyHost && window.location.hostname.includes('vixora.com')) {
-        window.location.href = `${BRAND_CONFIG.academyDomain}/?page=academy-course&course=${encodeURIComponent(courseSlug)}`;
+      if (page === 'academy-course' && courseSlug && isProductionHubHost && !isAlreadyAcademyHost) {
+        window.location.href = `${BRAND_CONFIG.academyDomain}/academy/${encodeURIComponent(courseSlug)}`;
+        return;
+      }
+
+      if ((page === 'student-portal' || page === 'certificate-portal') && isProductionHubHost && !isAlreadyAcademyHost) {
+        window.location.href = `${BRAND_CONFIG.academyDomain}/pages/${page}`;
         return;
       }
 
@@ -309,19 +333,32 @@ function AppContent() {
     }
   };
 
+  const isAcademyView = ['academy', 'academy-course', 'student-portal', 'certificate-portal'].includes(route.page);
+
   return (
-    <div className="min-h-screen bg-[#070314] text-neutral-100 font-sans selection:bg-purple-600 selection:text-white antialiased transition-colors duration-200">
+    <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
+      isAcademyView ? 'bg-[#F7F7FC] text-[#000048]' : 'bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white'
+    }`}>
       {/* Viewport Top Scroll Progress Indicator for Long-Form Pages */}
       <ScrollProgressBar currentPage={route.page} />
 
-      {/* 1. Streamlined Navigation Bar with Subcategories & Permalinks */}
-      <Navbar
-        currentPage={route.page}
-        currentPath={route.path}
-        onNavigate={handleNavigate}
-        onOpenProjectModal={() => setProjectModalOpen(true)}
-        onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
-      />
+      {/* Dynamic Navigation Bar: AcademyNavbar for Academy Subdomain vs agency Navbar for Main Hub */}
+      {isAcademyView ? (
+        <AcademyNavbar
+          currentPage={route.page}
+          currentPath={route.path}
+          onNavigate={handleNavigate}
+          onOpenCorporateModal={() => setProjectModalOpen(true)}
+        />
+      ) : (
+        <Navbar
+          currentPage={route.page}
+          currentPath={route.path}
+          onNavigate={handleNavigate}
+          onOpenProjectModal={() => setProjectModalOpen(true)}
+          onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+        />
+      )}
 
       {/* Main Dynamic View Content */}
       <main>
@@ -435,12 +472,19 @@ function AppContent() {
         )}
       </main>
 
-      {/* Global Comprehensive Footer */}
-      <Footer
-        onNavigate={handleNavigate}
-        onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
-        onOpenProjectModal={() => setProjectModalOpen(true)}
-      />
+      {/* Dynamic Footer: Dedicated AcademyFooter for Academy Subdomain vs agency Footer for Main Hub */}
+      {isAcademyView ? (
+        <AcademyFooter
+          onNavigate={handleNavigate}
+          onOpenCorporateModal={() => setProjectModalOpen(true)}
+        />
+      ) : (
+        <Footer
+          onNavigate={handleNavigate}
+          onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+          onOpenProjectModal={() => setProjectModalOpen(true)}
+        />
+      )}
 
       {/* Interactive Consultation / Project Scoping Modal */}
       <StartProjectModal

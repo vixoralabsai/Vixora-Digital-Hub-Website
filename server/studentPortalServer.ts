@@ -684,7 +684,7 @@ async function executeCertificateEmailDispatch(
 // Send / Resend Certificate Email to Graduate with PDF Attachment
 portalRouter.post('/certificates/send-email', async (req: Request, res: Response) => {
   const ip = getClientIp(req);
-  const { certificateId, customRecipientEmail } = req.body;
+  const { certificateId, customRecipientEmail, recipientEmail, email } = req.body;
 
   if (!certificateId) {
     return res.status(400).json({ error: 'certificateId is required.' });
@@ -695,7 +695,7 @@ portalRouter.post('/certificates/send-email', async (req: Request, res: Response
     return res.status(404).json({ error: 'Certificate not found.' });
   }
 
-  const targetEmail = (customRecipientEmail || cert.studentEmail).toLowerCase().trim();
+  const targetEmail = (customRecipientEmail || recipientEmail || email || cert.studentEmail).toLowerCase().trim();
   const rlCheck = emailRateLimiter.check(`${ip}:${targetEmail}`);
 
   res.setHeader('X-RateLimit-Limit', rlCheck.limit);

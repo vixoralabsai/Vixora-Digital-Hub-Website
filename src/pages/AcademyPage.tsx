@@ -74,67 +74,7 @@ export function AcademyPage({
   ];
 
   return (
-    <div className="pt-20 pb-24 bg-[#F7F7FC] text-[#000048] min-h-screen">
-      {/* Academy Brand Ribbon */}
-      <div className="bg-[#000048] border-b border-[#480878]/40 py-3 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-1 bg-white rounded-xl shadow-xs flex items-center justify-center">
-              <img
-                src="/images/vixora-academy-logo.jpg"
-                alt="Vixora Academy"
-                className="h-10 w-auto max-w-[200px] object-contain rounded-lg"
-              />
-            </div>
-            <div className="hidden sm:block">
-              <div className="text-xs font-bold text-white">Vixora Academy</div>
-              <div className="text-[10px] text-purple-200">Learn. Apply. Earn. • Dean: Sarumi Hammad</div>
-            </div>
-          </div>
-          <a
-            href={BRAND_CONFIG.domain}
-            className="text-xs font-semibold text-white/80 hover:text-white transition-colors flex items-center gap-1"
-          >
-            Main Hub <ArrowUpRight className="w-3 h-3" />
-          </a>
-        </div>
-      </div>
-
-      {/* Subdomain Indicator Header Ribbon */}
-      <div className="bg-white border-b border-[#E5E5F0] py-2.5 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-[#480878] font-mono bg-[#F7F7FC] px-3 py-1 rounded-full border border-[#480878]/20">
-              <Globe className="w-3.5 h-3.5 text-[#9030F8]" />
-              <span className="font-semibold">{BRAND_CONFIG.cleanAcademyDomain}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
-            </div>
-            <span className="text-[#5F6078] text-[11px] hidden sm:inline">
-              Official Vixora Academy Subdomain Portal
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <a
-              href={BRAND_CONFIG.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
-            >
-              Admissions Desk WhatsApp
-            </a>
-            <span className="text-[#E5E5F0] hidden sm:inline">&bull;</span>
-            <a
-              href={BRAND_CONFIG.domain}
-              className="text-[#5F6078] hover:text-[#480878] transition-colors text-[11px] flex items-center gap-1"
-            >
-              <span>Main Hub ({BRAND_CONFIG.cleanDomain})</span>
-              <ArrowUpRight className="w-3 h-3 text-[#5F6078]" />
-            </a>
-          </div>
-        </div>
-      </div>
-
+    <div className="pt-16 pb-24 bg-[#F7F7FC] text-[#000048] min-h-screen">
       {/* Hero Header */}
       <section className="relative py-16 sm:py-24 overflow-hidden border-b border-[#E5E5F0] bg-white">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#9030F8]/10 blur-[140px] rounded-full pointer-events-none -z-10" />

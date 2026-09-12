@@ -10,7 +10,8 @@ import {
   Calendar, 
   GraduationCap, 
   FileText,
-  UserCheck
+  UserCheck,
+  Download
 } from 'lucide-react';
 
 interface CertificateVerificationWidgetProps {
@@ -230,15 +231,27 @@ export const CertificateVerificationWidget: React.FC<CertificateVerificationWidg
               Cryptographic Hash: <span className="font-mono text-neutral-700">{verifiedResult.certificate.credentialHash.slice(0, 28)}...</span>
             </div>
 
-            {onViewCertificate && (
-              <button
-                onClick={() => onViewCertificate(verifiedResult.certificate)}
-                className="px-4 py-2 text-xs font-bold rounded-xl text-white bg-[#000048] hover:bg-[#480878] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+            <div className="flex items-center gap-2">
+              <a
+                href={`/api/certificates/${verifiedResult.certificate.id}/pdf`}
+                download={`Vixora-Academy-Certificate-${verifiedResult.certificate.id}.pdf`}
+                className="px-3.5 py-2 text-xs font-bold rounded-xl text-emerald-800 bg-white border border-emerald-300 hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                title="Download verified PDF certificate"
               >
-                <Award className="w-4 h-4 text-amber-300" />
-                <span>Open Full Certificate Document</span>
-              </button>
-            )}
+                <Download className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Download Official PDF</span>
+              </a>
+
+              {onViewCertificate && (
+                <button
+                  onClick={() => onViewCertificate(verifiedResult.certificate)}
+                  className="px-4 py-2 text-xs font-bold rounded-xl text-white bg-[#000048] hover:bg-[#480878] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Award className="w-4 h-4 text-amber-300" />
+                  <span>Open Certificate View</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

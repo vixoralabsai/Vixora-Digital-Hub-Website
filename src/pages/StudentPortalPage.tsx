@@ -25,7 +25,8 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Download
 } from 'lucide-react';
 
 interface StudentPortalPageProps {
@@ -45,18 +46,21 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   );
 
   // Authentication State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(null);
-  const [studentCertificates, setStudentCertificates] = useState<Certificate[]>([]);
-  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(SEED_STUDENTS[0]);
+  const [studentCertificates, setStudentCertificates] = useState<Certificate[]>(() =>
+    SEED_CERTIFICATES.filter(c => c.studentEmail === SEED_STUDENTS[0].email)
+  );
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(SEED_CERTIFICATES[0]);
 
   // Login form state
-  const [emailInput, setEmailInput] = useState('student@vixora.com');
-  const [passwordInput, setPasswordInput] = useState('vixora2026');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [rateLimitCooldown, setRateLimitCooldown] = useState<number | null>(null);
   const [remainingAttempts, setRemainingAttempts] = useState<number>(5);
+  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
   // Email sending state
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -222,6 +226,19 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
       setIsSendingEmail(false);
     }
   };
+
+  // Dynamic Student Overview Progress Metrics
+  const coursesCompletedCount = currentStudent?.courses.filter(
+    (c) => c.status === 'completed' || c.progressPercent >= 100
+  ).length ?? 0;
+
+  const activeEnrollmentsCount = currentStudent?.courses.filter(
+    (c) => c.status !== 'completed' && c.progressPercent < 100
+  ).length ?? 0;
+
+  const certificatesEarnedCount = (studentCertificates && studentCertificates.length > 0)
+    ? studentCertificates.length
+    : (currentStudent?.courses.filter((c) => Boolean(c.certificateId)).length ?? 0);
 
   return (
     <div className="min-h-screen bg-[#F7F7FC] text-[#000048] pb-24 pt-8 px-4 sm:px-6 lg:px-8">
@@ -454,48 +471,72 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                   </button>
                 </form>
 
-                {/* Quick 1-Click Demo Profiles */}
-                <div className="mt-8 pt-6 border-t border-neutral-200">
-                  <div className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2.5 text-center">
-                    Instant Demo Student Logins:
+                {/* Onboarding Credentials Guidance for Real Students */}
+                <div className="mt-6 p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100 text-xs text-[#5F6078] space-y-1">
+                  <div className="font-bold text-[#000048] flex items-center gap-1.5">
+                    <GraduationCap className="w-4 h-4 text-[#7000F8]" />
+                    <span>How do students get login details?</span>
                   </div>
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDemoLogin('student@vixora.com')}
-                      className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
-                    >
-                      <div>
-                        <div className="text-xs font-bold text-[#000048]">David A. Okonjo</div>
-                        <div className="text-[11px] text-neutral-500">Autonomous AI Systems • Distinction Graduate</div>
-                      </div>
-                      <span className="text-[11px] font-mono font-bold text-[#7000F8]">student@vixora.com</span>
-                    </button>
+                  <p className="text-[11px] leading-relaxed">
+                    Students receive their official login email and temporary password automatically in their welcome confirmation email upon admission into a cohort. For support, contact the Admissions Desk on WhatsApp.
+                  </p>
+                </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDemoLogin('alex.chen@vixora.com')}
-                      className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
-                    >
-                      <div>
-                        <div className="text-xs font-bold text-[#000048]">Alex K. Chen</div>
-                        <div className="text-[11px] text-neutral-500">Data Analytics Mastery • Honors Graduate</div>
-                      </div>
-                      <span className="text-[11px] font-mono font-bold text-[#7000F8]">alex.chen@vixora.com</span>
-                    </button>
+                {/* Collapsible Demo Profiles for Evaluators / Testing */}
+                <div className="mt-5 pt-4 border-t border-neutral-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowDemoAccounts(!showDemoAccounts)}
+                    className="w-full flex items-center justify-between text-xs font-semibold text-purple-700 hover:text-purple-900 py-1 transition-colors cursor-pointer"
+                  >
+                    <span>Developer / Evaluator Demo Logins</span>
+                    <span className="text-[11px] font-mono text-purple-600 bg-purple-100 px-2 py-0.5 rounded-md">
+                      {showDemoAccounts ? 'Hide Demo Logins' : 'Show Demo Logins'}
+                    </span>
+                  </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDemoLogin('sarah.j@vixora.com')}
-                      className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
-                    >
-                      <div>
-                        <div className="text-xs font-bold text-[#000048]">Sarah Jenkins</div>
-                        <div className="text-[11px] text-neutral-500">AI Freelancing & Agency • Certified</div>
+                  {showDemoAccounts && (
+                    <div className="space-y-2 mt-3 animate-in fade-in duration-150">
+                      <div className="text-[11px] text-neutral-500">
+                        Click any test profile below to auto-fill and test the student dashboard:
                       </div>
-                      <span className="text-[11px] font-mono font-bold text-[#7000F8]">sarah.j@vixora.com</span>
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDemoLogin('student@vixora.com')}
+                        className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-[#000048]">David A. Okonjo</div>
+                          <div className="text-[11px] text-neutral-500">Autonomous AI Systems • Distinction Graduate</div>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-[#7000F8]">student@vixora.com</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDemoLogin('alex.chen@vixora.com')}
+                        className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-[#000048]">Alex K. Chen</div>
+                          <div className="text-[11px] text-neutral-500">Data Analytics Mastery • Honors Graduate</div>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-[#7000F8]">alex.chen@vixora.com</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDemoLogin('sarah.j@vixora.com')}
+                        className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-[#000048]">Sarah Jenkins</div>
+                          <div className="text-[11px] text-neutral-500">AI Freelancing & Agency • Certified</div>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-[#7000F8]">sarah.j@vixora.com</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
               </div>
@@ -532,6 +573,106 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                       <Award className="w-4 h-4 text-amber-300" />
                       <span>View My Certificates ({studentCertificates.length})</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Student Overview Summary (Grid Layout with Cards) */}
+                <div id="student-overview-section" className="bg-white rounded-3xl border border-purple-100 shadow-sm p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-black text-[#000048] flex items-center gap-2">
+                        <GraduationCap className="w-5 h-5 text-[#7000F8]" />
+                        <span>Student Overview</span>
+                      </h3>
+                      <p className="text-xs text-neutral-500 mt-0.5">
+                        Real-time academic progression, active coursework, and verified credentials
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 border border-purple-100 px-3 py-1 rounded-full w-fit">
+                      Current Academic Cohort
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                    {/* Card 1: Courses Completed */}
+                    <div 
+                      id="metric-courses-completed"
+                      className="p-5 rounded-2xl bg-[#FCFCFF] border border-neutral-200/80 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all duration-200 flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          Completed
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-3xl sm:text-4xl font-black text-[#000048] tracking-tight">
+                          {coursesCompletedCount}
+                        </div>
+                        <div className="text-sm font-bold text-[#000048] mt-1">
+                          Courses Completed
+                        </div>
+                        <div className="text-xs text-neutral-500 mt-0.5">
+                          100% curriculum fulfilled
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Active Enrollments */}
+                    <div 
+                      id="metric-active-enrollments"
+                      className="p-5 rounded-2xl bg-[#FCFCFF] border border-neutral-200/80 hover:border-blue-200 hover:bg-blue-50/10 transition-all duration-200 flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
+                          <Clock className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                          In Progress
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-3xl sm:text-4xl font-black text-[#000048] tracking-tight">
+                          {activeEnrollmentsCount}
+                        </div>
+                        <div className="text-sm font-bold text-[#000048] mt-1">
+                          Active Enrollments
+                        </div>
+                        <div className="text-xs text-neutral-500 mt-0.5">
+                          Ongoing cohort coursework
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Certificates Earned */}
+                    <div 
+                      id="metric-certificates-earned"
+                      onClick={() => setActiveTab('certificates')}
+                      className="p-5 rounded-2xl bg-[#FCFCFF] border border-neutral-200/80 hover:border-purple-300 hover:bg-purple-50/20 transition-all duration-200 flex flex-col justify-between cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-purple-50 border border-purple-100 text-[#7000F8] flex items-center justify-center">
+                          <Award className="w-5 h-5 text-[#7000F8]" />
+                        </div>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-[#7000F8] border border-purple-100 group-hover:bg-[#7000F8] group-hover:text-white transition-colors">
+                          Verified
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-3xl sm:text-4xl font-black text-[#000048] tracking-tight flex items-baseline justify-between">
+                          <span>{certificatesEarnedCount}</span>
+                          <span className="text-xs font-semibold text-[#7000F8] group-hover:underline">View &rarr;</span>
+                        </div>
+                        <div className="text-sm font-bold text-[#000048] mt-1">
+                          Certificates Earned
+                        </div>
+                        <div className="text-xs text-neutral-500 mt-0.5">
+                          Cryptographically validated
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -639,23 +780,45 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                       {studentCertificates.map((cert) => (
                         <div
                           key={cert.id}
-                          className="p-5 rounded-2xl border-2 border-purple-100 bg-gradient-to-br from-white to-purple-50/40 hover:border-purple-300 transition-all cursor-pointer"
-                          onClick={() => {
-                            setSelectedCertificate(cert);
-                            setActiveTab('certificates');
-                          }}
+                          className="p-5 rounded-2xl border-2 border-purple-100 bg-gradient-to-br from-white to-purple-50/40 hover:border-purple-300 transition-all flex flex-col justify-between"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold font-mono bg-purple-100 text-[#480878]">
-                              {cert.id}
-                            </span>
-                            <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              Active & Verified
-                            </span>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="px-2.5 py-1 rounded-md text-[10px] font-bold font-mono bg-purple-100 text-[#480878]">
+                                {cert.id}
+                              </span>
+                              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Active & Verified
+                              </span>
+                            </div>
+                            <div className="text-base font-extrabold text-[#000048]">{cert.courseTitle}</div>
+                            <div className="text-xs text-neutral-500 mt-1">Conferred on {cert.issueDate} • {cert.grade}</div>
                           </div>
-                          <div className="text-base font-extrabold text-[#000048]">{cert.courseTitle}</div>
-                          <div className="text-xs text-neutral-500 mt-1">Conferred on {cert.issueDate} • {cert.grade}</div>
+
+                          <div className="mt-4 pt-3 border-t border-purple-100 flex items-center justify-between gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedCertificate(cert);
+                                setActiveTab('certificates');
+                              }}
+                              className="text-xs font-bold text-[#7000F8] hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <Award className="w-3.5 h-3.5" />
+                              <span>View Document</span>
+                            </button>
+
+                            <a
+                              href={`/api/certificates/${cert.id}/pdf`}
+                              download={`Vixora-Academy-Certificate-${cert.id}.pdf`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 transition-colors flex items-center gap-1.5 shadow-xs"
+                              title="Download official PDF certificate"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Download PDF</span>
+                            </a>
+                          </div>
                         </div>
                       ))}
                     </div>

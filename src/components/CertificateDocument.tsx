@@ -165,13 +165,23 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
             <span>{copiedLink ? 'Link Copied' : 'Share Link'}</span>
           </button>
 
+          <a
+            href={`/api/certificates/${certificate.id}/pdf`}
+            download={`Vixora-Academy-Certificate-${certificate.id}.pdf`}
+            className="px-3.5 py-1.5 text-xs font-bold rounded-xl text-white bg-emerald-700 hover:bg-emerald-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            title="Download Official PDF Certificate (Print-Ready A4)"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download PDF</span>
+          </a>
+
           <button
             onClick={() => {
               setTargetRecipientEmail(certificate.studentEmail);
               setIsEmailModalOpen(true);
             }}
             className="px-3.5 py-1.5 text-xs font-bold rounded-xl text-white bg-gradient-to-r from-[#480878] to-[#7000F8] hover:opacity-90 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-            title="Send certificate via Email or Gmail"
+            title="Send certificate via Email with PDF attachment"
           >
             <Mail className="w-3.5 h-3.5" />
             <span>Send Email &rarr;</span>
@@ -183,7 +193,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
             title="Print or Save as High-Res PDF"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print / PDF</span>
+            <span>Print</span>
           </button>
         </div>
       </div>
@@ -249,6 +259,24 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
                     Use vixoralabsai@gmail.com
                   </button>
                 </div>
+              </div>
+
+              {/* PDF Attachment Notice */}
+              <div className="p-3 bg-purple-50 rounded-2xl border border-purple-100 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-[#000048]">
+                  <FileText className="w-4 h-4 text-[#7000F8] shrink-0" />
+                  <span>
+                    <strong>Official PDF Attachment:</strong> Vixora-Academy-Certificate-{certificate.id}.pdf
+                  </span>
+                </div>
+                <a
+                  href={`/api/certificates/${certificate.id}/pdf`}
+                  download={`Vixora-Academy-Certificate-${certificate.id}.pdf`}
+                  className="px-3 py-1 text-[11px] font-bold rounded-xl bg-white text-[#7000F8] border border-purple-200 hover:bg-purple-100 flex items-center gap-1 shrink-0"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>Save PDF</span>
+                </a>
               </div>
 
               {/* Delivery Advisory Status */}
