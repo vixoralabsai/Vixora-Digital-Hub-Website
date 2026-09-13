@@ -82,6 +82,96 @@ export interface RateLimitState {
   isLimited: boolean;
 }
 
+// Supabase PostgreSQL Database Row Mapping Interfaces
+export interface SupabaseStudentRow {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url?: string | null;
+  enrolled_date: string;
+  role: 'student' | 'alumni' | 'instructor' | 'admin';
+  created_at?: string;
+}
+
+export interface SupabaseCourseRow {
+  id: string;
+  title: string;
+  track_badge: string;
+  instructor: string;
+  cohort: string;
+  total_modules: number;
+  created_at?: string;
+}
+
+export interface SupabaseEnrollmentRow {
+  id?: string | number;
+  student_id: string;
+  course_id: string;
+  status: 'in-progress' | 'completed' | 'enrolled';
+  progress_percent: number;
+  completed_modules: number;
+  certificate_id?: string | null;
+  created_at?: string;
+}
+
+export interface SupabaseCertificateRow {
+  id: string;
+  student_name: string;
+  student_email: string;
+  course_id: string;
+  course_title: string;
+  track_badge?: string | null;
+  specialization?: string | null;
+  grade: string;
+  honors?: string | null;
+  capstone_title?: string | null;
+  capstone_score?: string | null;
+  issue_date: string;
+  completion_date?: string | null;
+  duration_weeks?: number | null;
+  credential_hash: string;
+  verification_url: string;
+  instructor_name?: string | null;
+  instructor_title?: string | null;
+  director_name?: string | null;
+  director_title?: string | null;
+  status: 'active' | 'revoked';
+  email_sent_count: number;
+  last_email_sent_at?: string | null;
+  created_at?: string;
+}
+
+export interface SupabaseCompetencyRow {
+  id?: string | number;
+  certificate_id: string;
+  name: string;
+  category?: string | null;
+  created_at?: string;
+}
+
+export interface SupabaseEmailLogRow {
+  id: string;
+  certificate_id?: string | null;
+  recipient_email: string;
+  recipient_name: string;
+  subject: string;
+  status: 'delivered' | 'queued' | 'failed' | 'simulated';
+  provider?: 'smtp' | 'resend' | 'simulated' | null;
+  timestamp: string;
+  delivery_latency_ms: number;
+  preview_html?: string | null;
+  preview_text?: string | null;
+  message_id?: string | null;
+  error?: string | null;
+  gmail_compose_url?: string | null;
+  mailto_url?: string | null;
+  info_notice?: string | null;
+  delivered_to_internet?: boolean | null;
+  has_attachment?: boolean | null;
+  attachment_name?: string | null;
+  created_at?: string;
+}
+
 // Initial Mock Registry of Certified Graduates
 export const SEED_CERTIFICATES: Certificate[] = [
   {

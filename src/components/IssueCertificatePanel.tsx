@@ -411,8 +411,9 @@ export const IssueCertificatePanel: React.FC<IssueCertificatePanelProps> = ({
                         Certificate Issued & Pipeline Executed!
                       </h3>
                       {successResult.delivery?.deliveredToInternet ? (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[10px] uppercase tracking-wider">
-                          Live SMTP Sent
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {successResult.delivery?.provider === 'resend' ? 'Resend API Sent' : 'Live SMTP Sent'}
                         </span>
                       ) : (
                         <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 font-bold text-[10px] uppercase tracking-wider">
@@ -502,7 +503,7 @@ export const IssueCertificatePanel: React.FC<IssueCertificatePanelProps> = ({
                     {log.deliveredToInternet ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         <CheckCircle2 className="w-2.5 h-2.5" />
-                        Live SMTP ({log.deliveryLatencyMs}ms)
+                        {log.provider === 'resend' ? 'Resend API' : 'SMTP'} ({log.deliveryLatencyMs}ms)
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">

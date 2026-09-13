@@ -5,7 +5,14 @@ import {
   SEED_STUDENTS,
   Certificate,
   StudentProfile,
+  StudentCourse,
   EmailDispatchLog,
+  SupabaseStudentRow,
+  SupabaseCourseRow,
+  SupabaseEnrollmentRow,
+  SupabaseCertificateRow,
+  SupabaseCompetencyRow,
+  SupabaseEmailLogRow,
   generateCertificateEmailHtml,
   generateCertificateEmailText
 } from '../src/data/academyPortalData.js';
@@ -14,29 +21,32 @@ import {
   getEmailConfigStatus
 } from './emailService.js';
 import { generateCertificatePdfBuffer } from './certificatePdfGenerator.js';
+import { getSupabaseAdmin, isSupabaseConfigured } from './supabaseAdmin.js';
 
 export const portalRouter = Router();
 
 // ==========================================
-// In-Memory Database & State Stores
+// In-Memory Fallback Cache & Seed State
 // ==========================================
-const certificatesStore = new Map<string, Certificate>();
-const studentsStore = new Map<string, StudentProfile>();
-const emailLogsStore: EmailDispatchLog[] = [];
+// When Supabase environment variables are connected, queries route to PostgreSQL.
+// If Supabase is offline or not yet configured, the server gracefully falls back
+// to this in-memory seed store to guarantee zero application downtime.
+const fallbackCertificatesStore = new Map<string, Certificate>();
+const fallbackStudentsStore = new Map<string, StudentProfile>();
+const fallbackEmailLogsStore: EmailDispatchLog[] = [];
 
-// Seed the stores
+// Populate fallback stores with verified seeds
 SEED_CERTIFICATES.forEach((cert) => {
-  certificatesStore.set(cert.id.toUpperCase(), { ...cert });
+  fallbackCertificatesStore.set(cert.id.toUpperCase(), { ...cert });
 });
 
 SEED_STUDENTS.forEach((student) => {
-  studentsStore.set(student.email.toLowerCase(), { ...student });
+  fallbackStudentsStore.set(student.email.toLowerCase(), { ...student });
 });
 
-// Seed an initial email log for the sample graduate
 if (SEED_CERTIFICATES.length > 0) {
   const sample = SEED_CERTIFICATES[0];
-  emailLogsStore.push({
+  fallbackEmailLogsStore.push({
     id: 'eml-init-001',
     certificateId: sample.id,
     recipientEmail: sample.studentEmail,
@@ -47,6 +57,516 @@ if (SEED_CERTIFICATES.length > 0) {
     deliveryLatencyMs: 142,
     previewHtml: generateCertificateEmailHtml(sample)
   });
+}
+
+// ==========================================
+// Database Row <-> TypeScript Mappers
+// ==========================================
+// Convert arbitrary date strings to ISO YYYY-MM-DD for PostgreSQL DATE column
+function toIsoDateString(rawDate?: string): string {
+  if (!rawDate) return new Date().toISOString().split('T')[0];
+  const parsed = Date.parse(rawDate);
+  if (!isNaN(parsed)) {
+    return new Date(parsed).toISOString().split('T')[0];
+  }
+  // If parsing fails, default to today's date
+  return new Date().toISOString().split('T')[0];
+}
+
+// Convert ISO YYYY-MM-DD back to readable "Month Day, Year" for UI
+function toHumanDateString(rawDate?: string): string {
+  if (!rawDate) return 'September 2026';
+  const parsed = Date.parse(rawDate);
+  if (!isNaN(parsed)) {
+    return new Date(parsed).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+  return rawDate;
+}
+
+function mapSupabaseCertificateToDomain(
+  row: SupabaseCertificateRow,
+  competenciesList: string[] = []
+): Certificate {
+  return {
+    id: row.id,
+    studentName: row.student_name,
+    studentEmail: row.student_email,
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    trackBadge: row.track_badge || 'Professional Track',
+    specialization: row.specialization || '',
+    grade: row.grade,
+    honors: row.honors || undefined,
+    capstoneTitle: row.capstone_title || 'Enterprise Capstone Project',
+    capstoneScore: row.capstone_score || '98 / 100',
+    issueDate: toHumanDateString(row.issue_date),
+    completionDate: row.completion_date ? toHumanDateString(row.completion_date) : toHumanDateString(row.issue_date),
+    durationWeeks: row.duration_weeks || 12,
+    credentialHash: row.credential_hash,
+    verificationUrl: row.verification_url || `https://academy.vixoradigitalhub.com/verify?id=${row.id}`,
+    instructorName: row.instructor_name || 'Dr. Adebayo Vance',
+    instructorTitle: row.instructor_title || 'Principal AI Architect, Vixora Labs',
+    directorName: row.director_name || 'Sarumi Hammad',
+    directorTitle: row.director_title || 'Dean, Vixora Academy',
+    competencies: competenciesList.length > 0 ? competenciesList : [
+      'Autonomous AI Tool Use & System Architecture',
+      'Cloud Infrastructure Hardening & Containerization',
+      'Full-Stack Data Engineering & API Deployment'
+    ],
+    status: (row.status as 'active' | 'revoked') || 'active',
+    emailSentCount: row.email_sent_count || 0,
+    lastEmailSentAt: row.last_email_sent_at || undefined
+  };
+}
+
+function mapSupabaseEmailLogToDomain(row: SupabaseEmailLogRow): EmailDispatchLog {
+  return {
+    id: row.id,
+    certificateId: row.certificate_id || '',
+    recipientEmail: row.recipient_email,
+    recipientName: row.recipient_name,
+    subject: row.subject,
+    status: (row.status as 'delivered' | 'queued' | 'failed' | 'simulated') || 'simulated',
+    provider: (row.provider as 'smtp' | 'resend' | 'simulated') || undefined,
+    timestamp: row.timestamp || row.created_at || new Date().toISOString(),
+    deliveryLatencyMs: row.delivery_latency_ms || 0,
+    previewHtml: row.preview_html || '',
+    previewText: row.preview_text || undefined,
+    messageId: row.message_id || undefined,
+    error: row.error || undefined,
+    gmailComposeUrl: row.gmail_compose_url || undefined,
+    mailtoUrl: row.mailto_url || undefined,
+    infoNotice: row.info_notice || undefined,
+    deliveredToInternet: Boolean(row.delivered_to_internet),
+    hasAttachment: Boolean(row.has_attachment),
+    attachmentName: row.attachment_name || undefined
+  };
+}
+
+// ==========================================
+// Database Operations Helper Functions
+// ==========================================
+
+// 1. Fetch certificate by ID from Supabase
+async function getCertificateById(id: string): Promise<Certificate | null> {
+  const cleanId = id.toUpperCase().trim();
+  const supabase = getSupabaseAdmin();
+
+  if (supabase) {
+    try {
+      const { data: certRow, error: certError } = await supabase
+        .from('certificates')
+        .select('*')
+        .eq('id', cleanId)
+        .maybeSingle();
+
+      if (!certError && certRow) {
+        // Fetch related competencies
+        const { data: compRows } = await supabase
+          .from('certificate_competencies')
+          .select('name')
+          .eq('certificate_id', cleanId);
+
+        const compList = (compRows || []).map((c: any) => c.name).filter(Boolean);
+        return mapSupabaseCertificateToDomain(certRow as SupabaseCertificateRow, compList);
+      }
+    } catch (err) {
+      console.warn(`[Supabase] Error querying certificate ${cleanId}, falling back to cache:`, err);
+    }
+  }
+
+  return fallbackCertificatesStore.get(cleanId) || null;
+}
+
+// 2. Fetch certificates for a student email
+async function getCertificatesByStudentEmail(email: string): Promise<Certificate[]> {
+  const cleanEmail = email.toLowerCase().trim();
+  const supabase = getSupabaseAdmin();
+
+  if (supabase) {
+    try {
+      const { data: certRows, error } = await supabase
+        .from('certificates')
+        .select('*')
+        .ilike('student_email', cleanEmail);
+
+      if (!error && certRows && certRows.length > 0) {
+        const certIds = certRows.map((r: any) => r.id);
+        const { data: compRows } = await supabase
+          .from('certificate_competencies')
+          .select('certificate_id, name')
+          .in('certificate_id', certIds);
+
+        const compMap = new Map<string, string[]>();
+        (compRows || []).forEach((c: any) => {
+          const list = compMap.get(c.certificate_id) || [];
+          list.push(c.name);
+          compMap.set(c.certificate_id, list);
+        });
+
+        return certRows.map((row: any) =>
+          mapSupabaseCertificateToDomain(row as SupabaseCertificateRow, compMap.get(row.id) || [])
+        );
+      }
+    } catch (err) {
+      console.warn(`[Supabase] Error querying student certificates for ${cleanEmail}:`, err);
+    }
+  }
+
+  const results: Certificate[] = [];
+  fallbackCertificatesStore.forEach((c) => {
+    if (c.studentEmail.toLowerCase() === cleanEmail) {
+      results.push(c);
+    }
+  });
+  return results;
+}
+
+// 3. Fetch or Create Student Profile from Supabase
+async function getOrCreateStudentProfile(cleanEmail: string): Promise<StudentProfile> {
+  const supabase = getSupabaseAdmin();
+
+  if (supabase) {
+    try {
+      // Look up student
+      const { data: studentRow, error: stuError } = await supabase
+        .from('students')
+        .select('*')
+        .ilike('email', cleanEmail)
+        .maybeSingle();
+
+      let studentId: string;
+      let studentName: string;
+      let enrolledDate: string;
+      let role: StudentProfile['role'];
+      let avatarUrl: string | undefined;
+
+      if (!stuError && studentRow) {
+        studentId = studentRow.id;
+        studentName = studentRow.name;
+        enrolledDate = studentRow.enrolled_date || 'September 2026';
+        role = studentRow.role || 'student';
+        avatarUrl = studentRow.avatar_url || undefined;
+      } else {
+        // Create new student in database
+        studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
+        const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ');
+        studentName = namePart
+          .split(' ')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ') || 'Academy Scholar';
+        enrolledDate = 'September 2026';
+        role = 'student';
+
+        const { data: insertedStudent } = await supabase
+          .from('students')
+          .insert({
+            id: studentId,
+            name: studentName,
+            email: cleanEmail,
+            enrolled_date: enrolledDate,
+            role
+          })
+          .select('*')
+          .maybeSingle();
+
+        if (insertedStudent) {
+          studentId = insertedStudent.id;
+        }
+
+        // Ensure default course exists in courses table
+        await supabase.from('courses').upsert({
+          id: 'ai-automation-digital-business-systems',
+          title: 'Autonomous AI Systems & Scalable Architecture',
+          track_badge: 'Enterprise Track',
+          instructor: 'Dr. Adebayo Vance',
+          cohort: 'Cohort 2026-B',
+          total_modules: 12
+        });
+
+        // Insert initial enrollment
+        await supabase.from('enrollments').insert({
+          student_id: studentId,
+          course_id: 'ai-automation-digital-business-systems',
+          status: 'in-progress',
+          progress_percent: 75,
+          completed_modules: 9
+        });
+      }
+
+      // Fetch enrollments and join courses
+      const { data: enrollments, error: enrollError } = await supabase
+        .from('enrollments')
+        .select(`
+          status,
+          progress_percent,
+          completed_modules,
+          certificate_id,
+          courses (
+            id,
+            title,
+            track_badge,
+            instructor,
+            cohort,
+            total_modules
+          )
+        `)
+        .eq('student_id', studentId);
+
+      const studentCourses: StudentCourse[] = [];
+      if (!enrollError && enrollments && enrollments.length > 0) {
+        enrollments.forEach((e: any) => {
+          const course = e.courses;
+          if (course) {
+            studentCourses.push({
+              courseId: course.id,
+              title: course.title,
+              badge: course.track_badge || 'Enterprise Track',
+              progressPercent: e.progress_percent ?? 75,
+              status: e.status || 'in-progress',
+              cohort: course.cohort || 'Cohort 2026-B',
+              instructor: course.instructor || 'Dr. Adebayo Vance',
+              completedModules: e.completed_modules ?? 9,
+              totalModules: course.total_modules ?? 12,
+              certificateId: e.certificate_id || undefined
+            });
+          }
+        });
+      }
+
+      // If no enrollments exist yet, add standard cohort course
+      if (studentCourses.length === 0) {
+        studentCourses.push({
+          courseId: 'ai-automation-digital-business-systems',
+          title: 'Autonomous AI Systems & Scalable Architecture',
+          badge: 'Enterprise Track',
+          progressPercent: 75,
+          status: 'in-progress',
+          cohort: 'Cohort 2026-B',
+          instructor: 'Dr. Adebayo Vance',
+          completedModules: 9,
+          totalModules: 12
+        });
+      }
+
+      return {
+        id: studentId,
+        name: studentName,
+        email: cleanEmail,
+        avatarUrl,
+        enrolledDate,
+        role,
+        courses: studentCourses
+      };
+    } catch (err) {
+      console.warn(`[Supabase] Error reading/creating profile for ${cleanEmail}:`, err);
+    }
+  }
+
+  // Fallback cache lookup
+  let student = fallbackStudentsStore.get(cleanEmail);
+  if (!student) {
+    const studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
+    const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ');
+    const formattedName = namePart
+      .split(' ')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ') || 'Academy Scholar';
+
+    student = {
+      id: studentId,
+      name: formattedName,
+      email: cleanEmail,
+      enrolledDate: 'September 2026',
+      role: 'student',
+      courses: [
+        {
+          courseId: 'ai-automation-digital-business-systems',
+          title: 'Autonomous AI Systems & Scalable Architecture',
+          badge: 'Enterprise Track',
+          progressPercent: 75,
+          status: 'in-progress',
+          cohort: 'Cohort 2026-B',
+          instructor: 'Dr. Adebayo Vance',
+          completedModules: 9,
+          totalModules: 12
+        }
+      ]
+    };
+    fallbackStudentsStore.set(cleanEmail, student);
+  }
+  return student;
+}
+
+// 4. Save Issued Certificate & Competencies to Supabase
+async function saveIssuedCertificate(
+  cert: Certificate,
+  competencies: string[]
+): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  fallbackCertificatesStore.set(cert.id, cert);
+
+  if (!supabase) return;
+
+  try {
+    // 1. Ensure course exists in courses table
+    await supabase.from('courses').upsert({
+      id: cert.courseId,
+      title: cert.courseTitle,
+      track_badge: cert.trackBadge,
+      instructor: cert.instructorName,
+      cohort: 'Cohort 2026-A',
+      total_modules: cert.durationWeeks || 12
+    });
+
+    // 2. Ensure student exists in students table
+    let studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
+    const { data: existingStudent } = await supabase
+      .from('students')
+      .select('id')
+      .ilike('email', cert.studentEmail)
+      .maybeSingle();
+
+    if (existingStudent) {
+      studentId = existingStudent.id;
+    } else {
+      await supabase.from('students').insert({
+        id: studentId,
+        name: cert.studentName,
+        email: cert.studentEmail,
+        enrolled_date: cert.issueDate,
+        role: 'alumni'
+      });
+    }
+
+    // 3. Upsert certificate
+    await supabase.from('certificates').upsert({
+      id: cert.id,
+      student_name: cert.studentName,
+      student_email: cert.studentEmail,
+      course_id: cert.courseId,
+      course_title: cert.courseTitle,
+      track_badge: cert.trackBadge,
+      specialization: cert.specialization,
+      grade: cert.grade,
+      honors: cert.honors || null,
+      capstone_title: cert.capstoneTitle,
+      capstone_score: cert.capstoneScore,
+      issue_date: toIsoDateString(cert.issueDate),
+      completion_date: toIsoDateString(cert.completionDate),
+      duration_weeks: cert.durationWeeks,
+      credential_hash: cert.credentialHash,
+      verification_url: cert.verificationUrl,
+      instructor_name: cert.instructorName,
+      instructor_title: cert.instructorTitle,
+      director_name: cert.directorName,
+      director_title: cert.directorTitle,
+      status: cert.status,
+      email_sent_count: cert.emailSentCount,
+      last_email_sent_at: cert.lastEmailSentAt || new Date().toISOString()
+    });
+
+    // 4. Insert competencies
+    if (competencies.length > 0) {
+      await supabase
+        .from('certificate_competencies')
+        .delete()
+        .eq('certificate_id', cert.id);
+
+      const compRows = competencies.map((name) => ({
+        certificate_id: cert.id,
+        name,
+        category: 'Core Engineering'
+      }));
+      await supabase.from('certificate_competencies').insert(compRows);
+    }
+
+    // 5. Update or insert enrollment record with certificate_id
+    await supabase.from('enrollments').upsert(
+      {
+        student_id: studentId,
+        course_id: cert.courseId,
+        status: 'completed',
+        progress_percent: 100,
+        completed_modules: cert.durationWeeks || 12,
+        certificate_id: cert.id
+      },
+      { onConflict: 'student_id,course_id' }
+    );
+  } catch (err) {
+    console.error('[Supabase] Error saving issued certificate:', err);
+  }
+}
+
+// 5. Save Email Dispatch Log to Supabase
+async function saveEmailLog(log: EmailDispatchLog): Promise<void> {
+  fallbackEmailLogsStore.unshift(log);
+  const supabase = getSupabaseAdmin();
+
+  if (!supabase) return;
+
+  try {
+    await supabase.from('email_logs').insert({
+      id: log.id,
+      certificate_id: log.certificateId || null,
+      recipient_email: log.recipientEmail,
+      recipient_name: log.recipientName,
+      subject: log.subject,
+      status: log.status,
+      provider: log.provider || 'simulated',
+      timestamp: log.timestamp,
+      delivery_latency_ms: log.deliveryLatencyMs,
+      preview_html: log.previewHtml,
+      preview_text: log.previewText || null,
+      message_id: log.messageId || null,
+      error: log.error || null,
+      gmail_compose_url: log.gmailComposeUrl || null,
+      mailto_url: log.mailtoUrl || null,
+      info_notice: log.infoNotice || null,
+      delivered_to_internet: log.deliveredToInternet || false,
+      has_attachment: log.hasAttachment || false,
+      attachment_name: log.attachmentName || null
+    });
+
+    // Update certificate email count in Supabase
+    if (log.certificateId) {
+      await supabase
+        .from('certificates')
+        .update({
+          last_email_sent_at: log.timestamp
+        })
+        .eq('id', log.certificateId);
+    }
+  } catch (err) {
+    console.warn('[Supabase] Error persisting email log:', err);
+  }
+}
+
+// 6. Fetch recent email logs from Supabase
+async function getRecentEmailLogs(limitCount = 50): Promise<EmailDispatchLog[]> {
+  const supabase = getSupabaseAdmin();
+
+  if (supabase) {
+    try {
+      const { data: rows, error } = await supabase
+        .from('email_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limitCount);
+
+      if (!error && rows && rows.length > 0) {
+        return rows.map((r: any) => mapSupabaseEmailLogToDomain(r as SupabaseEmailLogRow));
+      }
+    } catch (err) {
+      console.warn('[Supabase] Error fetching email logs, using fallback cache:', err);
+    }
+  }
+
+  return fallbackEmailLogsStore.slice(0, limitCount);
 }
 
 // ==========================================
@@ -169,7 +689,7 @@ function getClientIp(req: Request): string {
 // Student Auth & Login Endpoints
 // ==========================================
 
-// Rate limit status endpoint (frontend uses this to display remaining attempts)
+// Rate limit status endpoint
 portalRouter.get('/student/rate-limit-status', (req: Request, res: Response) => {
   const ip = getClientIp(req);
   const email = (req.query.email as string)?.toLowerCase().trim() || 'default';
@@ -184,9 +704,9 @@ portalRouter.get('/student/rate-limit-status', (req: Request, res: Response) => 
   });
 });
 
-// Student Email Login with Rate Limiting
-portalRouter.post('/student/login', (req: Request, res: Response) => {
-  const { email, password, otp } = req.body;
+// Student Email Login backed by Supabase
+portalRouter.post('/student/login', async (req: Request, res: Response) => {
+  const { email } = req.body;
   const ip = getClientIp(req);
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -197,7 +717,6 @@ portalRouter.post('/student/login', (req: Request, res: Response) => {
   const rateLimitKey = `${ip}:${cleanEmail}`;
   const rlCheck = loginRateLimiter.check(rateLimitKey);
 
-  // Set standard rate limit headers
   res.setHeader('X-RateLimit-Limit', rlCheck.limit);
   res.setHeader('X-RateLimit-Remaining', rlCheck.remaining);
   res.setHeader('X-RateLimit-Reset', rlCheck.resetInSeconds);
@@ -212,88 +731,52 @@ portalRouter.post('/student/login', (req: Request, res: Response) => {
     });
   }
 
-  // Check if student exists in store
-  let student = studentsStore.get(cleanEmail);
+  try {
+    // 1. Fetch or create student profile in Supabase
+    const student = await getOrCreateStudentProfile(cleanEmail);
 
-  // If new email, create student profile dynamically with default enrollment
-  if (!student) {
-    const studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
-    const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ');
-    const formattedName = namePart
-      .split(' ')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+    // 2. Fetch all certificates earned by this student from Supabase
+    const studentCerts = await getCertificatesByStudentEmail(cleanEmail);
 
-    student = {
-      id: studentId,
-      name: formattedName || 'Academy Scholar',
-      email: cleanEmail,
-      enrolledDate: 'September 2026',
-      role: 'student',
-      courses: [
-        {
-          courseId: 'ai-automation-digital-business-systems',
-          title: 'Autonomous AI Systems & Scalable Architecture',
-          badge: 'Enterprise Track',
-          progressPercent: 75,
-          status: 'in-progress',
-          cohort: 'Cohort 2026-B',
-          instructor: 'Dr. Adebayo Vance',
-          completedModules: 9,
-          totalModules: 12
-        }
-      ]
-    };
-    studentsStore.set(cleanEmail, student);
+    // 3. Generate session token
+    const token = `vix_st_${crypto.randomBytes(16).toString('hex')}`;
+
+    return res.json({
+      success: true,
+      token,
+      student,
+      certificates: studentCerts,
+      database: isSupabaseConfigured() ? 'supabase-postgresql' : 'cached-memory',
+      rateLimit: {
+        remaining: rlCheck.remaining,
+        limit: rlCheck.limit,
+        resetInSeconds: rlCheck.resetInSeconds
+      }
+    });
+  } catch (err: any) {
+    console.error('Login error in Supabase handler:', err);
+    return res.status(500).json({ error: 'Internal authentication gateway error.' });
   }
-
-  // Find any certificates matching this student email
-  const studentCerts: Certificate[] = [];
-  certificatesStore.forEach((cert) => {
-    if (cert.studentEmail.toLowerCase() === cleanEmail) {
-      studentCerts.push(cert);
-    }
-  });
-
-  // Generate session token
-  const token = `vix_st_${crypto.randomBytes(16).toString('hex')}`;
-
-  return res.json({
-    success: true,
-    token,
-    student,
-    certificates: studentCerts,
-    rateLimit: {
-      remaining: rlCheck.remaining,
-      limit: rlCheck.limit,
-      resetInSeconds: rlCheck.resetInSeconds
-    }
-  });
 });
 
 // Get Student Profile
-portalRouter.get('/student/profile', (req: Request, res: Response) => {
+portalRouter.get('/student/profile', async (req: Request, res: Response) => {
   const email = (req.query.email as string)?.toLowerCase().trim();
   if (!email) {
     return res.status(400).json({ error: 'Email is required.' });
   }
 
-  const student = studentsStore.get(email);
-  if (!student) {
-    return res.status(404).json({ error: 'Student record not found.' });
+  try {
+    const student = await getOrCreateStudentProfile(email);
+    const studentCerts = await getCertificatesByStudentEmail(email);
+
+    return res.json({
+      student,
+      certificates: studentCerts
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to retrieve student profile.' });
   }
-
-  const studentCerts: Certificate[] = [];
-  certificatesStore.forEach((cert) => {
-    if (cert.studentEmail.toLowerCase() === email) {
-      studentCerts.push(cert);
-    }
-  });
-
-  res.json({
-    student,
-    certificates: studentCerts
-  });
 });
 
 // ==========================================
@@ -303,7 +786,9 @@ portalRouter.get('/student/profile', (req: Request, res: Response) => {
 const CERT_ID_REGEX = /^[A-Za-z0-9\-_]{4,40}$/;
 
 // Shared Verification Handler with Cryptographic Integrity Check
-function handleCertificateVerification(req: Request, res: Response, rawId?: string) {
+// Crucial: Runs strictly server-side using the service-role client.
+// Returns only safe verification fields to anonymous clients.
+async function handleCertificateVerification(req: Request, res: Response, rawId?: string) {
   const ip = getClientIp(req);
   const rlCheck = verifyRateLimiter.check(ip);
 
@@ -335,7 +820,7 @@ function handleCertificateVerification(req: Request, res: Response, rawId?: stri
     });
   }
 
-  const cert = certificatesStore.get(certId);
+  const cert = await getCertificateById(certId);
   if (!cert) {
     return res.status(404).json({
       verified: false,
@@ -348,6 +833,7 @@ function handleCertificateVerification(req: Request, res: Response, rawId?: stri
   // Cryptographic Ledger Integrity Check
   const hasValidLedgerHash = Boolean(cert.credentialHash && cert.credentialHash.length === 64);
 
+  // Return safe verification payload without exposing internal student account fields
   return res.json({
     verified: true,
     status: 'VERIFIED_ACTIVE',
@@ -379,7 +865,7 @@ portalRouter.get('/certificates/:id/pdf', async (req: Request, res: Response) =>
     return res.status(400).json({ error: 'Certificate ID is required.' });
   }
 
-  const cert = certificatesStore.get(certId);
+  const cert = await getCertificateById(certId);
   if (!cert) {
     return res.status(404).json({
       error: `Certificate '${certId}' not found in the registry.`
@@ -411,7 +897,7 @@ portalRouter.get('/certificates/download/:id', async (req: Request, res: Respons
     return res.status(400).json({ error: 'Certificate ID is required.' });
   }
 
-  const cert = certificatesStore.get(certId);
+  const cert = await getCertificateById(certId);
   if (!cert) {
     return res.status(404).json({
       error: `Certificate '${certId}' not found in the registry.`
@@ -437,10 +923,43 @@ portalRouter.get('/certificates/download/:id', async (req: Request, res: Respons
 });
 
 // List all certificates
-portalRouter.get('/certificates/list', (req: Request, res: Response) => {
+portalRouter.get('/certificates/list', async (req: Request, res: Response) => {
+  const supabase = getSupabaseAdmin();
+
+  if (supabase) {
+    try {
+      const { data: certRows, error } = await supabase
+        .from('certificates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && certRows) {
+        const certIds = certRows.map((r: any) => r.id);
+        const { data: compRows } = await supabase
+          .from('certificate_competencies')
+          .select('certificate_id, name')
+          .in('certificate_id', certIds);
+
+        const compMap = new Map<string, string[]>();
+        (compRows || []).forEach((c: any) => {
+          const list = compMap.get(c.certificate_id) || [];
+          list.push(c.name);
+          compMap.set(c.certificate_id, list);
+        });
+
+        const list = certRows.map((row: any) =>
+          mapSupabaseCertificateToDomain(row as SupabaseCertificateRow, compMap.get(row.id) || [])
+        );
+        return res.json({ certificates: list });
+      }
+    } catch (err) {
+      console.warn('[Supabase] Error listing certificates, falling back to cache:', err);
+    }
+  }
+
   const list: Certificate[] = [];
-  certificatesStore.forEach((cert) => list.push(cert));
-  res.json({ certificates: list });
+  fallbackCertificatesStore.forEach((cert) => list.push(cert));
+  return res.json({ certificates: list });
 });
 
 // Issue Certificate & Automatically Send Email to Graduate
@@ -486,11 +1005,22 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     year: 'numeric'
   });
 
+  const assignedCompetencies: string[] = Array.isArray(competencies) && competencies.length > 0
+    ? competencies
+    : [
+        'Full-Stack AI Architecture & Tool Calling',
+        'Production Workflow Automation & Orchestration',
+        'Cloud Containerization & High-Throughput APIs',
+        'Applied Business Intelligence & Decision Systems'
+      ];
+
+  const courseSlug = courseTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'custom-track';
+
   const newCertificate: Certificate = {
     id: certId,
     studentName: studentName.trim(),
     studentEmail: cleanEmail,
-    courseId: 'custom-track',
+    courseId: courseSlug,
     courseTitle: courseTitle.trim(),
     trackBadge: 'Professional Track',
     specialization: specialization || 'Enterprise Digital & AI Solutions',
@@ -507,62 +1037,14 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     instructorTitle: 'Principal AI Architect, Vixora Labs',
     directorName: 'Sarumi Hammad',
     directorTitle: 'Dean, Vixora Academy',
-    competencies: Array.isArray(competencies) && competencies.length > 0
-      ? competencies
-      : [
-          'Full-Stack AI Architecture & Tool Calling',
-          'Production Workflow Automation & Orchestration',
-          'Cloud Containerization & High-Throughput APIs',
-          'Applied Business Intelligence & Decision Systems'
-        ],
+    competencies: assignedCompetencies,
     status: 'active',
     emailSentCount: 1,
     lastEmailSentAt: now.toISOString()
   };
 
-  // Save to in-memory store
-  certificatesStore.set(certId, newCertificate);
-
-  // Also attach to student profile if exists
-  let student = studentsStore.get(cleanEmail);
-  if (!student) {
-    student = {
-      id: `STU-${certNumber}`,
-      name: studentName,
-      email: cleanEmail,
-      enrolledDate: issueDateFormatted,
-      role: 'alumni',
-      courses: [
-        {
-          courseId: 'custom-track',
-          title: courseTitle,
-          badge: 'Professional Track',
-          progressPercent: 100,
-          status: 'completed',
-          cohort: 'Cohort 2026-A',
-          instructor: 'Dr. Adebayo Vance',
-          completedModules: 12,
-          totalModules: 12,
-          certificateId: certId
-        }
-      ]
-    };
-    studentsStore.set(cleanEmail, student);
-  } else {
-    // Add or update completed course
-    student.courses.push({
-      courseId: 'custom-track',
-      title: courseTitle,
-      badge: 'Professional Track',
-      progressPercent: 100,
-      status: 'completed',
-      cohort: 'Cohort 2026-A',
-      instructor: 'Dr. Adebayo Vance',
-      completedModules: 12,
-      totalModules: 12,
-      certificateId: certId
-    });
-  }
+  // Persist to Supabase Database (with automatic fallback caching)
+  await saveIssuedCertificate(newCertificate, assignedCompetencies);
 
   // AUTOMATIC PDF CERTIFICATE GENERATION & EMAIL DISPATCH
   let pdfBuffer: Buffer | undefined;
@@ -571,6 +1053,21 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     pdfBuffer = await generateCertificatePdfBuffer(newCertificate);
   } catch (pdfErr) {
     console.error('Failed generating certificate PDF attachment on issue:', pdfErr);
+  }
+
+  // Optional: upload to Supabase Storage if available
+  const supabase = getSupabaseAdmin();
+  if (supabase && pdfBuffer) {
+    try {
+      await supabase.storage
+        .from('certificates')
+        .upload(`${certId}.pdf`, pdfBuffer, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
+    } catch (storageErr) {
+      // Non-blocking if storage bucket is not configured yet
+    }
   }
 
   const emailHtml = generateCertificateEmailHtml(newCertificate);
@@ -610,7 +1107,8 @@ portalRouter.post('/certificates/issue', async (req: Request, res: Response) => 
     attachmentName: pdfFilename
   };
 
-  emailLogsStore.unshift(emailLog);
+  // Persist log directly to Supabase email_logs
+  await saveEmailLog(emailLog);
 
   return res.json({
     success: true,
@@ -673,7 +1171,7 @@ async function executeCertificateEmailDispatch(
     attachmentName: pdfFilename
   };
 
-  emailLogsStore.unshift(emailLog);
+  await saveEmailLog(emailLog);
 
   cert.emailSentCount += 1;
   cert.lastEmailSentAt = new Date().toISOString();
@@ -690,7 +1188,7 @@ portalRouter.post('/certificates/send-email', async (req: Request, res: Response
     return res.status(400).json({ error: 'certificateId is required.' });
   }
 
-  const cert = certificatesStore.get(certificateId.toUpperCase().trim());
+  const cert = await getCertificateById(certificateId);
   if (!cert) {
     return res.status(404).json({ error: 'Certificate not found.' });
   }
@@ -736,7 +1234,7 @@ portalRouter.post('/certificates/:id/dispatch-email', async (req: Request, res: 
     return res.status(400).json({ error: 'Certificate ID is required.' });
   }
 
-  const cert = certificatesStore.get(certId);
+  const cert = await getCertificateById(certId);
   if (!cert) {
     return res.status(404).json({ error: `Certificate '${certId}' not found.` });
   }
@@ -775,7 +1273,7 @@ portalRouter.post('/certificates/trigger-dispatch', async (req: Request, res: Re
     return res.status(400).json({ error: 'certificateId is required.' });
   }
 
-  const cert = certificatesStore.get(certificateId.toUpperCase().trim());
+  const cert = await getCertificateById(certificateId);
   if (!cert) {
     return res.status(404).json({ error: `Certificate '${certificateId}' not found.` });
   }
@@ -804,12 +1302,23 @@ portalRouter.post('/certificates/batch-dispatch', async (req: Request, res: Resp
 
   if (Array.isArray(certificateIds) && certificateIds.length > 0) {
     for (const id of certificateIds) {
-      const c = certificatesStore.get(id.toUpperCase().trim());
+      const c = await getCertificateById(id);
       if (c) targets.push(c);
     }
   } else {
     // Dispatch all certificates in the registry
-    certificatesStore.forEach((c) => targets.push(c));
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data: certRows } = await supabase.from('certificates').select('*');
+      if (certRows) {
+        for (const row of certRows) {
+          targets.push(mapSupabaseCertificateToDomain(row as SupabaseCertificateRow));
+        }
+      }
+    }
+    if (targets.length === 0) {
+      fallbackCertificatesStore.forEach((c) => targets.push(c));
+    }
   }
 
   const results: any[] = [];
@@ -847,11 +1356,12 @@ portalRouter.get('/certificates/email-config', (req: Request, res: Response) => 
   res.json(status);
 });
 
-// Retrieve Live Outbox & Email Logs
-portalRouter.get('/certificates/email-logs', (req: Request, res: Response) => {
+// Retrieve Live Outbox & Email Logs from Supabase
+portalRouter.get('/certificates/email-logs', async (req: Request, res: Response) => {
+  const logs = await getRecentEmailLogs(50);
   res.json({
-    logs: emailLogsStore.slice(0, 50),
-    totalSent: emailLogsStore.length,
+    logs,
+    totalSent: logs.length,
     config: getEmailConfigStatus()
   });
 });
