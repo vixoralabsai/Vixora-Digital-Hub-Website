@@ -31,6 +31,7 @@ import { ClientDashboardPage } from './pages/ClientDashboardPage';
 import { PagesDirectoryPage } from './pages/PagesDirectoryPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
@@ -48,7 +49,8 @@ export type PageType =
   | 'pages-directory'
   | 'categories'
   | 'student-portal'
-  | 'certificate-portal';
+  | 'certificate-portal'
+  | 'admin';
 
 interface RouteState {
   page: PageType;
@@ -60,8 +62,9 @@ interface RouteState {
   certId?: string;
 }
 
-function parseLocationPath(pathname: string, search: string): RouteState {
+function parseLocationPath(pathname: string, search: string, hash: string = ''): RouteState {
   const cleanPath = pathname.replace(/\/+$/, '') || '/';
+  const cleanHash = (hash || '').replace(/^#\/?/, '').trim();
   const urlParams = new URLSearchParams(search);
   const pageParam = urlParams.get('page');
   const courseParam = urlParams.get('course');
@@ -76,6 +79,20 @@ function parseLocationPath(pathname: string, search: string): RouteState {
     };
   }
 
+  // 2. Canonical admin route (direct address bar access only: domain.com/admin or domain.com/#admin)
+  if (
+    cleanPath === '/admin' ||
+    cleanPath === '/admin/login' ||
+    cleanPath === '/admin/dashboard' ||
+    cleanPath === '/pages/admin' ||
+    cleanHash === 'admin' ||
+    cleanHash === 'admin/login' ||
+    cleanHash === 'admin/dashboard' ||
+    pageParam === 'admin'
+  ) {
+    return { page: 'admin', path: '/admin' };
+  }
+
   if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'dashboard', 'student-portal', 'certificate-portal'].includes(pageParam)) {
     return {
       page: pageParam as PageType,
@@ -84,7 +101,7 @@ function parseLocationPath(pathname: string, search: string): RouteState {
     };
   }
 
-  // 2. Canonical /pages permalinks
+  // 3. Canonical /pages permalinks
   if (cleanPath === '/pages') {
     return { page: 'pages-directory', path: '/pages' };
   }
@@ -196,7 +213,8 @@ function AppContent() {
   const [route, setRoute] = useState<RouteState>(() =>
     parseLocationPath(
       typeof window !== 'undefined' ? window.location.pathname : '/',
-      typeof window !== 'undefined' ? window.location.search : ''
+      typeof window !== 'undefined' ? window.location.search : '',
+      typeof window !== 'undefined' ? window.location.hash : ''
     )
   );
 
@@ -220,16 +238,20 @@ function AppContent() {
     }
   }, [route.courseSlug]);
 
-  // Handle browser back and forward navigation
+  // Handle browser back, forward, and hash navigation
   useEffect(() => {
-    const handlePopState = () => {
-      const parsed = parseLocationPath(window.location.pathname, window.location.search);
+    const handleUrlChange = () => {
+      const parsed = parseLocationPath(window.location.pathname, window.location.search, window.location.hash);
       setRoute(parsed);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
   }, []);
 
   // Universal Navigation Handler supporting permalinks
@@ -257,6 +279,8 @@ function AppContent() {
           targetPath = '/pages/resources';
         } else if (page === 'dashboard') {
           targetPath = '/pages/dashboard';
+        } else if (page === 'admin') {
+          targetPath = '/admin';
         } else if (page === 'categories') {
           targetPath = '/categories';
         } else if (page === 'academy-course' && courseSlug) {
@@ -468,6 +492,14 @@ function AppContent() {
             initialTab={route.page === 'certificate-portal' ? (route.certId ? 'certificates' : 'verify') : 'dashboard'}
             initialCertId={route.certId}
             onNavigateToCourse={(slug) => handleNavigate('academy-course', undefined, slug, `/academy/${slug}`)}
+          />
+        )}
+
+        {route.page === 'admin' && (
+          <AdminDashboardPage
+            onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
+            onOpenProjectModal={() => setProjectModalOpen(true)}
+            onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
           />
         )}
       </main>

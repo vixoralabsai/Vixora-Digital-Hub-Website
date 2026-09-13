@@ -7,7 +7,7 @@ export interface EmailDispatchOptions {
   subject: string;
   html: string;
   text: string;
-  certificateId: string;
+  certificateId?: string;
   pdfBuffer?: Buffer;
   pdfFilename?: string;
 }
@@ -83,7 +83,7 @@ export async function dispatchCertificateEmail(
 ): Promise<EmailDispatchResult> {
   const { to, toName, subject, html, text, certificateId, pdfBuffer, pdfFilename } = options;
   const startTime = Date.now();
-  const attachmentName = pdfFilename || `Vixora-Academy-Certificate-${certificateId}.pdf`;
+  const attachmentName = pdfFilename || (certificateId ? `Vixora-Academy-Certificate-${certificateId}.pdf` : 'Vixora-Document.pdf');
 
   const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
     to
@@ -252,4 +252,24 @@ export async function dispatchCertificateEmail(
     hasAttachment: Boolean(pdfBuffer),
     attachmentName
   };
+}
+
+/**
+ * Dispatch generic notification / test email across active provider (Resend API or SMTP)
+ */
+export async function dispatchGenericEmail(params: {
+  to: string;
+  toName?: string;
+  subject: string;
+  html: string;
+  text?: string;
+}): Promise<EmailDispatchResult> {
+  return dispatchCertificateEmail({
+    to: params.to,
+    toName: params.toName || params.to.split('@')[0],
+    subject: params.subject,
+    html: params.html,
+    text: params.text || params.subject,
+    certificateId: 'admin-dispatch'
+  });
 }
