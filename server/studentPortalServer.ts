@@ -23,6 +23,8 @@ import {
 } from './emailService.js';
 import { generateCertificatePdfBuffer } from './certificatePdfGenerator.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from './supabaseAdmin.js';
+import { requireAuthentication } from './auth/authMiddleware.js';
+import { requireAdmin } from './auth/requireAdmin.js';
 
 export const portalRouter = Router();
 
@@ -963,8 +965,8 @@ portalRouter.get('/certificates/list', async (req: Request, res: Response) => {
   return res.json({ certificates: list });
 });
 
-// Issue Certificate & Automatically Send Email to Graduate
-portalRouter.post('/certificates/issue', async (req: Request, res: Response) => {
+// Issue Certificate & Automatically Send Email to Graduate (Protected Admin Endpoint)
+portalRouter.post('/certificates/issue', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const ip = getClientIp(req);
   const rlCheck = emailRateLimiter.check(`issue:${ip}`);
 
@@ -1227,8 +1229,8 @@ portalRouter.post('/certificates/send-email', async (req: Request, res: Response
   });
 });
 
-// Dedicated RESTful Trigger Endpoint: Automate Email Dispatch by Certificate ID
-portalRouter.post('/certificates/:id/dispatch-email', async (req: Request, res: Response) => {
+// Dedicated RESTful Trigger Endpoint: Automate Email Dispatch by Certificate ID (Protected Admin Endpoint)
+portalRouter.post('/certificates/:id/dispatch-email', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const ip = getClientIp(req);
   const certId = req.params.id?.toUpperCase().trim();
   if (!certId) {
@@ -1267,8 +1269,8 @@ portalRouter.post('/certificates/:id/dispatch-email', async (req: Request, res: 
   });
 });
 
-// Dedicated Automated Dispatch Trigger (Alias with body: { certificateId })
-portalRouter.post('/certificates/trigger-dispatch', async (req: Request, res: Response) => {
+// Dedicated Automated Dispatch Trigger (Alias with body: { certificateId }) (Protected Admin Endpoint)
+portalRouter.post('/certificates/trigger-dispatch', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const { certificateId, customRecipientEmail } = req.body;
   if (!certificateId) {
     return res.status(400).json({ error: 'certificateId is required.' });
@@ -1296,8 +1298,8 @@ portalRouter.post('/certificates/trigger-dispatch', async (req: Request, res: Re
   });
 });
 
-// Automated Cohort Batch Dispatch Trigger (Dispatches certificates with PDF attachments)
-portalRouter.post('/certificates/batch-dispatch', async (req: Request, res: Response) => {
+// Automated Cohort Batch Dispatch Trigger (Dispatches certificates with PDF attachments) (Protected Admin Endpoint)
+portalRouter.post('/certificates/batch-dispatch', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const { certificateIds } = req.body;
   const targets: Certificate[] = [];
 
@@ -1368,48 +1370,11 @@ portalRouter.get('/certificates/email-logs', async (req: Request, res: Response)
 });
 
 // ==========================================
-// Vixora Digital Hub Enterprise Admin API
+// Vixora Digital Hub Enterprise Admin API (Protected with Supabase Auth & ADMIN_EMAILS allowlist)
 // ==========================================
 
-interface AdminSessionRecord {
-  token: string;
-  email: string;
-  name: string;
-  role: string;
-  title: string;
-  createdAt: number;
-  expiresAt: number;
-}
-
-const activeAdminSessions = new Map<string, AdminSessionRecord>();
-
-const DEFAULT_ADMIN_PASS = process.env.ADMIN_PASSWORD || 'Vixora2026!Admin';
-const ALLOWED_ADMIN_PASSWORDS = [
-  DEFAULT_ADMIN_PASS,
-  'Vixora2026!Admin',
-  'Vixora2026',
-  'admin'
-];
-
-function verifyAdminSession(req: Request): AdminSessionRecord | null {
-  const authHeader = req.headers.authorization;
-  const token = (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null) ||
-    (req.headers['x-admin-token'] as string) ||
-    (req.query.token as string);
-
-  if (!token) return null;
-  const session = activeAdminSessions.get(token);
-  if (!session) return null;
-
-  if (Date.now() > session.expiresAt) {
-    activeAdminSessions.delete(token);
-    return null;
-  }
-  return session;
-}
-
-// 1. Admin Login
-portalRouter.post('/admin/login', (req: Request, res: Response) => {
+// 1. Admin Login (Server-side Supabase Auth Login with ADMIN_EMAILS verification)
+portalRouter.post('/admin/login', async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -1417,110 +1382,91 @@ portalRouter.post('/admin/login', (req: Request, res: Response) => {
   }
 
   const cleanEmail = email.toLowerCase().trim();
-  const cleanPass = String(password).trim();
+  const allowedAdmins = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.length > 0 && e.includes('@'));
 
-  const isPasswordValid = ALLOWED_ADMIN_PASSWORDS.includes(cleanPass);
-  const isEmailValid =
-    cleanEmail.includes('@vixoradigitalhub.com') ||
-    cleanEmail.includes('@vixora.com') ||
-    cleanEmail === 'vixoralabsai@gmail.com' ||
-    cleanEmail === 'admin@vixora.com' ||
-    cleanEmail === 'admin@vixoradigitalhub.com' ||
-    cleanEmail === 'admin';
-
-  if (!isPasswordValid || !isEmailValid) {
-    return res.status(401).json({
-      error: 'Invalid administrator credentials. Please check your admin email and master passkey.'
+  if (!allowedAdmins.includes(cleanEmail)) {
+    return res.status(403).json({
+      error: 'Access denied: account is not an authorized administrator.',
+      code: 'FORBIDDEN_NOT_ADMIN'
     });
   }
 
-  const token = `vix_adm_${crypto.randomBytes(32).toString('hex')}`;
-  const now = Date.now();
-  const expiresAt = now + 24 * 60 * 60 * 1000; // 24 hours
-
-  let name = 'Sarumi Hammad';
-  let title = 'Managing Director & Lead Systems Architect';
-  let role = 'Super Administrator';
-
-  if (cleanEmail.includes('adebayo')) {
-    name = 'Dr. Adebayo Vance';
-    title = 'Principal AI Director';
-    role = 'Executive Director';
-  } else if (cleanEmail.includes('support')) {
-    name = 'Vixora Ops';
-    title = 'Operations Lead';
-    role = 'Administrator';
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return res.status(503).json({
+      error: 'Authentication service unavailable. Supabase is not configured.',
+      code: 'AUTH_SERVICE_UNCONFIGURED'
+    });
   }
 
-  const session: AdminSessionRecord = {
-    token,
-    email: cleanEmail,
-    name,
-    role,
-    title,
-    createdAt: now,
-    expiresAt
-  };
-
-  activeAdminSessions.set(token, session);
-
-  return res.json({
-    success: true,
-    message: `Welcome back, ${name}. Enterprise Admin session initialized.`,
-    token,
-    user: {
-      id: 'vix-admin-01',
-      name,
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
-      role,
-      title,
-      permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'system_config']
-    },
-    expiresAt
-  });
+      password: String(password)
+    });
+
+    if (error || !data.session) {
+      return res.status(401).json({
+        error: error?.message || 'Invalid administrator credentials.',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    const name = data.user.user_metadata?.full_name || data.user.user_metadata?.name || cleanEmail.split('@')[0];
+    const role = 'Administrator';
+    const title = 'Executive Administrator';
+
+    return res.json({
+      success: true,
+      message: `Welcome back, ${name}. Admin session authorized via Supabase Auth.`,
+      token: data.session.access_token,
+      user: {
+        id: data.user.id,
+        name,
+        email: cleanEmail,
+        role,
+        title,
+        permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'system_config']
+      },
+      expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600 * 1000
+    });
+  } catch (err: any) {
+    console.error('Supabase admin login exception:', err);
+    return res.status(500).json({
+      error: 'Internal authentication service error.',
+      code: 'AUTH_EXCEPTION'
+    });
+  }
 });
 
-// 2. Admin Verify Current Session
-portalRouter.get('/admin/me', (req: Request, res: Response) => {
-  const session = verifyAdminSession(req);
-  if (!session) {
-    return res.status(401).json({ authenticated: false, error: 'No active or valid admin session.' });
-  }
+// 2. Admin Verify Current Session (Verifies Supabase JWT and checks ADMIN_EMAILS allowlist)
+portalRouter.get('/admin/me', requireAuthentication, requireAdmin, (req: Request, res: Response) => {
+  const user = req.user!;
+  const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
 
   return res.json({
     authenticated: true,
     user: {
-      id: 'vix-admin-01',
-      name: session.name,
-      email: session.email,
-      role: session.role,
-      title: session.title,
+      id: user.id,
+      name,
+      email: user.email,
+      role: 'Administrator',
+      title: 'Executive Administrator',
       permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'system_config']
-    },
-    expiresAt: session.expiresAt
+    }
   });
 });
 
 // 3. Admin Logout
-portalRouter.post('/admin/logout', (req: Request, res: Response) => {
-  const authHeader = req.headers.authorization;
-  const token = (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null) ||
-    (req.headers['x-admin-token'] as string);
-
-  if (token) {
-    activeAdminSessions.delete(token);
-  }
-
+portalRouter.post('/admin/logout', requireAuthentication, (req: Request, res: Response) => {
   return res.json({ success: true, message: 'Administrator session terminated.' });
 });
 
 // 4. Admin Executive Overview & Metrics
-portalRouter.get('/admin/overview', async (req: Request, res: Response) => {
-  const session = verifyAdminSession(req);
-  if (!session) {
-    return res.status(401).json({ error: 'Unauthorized. Admin credentials required.' });
-  }
-
+portalRouter.get('/admin/overview', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const supabase = getSupabaseAdmin();
   let certCount = fallbackCertificatesStore.size;
   let studentsCount = fallbackStudentsStore.size;
@@ -1574,12 +1520,8 @@ portalRouter.get('/admin/overview', async (req: Request, res: Response) => {
 });
 
 // 5. Admin Live Test Email Dispatcher
-portalRouter.post('/admin/send-test-email', async (req: Request, res: Response) => {
-  const session = verifyAdminSession(req);
-  if (!session) {
-    return res.status(401).json({ error: 'Unauthorized. Admin credentials required.' });
-  }
-
+portalRouter.post('/admin/send-test-email', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
+  const user = req.user!;
   const { to, subject, message } = req.body;
   if (!to || !subject) {
     return res.status(400).json({ error: 'Recipient email and subject are required.' });
@@ -1599,7 +1541,7 @@ portalRouter.post('/admin/send-test-email', async (req: Request, res: Response) 
         <p style="font-size: 15px; line-height: 1.6; color: #f1f5f9; margin: 0;">${testMessage}</p>
       </div>
       <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #2a1458; padding-top: 14px;">
-        <p style="margin: 0;">Sent by Administrator: <strong>${session.name}</strong> (${session.email})</p>
+        <p style="margin: 0;">Sent by Administrator: <strong>${user.email}</strong></p>
         <p style="margin: 4px 0 0 0;">Engine: <strong>Resend API &amp; Google SMTP Infrastructure</strong> &bull; Vixora Digital Hub &bull; ${new Date().toUTCString()}</p>
       </div>
     </div>
@@ -1646,12 +1588,7 @@ portalRouter.post('/admin/send-test-email', async (req: Request, res: Response) 
 });
 
 // 6. Admin Students List
-portalRouter.get('/admin/students', async (req: Request, res: Response) => {
-  const session = verifyAdminSession(req);
-  if (!session) {
-    return res.status(401).json({ error: 'Unauthorized. Admin credentials required.' });
-  }
-
+portalRouter.get('/admin/students', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {

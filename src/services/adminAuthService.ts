@@ -1,6 +1,9 @@
 /**
  * Vixora Digital Hub - Enterprise Admin Authentication & API Client
+ * Built on Supabase Auth sessions & Bearer JWT tokens
  */
+
+import { supabase } from '../lib/supabaseClient';
 
 export interface AdminUser {
   id: string;
@@ -72,13 +75,25 @@ export function setAdminSession(session: AdminSession | null): void {
   }
 }
 
-export function getAdminToken(): string | null {
+export async function getAdminToken(): Promise<string | null> {
+  // First attempt to get the freshest token from Supabase client session
+  if (supabase) {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.access_token) {
+        return data.session.access_token;
+      }
+    } catch {
+      // Fallback to local session storage
+    }
+  }
+
   const session = getAdminSession();
   return session?.token || null;
 }
 
 /**
- * Authenticate with the Vixora Admin Gateway
+ * Authenticate admin using Supabase Auth
  */
 export async function adminLogin(email: string, password: string): Promise<{
   success: boolean;
@@ -86,24 +101,79 @@ export async function adminLogin(email: string, password: string): Promise<{
   error?: string;
 }> {
   try {
+    const cleanEmail = email.toLowerCase().trim();
+
+    // 1. If client Supabase is initialized, authenticate directly with Supabase Auth
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password
+      });
+
+      if (error || !data.session) {
+        return {
+          success: false,
+          error: error?.message || 'Invalid administrator credentials. Please check your credentials.'
+        };
+      }
+
+      const token = data.session.access_token;
+      const user = data.user;
+      const name = user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0];
+
+      // 2. Verify with backend /api/admin/me to enforce server-side ADMIN_EMAILS check
+      const verifyRes = await fetch('/api/admin/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!verifyRes.ok) {
+        await supabase.auth.signOut();
+        const errData = await verifyRes.json().catch(() => ({}));
+        return {
+          success: false,
+          error: errData.error || 'Access denied: account is not an authorized administrator.'
+        };
+      }
+
+      const verifyData = await verifyRes.json();
+      const adminSession: AdminSession = {
+        token,
+        user: verifyData.user || {
+          id: user.id,
+          name,
+          email: cleanEmail,
+          role: 'Administrator',
+          title: 'Executive Administrator',
+          permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'system_config']
+        },
+        expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600 * 1000
+      };
+
+      setAdminSession(adminSession);
+      return { success: true, session: adminSession };
+    }
+
+    // Fallback: Post to /api/admin/login which calls Supabase Auth server-side
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email: cleanEmail, password })
     });
 
-    const data = await res.json();
-    if (!res.ok || !data.success) {
+    const resData = await res.json();
+    if (!res.ok || !resData.success) {
       return {
         success: false,
-        error: data.error || 'Authentication failed. Please check your credentials.'
+        error: resData.error || 'Authentication failed. Please check your credentials.'
       };
     }
 
     const session: AdminSession = {
-      token: data.token,
-      user: data.user,
-      expiresAt: data.expiresAt
+      token: resData.token,
+      user: resData.user,
+      expiresAt: resData.expiresAt
     };
 
     setAdminSession(session);
@@ -120,7 +190,15 @@ export async function adminLogin(email: string, password: string): Promise<{
  * Terminate current admin session
  */
 export async function adminLogout(): Promise<void> {
-  const token = getAdminToken();
+  const token = await getAdminToken();
+  if (supabase) {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Best effort
+    }
+  }
+
   if (token) {
     try {
       await fetch('/api/admin/logout', {
@@ -141,7 +219,7 @@ export async function adminLogout(): Promise<void> {
  * Fetch executive overview and telemetry
  */
 export async function fetchAdminOverview(): Promise<AdminOverviewResponse | null> {
-  const token = getAdminToken();
+  const token = await getAdminToken();
   if (!token) return null;
 
   try {
@@ -152,7 +230,7 @@ export async function fetchAdminOverview(): Promise<AdminOverviewResponse | null
     });
 
     if (!res.ok) {
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         setAdminSession(null);
       }
       return null;
@@ -179,7 +257,7 @@ export async function sendAdminTestEmail(params: {
   emailLog?: any;
   error?: string;
 }> {
-  const token = getAdminToken();
+  const token = await getAdminToken();
   if (!token) {
     return { success: false, message: 'Unauthorized session' };
   }
@@ -214,10 +292,10 @@ export async function sendAdminTestEmail(params: {
 }
 
 /**
- * Fetch registered academy students
+ * Fetch registered academy students (Admin protected)
  */
 export async function fetchAdminStudents(): Promise<any[]> {
-  const token = getAdminToken();
+  const token = await getAdminToken();
   if (!token) return [];
 
   try {

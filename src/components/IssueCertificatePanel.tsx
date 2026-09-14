@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Certificate, EmailDispatchLog } from '../data/academyPortalData';
+import { getAdminToken } from '../services/adminAuthService';
 import { 
   Send, 
   Mail, 
@@ -92,9 +93,15 @@ export const IssueCertificatePanel: React.FC<IssueCertificatePanelProps> = ({
     setSuccessResult(null);
 
     try {
+      const token = await getAdminToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/certificates/issue', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           studentName: studentName.trim(),
           studentEmail: studentEmail.trim(),
