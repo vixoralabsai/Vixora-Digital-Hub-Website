@@ -145,7 +145,12 @@ export const IssueCertificatePanel: React.FC<IssueCertificatePanelProps> = ({
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      const res = await fetch('/api/certificates/email-logs');
+      const token = await getAdminToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch('/api/certificates/email-logs', { headers });
       const data = await res.json();
       if (data.logs) {
         setEmailLogs(data.logs);

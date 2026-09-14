@@ -1182,8 +1182,8 @@ async function executeCertificateEmailDispatch(
   return { dispatchResult, emailLog, pdfBuffer };
 }
 
-// Send / Resend Certificate Email to Graduate with PDF Attachment
-portalRouter.post('/certificates/send-email', async (req: Request, res: Response) => {
+// Send / Resend Certificate Email to Graduate with PDF Attachment (Protected Admin Endpoint)
+portalRouter.post('/certificates/send-email', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const ip = getClientIp(req);
   const { certificateId, customRecipientEmail, recipientEmail, email } = req.body;
 
@@ -1353,14 +1353,14 @@ portalRouter.post('/certificates/batch-dispatch', requireAuthentication, require
   });
 });
 
-// Get SMTP / Email Service Configuration Status
-portalRouter.get('/certificates/email-config', (req: Request, res: Response) => {
+// Get SMTP / Email Service Configuration Status (Protected Admin Endpoint)
+portalRouter.get('/certificates/email-config', requireAuthentication, requireAdmin, (req: Request, res: Response) => {
   const status = getEmailConfigStatus();
   res.json(status);
 });
 
-// Retrieve Live Outbox & Email Logs from Supabase
-portalRouter.get('/certificates/email-logs', async (req: Request, res: Response) => {
+// Retrieve Live Outbox & Email Logs from Supabase (Protected Admin Endpoint)
+portalRouter.get('/certificates/email-logs', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const logs = await getRecentEmailLogs(50);
   res.json({
     logs,
