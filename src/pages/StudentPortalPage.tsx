@@ -6,6 +6,7 @@ import {
   SEED_CERTIFICATES, 
   SEED_STUDENTS 
 } from '../data/academyPortalData';
+import { supabase } from '../lib/supabaseClient';
 import { CertificateDocument } from '../components/CertificateDocument';
 import { CertificateVerificationWidget } from '../components/CertificateVerificationWidget';
 import { IssueCertificatePanel } from '../components/IssueCertificatePanel';
@@ -46,12 +47,11 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   );
 
   // Authentication State
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(SEED_STUDENTS[0]);
-  const [studentCertificates, setStudentCertificates] = useState<Certificate[]>(() =>
-    SEED_CERTIFICATES.filter(c => c.studentEmail === SEED_STUDENTS[0].email)
-  );
-  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(SEED_CERTIFICATES[0]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRestoringSession, setIsRestoringSession] = useState(true);
+  const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(null);
+  const [studentCertificates, setStudentCertificates] = useState<Certificate[]>([]);
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
 
   // Login form state
   const [emailInput, setEmailInput] = useState('');
@@ -64,6 +64,69 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
 
   // Email sending state
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  // Session Restoration via Supabase Auth
+  useEffect(() => {
+    let isMounted = true;
+
+    const restoreSession = async () => {
+      try {
+        if (!supabase) {
+          if (isMounted) setIsRestoringSession(false);
+          return;
+        }
+
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session?.access_token) {
+          if (isMounted) setIsRestoringSession(false);
+          return;
+        }
+
+        const res = await fetch('/api/student/profile', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.student) {
+            setIsLoggedIn(true);
+            setCurrentStudent(data.student);
+            const certs = data.certificates || [];
+            setStudentCertificates(certs);
+            if (certs.length > 0) {
+              setSelectedCertificate(certs[0]);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not restore student session:', err);
+      } finally {
+        if (isMounted) {
+          setIsRestoringSession(false);
+        }
+      }
+    };
+
+    restoreSession();
+
+    const { data: authListener } = supabase ? supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        if (isMounted) {
+          setIsLoggedIn(false);
+          setCurrentStudent(null);
+          setStudentCertificates([]);
+          setSelectedCertificate(null);
+        }
+      }
+    }) : { data: { subscription: null } };
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
 
   // Check rate limit status on mount and when email changes
   const checkRateLimitStatus = async (email: string) => {
@@ -105,23 +168,28 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   // Set default selected certificate from seed or initial
   useEffect(() => {
     if (initialCertId) {
-      const found = SEED_CERTIFICATES.find(c => c.id === initialCertId);
+      const found = SEED_CERTIFICATES.find(c => c.id === initialCertId) || studentCertificates.find(c => c.id === initialCertId);
       if (found) {
         setSelectedCertificate(found);
         setActiveTab('certificates');
       }
-    } else if (!selectedCertificate && SEED_CERTIFICATES.length > 0) {
-      setSelectedCertificate(SEED_CERTIFICATES[0]);
+    } else if (!selectedCertificate && studentCertificates.length > 0) {
+      setSelectedCertificate(studentCertificates[0]);
     }
-  }, [initialCertId]);
+  }, [initialCertId, studentCertificates]);
 
-  // Handle student login with rate limiting
+  // Handle student login with Supabase Auth
   const handleLogin = async (e?: React.FormEvent, overrideEmail?: string) => {
     if (e) e.preventDefault();
     const targetEmail = (overrideEmail || emailInput).trim().toLowerCase();
 
     if (!targetEmail || !targetEmail.includes('@')) {
       setLoginError('Please enter a valid student email address.');
+      return;
+    }
+
+    if (!passwordInput) {
+      setLoginError('Please enter your student account password.');
       return;
     }
 
@@ -134,59 +202,73 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     setLoginError(null);
 
     try {
-      const res = await fetch('/api/student/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: targetEmail,
-          password: passwordInput,
-        })
+      if (!supabase) {
+        setLoginError('Supabase client is not available in this environment.');
+        return;
+      }
+
+      // Step 1: Real Supabase Auth verification
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: targetEmail,
+        password: passwordInput
+      });
+
+      if (authError || !authData.session) {
+        setLoginError(authError?.message || 'Login failed. Invalid student credentials.');
+        return;
+      }
+
+      const accessToken = authData.session.access_token;
+
+      // Step 2: Query protected student profile with verified Supabase JWT
+      const res = await fetch('/api/student/profile', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
       });
 
       const data = await res.json();
 
-      if (res.status === 429) {
-        setRateLimitCooldown(data.retryAfterSeconds || 60);
-        setRemainingAttempts(0);
-        setLoginError(`Security Notice: Too many login attempts. Rate limiting engaged. Try again in ${data.retryAfterSeconds || 60} seconds.`);
-        return;
-      }
-
       if (!res.ok) {
-        setLoginError(data.error || 'Login failed. Please verify your credentials.');
-        if (data.rateLimit?.remaining !== undefined) {
-          setRemainingAttempts(data.rateLimit.remaining);
-        }
+        setLoginError(data.error || 'Failed to retrieve your student profile.');
         return;
       }
 
-      // Successful login
+      // Step 3: Establish authenticated UI state
       setIsLoggedIn(true);
       setCurrentStudent(data.student);
-      setStudentCertificates(data.certificates || []);
-      if (data.certificates && data.certificates.length > 0) {
-        setSelectedCertificate(data.certificates[0]);
-      }
-      if (data.rateLimit?.remaining !== undefined) {
-        setRemainingAttempts(data.rateLimit.remaining);
+      const certs = data.certificates || [];
+      setStudentCertificates(certs);
+      if (certs.length > 0) {
+        setSelectedCertificate(certs[0]);
       }
     } catch (err: any) {
-      setLoginError('Network error connecting to Vixora Academy Authentication Gateway.');
+      setLoginError(err?.message || 'Network error connecting to Vixora Academy Authentication Gateway.');
     } finally {
       setLoginLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setCurrentStudent(null);
-    setStudentCertificates([]);
+  const handleLogout = async () => {
+    try {
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    } catch (err) {
+      console.warn('Error signing out from Supabase:', err);
+    } finally {
+      setIsLoggedIn(false);
+      setCurrentStudent(null);
+      setStudentCertificates([]);
+      setSelectedCertificate(null);
+    }
   };
 
-  // Quick Demo Login helper
+  // Quick Demo Login helper (populates fields for evaluator convenience)
   const handleQuickDemoLogin = (demoEmail: string) => {
     setEmailInput(demoEmail);
-    handleLogin(undefined, demoEmail);
+    setPasswordInput('');
+    setLoginError(null);
   };
 
   // Automated Certificate Email Sender
@@ -365,7 +447,13 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
         {/* ==================================================== */}
         {activeTab === 'dashboard' && (
           <div>
-            {!isLoggedIn ? (
+            {isRestoringSession ? (
+              <div className="max-w-md mx-auto bg-white rounded-3xl border border-purple-100 shadow-sm p-12 text-center my-8">
+                <div className="w-10 h-10 border-3 border-[#7000F8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-sm font-semibold text-[#000048]">Restoring student session...</p>
+                <p className="text-xs text-neutral-400 mt-1">Verifying cryptographic credentials with Supabase</p>
+              </div>
+            ) : !isLoggedIn ? (
               /* Student Login Form with Rate Limiting */
               <div className="max-w-lg mx-auto bg-white rounded-3xl border border-purple-100 shadow-xl p-8">
                 <div className="text-center mb-6">

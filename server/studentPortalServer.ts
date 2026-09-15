@@ -229,180 +229,145 @@ async function getCertificatesByStudentEmail(email: string): Promise<Certificate
   return results;
 }
 
-// 3. Fetch or Create Student Profile from Supabase
-async function getOrCreateStudentProfile(cleanEmail: string): Promise<StudentProfile> {
+// 3. Fetch Authenticated Student Profile & Link auth_user_id
+async function getAuthenticatedStudentProfile(
+  authUserId: string,
+  verifiedEmail: string
+): Promise<StudentProfile | null> {
+  const cleanEmail = verifiedEmail.toLowerCase().trim();
   const supabase = getSupabaseAdmin();
 
   if (supabase) {
     try {
-      // Look up student
-      const { data: studentRow, error: stuError } = await supabase
+      // Step A: Primary secure lookup via students.auth_user_id = authUserId
+      let { data: studentRow, error: stuError } = await supabase
         .from('students')
         .select('*')
-        .ilike('email', cleanEmail)
+        .eq('auth_user_id', authUserId)
         .maybeSingle();
 
-      let studentId: string;
-      let studentName: string;
-      let enrolledDate: string;
-      let role: StudentProfile['role'];
-      let avatarUrl: string | undefined;
-
-      if (!stuError && studentRow) {
-        studentId = studentRow.id;
-        studentName = studentRow.name;
-        enrolledDate = studentRow.enrolled_date || 'September 2026';
-        role = studentRow.role || 'student';
-        avatarUrl = studentRow.avatar_url || undefined;
-      } else {
-        // Create new student in database
-        studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
-        const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ');
-        studentName = namePart
-          .split(' ')
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(' ') || 'Academy Scholar';
-        enrolledDate = 'September 2026';
-        role = 'student';
-
-        const { data: insertedStudent } = await supabase
+      // Step B: Safe linking for existing students whose auth_user_id is NULL
+      // Safely match by verified Supabase email and link auth_user_id
+      if (!studentRow && !stuError) {
+        const { data: studentByEmail } = await supabase
           .from('students')
-          .insert({
-            id: studentId,
-            name: studentName,
-            email: cleanEmail,
-            enrolled_date: enrolledDate,
-            role
-          })
           .select('*')
+          .ilike('email', cleanEmail)
           .maybeSingle();
 
-        if (insertedStudent) {
-          studentId = insertedStudent.id;
+        if (studentByEmail) {
+          // If auth_user_id is not yet linked, link to this authenticated user
+          if (!studentByEmail.auth_user_id) {
+            const { error: linkErr } = await supabase
+              .from('students')
+              .update({
+                auth_user_id: authUserId,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', studentByEmail.id);
+
+            if (!linkErr) {
+              studentByEmail.auth_user_id = authUserId;
+            }
+          }
+
+          // Verify ownership matches the authenticated user
+          if (studentByEmail.auth_user_id === authUserId) {
+            studentRow = studentByEmail;
+          }
+        }
+      }
+
+      if (studentRow) {
+        const studentId = studentRow.id;
+        const studentName = studentRow.name;
+        const enrolledDate = studentRow.enrolled_date || studentRow.enrolled_at || 'September 2026';
+        const role = studentRow.role || 'student';
+        const avatarUrl = studentRow.avatar_url || undefined;
+
+        // Fetch enrollments and join courses
+        const { data: enrollments, error: enrollError } = await supabase
+          .from('enrollments')
+          .select(`
+            id,
+            status,
+            cohort,
+            progress_percent,
+            completed_modules,
+            total_modules,
+            courses (
+              id,
+              title,
+              badge,
+              instructor_name,
+              total_modules
+            )
+          `)
+          .eq('student_id', studentId);
+
+        // Map certificates to courses if available
+        const certs = await getCertificatesByStudentEmail(studentRow.email || cleanEmail);
+        const certMap = new Map<string, string>();
+        certs.forEach((c) => certMap.set(c.courseId, c.id));
+
+        const studentCourses: StudentCourse[] = [];
+        if (!enrollError && enrollments && enrollments.length > 0) {
+          enrollments.forEach((e: any) => {
+            const course = e.courses;
+            if (course) {
+              studentCourses.push({
+                courseId: course.id,
+                title: course.title,
+                badge: course.badge || 'Enterprise Track',
+                progressPercent: e.progress_percent ?? 75,
+                status: e.status || 'in-progress',
+                cohort: e.cohort || 'Cohort 2026-B',
+                instructor: course.instructor_name || 'Dr. Adebayo Vance',
+                completedModules: e.completed_modules ?? 9,
+                totalModules: course.total_modules || e.total_modules || 12,
+                certificateId: certMap.get(course.id) || undefined
+              });
+            }
+          });
         }
 
-        // Ensure default course exists in courses table
-        await supabase.from('courses').upsert({
-          id: 'ai-automation-digital-business-systems',
-          title: 'Autonomous AI Systems & Scalable Architecture',
-          track_badge: 'Enterprise Track',
-          instructor: 'Dr. Adebayo Vance',
-          cohort: 'Cohort 2026-B',
-          total_modules: 12
-        });
+        if (studentCourses.length === 0) {
+          studentCourses.push({
+            courseId: 'ai-automation-digital-business-systems',
+            title: 'Autonomous AI Systems & Scalable Architecture',
+            badge: 'Enterprise Track',
+            progressPercent: 75,
+            status: 'in-progress',
+            cohort: 'Cohort 2026-B',
+            instructor: 'Dr. Adebayo Vance',
+            completedModules: 9,
+            totalModules: 12,
+            certificateId: certMap.get('ai-automation-digital-business-systems') || undefined
+          });
+        }
 
-        // Insert initial enrollment
-        await supabase.from('enrollments').insert({
-          student_id: studentId,
-          course_id: 'ai-automation-digital-business-systems',
-          status: 'in-progress',
-          progress_percent: 75,
-          completed_modules: 9
-        });
+        return {
+          id: studentId,
+          name: studentName,
+          email: studentRow.email || cleanEmail,
+          avatarUrl,
+          enrolledDate,
+          role,
+          courses: studentCourses
+        };
       }
 
-      // Fetch enrollments and join courses
-      const { data: enrollments, error: enrollError } = await supabase
-        .from('enrollments')
-        .select(`
-          status,
-          progress_percent,
-          completed_modules,
-          certificate_id,
-          courses (
-            id,
-            title,
-            track_badge,
-            instructor,
-            cohort,
-            total_modules
-          )
-        `)
-        .eq('student_id', studentId);
-
-      const studentCourses: StudentCourse[] = [];
-      if (!enrollError && enrollments && enrollments.length > 0) {
-        enrollments.forEach((e: any) => {
-          const course = e.courses;
-          if (course) {
-            studentCourses.push({
-              courseId: course.id,
-              title: course.title,
-              badge: course.track_badge || 'Enterprise Track',
-              progressPercent: e.progress_percent ?? 75,
-              status: e.status || 'in-progress',
-              cohort: course.cohort || 'Cohort 2026-B',
-              instructor: course.instructor || 'Dr. Adebayo Vance',
-              completedModules: e.completed_modules ?? 9,
-              totalModules: course.total_modules ?? 12,
-              certificateId: e.certificate_id || undefined
-            });
-          }
-        });
-      }
-
-      // If no enrollments exist yet, add standard cohort course
-      if (studentCourses.length === 0) {
-        studentCourses.push({
-          courseId: 'ai-automation-digital-business-systems',
-          title: 'Autonomous AI Systems & Scalable Architecture',
-          badge: 'Enterprise Track',
-          progressPercent: 75,
-          status: 'in-progress',
-          cohort: 'Cohort 2026-B',
-          instructor: 'Dr. Adebayo Vance',
-          completedModules: 9,
-          totalModules: 12
-        });
-      }
-
-      return {
-        id: studentId,
-        name: studentName,
-        email: cleanEmail,
-        avatarUrl,
-        enrolledDate,
-        role,
-        courses: studentCourses
-      };
+      // No student record exists in Supabase for this authenticated user.
+      // Do NOT synthesize fake records.
+      return null;
     } catch (err) {
-      console.warn(`[Supabase] Error reading/creating profile for ${cleanEmail}:`, err);
+      console.warn(`[Supabase] Error reading student profile for ${cleanEmail}:`, err);
     }
   }
 
-  // Fallback cache lookup
-  let student = fallbackStudentsStore.get(cleanEmail);
-  if (!student) {
-    const studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
-    const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ');
-    const formattedName = namePart
-      .split(' ')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ') || 'Academy Scholar';
-
-    student = {
-      id: studentId,
-      name: formattedName,
-      email: cleanEmail,
-      enrolledDate: 'September 2026',
-      role: 'student',
-      courses: [
-        {
-          courseId: 'ai-automation-digital-business-systems',
-          title: 'Autonomous AI Systems & Scalable Architecture',
-          badge: 'Enterprise Track',
-          progressPercent: 75,
-          status: 'in-progress',
-          cohort: 'Cohort 2026-B',
-          instructor: 'Dr. Adebayo Vance',
-          completedModules: 9,
-          totalModules: 12
-        }
-      ]
-    };
-    fallbackStudentsStore.set(cleanEmail, student);
-  }
-  return student;
+  // Fallback cache lookup (for offline dev environment without Supabase)
+  const cachedStudent = fallbackStudentsStore.get(cleanEmail);
+  return cachedStudent || null;
 }
 
 // 4. Save Issued Certificate & Competencies to Supabase
@@ -707,77 +672,56 @@ portalRouter.get('/student/rate-limit-status', (req: Request, res: Response) => 
   });
 });
 
-// Student Email Login backed by Supabase
-portalRouter.post('/student/login', async (req: Request, res: Response) => {
-  const { email } = req.body;
-  const ip = getClientIp(req);
-
-  if (!email || typeof email !== 'string' || !email.includes('@')) {
-    return res.status(400).json({ error: 'Valid student email address is required.' });
-  }
-
-  const cleanEmail = email.toLowerCase().trim();
-  const rateLimitKey = `${ip}:${cleanEmail}`;
-  const rlCheck = loginRateLimiter.check(rateLimitKey);
-
-  res.setHeader('X-RateLimit-Limit', rlCheck.limit);
-  res.setHeader('X-RateLimit-Remaining', rlCheck.remaining);
-  res.setHeader('X-RateLimit-Reset', rlCheck.resetInSeconds);
-
-  if (!rlCheck.allowed) {
-    return res.status(429).json({
-      error: `Too many login attempts for ${cleanEmail}. Rate limit reached.`,
-      code: 'RATE_LIMIT_EXCEEDED',
-      retryAfterSeconds: rlCheck.resetInSeconds,
-      remaining: 0,
-      limit: rlCheck.limit
-    });
-  }
-
-  try {
-    // 1. Fetch or create student profile in Supabase
-    const student = await getOrCreateStudentProfile(cleanEmail);
-
-    // 2. Fetch all certificates earned by this student from Supabase
-    const studentCerts = await getCertificatesByStudentEmail(cleanEmail);
-
-    // 3. Generate session token
-    const token = `vix_st_${crypto.randomBytes(16).toString('hex')}`;
-
-    return res.json({
-      success: true,
-      token,
-      student,
-      certificates: studentCerts,
-      database: isSupabaseConfigured() ? 'supabase-postgresql' : 'cached-memory',
-      rateLimit: {
-        remaining: rlCheck.remaining,
-        limit: rlCheck.limit,
-        resetInSeconds: rlCheck.resetInSeconds
-      }
-    });
-  } catch (err: any) {
-    console.error('Login error in Supabase handler:', err);
-    return res.status(500).json({ error: 'Internal authentication gateway error.' });
-  }
+// Student Email Login Deprecation & Hardening
+// Direct password-less login and mock vix_st token generation are completely retired.
+// Authentication MUST be performed using genuine Supabase Auth (supabase.auth.signInWithPassword).
+portalRouter.post('/student/login', (req: Request, res: Response) => {
+  return res.status(401).json({
+    error: 'Direct unauthenticated student login has been retired. Authenticate with Supabase Auth (supabase.auth.signInWithPassword) and query /api/student/profile with Bearer token.',
+    code: 'AUTH_METHOD_DEPRECATED'
+  });
 });
 
-// Get Student Profile
-portalRouter.get('/student/profile', async (req: Request, res: Response) => {
-  const email = (req.query.email as string)?.toLowerCase().trim();
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required.' });
+// Protected Student Profile
+// Protected by requireAuthentication (verifies Supabase Auth JWT).
+// Identity is derived strictly server-side from req.user (auth.users).
+// Query-string and body emails are NEVER trusted for identity resolution.
+portalRouter.get('/student/profile', requireAuthentication, async (req: Request, res: Response) => {
+  const verifiedUser = req.user;
+  if (!verifiedUser || !verifiedUser.id || !verifiedUser.email) {
+    return res.status(401).json({
+      error: 'Invalid or missing user session context.',
+      code: 'AUTH_SESSION_INVALID'
+    });
+  }
+
+  // Prevent Student A from attempting to access Student B's profile:
+  // Reject explicit mismatch if a query parameter is provided.
+  const queryEmail = (req.query.email as string)?.toLowerCase().trim();
+  if (queryEmail && queryEmail !== verifiedUser.email) {
+    return res.status(403).json({
+      error: "Access denied: You cannot request another student's profile.",
+      code: 'FORBIDDEN_PROFILE_MISMATCH'
+    });
   }
 
   try {
-    const student = await getOrCreateStudentProfile(email);
-    const studentCerts = await getCertificatesByStudentEmail(email);
+    const student = await getAuthenticatedStudentProfile(verifiedUser.id, verifiedUser.email);
+    if (!student) {
+      return res.status(404).json({
+        error: 'No enrolled student record found for this authenticated account.',
+        code: 'STUDENT_ACCOUNT_NOT_LINKED'
+      });
+    }
+
+    const studentCerts = await getCertificatesByStudentEmail(student.email);
 
     return res.json({
       student,
       certificates: studentCerts
     });
   } catch (err: any) {
+    console.error('Error in /api/student/profile:', err);
     return res.status(500).json({ error: 'Failed to retrieve student profile.' });
   }
 });
