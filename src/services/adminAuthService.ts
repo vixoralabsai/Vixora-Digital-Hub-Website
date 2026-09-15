@@ -216,6 +216,216 @@ export async function adminLogout(): Promise<void> {
 }
 
 /**
+ * Request a secure password reset link and 6-digit OTP code for an administrator
+ */
+export async function requestAdminPasswordReset(email: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+  hasOtp?: boolean;
+}> {
+  try {
+    const cleanEmail = email.toLowerCase().trim();
+    if (!cleanEmail) {
+      return { success: false, error: 'Administrator email is required.' };
+    }
+
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cleanEmail,
+        portal: 'admin',
+        redirectOrigin: typeof window !== 'undefined' ? window.location.origin : undefined
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || 'Failed to dispatch password recovery email. Please ensure your email is an authorized administrator account.'
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || `A password reset link and 6-digit code have been dispatched to ${cleanEmail}.`,
+      hasOtp: data.hasOtp
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Network error attempting to send reset email.'
+    };
+  }
+}
+
+/**
+ * Verify 6-digit OTP code and set new password for Administrator
+ */
+export async function verifyAdminOtpAndResetPassword(
+  email: string,
+  otp: string,
+  newPassword: string
+): Promise<{ success: boolean; session?: AdminSession; message?: string; error?: string }> {
+  try {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.trim();
+
+    if (!cleanEmail || !cleanOtp || !newPassword) {
+      return { success: false, error: 'Email, verification code, and new password are required.' };
+    }
+
+    if (newPassword.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    // Try client-side Supabase verifyOtp first
+    if (supabase) {
+      const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanOtp,
+        type: 'recovery'
+      });
+
+      if (!vErr && vData?.session) {
+        // Now update password
+        const { error: uErr } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+
+        if (!uErr) {
+          // Verify with server
+          const token = vData.session.access_token;
+          const verifyRes = await fetch('/api/admin/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (verifyRes.ok) {
+            const verifyData = await verifyRes.json();
+            const adminSession: AdminSession = {
+              token,
+              user: verifyData.user || {
+                id: vData.user.id,
+                name: cleanEmail.split('@')[0],
+                email: cleanEmail,
+                role: 'Administrator',
+                title: 'Executive Administrator',
+                permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'system_config']
+              },
+              expiresAt: vData.session.expires_at ? vData.session.expires_at * 1000 : Date.now() + 3600 * 1000
+            };
+            setAdminSession(adminSession);
+            return {
+              success: true,
+              session: adminSession,
+              message: 'Password updated successfully! Welcome to Executive Administration.'
+            };
+          }
+
+          return {
+            success: true,
+            message: 'Password updated successfully. You can now sign in.'
+          };
+        }
+      }
+    }
+
+    // Fallback to server endpoint
+    const res = await fetch('/api/auth/reset-password-with-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cleanEmail,
+        otp: cleanOtp,
+        newPassword
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || 'Failed to update password. Please check your verification code and try again.'
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || 'Password updated successfully. You can now log in.'
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Network error updating password.'
+    };
+  }
+}
+
+/**
+ * Update password when user arrived via direct recovery link (active recovery session)
+ */
+export async function updateAdminPasswordDirect(newPassword: string): Promise<{
+  success: boolean;
+  session?: AdminSession;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    if (!supabase) {
+      return { success: false, error: 'Supabase authentication service unavailable.' };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    const { error: uErr } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (uErr) {
+      return { success: false, error: uErr.message || 'Failed to update password.' };
+    }
+
+    // Retrieve active session
+    const { data: sData } = await supabase.auth.getSession();
+    if (sData?.session) {
+      const token = sData.session.access_token;
+      const verifyRes = await fetch('/api/admin/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (verifyRes.ok) {
+        const verifyData = await verifyRes.json();
+        const adminSession: AdminSession = {
+          token,
+          user: verifyData.user,
+          expiresAt: sData.session.expires_at ? sData.session.expires_at * 1000 : Date.now() + 3600 * 1000
+        };
+        setAdminSession(adminSession);
+        return {
+          success: true,
+          session: adminSession,
+          message: 'Password updated successfully! Welcome to the Executive Dashboard.'
+        };
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Password updated successfully. You can now log in with your new password.'
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Failed to update password.'
+    };
+  }
+}
+
+/**
  * Fetch executive overview and telemetry
  */
 export async function fetchAdminOverview(): Promise<AdminOverviewResponse | null> {

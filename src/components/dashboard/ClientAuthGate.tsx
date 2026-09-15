@@ -43,7 +43,7 @@ export function ClientAuthGate({ onAuthenticated, onOpenConsultationModal }: Cli
     );
 
     if (matched.length === 0) {
-      setError(`Access code "${code}" was not found. Please check your onboarding email or try the demo accounts below.`);
+      setError(`Access code "${code}" was not found. Please check your project onboarding email or contact your Vixora engagement lead.`);
       return;
     }
 
@@ -228,30 +228,7 @@ export function ClientAuthGate({ onAuthenticated, onOpenConsultationModal }: Cli
                   <KeyRound className="w-4 h-4 text-purple-400 absolute right-3.5 top-4" />
                 </div>
                 <p className="text-[11px] text-neutral-400 mt-1.5">
-                  Try demo codes:{' '}
-                  <button
-                    type="button"
-                    onClick={() => setAccessCode('VX-84920')}
-                    className="text-purple-300 font-mono hover:underline cursor-pointer"
-                  >
-                    VX-84920
-                  </button>
-                  ,{' '}
-                  <button
-                    type="button"
-                    onClick={() => setAccessCode('VX-51049')}
-                    className="text-purple-300 font-mono hover:underline cursor-pointer"
-                  >
-                    VX-51049
-                  </button>
-                  , or{' '}
-                  <button
-                    type="button"
-                    onClick={() => setAccessCode('VX-39218')}
-                    className="text-purple-300 font-mono hover:underline cursor-pointer"
-                  >
-                    VX-39218
-                  </button>
+                  Access codes are confidential and provided in your signed project statement of work.
                 </p>
               </div>
 

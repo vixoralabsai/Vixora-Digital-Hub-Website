@@ -120,9 +120,9 @@ export const CertificateVerificationWidget: React.FC<CertificateVerificationWidg
         </div>
       </div>
 
-      {/* Quick Test Samples */}
+      {/* Public Registry Examples */}
       <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
-        <span className="font-semibold text-neutral-600">Quick Test Samples:</span>
+        <span className="font-semibold text-neutral-600">Registry Examples:</span>
         {sampleCertificates.map((sample) => (
           <button
             key={sample.id}

@@ -27,7 +27,12 @@ import {
   ChevronRight,
   Sparkles,
   RefreshCw,
-  Download
+  Download,
+  KeyRound,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  Check
 } from 'lucide-react';
 
 interface StudentPortalPageProps {
@@ -56,11 +61,55 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   // Login form state
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [rateLimitCooldown, setRateLimitCooldown] = useState<number | null>(null);
   const [remainingAttempts, setRemainingAttempts] = useState<number>(5);
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
+
+  // Forgot Password / Password Recovery states
+  const [authMode, setAuthMode] = useState<'login' | 'forgot' | 'verify_otp' | 'recovery_direct' | 'reset_success'>('login');
+  const [recoveryOtp, setRecoveryOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [recoverySuccessMessage, setRecoverySuccessMessage] = useState<string | null>(null);
+  const [recoveryErrorMessage, setRecoveryErrorMessage] = useState<string | null>(null);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [forgotCooldown, setForgotCooldown] = useState<number>(0);
+
+  // Auto-detect recovery link hash or Supabase auth event on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+        setAuthMode('recovery_direct');
+        setActiveTab('dashboard');
+      }
+    }
+
+    if (supabase) {
+      const { data: authSub } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setAuthMode('recovery_direct');
+          setActiveTab('dashboard');
+        }
+      });
+      return () => {
+        authSub?.subscription?.unsubscribe();
+      };
+    }
+  }, []);
+
+  // Cooldown countdown timer for resending reset code
+  useEffect(() => {
+    if (forgotCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setForgotCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [forgotCooldown]);
 
   // Email sending state
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -264,11 +313,211 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     }
   };
 
-  // Quick Demo Login helper (populates fields for evaluator convenience)
-  const handleQuickDemoLogin = (demoEmail: string) => {
-    setEmailInput(demoEmail);
-    setPasswordInput('');
-    setLoginError(null);
+  // Request password reset link & OTP for student
+  const handleRequestPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = emailInput.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setRecoveryErrorMessage('Please enter your valid student email address.');
+      return;
+    }
+
+    setRecoveryLoading(true);
+    setRecoveryErrorMessage(null);
+    setRecoverySuccessMessage(null);
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: cleanEmail,
+          portal: 'student',
+          redirectOrigin: typeof window !== 'undefined' ? window.location.origin : undefined
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setRecoveryErrorMessage(data.error || 'Failed to dispatch reset email. Please ensure your student email is registered.');
+        return;
+      }
+
+      setRecoverySuccessMessage(data.message || `A password reset link and 6-digit verification code have been dispatched to ${cleanEmail}.`);
+      setForgotCooldown(60);
+      setAuthMode('verify_otp');
+    } catch (err: any) {
+      setRecoveryErrorMessage(err?.message || 'Network error requesting password reset.');
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  // Verify OTP and update password
+  const handleVerifyOtpAndReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = emailInput.trim().toLowerCase();
+    const cleanOtp = recoveryOtp.trim();
+
+    if (!cleanEmail) {
+      setRecoveryErrorMessage('Student email is missing. Please go back and enter your email.');
+      return;
+    }
+
+    if (!cleanOtp || cleanOtp.length < 6) {
+      setRecoveryErrorMessage('Please enter the 6-digit verification code sent to your email.');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      setRecoveryErrorMessage('New password must be at least 6 characters long.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setRecoveryErrorMessage('New password and confirm password do not match.');
+      return;
+    }
+
+    setRecoveryLoading(true);
+    setRecoveryErrorMessage(null);
+    setRecoverySuccessMessage(null);
+
+    try {
+      let token: string | null = null;
+      if (supabase) {
+        const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanOtp,
+          type: 'recovery'
+        });
+
+        if (!vErr && vData?.session) {
+          const { error: uErr } = await supabase.auth.updateUser({
+            password: newPassword
+          });
+
+          if (!uErr) {
+            token = vData.session.access_token;
+          }
+        }
+      }
+
+      if (!token) {
+        const res = await fetch('/api/auth/reset-password-with-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: cleanEmail,
+            otp: cleanOtp,
+            newPassword
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          setRecoveryErrorMessage(data.error || 'Failed to update password. Check your verification code and try again.');
+          return;
+        }
+
+        if (supabase) {
+          const { data: loginData } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: newPassword
+          });
+          token = loginData?.session?.access_token || null;
+        }
+      }
+
+      if (token) {
+        const profileRes = await fetch('/api/student/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const pData = await profileRes.json();
+          setIsLoggedIn(true);
+          setCurrentStudent(pData.student);
+          const certs = pData.certificates || [];
+          setStudentCertificates(certs);
+          if (certs.length > 0) {
+            setSelectedCertificate(certs[0]);
+          }
+          setAuthMode('login');
+          return;
+        }
+      }
+
+      setRecoverySuccessMessage('Password updated successfully! You can now log in with your new credentials.');
+      setPasswordInput(newPassword);
+      setAuthMode('reset_success');
+    } catch (err: any) {
+      setRecoveryErrorMessage(err?.message || 'Error processing password reset.');
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  // Direct Recovery when arrived from email link
+  const handleDirectPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newPassword || newPassword.length < 6) {
+      setRecoveryErrorMessage('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setRecoveryErrorMessage('New password and confirmation do not match.');
+      return;
+    }
+
+    setRecoveryLoading(true);
+    setRecoveryErrorMessage(null);
+    setRecoverySuccessMessage(null);
+
+    try {
+      if (!supabase) {
+        setRecoveryErrorMessage('Supabase client unavailable.');
+        return;
+      }
+
+      const { error: uErr } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (uErr) {
+        setRecoveryErrorMessage(uErr.message || 'Failed to update password.');
+        return;
+      }
+
+      const { data: sData } = await supabase.auth.getSession();
+      const token = sData?.session?.access_token;
+      if (token) {
+        const profileRes = await fetch('/api/student/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const pData = await profileRes.json();
+          setIsLoggedIn(true);
+          setCurrentStudent(pData.student);
+          const certs = pData.certificates || [];
+          setStudentCertificates(certs);
+          if (certs.length > 0) {
+            setSelectedCertificate(certs[0]);
+          }
+          setAuthMode('login');
+          return;
+        }
+      }
+
+      setRecoverySuccessMessage('Password updated successfully! Please sign in with your new credentials.');
+      setPasswordInput(newPassword);
+      setAuthMode('reset_success');
+    } catch (err: any) {
+      setRecoveryErrorMessage(err?.message || 'Error updating password.');
+    } finally {
+      setRecoveryLoading(false);
+    }
   };
 
   // Automated Certificate Email Sender
@@ -454,46 +703,61 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                 <p className="text-xs text-neutral-400 mt-1">Verifying cryptographic credentials with Supabase</p>
               </div>
             ) : !isLoggedIn ? (
-              /* Student Login Form with Rate Limiting */
+              /* Student Authentication Card with Multi-Mode (Login & Forgot Password Flow) */
               <div className="max-w-lg mx-auto bg-white rounded-3xl border border-purple-100 shadow-xl p-8">
                 <div className="text-center mb-6">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#000048] to-[#7000F8] flex items-center justify-center text-white mx-auto mb-3 shadow-md">
-                    <Lock className="w-7 h-7 text-amber-300" />
+                    {authMode === 'login' && <Lock className="w-7 h-7 text-amber-300" />}
+                    {authMode === 'forgot' && <KeyRound className="w-7 h-7 text-amber-300" />}
+                    {authMode === 'verify_otp' && <ShieldCheck className="w-7 h-7 text-amber-300" />}
+                    {authMode === 'recovery_direct' && <Sparkles className="w-7 h-7 text-amber-300" />}
+                    {authMode === 'reset_success' && <Check className="w-7 h-7 text-emerald-300" />}
                   </div>
                   <h2 className="text-2xl font-black text-[#000048] tracking-tight">
-                    Student Portal Login
+                    {authMode === 'login' && 'Student Portal Login'}
+                    {authMode === 'forgot' && 'Reset Student Password'}
+                    {authMode === 'verify_otp' && 'Verify 6-Digit Code'}
+                    {authMode === 'recovery_direct' && 'Set New Student Password'}
+                    {authMode === 'reset_success' && 'Password Updated!'}
                   </h2>
                   <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-                    Sign in with your registered academy email to access courses and certifications
+                    {authMode === 'login' && 'Sign in with your registered academy email to access courses and certifications'}
+                    {authMode === 'forgot' && 'Enter your registered student email address to receive a secure password recovery link and code'}
+                    {authMode === 'verify_otp' && 'Enter the 6-digit code sent to your email along with your new password'}
+                    {authMode === 'recovery_direct' && 'Supabase recovery link confirmed. Enter your new password below'}
+                    {authMode === 'reset_success' && 'Your student account credentials have been updated securely'}
                   </p>
                 </div>
 
-                {/* Rate Limiting Status Indicator */}
-                <div className={`mb-6 p-3 rounded-2xl text-xs flex items-center justify-between border ${
-                  rateLimitCooldown && rateLimitCooldown > 0
-                    ? 'bg-rose-50 border-rose-200 text-rose-800'
-                    : 'bg-purple-50 border-purple-100 text-[#000048]'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    {rateLimitCooldown && rateLimitCooldown > 0 ? (
-                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                    ) : (
-                      <ShieldCheck className="w-4 h-4 text-[#7000F8] shrink-0" />
-                    )}
-                    <span>
+                {/* Rate Limiting Status Indicator (shown on login mode) */}
+                {authMode === 'login' && (
+                  <div className={`mb-6 p-3 rounded-2xl text-xs flex items-center justify-between border ${
+                    rateLimitCooldown && rateLimitCooldown > 0
+                      ? 'bg-rose-50 border-rose-200 text-rose-800'
+                      : 'bg-purple-50 border-purple-100 text-[#000048]'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {rateLimitCooldown && rateLimitCooldown > 0 ? (
+                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                      ) : (
+                        <ShieldCheck className="w-4 h-4 text-[#7000F8] shrink-0" />
+                      )}
+                      <span>
+                        {rateLimitCooldown && rateLimitCooldown > 0
+                          ? `Rate Limiter Active: Cooldown in progress`
+                          : `Adaptive Security Active`}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold text-[11px] bg-white px-2 py-0.5 rounded-lg border">
                       {rateLimitCooldown && rateLimitCooldown > 0
-                        ? `Rate Limiter Active: Cooldown in progress`
-                        : `Adaptive Security Active`}
+                        ? `${rateLimitCooldown}s left`
+                        : `${remainingAttempts}/5 attempts left`}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-[11px] bg-white px-2 py-0.5 rounded-lg border">
-                    {rateLimitCooldown && rateLimitCooldown > 0
-                      ? `${rateLimitCooldown}s left`
-                      : `${remainingAttempts}/5 attempts left`}
-                  </span>
-                </div>
+                )}
 
-                {loginError && (
+                {/* Authentication / Recovery Error Messages */}
+                {(loginError && authMode === 'login') && (
                   <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
                     <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -503,61 +767,376 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                   </div>
                 )}
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1.5">
-                      Student Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                {recoveryErrorMessage && authMode !== 'login' && (
+                  <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold">Recovery Notice</div>
+                      <div className="mt-0.5">{recoveryErrorMessage}</div>
+                    </div>
+                  </div>
+                )}
+
+                {recoverySuccessMessage && (
+                  <div className="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold">Success</div>
+                      <div className="mt-0.5">{recoverySuccessMessage}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* MODE 1: STANDARD STUDENT LOGIN */}
+                {authMode === 'login' && (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1.5">
+                        Student Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                        <input
+                          type="email"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          placeholder="student@vixora.com"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                          required
+                          disabled={loginLoading || (rateLimitCooldown !== null && rateLimitCooldown > 0)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#000048]">
+                          Password or Access Code
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLoginError(null);
+                            setRecoveryErrorMessage(null);
+                            setRecoverySuccessMessage(null);
+                            setAuthMode('forgot');
+                          }}
+                          className="text-xs font-semibold text-[#7000F8] hover:text-[#000048] underline decoration-purple-300 transition-colors cursor-pointer"
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                          placeholder="••••••••••••"
+                          className="w-full pl-10 pr-11 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                          disabled={loginLoading || (rateLimitCooldown !== null && rateLimitCooldown > 0)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loginLoading || (rateLimitCooldown !== null && rateLimitCooldown > 0)}
+                      className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                    >
+                      {loginLoading ? (
+                        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <User className="w-4 h-4" />
+                      )}
+                      <span>
+                        {rateLimitCooldown && rateLimitCooldown > 0
+                          ? `Locked (${rateLimitCooldown}s cooldown)`
+                          : loginLoading
+                          ? 'Authenticating...'
+                          : 'Sign In to Student Portal'}
+                      </span>
+                    </button>
+                  </form>
+                )}
+
+                {/* MODE 2: FORGOT PASSWORD REQUEST FORM */}
+                {authMode === 'forgot' && (
+                  <form onSubmit={handleRequestPasswordReset} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1.5">
+                        Registered Student Email
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                        <input
+                          type="email"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          placeholder="student@vixora.com"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                          required
+                          disabled={recoveryLoading}
+                        />
+                      </div>
+                      <p className="mt-1.5 text-[11px] text-neutral-500 leading-relaxed">
+                        We will dispatch a secure recovery link and 6-digit verification code to this address.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRecoveryErrorMessage(null);
+                          setRecoverySuccessMessage(null);
+                          setAuthMode('login');
+                        }}
+                        className="flex-1 py-3 px-4 rounded-xl border border-neutral-300 text-neutral-700 text-xs font-bold hover:bg-neutral-50 transition-colors cursor-pointer"
+                      >
+                        Back to Sign In
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={recoveryLoading || forgotCooldown > 0}
+                        className="flex-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#000048] to-[#7000F8] text-white text-xs font-bold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {recoveryLoading ? (
+                          <>
+                            <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Dispatching Email...
+                          </>
+                        ) : forgotCooldown > 0 ? (
+                          `Wait ${forgotCooldown}s to Resend`
+                        ) : (
+                          <>
+                            Send Reset Email
+                            <Send className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRecoveryErrorMessage(null);
+                          setAuthMode('verify_otp');
+                        }}
+                        className="text-xs text-[#7000F8] hover:text-[#000048] underline decoration-purple-300 cursor-pointer"
+                      >
+                        Already have a 6-digit code? Enter it here
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* MODE 3: ENTER 6-DIGIT OTP AND NEW PASSWORD */}
+                {authMode === 'verify_otp' && (
+                  <form onSubmit={handleVerifyOtpAndReset} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1">
+                        Student Email
+                      </label>
                       <input
                         type="email"
                         value={emailInput}
                         onChange={(e) => setEmailInput(e.target.value)}
-                        placeholder="student@vixora.com"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-xs text-[#000048] focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
                         required
-                        disabled={loginLoading || (rateLimitCooldown !== null && rateLimitCooldown > 0)}
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1.5">
-                      Password or Access Code
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1">
+                        6-Digit Verification Code
+                      </label>
                       <input
-                        type="password"
-                        value={passwordInput}
-                        onChange={(e) => setPasswordInput(e.target.value)}
-                        placeholder="••••••••••••"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
-                        disabled={loginLoading || (rateLimitCooldown !== null && rateLimitCooldown > 0)}
+                        type="text"
+                        maxLength={6}
+                        value={recoveryOtp}
+                        onChange={(e) => setRecoveryOtp(e.target.value.replace(/\D/g, ''))}
+                        placeholder="123456"
+                        className="w-full px-4 py-2.5 rounded-xl border border-purple-300 bg-purple-50/40 text-[#000048] text-center text-lg font-mono tracking-widest font-bold focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                        required
+                      />
+                      <p className="text-[11px] text-neutral-500 mt-1 text-center">
+                        Check your inbox for the 6-digit code sent by Vixora Academy.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="At least 6 characters"
+                          className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-xs text-[#000048] focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                        >
+                          {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-type new password"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-xs text-[#000048] focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                        required
                       />
                     </div>
-                  </div>
 
-                  <button
-                    type="submit"
-                    disabled={loginLoading || (rateLimitCooldown !== null && rateLimitCooldown > 0)}
-                    className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
-                  >
-                    {loginLoading ? (
-                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <User className="w-4 h-4" />
-                    )}
-                    <span>
-                      {rateLimitCooldown && rateLimitCooldown > 0
-                        ? `Locked (${rateLimitCooldown}s cooldown)`
-                        : loginLoading
-                        ? 'Authenticating...'
-                        : 'Sign In to Student Portal'}
-                    </span>
-                  </button>
-                </form>
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRecoveryErrorMessage(null);
+                          setAuthMode('login');
+                        }}
+                        className="flex-1 py-3 px-4 rounded-xl border border-neutral-300 text-neutral-700 text-xs font-bold hover:bg-neutral-50 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={recoveryLoading}
+                        className="flex-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] text-white text-xs font-bold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {recoveryLoading ? (
+                          <>
+                            <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Updating Password...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            Set New Password
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={handleRequestPasswordReset}
+                        disabled={forgotCooldown > 0}
+                        className="text-xs text-[#7000F8] hover:text-[#000048] underline decoration-purple-300 cursor-pointer disabled:opacity-50"
+                      >
+                        {forgotCooldown > 0 ? `Resend code in ${forgotCooldown}s` : 'Did not receive code? Resend email'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* MODE 4: DIRECT RECOVERY (FROM EMAIL LINK) */}
+                {authMode === 'recovery_direct' && (
+                  <form onSubmit={handleDirectPasswordReset} className="space-y-4">
+                    <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-[#000048] flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#7000F8] shrink-0" />
+                      <span>Cryptographic recovery token validated. Please choose your new password.</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="At least 6 characters"
+                          className="w-full pl-3.5 pr-10 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#000048] mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-type new password"
+                        className="w-full px-3.5 py-3 rounded-xl border border-neutral-200 bg-[#FCFCFF] text-sm text-[#000048] focus:outline-none focus:ring-2 focus:ring-[#7000F8]"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={recoveryLoading}
+                      className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                    >
+                      {recoveryLoading ? (
+                        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
+                      <span>Save New Password & Launch</span>
+                    </button>
+                  </form>
+                )}
+
+                {/* MODE 5: RESET SUCCESS CARD */}
+                {authMode === 'reset_success' && (
+                  <div className="text-center py-4 space-y-5">
+                    <div className="w-16 h-16 bg-emerald-100 border border-emerald-200 rounded-full flex items-center justify-center mx-auto text-emerald-600 shadow-sm">
+                      <Check className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-[#000048] mb-1">Password Successfully Updated</h3>
+                      <p className="text-xs text-neutral-500">
+                        You can now sign in to your Vixora Academy student account with your new credentials.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setAuthMode('login');
+                        setRecoveryErrorMessage(null);
+                        setRecoverySuccessMessage(null);
+                      }}
+                      className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] text-white font-bold text-sm shadow-md hover:opacity-95 transition-all cursor-pointer"
+                    >
+                      Sign In Now
+                    </button>
+                  </div>
+                )}
 
                 {/* Onboarding Credentials Guidance for Real Students */}
                 <div className="mt-6 p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100 text-xs text-[#5F6078] space-y-1">
@@ -568,63 +1147,6 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                   <p className="text-[11px] leading-relaxed">
                     Students receive their official login email and temporary password automatically in their welcome confirmation email upon admission into a cohort. For support, contact the Admissions Desk on WhatsApp.
                   </p>
-                </div>
-
-                {/* Collapsible Demo Profiles for Evaluators / Testing */}
-                <div className="mt-5 pt-4 border-t border-neutral-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-                    className="w-full flex items-center justify-between text-xs font-semibold text-purple-700 hover:text-purple-900 py-1 transition-colors cursor-pointer"
-                  >
-                    <span>Developer / Evaluator Demo Logins</span>
-                    <span className="text-[11px] font-mono text-purple-600 bg-purple-100 px-2 py-0.5 rounded-md">
-                      {showDemoAccounts ? 'Hide Demo Logins' : 'Show Demo Logins'}
-                    </span>
-                  </button>
-
-                  {showDemoAccounts && (
-                    <div className="space-y-2 mt-3 animate-in fade-in duration-150">
-                      <div className="text-[11px] text-neutral-500">
-                        Click any test profile below to auto-fill and test the student dashboard:
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemoLogin('student@vixora.com')}
-                        className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
-                      >
-                        <div>
-                          <div className="text-xs font-bold text-[#000048]">David A. Okonjo</div>
-                          <div className="text-[11px] text-neutral-500">Autonomous AI Systems • Distinction Graduate</div>
-                        </div>
-                        <span className="text-[11px] font-mono font-bold text-[#7000F8]">student@vixora.com</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemoLogin('alex.chen@vixora.com')}
-                        className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
-                      >
-                        <div>
-                          <div className="text-xs font-bold text-[#000048]">Alex K. Chen</div>
-                          <div className="text-[11px] text-neutral-500">Data Analytics Mastery • Honors Graduate</div>
-                        </div>
-                        <span className="text-[11px] font-mono font-bold text-[#7000F8]">alex.chen@vixora.com</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemoLogin('sarah.j@vixora.com')}
-                        className="w-full p-2.5 rounded-xl border border-purple-100 hover:border-purple-300 hover:bg-purple-50/50 bg-[#FCFCFF] text-left transition-colors flex items-center justify-between cursor-pointer"
-                      >
-                        <div>
-                          <div className="text-xs font-bold text-[#000048]">Sarah Jenkins</div>
-                          <div className="text-[11px] text-neutral-500">AI Freelancing & Agency • Certified</div>
-                        </div>
-                        <span className="text-[11px] font-mono font-bold text-[#7000F8]">sarah.j@vixora.com</span>
-                      </button>
-                    </div>
-                  )}
                 </div>
 
               </div>

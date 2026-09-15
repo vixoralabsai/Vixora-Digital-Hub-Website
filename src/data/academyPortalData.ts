@@ -55,7 +55,7 @@ export interface StudentProfile {
 
 export interface EmailDispatchLog {
   id: string;
-  certificateId: string;
+  certificateId?: string;
   recipientEmail: string;
   recipientName: string;
   subject: string;
@@ -523,4 +523,143 @@ academy.vixoradigitalhub.com
 vixoradigitalhub.com
 `;
 }
+
+// Generates an automated password recovery email HTML document with the Vixora logo
+export function generatePasswordResetEmailHtml(params: {
+  email: string;
+  recipientName: string;
+  actionLink: string;
+  otpCode?: string;
+  portal: 'student' | 'admin';
+}): string {
+  const isStudent = params.portal === 'student';
+  const roleTitle = isStudent ? 'Academy Student Account' : 'Enterprise Administrator Account';
+  const accentGradient = isStudent
+    ? 'linear-gradient(135deg, #000048 0%, #480878 55%, #7000F8 100%)'
+    : 'linear-gradient(135deg, #0e0724 0%, #3b0764 55%, #6b21a8 100%)';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Recovery — Vixora Digital Hub</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F7F7FC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000048;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F7F7FC; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Email Container -->
+        <table role="presentation" width="100%" style="max-width: 600px; background-color: #FFFFFF; border-radius: 20px; border: 1px solid #E5E5F0; box-shadow: 0 10px 35px rgba(0, 0, 72, 0.08); overflow: hidden;">
+          
+          <!-- Top Header Brand Ribbon -->
+          <tr>
+            <td style="background: ${accentGradient}; padding: 32px 30px; text-align: center;">
+              <table role="presentation" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center" style="padding-bottom: 10px;">
+                    <div style="background-color: #FFFFFF; padding: 10px 20px; border-radius: 14px; display: inline-block; box-shadow: 0 6px 20px rgba(0,0,0,0.2);">
+                      <img src="https://academy.vixoradigitalhub.com/images/vixora-academy-logo.jpg" alt="Vixora Digital Hub" style="height: 52px; width: auto; max-width: 220px; display: block; border-radius: 6px;" />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <div style="color: #FFFFFF; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; margin-top: 6px;">VIXORA DIGITAL HUB</div>
+                    <div style="color: #E0C7FF; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px;">
+                      Supabase Cryptographic Auth Service
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Content Area -->
+          <tr>
+            <td style="padding: 36px 32px 28px 32px;">
+              <h2 style="margin: 0 0 12px 0; font-size: 22px; font-weight: 800; color: #000048; text-align: center;">
+                Password Recovery Request
+              </h2>
+              <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #4B5563;">
+                Hello <strong>${params.recipientName}</strong>,
+              </p>
+              <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #4B5563;">
+                We received a verified request to reset the password for your <strong>${roleTitle}</strong> registered with <strong>${params.email}</strong>.
+              </p>
+
+              <!-- Reset Button -->
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${params.actionLink}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #7000F8 0%, #480878 100%); color: #FFFFFF; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 36px; border-radius: 12px; box-shadow: 0 6px 20px rgba(112, 0, 248, 0.35); letter-spacing: 0.3px;">
+                  Set New Password &rarr;
+                </a>
+              </div>
+
+              ${params.otpCode ? `
+              <!-- 6-Digit OTP Code -->
+              <div style="margin: 24px 0; padding: 18px; background-color: #F8F5FF; border: 1px dashed #B87CF8; border-radius: 14px; text-align: center;">
+                <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #7000F8; text-transform: uppercase; letter-spacing: 1px;">
+                  Or Enter This 6-Digit Verification Code in Your Browser:
+                </p>
+                <div style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 800; color: #000048; letter-spacing: 6px;">
+                  ${params.otpCode}
+                </div>
+                <p style="margin: 8px 0 0 0; font-size: 11px; color: #6B7280;">
+                  Enter this code on the portal recovery screen to update your password immediately.
+                </p>
+              </div>
+              ` : ''}
+
+              <!-- Security Notice -->
+              <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #E5E5F0;">
+                <p style="margin: 0 0 8px 0; font-size: 12px; line-height: 1.5; color: #6B7280;">
+                  <strong>Security Note:</strong> This reset link and verification code expire in <strong>60 minutes</strong>. If you did not request this password reset, no action is required and your existing password remains safe.
+                </p>
+                <p style="margin: 0; font-size: 11px; line-height: 1.5; color: #9CA3AF; word-break: break-all;">
+                  Direct link: <a href="${params.actionLink}" style="color: #7000F8; text-decoration: underline;">${params.actionLink}</a>
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #F7F7FC; padding: 20px 32px; text-align: center; border-top: 1px solid #E5E5F0;">
+              <p style="margin: 0; font-size: 12px; color: #6B7280;">
+                &copy; ${new Date().getFullYear()} Vixora Digital Hub. Learn. Apply. Earn. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function generatePasswordResetEmailText(params: {
+  email: string;
+  recipientName: string;
+  actionLink: string;
+  otpCode?: string;
+  portal: 'student' | 'admin';
+}): string {
+  return `VIXORA DIGITAL HUB — PASSWORD RESET
+
+Hello ${params.recipientName},
+
+We received a request to reset the password for your ${params.portal === 'admin' ? 'Administrator' : 'Student'} account (${params.email}).
+
+Click this secure link to set your new password:
+${params.actionLink}
+
+${params.otpCode ? `Or use this 6-digit verification code: ${params.otpCode}\n` : ''}
+This link and code expire in 60 minutes. If you did not make this request, please disregard this email.
+
+— Vixora Security Directorate
+vixoradigitalhub.com
+`;
+}
+
 

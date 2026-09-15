@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 import {
   SEED_CERTIFICATES,
   SEED_STUDENTS,
@@ -14,7 +15,9 @@ import {
   SupabaseCompetencyRow,
   SupabaseEmailLogRow,
   generateCertificateEmailHtml,
-  generateCertificateEmailText
+  generateCertificateEmailText,
+  generatePasswordResetEmailHtml,
+  generatePasswordResetEmailText
 } from '../src/data/academyPortalData.js';
 import {
   dispatchCertificateEmail,
@@ -24,7 +27,7 @@ import {
 import { generateCertificatePdfBuffer } from './certificatePdfGenerator.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from './supabaseAdmin.js';
 import { requireAuthentication } from './auth/authMiddleware.js';
-import { requireAdmin } from './auth/requireAdmin.js';
+import { requireAdmin, getAuthorizedAdminEmails } from './auth/requireAdmin.js';
 
 export const portalRouter = Router();
 
@@ -670,6 +673,277 @@ portalRouter.get('/student/rate-limit-status', (req: Request, res: Response) => 
     resetInSeconds: status.resetInSeconds,
     isLimited: status.isLimited
   });
+});
+
+// Helper to sanitize Supabase URL for client instance
+function sanitizeUrl(rawUrl?: string): string {
+  if (!rawUrl) return '';
+  return rawUrl.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+}
+
+/**
+ * Trigger secure password reset link and 6-digit OTP code via Supabase Auth
+ */
+portalRouter.post('/auth/forgot-password', async (req: Request, res: Response) => {
+  const ip = getClientIp(req);
+  const { email, portal, redirectOrigin } = req.body;
+
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Email address is required.', code: 'EMAIL_REQUIRED' });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(cleanEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.', code: 'INVALID_EMAIL_FORMAT' });
+  }
+
+  // Rate Limiting (5 requests per 10 minutes per IP+email)
+  const rlCheck = emailRateLimiter.check(`forgot_pw:${ip}:${cleanEmail}`);
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: `Too many password reset attempts. Please wait ${rlCheck.resetInSeconds} seconds before requesting another reset link.`,
+      code: 'RATE_LIMIT_EXCEEDED',
+      resetInSeconds: rlCheck.resetInSeconds
+    });
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return res.status(503).json({
+      error: 'Authentication service is unavailable. Supabase is not configured.',
+      code: 'AUTH_SERVICE_UNCONFIGURED'
+    });
+  }
+
+  const isPortalAdmin = portal === 'admin';
+  const authorizedAdmins = getAuthorizedAdminEmails();
+
+  if (isPortalAdmin && !authorizedAdmins.has(cleanEmail)) {
+    return res.status(403).json({
+      error: 'This email is not registered as an authorized administrator.',
+      code: 'FORBIDDEN_NOT_ADMIN'
+    });
+  }
+
+  try {
+    // 1. Check if user exists in auth.users
+    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+    const allUsers: any[] = (listData as any)?.users || [];
+    let authUser: any = allUsers.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+
+    // 2. If not found in auth.users, check if they exist in DB or allowlist to auto-provision
+    let recipientName = cleanEmail.split('@')[0];
+    if (!authUser) {
+      if (isPortalAdmin && authorizedAdmins.has(cleanEmail)) {
+        // Auto-provision admin in auth.users
+        const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+          email: cleanEmail,
+          email_confirm: true,
+          user_metadata: { name: cleanEmail.split('@')[0], role: 'admin' }
+        });
+        if (!createErr && created?.user) {
+          authUser = created.user;
+          recipientName = 'Administrator';
+        }
+      } else {
+        // Check student in database
+        const { data: studentRow } = await supabase
+          .from('students')
+          .select('id, name, email')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (studentRow) {
+          recipientName = studentRow.name || recipientName;
+          const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+            email: cleanEmail,
+            email_confirm: true,
+            user_metadata: { name: studentRow.name, role: 'student' }
+          });
+          if (!createErr && created?.user) {
+            authUser = created.user;
+            // Link auth_user_id
+            await supabase.from('students').update({ auth_user_id: created.user.id }).eq('id', studentRow.id);
+          }
+        }
+      }
+    } else {
+      recipientName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || recipientName;
+    }
+
+    // 3. If still no auth user found, return friendly generic message to prevent account enumeration
+    if (!authUser) {
+      return res.json({
+        success: true,
+        message: 'If an account is registered with this email, a password reset link has been dispatched to your inbox.',
+        email: cleanEmail
+      });
+    }
+
+    // 4. Generate official Supabase Recovery Link & OTP
+    const origin = (redirectOrigin && typeof redirectOrigin === 'string' && redirectOrigin.startsWith('http'))
+      ? redirectOrigin.replace(/\/+$/, '')
+      : `${req.protocol}://${req.get('host')}`;
+
+    const redirectPath = isPortalAdmin ? '/admin?type=recovery' : '/pages/student-portal?type=recovery';
+    const finalRedirect = `${origin}${redirectPath}`;
+
+    const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: cleanEmail,
+      options: {
+        redirectTo: finalRedirect
+      }
+    });
+
+    if (linkErr || !linkData?.properties) {
+      console.error('Supabase recovery link error:', linkErr);
+      return res.status(500).json({
+        error: 'Failed to generate cryptographic recovery credentials with Supabase.',
+        code: 'RECOVERY_LINK_GENERATION_FAILED'
+      });
+    }
+
+    const actionLink = linkData.properties.action_link;
+    const emailOtp = linkData.properties.email_otp;
+
+    // 5. Compose HTML & Text email
+    const subject = isPortalAdmin
+      ? `🔐 Administrator Password Recovery — Vixora Digital Hub`
+      : `🔐 Reset Your Password — Vixora Academy`;
+
+    const htmlContent = generatePasswordResetEmailHtml({
+      email: cleanEmail,
+      recipientName,
+      actionLink,
+      otpCode: emailOtp,
+      portal: isPortalAdmin ? 'admin' : 'student'
+    });
+
+    const textContent = generatePasswordResetEmailText({
+      email: cleanEmail,
+      recipientName,
+      actionLink,
+      otpCode: emailOtp,
+      portal: isPortalAdmin ? 'admin' : 'student'
+    });
+
+    // 6. Dispatch live email via Resend API / verified Gmail SMTP
+    const dispatchResult = await dispatchGenericEmail({
+      to: cleanEmail,
+      toName: recipientName,
+      subject,
+      html: htmlContent,
+      text: textContent
+    });
+
+    // 7. Save to Supabase email_logs
+    const logId = `eml-reset-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await saveEmailLog({
+      id: logId,
+      recipientEmail: cleanEmail,
+      recipientName,
+      subject,
+      status: dispatchResult.delivered ? 'delivered' : 'simulated',
+      provider: dispatchResult.provider,
+      timestamp: new Date().toISOString(),
+      deliveryLatencyMs: dispatchResult.deliveryLatencyMs,
+      previewHtml: htmlContent,
+      previewText: textContent,
+      messageId: dispatchResult.messageId,
+      deliveredToInternet: dispatchResult.deliveredToInternet,
+      infoNotice: `Password reset link and OTP generated via Supabase Auth. ${dispatchResult.infoNotice}`
+    });
+
+    return res.json({
+      success: true,
+      message: `A secure password reset link and 6-digit verification code have been dispatched to ${cleanEmail}.`,
+      email: cleanEmail,
+      hasOtp: Boolean(emailOtp),
+      provider: dispatchResult.provider,
+      delivered: dispatchResult.delivered,
+      isDev: process.env.NODE_ENV !== 'production',
+      devActionLink: process.env.NODE_ENV !== 'production' ? actionLink : undefined,
+      devOtp: process.env.NODE_ENV !== 'production' ? emailOtp : undefined
+    });
+  } catch (err: any) {
+    console.error('Password reset handler error:', err);
+    return res.status(500).json({
+      error: 'An internal server error occurred while processing your password reset request.',
+      code: 'RESET_INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * Verify OTP and reset password endpoint (Server-side resilient option)
+ */
+portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Response) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({
+      error: 'Email, 6-digit verification code, and new password are required.',
+      code: 'MISSING_FIELDS'
+    });
+  }
+
+  if (typeof newPassword !== 'string' || newPassword.length < 6) {
+    return res.status(400).json({
+      error: 'Password must be at least 6 characters long.',
+      code: 'PASSWORD_TOO_SHORT'
+    });
+  }
+
+  const cleanEmail = String(email).toLowerCase().trim();
+  const cleanOtp = String(otp).trim();
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return res.status(503).json({ error: 'Supabase is not configured.' });
+  }
+
+  try {
+    const rawSbUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+    const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || '';
+    const anonSb = createClient(sanitizeUrl(rawSbUrl), rawSbAnon);
+
+    const { data: vData, error: vErr } = await anonSb.auth.verifyOtp({
+      email: cleanEmail,
+      token: cleanOtp,
+      type: 'recovery'
+    });
+
+    if (vErr || !vData.user) {
+      return res.status(400).json({
+        error: vErr?.message || 'Invalid or expired 6-digit verification code. Please check your email or request a new code.',
+        code: 'INVALID_OTP'
+      });
+    }
+
+    const { data: uData, error: uErr } = await supabase.auth.admin.updateUserById(vData.user.id, {
+      password: String(newPassword)
+    });
+
+    if (uErr) {
+      return res.status(400).json({
+        error: uErr.message || 'Failed to update password with Supabase.',
+        code: 'PASSWORD_UPDATE_FAILED'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Password successfully updated. You can now sign in with your new credentials.'
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/reset-password-with-otp:', err);
+    return res.status(500).json({
+      error: 'An internal server error occurred while updating your password.',
+      code: 'RESET_FAILED'
+    });
+  }
 });
 
 // Student Email Login Deprecation & Hardening
@@ -1326,12 +1600,9 @@ portalRouter.post('/admin/login', async (req: Request, res: Response) => {
   }
 
   const cleanEmail = email.toLowerCase().trim();
-  const allowedAdmins = (process.env.ADMIN_EMAILS || '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter((e) => e.length > 0 && e.includes('@'));
+  const authorizedAdmins = getAuthorizedAdminEmails();
 
-  if (!allowedAdmins.includes(cleanEmail)) {
+  if (!authorizedAdmins.has(cleanEmail)) {
     return res.status(403).json({
       error: 'Access denied: account is not an authorized administrator.',
       code: 'FORBIDDEN_NOT_ADMIN'

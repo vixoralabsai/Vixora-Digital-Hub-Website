@@ -7,8 +7,9 @@ import { Request, Response, NextFunction } from 'express';
 export function getAuthorizedAdminEmails(): Set<string> {
   const rawAdminEmails = process.env.ADMIN_EMAILS || '';
   const emailList = rawAdminEmails
+    .replace(/^["\']|["\']$/g, '')
     .split(',')
-    .map((e) => e.trim().toLowerCase())
+    .map((e) => e.trim().replace(/^["\']|["\']$/g, '').toLowerCase())
     .filter((e) => e.length > 0 && e.includes('@'));
 
   return new Set(emailList);
