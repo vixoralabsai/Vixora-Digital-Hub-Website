@@ -647,6 +647,13 @@ const verifyRateLimiter = new SlidingWindowRateLimiter({
   prefix: 'cert_verify'
 });
 
+// 10 PDF downloads per minute per IP to protect against resource exhaustion
+const pdfRateLimiter = new SlidingWindowRateLimiter({
+  windowMs: 60 * 1000,
+  max: 10,
+  prefix: 'cert_pdf'
+});
+
 // Helper to get client IP
 function getClientIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
@@ -1054,11 +1061,35 @@ async function handleCertificateVerification(req: Request, res: Response, rawId?
   // Cryptographic Ledger Integrity Check
   const hasValidLedgerHash = Boolean(cert.credentialHash && cert.credentialHash.length === 64);
 
-  // Return safe verification payload without exposing internal student account fields
+  // Return safe verification payload without exposing internal student account or email metadata fields
+  const publicCertificate = {
+    id: cert.id,
+    studentName: cert.studentName,
+    courseId: cert.courseId,
+    courseTitle: cert.courseTitle,
+    trackBadge: cert.trackBadge,
+    specialization: cert.specialization,
+    grade: cert.grade,
+    honors: cert.honors,
+    capstoneTitle: cert.capstoneTitle,
+    capstoneScore: cert.capstoneScore,
+    issueDate: cert.issueDate,
+    completionDate: cert.completionDate,
+    durationWeeks: cert.durationWeeks,
+    credentialHash: cert.credentialHash,
+    verificationUrl: cert.verificationUrl,
+    instructorName: cert.instructorName,
+    instructorTitle: cert.instructorTitle,
+    directorName: cert.directorName,
+    directorTitle: cert.directorTitle,
+    competencies: cert.competencies,
+    status: cert.status
+  };
+
   return res.json({
     verified: true,
     status: 'VERIFIED_ACTIVE',
-    certificate: cert,
+    certificate: publicCertificate,
     issuer: 'Vixora Academy Global Directorate',
     dean: cert.directorName || 'Sarumi Hammad',
     deanTitle: cert.directorTitle || 'Dean, Vixora Academy',
@@ -1079,8 +1110,22 @@ portalRouter.get('/certificates/verify', (req: Request, res: Response) => {
   return handleCertificateVerification(req, res);
 });
 
-// Download PDF Certificate (Direct binary stream)
-portalRouter.get('/certificates/:id/pdf', async (req: Request, res: Response) => {
+// Shared Handler for Public PDF Certificate Downloads with Dedicated Rate Limiting
+async function handleCertificatePdfDownload(req: Request, res: Response) {
+  const ip = getClientIp(req);
+  const rlCheck = pdfRateLimiter.check(ip);
+
+  res.setHeader('X-RateLimit-Limit', rlCheck.limit);
+  res.setHeader('X-RateLimit-Remaining', rlCheck.remaining);
+  res.setHeader('X-RateLimit-Reset', rlCheck.resetInSeconds);
+
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: 'Too many certificate PDF requests. Please try again later.',
+      code: 'RATE_LIMIT_EXCEEDED'
+    });
+  }
+
   const certId = req.params.id?.toUpperCase().trim();
   if (!certId) {
     return res.status(400).json({ error: 'Certificate ID is required.' });
@@ -1109,42 +1154,16 @@ portalRouter.get('/certificates/:id/pdf', async (req: Request, res: Response) =>
       details: err.message
     });
   }
-});
+}
+
+// Download PDF Certificate (Direct binary stream)
+portalRouter.get('/certificates/:id/pdf', handleCertificatePdfDownload);
 
 // Alias for PDF Download: /certificates/download/:id
-portalRouter.get('/certificates/download/:id', async (req: Request, res: Response) => {
-  const certId = req.params.id?.toUpperCase().trim();
-  if (!certId) {
-    return res.status(400).json({ error: 'Certificate ID is required.' });
-  }
-
-  const cert = await getCertificateById(certId);
-  if (!cert) {
-    return res.status(404).json({
-      error: `Certificate '${certId}' not found in the registry.`
-    });
-  }
-
-  try {
-    const pdfBuffer = await generateCertificatePdfBuffer(cert);
-    const filename = `Vixora-Academy-Certificate-${cert.id}.pdf`;
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    return res.end(pdfBuffer);
-  } catch (err: any) {
-    console.error('Failed to generate PDF for certificate', certId, err);
-    return res.status(500).json({
-      error: 'Failed to generate PDF certificate.',
-      details: err.message
-    });
-  }
-});
+portalRouter.get('/certificates/download/:id', handleCertificatePdfDownload);
 
 // List all certificates
-portalRouter.get('/certificates/list', async (req: Request, res: Response) => {
+portalRouter.get('/certificates/list', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const supabase = getSupabaseAdmin();
 
   if (supabase) {

@@ -9,8 +9,35 @@
 [class~="text-neutral-900"],
 [class~="text-neutral-800"],
 [class~="text-neutral-700"],
-[class~="text-neutral-600"],
-[class~="text-neutral-200"] { color: #000048 !important; }
+[class~="text-neutral-600"] { color: #000048 !important; }
+
+/* Slate high-contrast tokens */
+[class~="text-slate-100"] { color: #F1F5F9 !important; }
+[class~="text-slate-200"] { color: #E2E8F0 !important; }
+[class~="text-slate-300"] { color: #CBD5E1 !important; }
+[class~="text-slate-900"] { color: #0F172A !important; }
+[class~="text-slate-950"] { color: #020617 !important; }
+
+/* Primary gold/amber and cyan buttons & badges: clear dark text (text-slate-950 font-bold) */
+button[class*="bg-amber-400"],
+button[class*="bg-amber-500"],
+button[class*="bg-yellow-400"],
+button[class*="bg-yellow-500"],
+span[class*="bg-amber-400"],
+span[class*="bg-amber-500"],
+span[class*="bg-yellow-400"],
+span[class*="bg-yellow-500"],
+a[class*="bg-amber-400"],
+a[class*="bg-amber-500"],
+button[class*="bg-cyan-400"],
+button[class*="bg-cyan-500"],
+span[class*="bg-cyan-400"],
+span[class*="bg-cyan-500"],
+a[class*="bg-cyan-400"],
+a[class*="bg-cyan-500"] {
+  color: #020617 !important;
+  font-weight: 700 !important;
+}
 
 [class~="text-neutral-500"],
 [class~="text-neutral-400"],

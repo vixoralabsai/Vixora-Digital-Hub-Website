@@ -30,7 +30,7 @@ export function BankPaymentDetailsCard({
           </div>
           <div>
             <h4 className="text-sm font-bold text-white">Direct Bank Transfer Option</h4>
-            <p className="text-[11px] font-mono text-purple-300">Instant manual verification via Admissions WhatsApp</p>
+            <p className="text-[11px] font-mono text-slate-200">Instant manual verification via Admissions WhatsApp</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold">
@@ -42,45 +42,45 @@ export function BankPaymentDetailsCard({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Bank Name */}
         <div className="p-3.5 rounded-2xl bg-purple-950/70 border border-purple-800/50">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Bank</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-slate-200 font-semibold">Bank</div>
           <div className="text-sm sm:text-base font-black text-white mt-0.5">{BANK_PAYMENT_DETAILS.bankName}</div>
         </div>
 
         {/* Account Name */}
         <div className="p-3.5 rounded-2xl bg-purple-950/70 border border-purple-800/50">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Account Name</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-slate-200 font-semibold">Account Name</div>
           <div className="text-xs sm:text-sm font-black text-amber-300 mt-0.5">{BANK_PAYMENT_DETAILS.accountName}</div>
         </div>
 
         {/* Account Number with Copy */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/60 flex items-center justify-between gap-2">
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300">Account Number</div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300 font-semibold">Account Number</div>
             <div className="text-base sm:text-lg font-mono font-black text-white tracking-wider mt-0.5">
               {BANK_PAYMENT_DETAILS.accountNumber}
             </div>
           </div>
           <button
             onClick={handleCopyAccount}
-            className="p-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer shrink-0 shadow-md"
+            className="p-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer shrink-0 shadow-md"
             title="Copy account number"
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-neutral-950" />
-                <span className="text-[10px] font-mono hidden xs:inline">Copied!</span>
+                <Check className="w-4 h-4 text-slate-950 font-bold" />
+                <span className="text-[10px] font-mono font-bold text-slate-950 hidden xs:inline">Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4" />
-                <span className="text-[10px] font-mono hidden xs:inline">Copy</span>
+                <Copy className="w-4 h-4 text-slate-950" />
+                <span className="text-[10px] font-mono font-bold text-slate-950 hidden xs:inline">Copy</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      <div className="p-3 rounded-xl bg-neutral-950/60 border border-purple-900/40 text-xs text-neutral-300 flex items-start gap-2">
+      <div className="p-3 rounded-xl bg-neutral-950/60 border border-purple-900/40 text-xs text-slate-200 flex items-start gap-2">
         <span className="text-amber-400 font-bold text-sm leading-none mt-0.5">📌</span>
         <span>
           After making payment ({tuitionAmount}{courseTitle ? ` for ${courseTitle}` : ''}), send your transaction receipt/screenshot to our WhatsApp Admissions Desk for instant enrolment receipt and cohort onboarding.

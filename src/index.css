@@ -18,6 +18,15 @@
   --color-vixora-muted: #5F6078;
   --color-vixora-dark: #08082F;
 
+  /* Slate tokens for high-contrast text and solid buttons */
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-900: #0F172A;
+  --color-slate-950: #020617;
+
   /* Legacy utility compatibility for the current component library. */
   --color-neutral-50: #FFFFFF;
   --color-neutral-100: #F7F7FC;
@@ -154,6 +163,29 @@ input, select, textarea {
   color: var(--vixora-navy);
 }
 input::placeholder, textarea::placeholder { color: var(--vixora-muted); }
+
+/* High contrast text rules on dark blue/navy backgrounds and cards */
+.bg-\[\#000048\],
+.bg-\[\#000030\],
+.bg-\[\#000028\],
+.bg-\[\#05020F\],
+.bg-\[\#08082F\],
+.bg-\[\#1E113E\],
+.bg-neutral-900,
+.bg-neutral-950 {
+  color: #F1F5F9;
+}
+
+/* Ensure all primary buttons and badges (especially gold/amber or cyan) use clear dark text */
+.bg-amber-400,
+.bg-amber-500,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-cyan-400,
+.bg-cyan-500 {
+  color: #020617 !important;
+  font-weight: 700 !important;
+}
 
 /* The public Vixora site is intentionally light-only. */
 #theme-toggle-btn,

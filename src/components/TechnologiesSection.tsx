@@ -72,7 +72,7 @@ export function TechnologiesSection() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 tracking-tight">
             Production-Grade Technologies
           </h2>
-          <p className="mt-3 text-base sm:text-lg text-neutral-400 font-normal">
+          <p className="mt-3 text-base sm:text-lg text-slate-200 font-normal">
             We build strictly on scalable, industry-standard modern stacks with strong developer ecosystems, native cloud elasticity, and active long-term support.
           </p>
         </div>
@@ -86,7 +86,7 @@ export function TechnologiesSection() {
               className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 activeCategory === cat
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                  : 'bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-850 border border-neutral-800'
+                  : 'bg-neutral-900 text-slate-200 hover:text-white hover:bg-neutral-850 border border-neutral-800'
               }`}
             >
               {cat}
@@ -107,7 +107,7 @@ export function TechnologiesSection() {
                     {getTechIcon(tech.name)}
                   </div>
                   {tech.badge && (
-                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-neutral-800 text-neutral-300">
+                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-neutral-800 text-slate-200">
                       {tech.badge}
                     </span>
                   )}
@@ -116,11 +116,11 @@ export function TechnologiesSection() {
                 <h3 className="text-base font-bold text-white group-hover:text-blue-300 transition-colors">
                   {tech.name}
                 </h3>
-                <span className="text-[11px] font-mono text-neutral-400 block mt-0.5 mb-2">
+                <span className="text-[11px] font-mono text-slate-200 block mt-0.5 mb-2">
                   {tech.category}
                 </span>
 
-                <p className="text-xs text-neutral-300/90 leading-relaxed">
+                <p className="text-xs text-slate-200 leading-relaxed">
                   {tech.role}
                 </p>
               </div>

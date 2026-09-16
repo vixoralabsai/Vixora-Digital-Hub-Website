@@ -13,7 +13,7 @@ export function LatestInsights() {
             <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 tracking-tight">
               Latest from Vixora Labs
             </h2>
-            <p className="mt-3 text-base text-neutral-400 font-normal">
+            <p className="mt-3 text-base text-slate-200 font-normal">
               Technical breakdowns, architectural blueprints, and growth frameworks published by our senior engineering leads.
             </p>
           </div>
@@ -35,7 +35,7 @@ export function LatestInsights() {
               className="p-6 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 hover:border-neutral-700 transition-all flex flex-col justify-between group hover:bg-neutral-900"
             >
               <div className="space-y-4">
-                <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400">
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-200">
                   <span className="px-2 py-0.5 rounded bg-neutral-800 text-blue-300">
                     {item.category}
                   </span>
@@ -49,13 +49,13 @@ export function LatestInsights() {
                   {item.title}
                 </h3>
 
-                <p className="text-xs text-neutral-400 leading-relaxed">
+                <p className="text-xs text-slate-200 leading-relaxed">
                   {item.excerpt}
                 </p>
               </div>
 
               <div className="pt-6 mt-6 border-t border-neutral-850 flex items-center justify-between text-xs">
-                <span className="text-neutral-400 font-medium">
+                <span className="text-slate-200 font-medium">
                   {item.author}
                 </span>
                 <span className="text-blue-400 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center gap-1">

@@ -50,7 +50,7 @@ export function ProcessSection() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 tracking-tight">
             Our 7-Step Engineering Lifecycle
           </h2>
-          <p className="mt-3 text-base sm:text-lg text-neutral-400 font-normal">
+          <p className="mt-3 text-base sm:text-lg text-slate-200 font-normal">
             A battle-tested, zero-surprise delivery framework guaranteeing predictable timelines, clean code, and measurable business outcomes.
           </p>
         </div>
@@ -74,14 +74,14 @@ export function ProcessSection() {
                     className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
                       isCurrent
                         ? 'bg-blue-500 text-white'
-                        : 'bg-neutral-800 text-neutral-400'
+                        : 'bg-neutral-800 text-slate-200'
                     }`}
                   >
                     0{step.step}
                   </span>
                   <div
                     className={`${
-                      isCurrent ? 'text-blue-400' : 'text-neutral-500'
+                      isCurrent ? 'text-blue-400' : 'text-slate-300'
                     }`}
                   >
                     {getStepIcon(step.step)}
@@ -89,12 +89,12 @@ export function ProcessSection() {
                 </div>
                 <p
                   className={`text-xs font-bold leading-tight line-clamp-1 ${
-                    isCurrent ? 'text-blue-300' : 'text-neutral-300'
+                    isCurrent ? 'text-blue-300' : 'text-slate-200'
                   }`}
                 >
                   {step.title.split(' ')[0]}
                 </p>
-                <span className="text-[10px] font-mono text-neutral-500 mt-1">
+                <span className="text-[10px] font-mono text-slate-300 mt-1">
                   {step.duration}
                 </span>
               </button>
@@ -111,7 +111,7 @@ export function ProcessSection() {
                 <span className="px-3 py-1 rounded-md text-xs font-mono font-bold bg-blue-600 text-white">
                   STAGE 0{activeStep.step}
                 </span>
-                <span className="text-xs font-mono text-neutral-400 flex items-center gap-1">
+                <span className="text-xs font-mono text-slate-200 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-blue-400" />
                   Estimated Timeline: {activeStep.duration}
                 </span>
@@ -121,15 +121,15 @@ export function ProcessSection() {
                 {activeStep.title}
               </h3>
 
-              <p className="text-sm sm:text-base text-neutral-300 leading-relaxed">
+              <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
                 {activeStep.description}
               </p>
 
               <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-2">
-                <div className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
+                <div className="text-xs font-mono text-slate-200 uppercase tracking-wider">
                   Strategic Objective:
                 </div>
-                <div className="text-sm font-medium text-neutral-200">
+                <div className="text-sm font-medium text-slate-100">
                   {activeStep.subtitle}
                 </div>
               </div>
@@ -141,7 +141,7 @@ export function ProcessSection() {
                 <span className="text-xs font-mono uppercase font-bold text-blue-400 tracking-wider">
                   Verifiable Deliverables
                 </span>
-                <span className="text-[10px] font-mono text-neutral-500">
+                <span className="text-[10px] font-mono text-slate-300">
                   Signed Off Prior to Next Stage
                 </span>
               </div>
@@ -150,7 +150,7 @@ export function ProcessSection() {
                 {activeStep.deliverables.map((d, dIdx) => (
                   <div
                     key={dIdx}
-                    className="flex items-start gap-3 text-xs sm:text-sm text-neutral-200"
+                    className="flex items-start gap-3 text-xs sm:text-sm text-slate-100"
                   >
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>{d}</span>

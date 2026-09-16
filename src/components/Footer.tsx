@@ -44,7 +44,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
               <BrandLogo size="md" />
             </button>
 
-            <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-sm">
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-sm">
               The digital headquarters for custom software engineering, autonomous AI workflows, high-converting media buying, and executive technical education.
             </p>
 
@@ -52,14 +52,14 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
             <div className="space-y-2 pt-2 text-xs">
               <a
                 href={`mailto:${COMPANY_CONTACT.email}`}
-                className="flex items-center gap-2.5 text-neutral-300 hover:text-purple-400 transition-colors"
+                className="flex items-center gap-2.5 text-slate-200 hover:text-purple-300 transition-colors"
               >
                 <Mail className="w-4 h-4 text-purple-400 shrink-0" />
                 <span>{COMPANY_CONTACT.email}</span>
               </a>
 
               <div className="pt-1 space-y-1.5 border-t border-neutral-800/80">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300 font-semibold block">
                   Direct WhatsApp Inbound Lines:
                 </span>
 
@@ -95,7 +95,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
                     </span>
                     <span className="text-[11px] font-mono text-emerald-400">
                       {BRAND_CONFIG.whatsapp.nigeria.displayNumber}
-                      <span className="text-neutral-500 font-normal text-[10px] ml-1">
+                      <span className="text-slate-300 font-normal text-[10px] ml-1">
                         ({BRAND_CONFIG.whatsapp.nigeria.fullInternationalNumber})
                       </span>
                     </span>
@@ -112,7 +112,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
               <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                 Platform Pages
               </h4>
-              <ul className="space-y-2 text-xs text-neutral-400">
+              <ul className="space-y-2 text-xs text-slate-200">
                 <li><button onClick={() => onNavigate('home', undefined, undefined, '/')} className="hover:text-white transition-colors cursor-pointer">Home</button></li>
                 <li><button onClick={() => onNavigate('dashboard', undefined, undefined, '/pages/dashboard')} className="text-amber-300 hover:text-amber-200 font-semibold transition-colors cursor-pointer flex items-center gap-1"><span>Client Portal</span> <span className="text-[9px] bg-amber-950 px-1.5 py-0.2 rounded border border-amber-500/40 text-amber-300">Live</span></button></li>
                 <li><button onClick={() => onNavigate('about', undefined, undefined, '/pages/about')} className="hover:text-white transition-colors cursor-pointer">About Us</button></li>
@@ -128,7 +128,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
               <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                 Our Solutions
               </h4>
-              <ul className="space-y-2 text-xs text-neutral-400">
+              <ul className="space-y-2 text-xs text-slate-200">
                 <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Website Development</button></li>
                 <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">Software Development</button></li>
                 <li><button onClick={() => onNavigate('home', 'solutions', undefined, '/#solutions')} className="hover:text-white transition-colors cursor-pointer text-left">AI & Automation</button></li>
@@ -147,7 +147,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
                   Cohorts
                 </span>
               </div>
-              <ul className="space-y-2 text-xs text-neutral-400">
+              <ul className="space-y-2 text-xs text-slate-200">
                 <li><button onClick={() => onNavigate('academy-course', undefined, 'data-analysis-cohort', '/academy/data-analysis-cohort')} className="hover:text-white transition-colors cursor-pointer text-left">Data Analysis Cohort</button></li>
                 <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-automation-digital-business-systems', '/academy/ai-automation-digital-business-systems')} className="hover:text-white transition-colors cursor-pointer text-left">AI Automation Systems</button></li>
                 <li><button onClick={() => onNavigate('academy-course', undefined, 'complete-ai-digital-skills-freelancing-mastery', '/academy/complete-ai-digital-skills-freelancing-mastery')} className="hover:text-white transition-colors cursor-pointer text-left">AI Skills & Freelance</button></li>
@@ -161,7 +161,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
               <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                 Taxonomy & Posts
               </h4>
-              <ul className="space-y-2 text-xs text-neutral-400">
+              <ul className="space-y-2 text-xs text-slate-200">
                 <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/ai-automation')} className="hover:text-white transition-colors cursor-pointer text-left">AI & Automation</button></li>
                 <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/software-engineering')} className="hover:text-white transition-colors cursor-pointer text-left">Software Engineering</button></li>
                 <li><button onClick={() => onNavigate('categories', undefined, undefined, '/categories/growth-marketing')} className="hover:text-white transition-colors cursor-pointer text-left">Growth & Media Buying</button></li>
@@ -182,7 +182,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
             <h4 className="text-sm font-bold text-white">
               Subscribe to Vixora Engineering Dispatches
             </h4>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-slate-200">
               Bi-weekly briefings on generative AI, autonomous agent design patterns, and enterprise scalability.
             </p>
           </div>
@@ -201,7 +201,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
                   placeholder="Enter your work email"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-900 border border-purple-900/40 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-purple-500"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-900 border border-purple-900/40 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
                 />
                 <button
                   type="submit"
@@ -215,12 +215,12 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-purple-900/20 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-400 gap-4">
+        <div className="pt-8 border-t border-purple-900/20 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-300 gap-4">
           <p>© {new Date().getFullYear()} Vixora Digital Hub. All Rights Reserved.</p>
           <div className="flex items-center gap-6">
-            <span className="hover:text-neutral-300 cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-neutral-300 cursor-pointer">Terms of Service</span>
-            <span className="hover:text-neutral-300 cursor-pointer">Security Overview</span>
+            <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+            <span className="hover:text-white cursor-pointer">Terms of Service</span>
+            <span className="hover:text-white cursor-pointer">Security Overview</span>
           </div>
         </div>
       </div>

@@ -42,7 +42,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
               </div>
             </button>
 
-            <p className="text-xs sm:text-sm text-purple-200 leading-relaxed max-w-sm">
+            <p className="text-xs sm:text-sm text-purple-100 leading-relaxed max-w-sm">
               The premier technical institution under the Academic Directorate of Dean <strong className="text-white">Sarumi Hammad</strong>, offering rigorous cohort training in Autonomous AI Systems, Data Analytics, and Digital Freelancing.
             </p>
 
@@ -51,7 +51,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <Award className="w-4 h-4" />
                 <span>Dean Sarumi Hammad</span>
               </div>
-              <div className="text-[11px] text-purple-200">
+              <div className="text-[11px] text-purple-100">
                 Dean & Academic Director, Vixora Academy
               </div>
               <div className="text-[11px] font-mono text-emerald-300 pt-0.5">
@@ -73,7 +73,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
 
               <a
                 href={`mailto:${BRAND_CONFIG.email}`}
-                className="flex items-center gap-2 text-purple-200 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-purple-100 hover:text-white transition-colors"
               >
                 <Mail className="w-4 h-4 text-purple-400 shrink-0" />
                 <span>Admissions Email: {BRAND_CONFIG.email}</span>
@@ -90,7 +90,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <BookOpen className="w-3.5 h-3.5 text-amber-300" />
                 <span>Academic Cohorts</span>
               </h4>
-              <ul className="space-y-2.5 text-xs text-purple-200">
+              <ul className="space-y-2.5 text-xs text-purple-100">
                 {ACADEMY_COURSES.map((course) => (
                   <li key={course.id}>
                     <button
@@ -98,7 +98,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                       className="hover:text-white transition-colors cursor-pointer text-left block"
                     >
                       <div className="font-semibold text-white/90 hover:text-white">{course.title}</div>
-                      <div className="text-[11px] text-purple-300/80 font-mono">{course.duration} • {course.badge}</div>
+                      <div className="text-[11px] text-purple-200 font-mono">{course.duration} • {course.badge}</div>
                     </button>
                   </li>
                 ))}
@@ -120,7 +120,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
                 <span>Student Directorate</span>
               </h4>
-              <ul className="space-y-2.5 text-xs text-purple-200">
+              <ul className="space-y-2.5 text-xs text-purple-100">
                 <li>
                   <button
                     onClick={() => onNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
@@ -144,7 +144,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                     onClick={() => onNavigate('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
                     className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
                   >
-                    <FileText className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+                    <FileText className="w-3.5 h-3.5 text-purple-200 shrink-0" />
                     <span>Download Official PDF</span>
                   </button>
                 </li>
@@ -167,10 +167,10 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <ExternalLink className="w-3.5 h-3.5 text-emerald-300" />
                 <span>Main Digital Hub</span>
               </h4>
-              <p className="text-xs text-purple-300 leading-relaxed">
+              <p className="text-xs text-purple-100 leading-relaxed">
                 Vixora Academy is the technical education arm of Vixora Digital Hub.
               </p>
-              <ul className="space-y-2 text-xs text-purple-200">
+              <ul className="space-y-2 text-xs text-purple-100">
                 <li>
                   <a
                     href={BRAND_CONFIG.domain}
@@ -183,7 +183,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <li className="pt-2">
                   <a
                     href={`${BRAND_CONFIG.domain}/#solutions`}
-                    className="hover:text-white transition-colors text-purple-300 hover:underline block"
+                    className="hover:text-white transition-colors text-purple-200 hover:underline block"
                   >
                     Custom Software & Web Platforms
                   </a>
@@ -191,7 +191,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <li>
                   <a
                     href={`${BRAND_CONFIG.domain}/#solutions`}
-                    className="hover:text-white transition-colors text-purple-300 hover:underline block"
+                    className="hover:text-white transition-colors text-purple-200 hover:underline block"
                   >
                     Autonomous Business Automation
                   </a>
@@ -203,7 +203,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
         </div>
 
         {/* Bottom Bar: Accreditation & Dean Authority */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-purple-300/80 pt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-purple-100 pt-4">
           <div>
             © 2026 Vixora Academy. All Rights Reserved. Supervised under Dean <strong className="text-white">Sarumi Hammad</strong>.
           </div>
@@ -214,7 +214,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
             <span>•</span>
             <a
               href={BRAND_CONFIG.domain}
-              className="text-purple-200 hover:text-white transition-colors"
+              className="text-purple-100 hover:text-white transition-colors"
             >
               Main Platform: {BRAND_CONFIG.cleanDomain}
             </a>

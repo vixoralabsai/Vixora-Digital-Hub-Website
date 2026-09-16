@@ -87,7 +87,7 @@ export function DriveScanner({
               <FolderSearch className="w-5 h-5 text-blue-400" />
               Google Drive Explorer & Document Discovery
             </h2>
-            <p className="text-xs text-neutral-400 mt-0.5">
+            <p className="text-xs text-slate-200 mt-0.5">
               Query Google Drive for Vixora web platform documentation, PRDs, and architecture specs.
             </p>
           </div>
@@ -97,7 +97,7 @@ export function DriveScanner({
               id="load-sample-docs-btn"
               onClick={onLoadSamples}
               type="button"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-neutral-800 hover:bg-neutral-700 text-slate-200 border border-neutral-700 transition-colors"
             >
               <Layers className="w-3.5 h-3.5 text-blue-400" />
               Load Vixora Sample Docs
@@ -120,25 +120,25 @@ export function DriveScanner({
         {/* Search Bar & Quick Queries */}
         <form onSubmit={handleFormSubmit} className="mt-5 space-y-3">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-300 absolute left-3.5 pointer-events-none" />
             <input
               id="drive-search-input"
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by keywords (e.g., 'vixora', 'web development', 'prd', 'requirements')..."
-              className="w-full pl-10 pr-24 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-sans"
+              className="w-full pl-10 pr-24 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-sans"
             />
             <button
               type="submit"
-              className="absolute right-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-medium rounded-lg transition-colors"
+              className="absolute right-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-slate-100 text-xs font-medium rounded-lg transition-colors"
             >
               Search
             </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-neutral-500 text-[11px]">Suggested queries:</span>
+            <span className="text-slate-200 font-semibold text-[11px]">Suggested queries:</span>
             {['vixora', 'vixora web development', 'requirements', 'architecture spec', 'milestones'].map((tag) => (
               <button
                 key={tag}
@@ -147,7 +147,7 @@ export function DriveScanner({
                   setSearchInput(tag);
                   if (hasAuth) onSearch(tag);
                 }}
-                className="px-2.5 py-1 rounded-lg bg-neutral-800/60 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800 text-[11px] transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-neutral-800/60 hover:bg-neutral-800 text-slate-200 hover:text-white border border-neutral-800 text-[11px] transition-colors"
               >
                 {tag}
               </button>
@@ -169,13 +169,13 @@ export function DriveScanner({
               <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
                 <HardDrive className="w-4 h-4" />
               </div>
-              <p className="text-xs text-neutral-300">
+              <p className="text-xs text-slate-200">
                 Connect your Google Drive account above or click <strong>Load Vixora Sample Docs</strong> to explore the full PRD synthesis workflow.
               </p>
             </div>
             <button
               onClick={onPromptLogin}
-              className="px-3.5 py-1.5 rounded-lg bg-white text-neutral-900 text-xs font-semibold hover:bg-neutral-100 transition-colors shrink-0"
+              className="px-3.5 py-1.5 rounded-lg bg-white text-slate-950 font-bold text-xs hover:bg-neutral-100 transition-colors shrink-0"
             >
               Sign in with Google
             </button>
@@ -213,7 +213,7 @@ export function DriveScanner({
                   className={`px-2.5 py-1 rounded-lg transition-all ${
                     filterType === tab.key
                       ? 'bg-neutral-800 text-neutral-100 font-medium'
-                      : 'text-neutral-400 hover:text-neutral-200'
+                      : 'text-slate-200 hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -223,19 +223,19 @@ export function DriveScanner({
           </div>
 
           {/* Batch Selection Controls */}
-          <div className="flex items-center justify-between text-xs text-neutral-400 px-1">
+          <div className="flex items-center justify-between text-xs text-slate-200 px-1">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => onSelectAll(true)}
-                className="hover:text-neutral-200 flex items-center gap-1"
+                className="hover:text-white text-slate-200 flex items-center gap-1"
               >
                 <CheckSquare className="w-3.5 h-3.5 text-blue-400" /> Select All
               </button>
               <button
                 type="button"
                 onClick={() => onSelectAll(false)}
-                className="hover:text-neutral-200 flex items-center gap-1"
+                className="hover:text-white text-slate-200 flex items-center gap-1"
               >
                 <Square className="w-3.5 h-3.5" /> Clear Selection
               </button>
@@ -263,7 +263,7 @@ export function DriveScanner({
                         {getFileIcon(file.sourceType)}
                       </div>
                       <h4
-                        className="text-xs font-semibold text-neutral-200 truncate cursor-pointer hover:text-blue-400"
+                        className="text-xs font-semibold text-slate-100 truncate cursor-pointer hover:text-blue-400"
                         onClick={() => onPreviewFile(file)}
                         title={file.name}
                       >
@@ -274,29 +274,29 @@ export function DriveScanner({
                     <button
                       type="button"
                       onClick={() => onToggleSelect(file.id)}
-                      className="text-neutral-400 hover:text-neutral-200 p-1 rounded transition-colors"
+                      className="text-slate-200 hover:text-white p-1 rounded transition-colors"
                       title={file.isSelected ? 'Deselect file' : 'Select file'}
                     >
                       {file.isSelected ? (
                         <CheckSquare className="w-4 h-4 text-blue-400" />
                       ) : (
-                        <Square className="w-4 h-4 text-neutral-500" />
+                        <Square className="w-4 h-4 text-slate-300" />
                       )}
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-slate-200 line-clamp-2 leading-relaxed">
                     {file.snippet || file.extractedContent?.slice(0, 100) || 'Google Drive document'}
                   </p>
                 </div>
 
-                <div className="mt-3 pt-2.5 border-t border-neutral-800/60 flex items-center justify-between text-[10px] text-neutral-500">
+                <div className="mt-3 pt-2.5 border-t border-neutral-800/60 flex items-center justify-between text-[10px] text-slate-300">
                   <span>{file.size || 'G-Suite Doc'}</span>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => onPreviewFile(file)}
-                      className="px-2 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center gap-1 transition-colors"
+                      className="px-2 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-slate-200 flex items-center gap-1 transition-colors"
                     >
                       <Eye className="w-3 h-3" /> Inspect
                     </button>
@@ -305,7 +305,7 @@ export function DriveScanner({
                         href={file.webViewLink}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 transition-colors"
+                        className="p-1 rounded bg-neutral-900 hover:bg-neutral-800 text-slate-200 hover:text-white transition-colors"
                         title="View in Drive"
                       >
                         <ExternalLink className="w-3 h-3" />
@@ -319,13 +319,13 @@ export function DriveScanner({
 
           {/* Action Bar: Compile PRD */}
           <div className="mt-6 pt-4 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs text-neutral-400">
+            <div className="text-xs text-slate-200">
               {selectedCount > 0 ? (
                 <span>
                   Ready to synthesize <strong>{selectedCount} document{selectedCount === 1 ? '' : 's'}</strong> with Gemini AI.
                 </span>
               ) : (
-                <span className="text-amber-400">
+                <span className="text-amber-300 font-semibold">
                   Please select at least 1 document to compile the project requirements.
                 </span>
               )}
