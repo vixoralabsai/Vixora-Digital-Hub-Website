@@ -373,12 +373,70 @@ async function getAuthenticatedStudentProfile(
   return cachedStudent || null;
 }
 
+/**
+ * Generates a cryptographically secure, high-entropy Certificate ID
+ * using Node.js crypto.randomBytes(8) with collision checking across
+ * both Supabase and fallbackCertificatesStore.
+ *
+ * Format: VA-2026-XXXX-XXXX-XXXX-TRACK (e.g. VA-2026-7B9F-4D2A-E1C8-ENG)
+ * Sourced from 8 cryptographically secure random bytes (64-bit pool),
+ * formatted as uppercase hexadecimal characters in 3 groups of 4.
+ */
+export async function generateSecureCertificateId(courseTitle: string): Promise<string> {
+  const MAX_ATTEMPTS = 3;
+  const track = courseTitle.includes('AI') ? 'ENG' : 'AUT';
+  const supabase = getSupabaseAdmin();
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // 1. Generate 8 cryptographically secure random bytes (64-bit entropy pool)
+    const randomBytes = crypto.randomBytes(8);
+    const tokenRaw = randomBytes.toString('hex').toUpperCase(); // 16 hex characters
+    // 2. Format into 3 groups: VA-2026-XXXX-XXXX-XXXX-TRACK (e.g. VA-2026-7B9F-4D2A-E1C8-ENG)
+    const secureToken = `${tokenRaw.slice(0, 4)}-${tokenRaw.slice(4, 8)}-${tokenRaw.slice(8, 12)}`;
+    const candidateId = `VA-2026-${secureToken}-${track}`;
+
+    // 3. Collision check: fallback in-memory store
+    if (fallbackCertificatesStore.has(candidateId)) {
+      console.warn(`[Certificate Collision] Candidate ID ${candidateId} collided in fallback store. Retry attempt ${attempt}/${MAX_ATTEMPTS}`);
+      continue;
+    }
+
+    // 4. Collision check: Supabase database
+    if (supabase) {
+      try {
+        const { data: existing } = await supabase
+          .from('certificates')
+          .select('id')
+          .eq('id', candidateId)
+          .maybeSingle();
+
+        if (existing) {
+          console.warn(`[Certificate Collision] Candidate ID ${candidateId} collided in Supabase. Retry attempt ${attempt}/${MAX_ATTEMPTS}`);
+          continue;
+        }
+      } catch (checkErr) {
+        console.error('[Certificate ID Generator] Supabase check error:', checkErr);
+      }
+    }
+
+    // Candidate is confirmed unique across all storage layers
+    return candidateId;
+  }
+
+  throw new Error('Failed to generate a unique certificate ID after maximum attempts due to collision.');
+}
+
 // 4. Save Issued Certificate & Competencies to Supabase
 async function saveIssuedCertificate(
   cert: Certificate,
   competencies: string[]
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
+
+  // Guard against overwriting an existing certificate in fallback store
+  if (fallbackCertificatesStore.has(cert.id)) {
+    throw new Error(`Certificate with ID ${cert.id} already exists in fallback store.`);
+  }
   fallbackCertificatesStore.set(cert.id, cert);
 
   if (!supabase) return;
@@ -414,8 +472,8 @@ async function saveIssuedCertificate(
       });
     }
 
-    // 3. Upsert certificate
-    await supabase.from('certificates').upsert({
+    // 3. Insert certificate (strictly avoid overwrite via insert)
+    const { error: certInsertErr } = await supabase.from('certificates').insert({
       id: cert.id,
       student_name: cert.studentName,
       student_email: cert.studentEmail,
@@ -440,6 +498,11 @@ async function saveIssuedCertificate(
       email_sent_count: cert.emailSentCount,
       last_email_sent_at: cert.lastEmailSentAt || new Date().toISOString()
     });
+
+    if (certInsertErr) {
+      fallbackCertificatesStore.delete(cert.id);
+      throw certInsertErr;
+    }
 
     // 4. Insert competencies
     if (competencies.length > 0) {
@@ -469,7 +532,9 @@ async function saveIssuedCertificate(
       { onConflict: 'student_id,course_id' }
     );
   } catch (err) {
+    fallbackCertificatesStore.delete(cert.id);
     console.error('[Supabase] Error saving issued certificate:', err);
+    throw err;
   }
 }
 
@@ -1232,8 +1297,13 @@ portalRouter.post('/certificates/issue', requireAuthentication, requireAdmin, as
   }
 
   const cleanEmail = studentEmail.toLowerCase().trim();
-  const certNumber = Math.floor(1000 + Math.random() * 9000);
-  const certId = `VA-2026-${certNumber}-${courseTitle.includes('AI') ? 'ENG' : 'AUT'}`;
+  let certId: string;
+  try {
+    certId = await generateSecureCertificateId(courseTitle);
+  } catch (genErr) {
+    console.error('Failed to generate secure certificate ID:', genErr);
+    return res.status(500).json({ error: 'Failed to issue certificate: unable to allocate a unique credential identifier.' });
+  }
   
   const hashRaw = `${certId}:${cleanEmail}:${studentName}:${Date.now()}`;
   const credentialHash = crypto.createHash('sha256').update(hashRaw).digest('hex');
@@ -1284,7 +1354,12 @@ portalRouter.post('/certificates/issue', requireAuthentication, requireAdmin, as
   };
 
   // Persist to Supabase Database (with automatic fallback caching)
-  await saveIssuedCertificate(newCertificate, assignedCompetencies);
+  try {
+    await saveIssuedCertificate(newCertificate, assignedCompetencies);
+  } catch (saveErr) {
+    console.error('Failed persisting issued certificate:', saveErr);
+    return res.status(500).json({ error: 'Failed to persist issued certificate to registry.' });
+  }
 
   // AUTOMATIC PDF CERTIFICATE GENERATION & EMAIL DISPATCH
   let pdfBuffer: Buffer | undefined;
