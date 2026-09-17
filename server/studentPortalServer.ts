@@ -34,11 +34,12 @@ export const portalRouter = Router();
 // ==========================================
 // Environment & Fallback Gating Policy
 // ==========================================
-// Production invariant: process.env.NODE_ENV === 'production'
-// => In-memory fallback/demo stores must NEVER be used as authoritative API data.
-// In development/test with Supabase unconfigured, fallback stores may be used.
+// Fail-closed invariant: Treat environment as production unless explicitly 'development' or 'test'.
+// In-memory fallback/demo stores must NEVER be used as authoritative API data in production or unknown environments.
+// Fallback stores may be used ONLY in local development or automated tests when Supabase is explicitly unconfigured.
 export function isProductionEnvironment(): boolean {
-  return process.env.NODE_ENV === 'production';
+  const env = process.env.NODE_ENV;
+  return env !== 'development' && env !== 'test';
 }
 
 export function shouldPermitFallback(): boolean {
@@ -550,18 +551,21 @@ async function saveIssuedCertificate(
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
 
-  // Guard against overwriting an existing certificate in fallback store
-  if (fallbackCertificatesStore.has(cert.id)) {
-    throw new Error(`Certificate with ID ${cert.id} already exists in fallback store.`);
-  }
-  fallbackCertificatesStore.set(cert.id, cert);
-
-  if (!supabase) {
-    if (isProductionEnvironment()) {
-      fallbackCertificatesStore.delete(cert.id);
+  if (isProductionEnvironment() || isSupabaseConfigured()) {
+    if (!supabase) {
       throw new DatabaseServiceError('Cannot issue certificate: database is not configured in production.', 'DATABASE_UNCONFIGURED', 503);
     }
-    return;
+  } else if (shouldPermitFallback()) {
+    // Development/test offline fallback only
+    if (fallbackCertificatesStore.has(cert.id)) {
+      throw new Error(`Certificate with ID ${cert.id} already exists in fallback store.`);
+    }
+    fallbackCertificatesStore.set(cert.id, cert);
+    if (!supabase) {
+      return;
+    }
+  } else {
+    throw new DatabaseServiceError('Cannot issue certificate: database is not configured.', 'DATABASE_UNCONFIGURED', 503);
   }
 
   try {
@@ -623,7 +627,9 @@ async function saveIssuedCertificate(
     });
 
     if (certInsertErr) {
-      fallbackCertificatesStore.delete(cert.id);
+      if (shouldPermitFallback()) {
+        fallbackCertificatesStore.delete(cert.id);
+      }
       throw certInsertErr;
     }
 
@@ -655,7 +661,9 @@ async function saveIssuedCertificate(
       { onConflict: 'student_id,course_id' }
     );
   } catch (err) {
-    fallbackCertificatesStore.delete(cert.id);
+    if (shouldPermitFallback()) {
+      fallbackCertificatesStore.delete(cert.id);
+    }
     console.error('[Supabase] Error saving issued certificate:', err);
     throw err;
   }
@@ -663,7 +671,9 @@ async function saveIssuedCertificate(
 
 // 5. Save Email Dispatch Log to Supabase
 async function saveEmailLog(log: EmailDispatchLog): Promise<void> {
-  fallbackEmailLogsStore.unshift(log);
+  if (shouldPermitFallback()) {
+    fallbackEmailLogsStore.unshift(log);
+  }
   const supabase = getSupabaseAdmin();
 
   if (!supabase) return;
@@ -2034,54 +2044,107 @@ portalRouter.post('/admin/logout', requireAuthentication, (req: Request, res: Re
 // 4. Admin Executive Overview & Metrics
 portalRouter.get('/admin/overview', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const supabase = getSupabaseAdmin();
-  let certCount = fallbackCertificatesStore.size;
-  let studentsCount = fallbackStudentsStore.size;
-  let recentCerts: Certificate[] = [];
 
-  if (supabase) {
+  if (isProductionEnvironment() || isSupabaseConfigured()) {
+    if (!supabase) {
+      return res.status(503).json({
+        error: 'Registry database service is unconfigured in production.',
+        code: 'DATABASE_UNCONFIGURED'
+      });
+    }
+
     try {
-      const { count: cCount, data: cRows } = await supabase
-        .from('certificates')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .limit(6);
+      const [certCountRes, recentCertsRes, studentsCountRes] = await Promise.all([
+        supabase.from('certificates').select('*', { count: 'exact', head: true }),
+        supabase.from('certificates').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('students').select('*', { count: 'exact', head: true })
+      ]);
 
-      if (typeof cCount === 'number') certCount = cCount;
-      if (cRows && cRows.length > 0) {
-        recentCerts = cRows.map((r: any) => mapSupabaseCertificateToDomain(r as SupabaseCertificateRow));
+      if (certCountRes.error) {
+        console.error('[Supabase] Overview certificates count error:', certCountRes.error);
+        return res.status(503).json({
+          error: 'Failed to retrieve certificate count from database.',
+          code: 'DATABASE_ERROR'
+        });
       }
 
-      const { count: sCount } = await supabase
-        .from('students')
-        .select('*', { count: 'exact', head: true });
+      if (recentCertsRes.error) {
+        console.error('[Supabase] Overview recent certificates error:', recentCertsRes.error);
+        return res.status(503).json({
+          error: 'Failed to retrieve recent certificates from database.',
+          code: 'DATABASE_ERROR'
+        });
+      }
 
-      if (typeof sCount === 'number') studentsCount = sCount;
-    } catch (err) {
-      console.warn('Supabase stats count query warning:', err);
+      if (studentsCountRes.error) {
+        console.error('[Supabase] Overview students count error:', studentsCountRes.error);
+        return res.status(503).json({
+          error: 'Failed to retrieve student count from database.',
+          code: 'DATABASE_ERROR'
+        });
+      }
+
+      const certCount = typeof certCountRes.count === 'number' ? certCountRes.count : 0;
+      const studentsCount = typeof studentsCountRes.count === 'number' ? studentsCountRes.count : 0;
+      const recentCerts: Certificate[] = (recentCertsRes.data && recentCertsRes.data.length > 0)
+        ? recentCertsRes.data.map((r: any) => mapSupabaseCertificateToDomain(r as SupabaseCertificateRow))
+        : [];
+
+      const recentEmailLogs = await getRecentEmailLogs(10);
+      const emailConfig = getEmailConfigStatus();
+
+      return res.json({
+        metrics: {
+          totalCertificates: certCount,
+          totalStudents: studentsCount,
+          totalEmailDispatches: recentEmailLogs.length,
+          activeProvider: emailConfig.primaryProvider,
+          activeSender: emailConfig.fromAddress,
+          databaseTier: 'Supabase Cloud (PostgreSQL)',
+          serverUptimeSec: Math.floor(process.uptime()),
+          timestamp: new Date().toISOString()
+        },
+        emailConfig,
+        recentCertificates: recentCerts,
+        recentEmailLogs
+      });
+    } catch (err: any) {
+      console.error('[Supabase] Overview query exception:', err);
+      return res.status(503).json({
+        error: 'Database service is currently unavailable.',
+        code: 'DATABASE_UNAVAILABLE'
+      });
     }
   }
 
-  if (recentCerts.length === 0) {
-    recentCerts = Array.from(fallbackCertificatesStore.values()).slice(0, 6);
+  // Permitted ONLY in development/test when Supabase is explicitly not configured
+  if (shouldPermitFallback()) {
+    const certCount = fallbackCertificatesStore.size;
+    const studentsCount = fallbackStudentsStore.size;
+    const recentCerts: Certificate[] = Array.from(fallbackCertificatesStore.values()).slice(0, 6);
+    const recentEmailLogs = await getRecentEmailLogs(10);
+    const emailConfig = getEmailConfigStatus();
+
+    return res.json({
+      metrics: {
+        totalCertificates: certCount,
+        totalStudents: studentsCount,
+        totalEmailDispatches: recentEmailLogs.length,
+        activeProvider: emailConfig.primaryProvider,
+        activeSender: emailConfig.fromAddress,
+        databaseTier: 'High-Performance Local Cache',
+        serverUptimeSec: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+      },
+      emailConfig,
+      recentCertificates: recentCerts,
+      recentEmailLogs
+    });
   }
 
-  const recentEmailLogs = await getRecentEmailLogs(10);
-  const emailConfig = getEmailConfigStatus();
-
-  return res.json({
-    metrics: {
-      totalCertificates: certCount,
-      totalStudents: studentsCount,
-      totalEmailDispatches: recentEmailLogs.length,
-      activeProvider: emailConfig.primaryProvider,
-      activeSender: emailConfig.fromAddress,
-      databaseTier: isSupabaseConfigured() ? 'Supabase Cloud (PostgreSQL)' : 'High-Performance Local Cache',
-      serverUptimeSec: Math.floor(process.uptime()),
-      timestamp: new Date().toISOString()
-    },
-    emailConfig,
-    recentCertificates: recentCerts,
-    recentEmailLogs
+  return res.status(503).json({
+    error: 'Database service is unavailable.',
+    code: 'DATABASE_UNAVAILABLE'
   });
 });
 
@@ -2156,22 +2219,48 @@ portalRouter.post('/admin/send-test-email', requireAuthentication, requireAdmin,
 // 6. Admin Students List
 portalRouter.get('/admin/students', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const supabase = getSupabaseAdmin();
-  if (supabase) {
+
+  if (isProductionEnvironment() || isSupabaseConfigured()) {
+    if (!supabase) {
+      return res.status(503).json({
+        error: 'Student database service is unconfigured in production.',
+        code: 'DATABASE_UNCONFIGURED'
+      });
+    }
+
     try {
       const { data: rows, error } = await supabase
         .from('students')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && rows && rows.length > 0) {
-        return res.json({ students: rows });
+      if (error) {
+        console.error('[Supabase] Query students error:', error);
+        return res.status(503).json({
+          error: 'Failed to retrieve students from database.',
+          code: 'DATABASE_ERROR'
+        });
       }
-    } catch (err) {
-      console.warn('Supabase query students error:', err);
+
+      return res.json({ students: rows || [] });
+    } catch (err: any) {
+      console.error('[Supabase] Query students exception:', err);
+      return res.status(503).json({
+        error: 'Student database service is currently unavailable.',
+        code: 'DATABASE_UNAVAILABLE'
+      });
     }
   }
 
-  const list = Array.from(fallbackStudentsStore.values());
-  return res.json({ students: list });
+  // Permitted ONLY in development/test when Supabase is explicitly not configured
+  if (shouldPermitFallback()) {
+    const list = Array.from(fallbackStudentsStore.values());
+    return res.json({ students: list });
+  }
+
+  return res.status(503).json({
+    error: 'Database service is unavailable.',
+    code: 'DATABASE_UNAVAILABLE'
+  });
 });
 

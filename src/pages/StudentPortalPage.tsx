@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Certificate, 
   StudentProfile, 
-  StudentCourse, 
-  SEED_CERTIFICATES, 
-  SEED_STUDENTS 
+  StudentCourse 
 } from '../data/academyPortalData';
 import { supabase } from '../lib/supabaseClient';
 import { CertificateDocument } from '../components/CertificateDocument';
@@ -217,7 +215,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   // Set default selected certificate from seed or initial
   useEffect(() => {
     if (initialCertId) {
-      const found = SEED_CERTIFICATES.find(c => c.id === initialCertId) || studentCertificates.find(c => c.id === initialCertId);
+      const found = studentCertificates.find(c => c.id === initialCertId);
       if (found) {
         setSelectedCertificate(found);
         setActiveTab('certificates');
@@ -1338,7 +1336,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                           {course.certificateId ? (
                             <button
                               onClick={() => {
-                                const cert = SEED_CERTIFICATES.find(c => c.id === course.certificateId) || studentCertificates.find(c => c.id === course.certificateId);
+                                const cert = studentCertificates.find(c => c.id === course.certificateId);
                                 if (cert) {
                                   setSelectedCertificate(cert);
                                   setActiveTab('certificates');
@@ -1452,21 +1450,25 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                   Select Graduate Certificate:
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {SEED_CERTIFICATES.concat(
-                    studentCertificates.filter(sc => !SEED_CERTIFICATES.some(sc2 => sc2.id === sc.id))
-                  ).map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedCertificate(c)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        selectedCertificate?.id === c.id
-                          ? 'bg-[#000048] text-white shadow-xs'
-                          : 'bg-neutral-100 text-neutral-700 hover:bg-purple-100'
-                      }`}
-                    >
-                      {c.studentName.split(' ')[0]} ({c.id})
-                    </button>
-                  ))}
+                  {studentCertificates.length > 0 ? (
+                    studentCertificates.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setSelectedCertificate(c)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          selectedCertificate?.id === c.id
+                            ? 'bg-[#000048] text-white shadow-xs'
+                            : 'bg-neutral-100 text-neutral-700 hover:bg-purple-100'
+                        }`}
+                      >
+                        {c.studentName.split(' ')[0]} ({c.id})
+                      </button>
+                    ))
+                  ) : (
+                    <span className="text-xs text-neutral-500 italic">
+                      No issued certificates found for your account.
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -104,7 +104,6 @@ interface CourseProblemData {
 
 function getCourseProblemData(course: AcademyCourse): CourseProblemData {
   const slug = course.slug;
-  const track = course.track;
 
   if (slug === 'machine-learning-data-science') {
     return {
@@ -157,60 +156,6 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       ],
       quote:
         '"The tools are not the hard part—Excel, SQL, and Power BI are completely learnable. What is missing for most aspiring analysts is a guided, project-backed path that takes them from beginner to job-ready."'
-    };
-  }
-
-  if (slug === 'ai-automation-digital-business-systems') {
-    return {
-      tag: 'THE SYSTEMS & MONETIZATION GAP',
-      headline: 'Knowing AI Tools Gets You Noticed. Building AI Systems Gets You Paid.',
-      sub: 'There is a massive distinction between someone who plays with prompt generators and someone who builds autonomous business infrastructure that saves 15+ hours every single week.',
-      points: [
-        {
-          icon: '📜',
-          title: 'Prompting Is a Low Ceiling',
-          desc: 'Typing casual ChatGPT prompts is a commodity. Clients do not pay monthly retainers for simple text prompts they can generate themselves.'
-        },
-        {
-          icon: '⚡',
-          title: 'Systems Command Recurring Retainers',
-          desc: 'Businesses happily pay ₦200,000+ to $2,500/month for automated CRM lead triage, invoice generation, customer routing, and multi-app syncs.'
-        },
-        {
-          icon: '💼',
-          title: 'Invoices vs. Resumes',
-          desc: 'While average job seekers wait on endless resume queues, system builders package custom automation solutions directly for eager business owners.'
-        }
-      ],
-      quote:
-        '"If you already understand basic AI tools, staying at that level is not safe—it is a ceiling. The practitioners earning substantial income right now build, implement, and monetize end-to-end systems."'
-    };
-  }
-
-  if (slug === 'ai-automation-digital-skills') {
-    return {
-      tag: 'THE DIGITAL FLUENCY GAP',
-      headline: "Everyone's Talking About AI. In 12 Weeks, You'll Actually Know How to Use It.",
-      sub: 'Across every sector, professionals and creators using AI tools are completing tasks in minutes that used to take entire days. Getting started does not require coding—just the right step-by-step guidance.',
-      points: [
-        {
-          icon: '💼',
-          title: 'Stand Out on Every Application',
-          desc: 'Adding practical AI workflows, automated research, and media production to your CV immediately differentiates you from outdated candidates.'
-        },
-        {
-          icon: '⚡',
-          title: 'Fast Freelance Services',
-          desc: 'Simple automated lead funnels, custom chatbots, and automated summaries that take 30 minutes to set up can be offered as valuable client services.'
-        },
-        {
-          icon: '🎨',
-          title: 'Produce 10x Faster',
-          desc: 'Master prompt engineering, generative graphics, and visual automation tools to amplify your individual output without burnout.'
-        }
-      ],
-      quote:
-        '"You are not behind because you are not capable. You are behind because nobody gave you a clear, hands-on path from absolute zero to practical execution."'
     };
   }
 
@@ -268,56 +213,138 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
     };
   }
 
-  if (track === 'Design & Marketing') {
+  if (slug === 'enterprise-workflow-automation') {
     return {
-      tag: 'THE CREATIVE PRODUCTION REVOLUTION',
-      headline: 'Traditional Creative Production Is Too Slow. Generative Systems Scale Overnight.',
-      sub: 'Brands and agencies demand rapid creative iteration, bespoke ad variants, and dynamic UI prototypes. Creative professionals who combine design intuition with generative AI tools dominate the market.',
+      tag: 'THE ENTERPRISE INTEGRATION BOTTLENECK',
+      headline: 'SaaS Subscriptions Multiply. Disconnected Tools Waste Hundreds of Engineering Hours.',
+      sub: 'Modern businesses juggle dozens of specialized software platforms—CRMs, ERPs, accounting systems, and support queues. Relying on costly per-task Zapier plans or manual copy-pasting leads to broken syncs and ballooning software budgets.',
       points: [
         {
-          icon: '🎨',
-          title: 'Hyper-Fast Asset Generation',
-          desc: 'Produce high-converting ad variations, product imagery, and video assets in hours rather than waiting on traditional production cycles.'
+          icon: '🔄',
+          title: 'Self-Hosted n8n vs. Metered SaaS',
+          desc: 'Run millions of workflow executions without per-task fees by deploying unmetered, self-hosted n8n infrastructure with Docker and SSL.'
         },
         {
-          icon: '📐',
-          title: 'AI-Native UI/UX & Prototypes',
-          desc: 'Translate user journeys into functional interactive prototypes and dynamic design systems at unprecedented velocity.'
+          icon: '🐍',
+          title: 'Custom Python Nodes & Complex Logic',
+          desc: 'Surpass low-code limitations by integrating custom Python scripts, SQL database connectors, and resilient error recovery loops.'
         },
         {
-          icon: '💼',
-          title: 'Higher Margins for Creatives',
-          desc: 'Agencies and freelancers charge premium campaign retainers while leveraging AI workflows to reduce internal production overhead.'
+          icon: '🔒',
+          title: 'Enterprise Security Behind Firewalls',
+          desc: 'Keep proprietary company data, webhooks, and customer records securely within your own cloud infrastructure instead of third-party clouds.'
         }
       ],
       quote:
-        '"Creatives who master generative workflows are not being replaced—they are outperforming traditional agencies and delivering superior client ROI."'
+        '"Enterprise automation is not about making simple two-step Zapier connections. It is about architecting self-hosted, unmetered pipelines that reliably sync mission-critical business data 24/7 without recurring per-task costs."'
     };
   }
 
-  // General fallback for other specialized courses
+  if (slug === 'ai-product-design-ui-ux') {
+    return {
+      tag: 'THE AI-NATIVE INTERFACE DESIGN GAP',
+      headline: 'Static UI Patterns Fail for AI. Designers Must Master Nondeterministic UX.',
+      sub: 'Traditional form-and-button web design cannot handle streaming text, variable model latency, confidence scores, agent feedback loops, or infinite canvas workspaces. Top tech companies pay top rates for product designers who understand AI interaction design.',
+      points: [
+        {
+          icon: '🎨',
+          title: 'Designing for Latency & Streaming',
+          desc: 'Design token streaming feedback, loading states, and graceful error handling when models hallucinate or lag.'
+        },
+        {
+          icon: '📐',
+          title: 'Scalable Obsidian Design Systems',
+          desc: 'Build dark-mode design tokens, modular component libraries, and Figma variables tailored for complex AI dashboards.'
+        },
+        {
+          icon: '⚡',
+          title: 'Interactive Canvas & Agent Visualizers',
+          desc: 'Prototype multi-turn agent conversations, tool-calling badges, and spatial canvas workflows that delight users.'
+        }
+      ],
+      quote:
+        '"Users do not abandon AI products because the underlying model is weak. They abandon them because the interface feels slow, confusing, and unresponsive. Crafting intuitive UX for nondeterministic software is the most sought-after skill in product design today."'
+    };
+  }
+
+  if (slug === 'generative-media-advertising') {
+    return {
+      tag: 'THE PERFORMANCE CREATIVE BOTTLENECK',
+      headline: 'Ad Creative Fatigue Kills Campaigns. Generative Media Scales Winning Ads in Minutes.',
+      sub: 'Paid social algorithms on Meta and TikTok demand dozens of fresh creative hooks every week. Traditional video shoots take weeks and thousands of dollars, suffocating return on ad spend before scaling.',
+      points: [
+        {
+          icon: '🎬',
+          title: 'High-Converting UGC Video at Scale',
+          desc: 'Produce realistic synthetic avatars, custom voiceovers, and dynamic video edits using Midjourney, Runway, and ElevenLabs.'
+        },
+        {
+          icon: '🎯',
+          title: 'Algorithmic Hook Testing',
+          desc: 'Test 50+ video hooks and visual angles simultaneously to discover winning customer acquisition creatives.'
+        },
+        {
+          icon: '📈',
+          title: 'Media Buying & Scaling Past $50k/mo',
+          desc: 'Combine creative volume with structured campaign bidding, audience scaling, and ROAS optimization.'
+        }
+      ],
+      quote:
+        '"In modern performance marketing, creative volume is the single largest lever for reducing CPA. Media buyers who master generative video production outpace traditional production agencies by 10x."'
+    };
+  }
+
+  if (slug === 'ai-automation-digital-business-systems') {
+    return {
+      tag: 'THE SYSTEMS & MONETIZATION GAP',
+      headline: 'Knowing AI Tools Gets You Noticed. Building AI Systems Gets You Paid.',
+      sub: 'There is a massive distinction between someone who plays with prompt generators and someone who builds autonomous business infrastructure that saves 15+ hours every single week.',
+      points: [
+        {
+          icon: '📜',
+          title: 'Prompting Is a Low Ceiling',
+          desc: 'Typing casual ChatGPT prompts is a commodity. Clients do not pay monthly retainers for simple text prompts they can generate themselves.'
+        },
+        {
+          icon: '⚡',
+          title: 'Systems Command Recurring Retainers',
+          desc: 'Businesses happily pay ₦200,000+ to $2,500/month for automated CRM lead triage, invoice generation, customer routing, and multi-app syncs.'
+        },
+        {
+          icon: '💼',
+          title: 'Invoices vs. Resumes',
+          desc: 'While average job seekers wait on endless resume queues, system builders package custom automation solutions directly for eager business owners.'
+        }
+      ],
+      quote:
+        '"If you already understand basic AI tools, staying at that level is not safe—it is a ceiling. The practitioners earning substantial income right now build, implement, and monetize end-to-end systems."'
+    };
+  }
+
+  // Default / ai-automation-digital-skills
   return {
-    tag: `THE ${course.track.toUpperCase()} REALITY`,
-    headline: `Unlock Modern Commercial Competence in ${course.title}.`,
-    sub: course.description,
+    tag: 'THE DIGITAL FLUENCY GAP',
+    headline: "Everyone's Talking About AI. In 12 Weeks, You'll Actually Know How to Use It.",
+    sub: 'Across every sector, professionals and creators using AI tools are completing tasks in minutes that used to take entire days. Getting started does not require coding—just the right step-by-step guidance.',
     points: [
       {
-        icon: '🎯',
-        title: 'Market-Relevant Practical Skills',
-        desc: course.highlights[0] || 'Learn industry-standard tools and methodologies directly from active industry practitioners.'
-      },
-      {
         icon: '💼',
-        title: 'Portfolio & Tangible Deliverables',
-        desc: course.highlights[1] || 'Graduate with verified capstone projects and live artifacts that prove your capability to employers and clients.'
+        title: 'Stand Out on Every Application',
+        desc: 'Adding practical AI workflows, automated research, and media production to your CV immediately differentiates you from outdated candidates.'
       },
       {
-        icon: '🚀',
-        title: 'Mentorship & Professional Network',
-        desc: course.highlights[2] || 'Accelerate your progress with live feedback, cohort collaboration, and personalized review.'
+        icon: '⚡',
+        title: 'Fast Freelance Services',
+        desc: 'Simple automated lead funnels, custom chatbots, and automated summaries that take 30 minutes to set up can be offered as valuable client services.'
+      },
+      {
+        icon: '🎨',
+        title: 'Produce 10x Faster',
+        desc: 'Master prompt engineering, generative graphics, and visual automation tools to amplify your individual output without burnout.'
       }
     ],
-    quote: `"${course.heroPitch || course.subtitle}"`
+    quote:
+      '"You are not behind because you are not capable. You are behind because nobody gave you a clear, hands-on path from absolute zero to practical execution."'
   };
 }
 
@@ -325,85 +352,28 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
 // HELPER: Dynamic 3-Phase Transformation from Course Syllabus
 // ---------------------------------------------------------------------------
 function getCourseTransformationPhases(course: AcademyCourse) {
-  const syllabus = course.weeklySyllabus;
-  const total = syllabus.length;
-
-  if (total === 0) {
-    return [
-      {
-        phase: 'Phase 1: Foundations & Core Tools',
-        duration: 'Initial Weeks',
-        title: 'Fundamental Architecture & Setup',
-        description: 'Set up your professional environment and master core principles, tools, and best practices.'
-      },
-      {
-        phase: 'Phase 2: Applied Workflows & Real Projects',
-        duration: 'Core Program',
-        title: 'Implementation & Complex Pipelines',
-        description: 'Build real-world workflows, solve domain problems, and implement practical solutions.'
-      },
-      {
-        phase: 'Phase 3: Capstone Defense & Career Readiness',
-        duration: 'Final Phase',
-        title: 'Production Deployment & Certification',
-        description: 'Complete your capstone defense, receive your accredited credential, and polish your portfolio.'
-      }
-    ];
-  }
-
-  const p1End = Math.max(1, Math.floor(total / 3));
-  const p2End = Math.max(p1End + 1, Math.floor((2 * total) / 3));
-
-  const p1Modules = syllabus.slice(0, p1End);
-  const p2Modules = syllabus.slice(p1End, p2End);
-  const p3Modules = syllabus.slice(p2End);
-
-  return [
-    {
-      phase: 'Phase 1: Core Foundations & Workflows',
-      duration: `${p1Modules[0]?.week || 'Week 1'} – ${p1Modules[p1Modules.length - 1]?.week || 'Week 3'}`,
-      title: p1Modules[0]?.title || 'Foundations & Tooling',
-      description: p1Modules.map(m => m.title).join(' • ')
-    },
-    {
-      phase: 'Phase 2: Advanced Implementation & Pipelines',
-      duration: `${p2Modules[0]?.week || 'Mid Program'} – ${p2Modules[p2Modules.length - 1]?.week || 'Late Program'}`,
-      title: p2Modules[0]?.title || 'Applied Problem Solving',
-      description: p2Modules.map(m => m.title).join(' • ')
-    },
-    {
-      phase: 'Phase 3: Capstone, Deployment & Monetization',
-      duration: `${p3Modules[0]?.week || 'Final Weeks'} – ${p3Modules[p3Modules.length - 1]?.week || 'Graduation'}`,
-      title: p3Modules[p3Modules.length - 1]?.title || 'Capstone Project & Credential Defense',
-      description: p3Modules.map(m => m.title).join(' • ')
-    }
-  ];
-}
-
-// ---------------------------------------------------------------------------
-// HELPER: Dynamic Course Audience Personas
-// ---------------------------------------------------------------------------
-function getCourseAudiencePersonas(course: AcademyCourse) {
   const slug = course.slug;
-  const track = course.track;
+  const syllabus = course.weeklySyllabus;
 
   if (slug === 'machine-learning-data-science') {
     return [
       {
-        role: 'Aspiring Data Scientists',
-        desc: 'Graduates and professionals seeking to step into machine learning, predictive analytics, and algorithmic model building.'
+        phase: 'Phase 1: Foundations & Exploratory Data Analysis',
+        duration: 'Weeks 1 – 6',
+        title: 'Data Analysis Fundamentals & Python Environment',
+        description: 'Environment Setup • Python & Jupyter Notebooks • NumPy & Pandas • Data Cleaning & Feature Wrangling • Exploratory Data Analysis • Statistical Distributions'
       },
       {
-        role: 'Data & Business Analysts',
-        desc: 'Analysts who already work with Excel/SQL and want to upgrade their career with Python, Scikit-Learn, and statistical modeling.'
+        phase: 'Phase 2: Predictive Algorithms & Modeling Pipelines',
+        duration: 'Weeks 7 – 12',
+        title: 'Machine Learning Algorithms & Scikit-Learn Pipelines',
+        description: 'Supervised Learning (Regression) • Classification Algorithms • Model Evaluation & Cross-Validation • Feature Engineering & Selection • Unsupervised Learning & Clustering • Scikit-Learn Pipelines'
       },
       {
-        role: 'Software Developers & Engineers',
-        desc: 'Engineers wanting to understand ML workflows, model evaluation, and how to embed predictive models into applications.'
-      },
-      {
-        role: 'STEM Graduates & Career Switchers',
-        desc: 'Motivated learners from engineering, math, finance, or sciences seeking high-value skills and portfolio proof.'
+        phase: 'Phase 3: Model Evaluation, Deployment & Portfolio',
+        duration: 'Weeks 13 – 18',
+        title: 'Model Evaluation, API Deployment & Capstone Defense',
+        description: 'Hyperparameter Tuning & Ensembles • Model Deployment with Flask/FastAPI • Real-World ML Applications • Capstone Project Design & Mentorship • Model Evaluation & Stress Testing • Final Capstone Presentation & Graduation'
       }
     ];
   }
@@ -411,20 +381,137 @@ function getCourseAudiencePersonas(course: AcademyCourse) {
   if (slug === 'data-analysis-cohort') {
     return [
       {
-        role: 'Career Changers',
-        desc: 'Individuals looking to transition into a secure, well-paying tech career without needing a computer science degree.'
+        phase: 'Phase 1: Excel Mastery & Business Data Hygiene',
+        duration: 'Weeks 1 – 4',
+        title: 'Data Hygiene, Formulas & Pivot Modeling',
+        description: 'Excel Fundamentals & Data Cleaning • Advanced Formulas (XLOOKUP, INDEX/MATCH) • Pivot Tables & Dynamic Modeling • Commercial Dashboard Design & KPI Visualization'
       },
       {
-        role: 'Business & Finance Professionals',
-        desc: 'Professionals who spend hours wrestling with manual spreadsheets and want to automate analytics with SQL and Power BI.'
+        phase: 'Phase 2: Relational SQL Queries & Power BI Modeling',
+        duration: 'Weeks 5 – 10',
+        title: 'Relational Database Queries & Power BI Dashboards',
+        description: 'SQL Basics & Filtering • Aggregations & Multi-Table Joins • Subqueries & Window Functions • Power BI Data Modeling & Star Schema • DAX Formulas & Interactive Visuals'
       },
       {
-        role: 'Recent University Graduates',
-        desc: 'Graduates looking for practical, commercial skills that make their CV stand out to employers immediately.'
+        phase: 'Phase 3: AI-Assisted Analysis & Capstone Portfolio',
+        duration: 'Weeks 11 – 16',
+        title: 'AI-Assisted Analysis & Executive Capstone Defense',
+        description: 'AI Tools for Analysts (Automating SQL & Insights) • Portfolio Capstone Development • Business Presentation Strategy • Final Capstone Defense & Career Guidance'
+      }
+    ];
+  }
+
+  if (slug === 'fullstack-ai-engineering') {
+    return [
+      {
+        phase: 'Phase 1: AI Core & Vector Architecture',
+        duration: 'Weeks 1 – 4',
+        title: 'TypeScript/Python AI Core & Vector Retrieval',
+        description: 'LLM APIs & Prompt Engineering • Embeddings & Vector Databases (pgvector) • Hybrid Search & RAG Architecture • Semantic Caching & Latency Optimization'
       },
       {
-        role: 'Entrepreneurs & Managers',
-        desc: 'Founders and team leads who need clear, data-driven dashboards to make informed commercial choices.'
+        phase: 'Phase 2: Autonomous Agents & LangGraph',
+        duration: 'Weeks 5 – 8',
+        title: 'Autonomous Agent Swarms & LangGraph Orchestration',
+        description: 'Multi-Agent State Machines • Tool-Calling & Deterministic Routing • Self-Healing Pipelines • Evaluation Suites & Model Observability'
+      },
+      {
+        phase: 'Phase 3: Production Microservices & Deployment',
+        duration: 'Weeks 9 – 12',
+        title: 'Production Microservices & Capstone Launch',
+        description: 'FastAPI/Node Microservices • Streaming Protocols & WebSocket Integration • Cloud Deployment & Containerization • Capstone Defense & Portfolio Showcase'
+      }
+    ];
+  }
+
+  if (slug === 'executive-ai-strategy') {
+    return [
+      {
+        phase: 'Phase 1: Strategic Opportunity & Economics',
+        duration: 'Week 1',
+        title: 'Executive AI Economics & Opportunity Audit',
+        description: 'The Modern AI Frontier • AI Unit Economics & Vendor Evaluation • Calculating Real ROI • Identifying High-Impact Transformation Levers'
+      },
+      {
+        phase: 'Phase 2: Governance, Security & Workforce',
+        duration: 'Weeks 2 – 3',
+        title: 'Enterprise Governance, Security & Risk Mitigation',
+        description: 'Data Privacy & IP Protection Policies • Compliance & Regulatory Frameworks • AI Workforce Transformation • Selecting Enterprise Technology Stacks'
+      },
+      {
+        phase: 'Phase 3: Strategic Blueprint & Board Defense',
+        duration: 'Week 4',
+        title: 'Enterprise Transformation Blueprint & Executive Defense',
+        description: 'Finalizing 12-Month AI Roadmap • Risk Mitigation Framework • Board-Ready Strategic Presentation • Executive Peer Review & Credential Sign-Off'
+      }
+    ];
+  }
+
+  if (slug === 'enterprise-workflow-automation') {
+    return [
+      {
+        phase: 'Phase 1: Self-Hosted n8n Infrastructure',
+        duration: 'Weeks 1 – 2',
+        title: 'Self-Hosted n8n Infrastructure & Docker Setup',
+        description: 'Docker Architecture & Deployment • Reverse Proxy, SSL & Webhook Security • Core n8n Nodes & Expression Logic • Eliminating SaaS Metering Fees'
+      },
+      {
+        phase: 'Phase 2: Integrations & Custom Python Logic',
+        duration: 'Weeks 3 – 4',
+        title: 'Multi-Platform Integrations & Custom Python Logic',
+        description: 'CRM & Database Webhook Syncs • Custom Python Nodes for Complex Rules • OpenAI & Local LLM Integration • Structured Data Transformation & Error Handling'
+      },
+      {
+        phase: 'Phase 3: Production Deployments & Capstone',
+        duration: 'Weeks 5 – 6',
+        title: 'Production Resilience & Enterprise Capstone',
+        description: 'Fault-Tolerant Retries & Dead-Letter Queues • Production Health Monitoring • Enterprise Lead/Data Engine Capstone • Verification & Deployment Defense'
+      }
+    ];
+  }
+
+  if (slug === 'ai-product-design-ui-ux') {
+    return [
+      {
+        phase: 'Phase 1: Streaming UI & Obsidian Design Kit',
+        duration: 'Weeks 1 – 2',
+        title: 'AI Interaction Design & Obsidian Design Kit',
+        description: 'Designing for Latency & Nondeterminism • Token Streaming States & Loading Feedbacks • Confidence Scores & Hallucination UX • Dark-Mode Token Architectures in Figma'
+      },
+      {
+        phase: 'Phase 2: Canvas Workspaces & Generative UI',
+        duration: 'Weeks 3 – 4',
+        title: 'Canvas Workspaces & Generative UI Prototyping',
+        description: 'Spatial Canvas Workspaces • Agent Feedback Loops & Tool-Calling Badges • Prototyping with Figma Variables • Generative Interface Patterns'
+      },
+      {
+        phase: 'Phase 3: Design System & Capstone Portfolio',
+        duration: 'Weeks 5 – 6',
+        title: 'Complete Design System & Capstone Portfolio',
+        description: 'Scalable Component Token Libraries • Interactive AI Prototype Defense • Live Portfolio Critiques • Packaging Your Design Case Study'
+      }
+    ];
+  }
+
+  if (slug === 'generative-media-advertising') {
+    return [
+      {
+        phase: 'Phase 1: Multimodal Prompt Architecture',
+        duration: 'Week 1',
+        title: 'Multimodal Prompt Architecture & Asset Generation',
+        description: 'Photorealistic Imagery with Midjourney v6 • Synthetic Voice Clones with ElevenLabs • Cinematic Video Generation with Runway Gen-3 • Brand Consistency Workflows'
+      },
+      {
+        phase: 'Phase 2: Automated Video & Creative Testing',
+        duration: 'Weeks 2 – 3',
+        title: 'Automated Video Editing & Hook Testing Workflows',
+        description: 'High-Converting UGC Video Frameworks • Algorithmic Hook Testing (50+ Variations) • Automated Assembly Pipelines • Pacing & Dynamic Captions'
+      },
+      {
+        phase: 'Phase 3: Performance Media Buying & Scaling',
+        duration: 'Week 4',
+        title: 'Performance Media Buying & Campaign Scaling',
+        description: 'Meta & TikTok Ads Campaign Structures • Bidding Strategies & Budget Allocation • Creative Fatigue Monitoring • Growth Engine Capstone Launch'
       }
     ];
   }
@@ -432,110 +519,409 @@ function getCourseAudiencePersonas(course: AcademyCourse) {
   if (slug === 'ai-automation-digital-business-systems') {
     return [
       {
-        role: 'Freelancers & Consultants',
-        desc: 'Service providers ready to stop trading hours for low fees and package recurring $1k-$3k/mo automation retainers.'
+        phase: 'Phase 1: Core Automations & Webhooks',
+        duration: 'Weeks 1 – 4',
+        title: 'Core Automations, n8n Pipelines & Webhooks',
+        description: 'Foundation Automation Workflows • Webhook Triggers & Multi-App Syncs • Autonomous Lead Enrichment • CRM & Communications Integration'
       },
       {
-        role: 'Agency Owners & Builders',
-        desc: 'Digital agencies expanding their service catalog with custom AI lead pipelines, CRM automations, and Vibe Coding.'
+        phase: 'Phase 2: Client Systems & Vibe Coding',
+        duration: 'Weeks 5 – 8',
+        title: 'Client Systems & Vibe Coding Micro-Apps',
+        description: 'Document Intelligence & Ingestion • Automated Commercial Asset Pipelines • Building Custom AI Tools via Vibe Coding • Client Workflow Portals'
       },
       {
-        role: 'Operations & IT Managers',
-        desc: 'Professionals tasked with modernizing company infrastructure and automating redundant manual workflows.'
-      },
-      {
-        role: 'Ambitious Career Professionals',
-        desc: 'Knowledge workers wanting to position themselves as the indispensable AI systems lead in their company.'
+        phase: 'Phase 3: Commercial Retainers & Capstone',
+        duration: 'Weeks 9 – 12',
+        title: 'Commercial Retainers, Sales Scripts & Capstone Launch',
+        description: 'Packaging Automation Retainers (₦200k-$2,500/mo) • Client Discovery & Proposal Templates • Enterprise Automation Capstone • Final Defense & Graduation'
       }
     ];
   }
 
-  if (slug === 'ai-automation-digital-skills') {
-    return [
-      {
-        role: 'Complete Beginners to AI',
-        desc: 'Anyone who wants to cut through the confusion and learn how to use modern AI tools step by step from zero.'
-      },
-      {
-        role: 'Office Workers & Administrators',
-        desc: 'Professionals wanting to complete reports, correspondence, and research in minutes instead of hours.'
-      },
-      {
-        role: 'Content Creators & Marketers',
-        desc: 'Writers and social managers looking to amplify their output with generative copy and multimedia workflows.'
-      },
-      {
-        role: 'Small Business Owners',
-        desc: 'Entrepreneurs who want to automate lead responses and customer communication on a lean budget.'
-      }
-    ];
-  }
+  // Fallback: ai-automation-digital-skills or generic
+  const total = syllabus.length;
+  const p1 = syllabus.slice(0, Math.ceil(total / 3));
+  const p2 = syllabus.slice(Math.ceil(total / 3), Math.ceil((2 * total) / 3));
+  const p3 = syllabus.slice(Math.ceil((2 * total) / 3));
 
-  if (track === 'Engineering & AI') {
-    return [
-      {
-        role: 'Full-Stack Developers',
-        desc: 'Engineers who want to build end-to-end AI applications, master vector databases, and implement autonomous agent patterns.'
-      },
-      {
-        role: 'Backend & Systems Engineers',
-        desc: 'Developers building resilient LLM orchestration layers, caching, and enterprise retrieval architectures.'
-      },
-      {
-        role: 'Technical Founders',
-        desc: 'Builders creating AI-native SaaS solutions who need production-grade performance from day one.'
-      },
-      {
-        role: 'Computer Science Graduates',
-        desc: 'Graduates looking to bypass entry-level queues and enter the high-compensation AI engineering space.'
-      }
-    ];
-  }
-
-  if (track === 'Executive & Leadership') {
-    return [
-      {
-        role: 'C-Suite Executives (CEO, COO, CTO)',
-        desc: 'Corporate leaders directing strategic tech investments, risk mitigation, and executive AI adoption.'
-      },
-      {
-        role: 'Business Unit Directors & VPs',
-        desc: 'Department heads tasked with improving margin efficiency and scaling departmental output through automation.'
-      },
-      {
-        role: 'Management Consultants',
-        desc: 'Advisors who need rigorous, practical frameworks to evaluate client AI readiness and ROI.'
-      },
-      {
-        role: 'Enterprise Innovation Leads',
-        desc: 'Transformation leads driving institutional change without getting trapped in vendor hype.'
-      }
-    ];
-  }
-
-  // Default personas
   return [
     {
-      role: 'Career Switchers & Up-skillers',
-      desc: 'Professionals seeking market-tested modern capabilities to accelerate their salary and career trajectory.'
+      phase: 'Phase 1: Core Foundations & Workflows',
+      duration: `${p1[0]?.week || 'Week 1'} – ${p1[p1.length - 1]?.week || 'Week 4'}`,
+      title: p1[0]?.title || 'Foundations & Tooling',
+      description: p1.map(m => m.title).join(' • ')
     },
     {
-      role: 'Freelancers & Service Providers',
-      desc: 'Solopreneurs looking to package specialized, high-margin client services with verified credentialing.'
+      phase: 'Phase 2: Practical Application & Pipelines',
+      duration: `${p2[0]?.week || 'Week 5'} – ${p2[p2.length - 1]?.week || 'Week 8'}`,
+      title: p2[0]?.title || 'Applied Problem Solving',
+      description: p2.map(m => m.title).join(' • ')
     },
     {
-      role: 'Business & Operations Leads',
-      desc: 'Operators who need hands-on competence to lead teams and build streamlined commercial workflows.'
-    },
-    {
-      role: 'Ambitious Learners & Graduates',
-      desc: 'Driven learners who want verifiable capstone portfolio evidence rather than passive video lectures.'
+      phase: 'Phase 3: Capstone Projects & Credential Defense',
+      duration: `${p3[0]?.week || 'Week 9'} – ${p3[p3.length - 1]?.week || 'Week 12'}`,
+      title: p3[p3.length - 1]?.title || 'Capstone Project & Credential Defense',
+      description: p3.map(m => m.title).join(' • ')
     }
   ];
 }
 
 // ---------------------------------------------------------------------------
-// HELPER: Course-Specific Testimonials & Social Proof
+// HELPER: Course Audience Personas
+// ---------------------------------------------------------------------------
+interface AudiencePersona {
+  role: string;
+  desc: string;
+}
+
+function getCourseAudiencePersonas(course: AcademyCourse): AudiencePersona[] {
+  const slug = course.slug;
+
+  if (slug === 'machine-learning-data-science') {
+    return [
+      {
+        role: 'Aspiring Data Scientists & ML Engineers',
+        desc: 'Individuals ready to move beyond basic reporting into predictive modeling, feature engineering, and statistical learning algorithms.'
+      },
+      {
+        role: 'Data & Business Analysts Upgrading Skills',
+        desc: 'Analysts who already know Excel or SQL and want to upgrade their compensation by mastering Python, Scikit-Learn, and automated predictive pipelines.'
+      },
+      {
+        role: 'Software Developers & Technical Builders',
+        desc: 'Engineers seeking to embed predictive machine learning models, regression forecasts, and classification capabilities into real software.'
+      },
+      {
+        role: 'STEM Graduates & Quantitative Professionals',
+        desc: 'Graduates in economics, mathematics, engineering, or sciences looking for a fast, project-backed path into commercial data science.'
+      }
+    ];
+  }
+
+  if (slug === 'data-analysis-cohort') {
+    return [
+      {
+        role: 'Career Changers & New Professionals',
+        desc: 'Individuals looking to enter the high-demand tech and data field without needing a 4-year computer science degree or complex coding background.'
+      },
+      {
+        role: 'Business, Finance & Operations Professionals',
+        desc: 'Accountants, marketers, and operations managers who want to automate manual spreadsheet tasks and build interactive Power BI dashboards.'
+      },
+      {
+        role: 'Recent University Graduates',
+        desc: 'Graduates who need verified portfolio proof—demonstrating real SQL queries and BI dashboards—to stand out immediately to hiring managers.'
+      },
+      {
+        role: 'Team Leads & Growing Entrepreneurs',
+        desc: 'Founders and managers who need to extract real-time sales, inventory, and customer intelligence from raw spreadsheets to guide revenue decisions.'
+      }
+    ];
+  }
+
+  if (slug === 'fullstack-ai-engineering') {
+    return [
+      {
+        role: 'Full-Stack & Frontend Developers',
+        desc: 'Coders who want to build end-to-end AI applications, master vector databases, and implement autonomous agent patterns with LangGraph.'
+      },
+      {
+        role: 'Backend & Systems Engineers',
+        desc: 'Engineers who want to architect resilient LLM orchestration layers, semantic caching, and enterprise retrieval systems with pgvector.'
+      },
+      {
+        role: 'Technical Founders & Builders',
+        desc: 'Founders building AI-native SaaS products who require deterministic execution, low-latency APIs, and production-grade reliability.'
+      },
+      {
+        role: 'Computer Science Graduates',
+        desc: 'CS and engineering graduates who want to bypass junior generic developer roles and enter the high-compensation AI engineering space.'
+      }
+    ];
+  }
+
+  if (slug === 'executive-ai-strategy') {
+    return [
+      {
+        role: 'C-Suite Executives (CEO, COO, CTO)',
+        desc: 'Senior leaders responsible for capital allocation, risk management, and determining where AI delivers real enterprise leverage.'
+      },
+      {
+        role: 'Business Unit Directors & VPs',
+        desc: 'Department heads tasked with improving margin efficiency and scaling departmental output through strategic AI adoption.'
+      },
+      {
+        role: 'Management Consultants & Advisors',
+        desc: 'Advisors who need rigorous, board-level frameworks to assess enterprise AI readiness, calculate ROI, and guide client transformation.'
+      },
+      {
+        role: 'Enterprise Innovation Leads',
+        desc: 'Leaders charged with driving modernization across legacy business units without getting trapped in vendor hype or compliance risks.'
+      }
+    ];
+  }
+
+  if (slug === 'enterprise-workflow-automation') {
+    return [
+      {
+        role: 'Systems & DevOps Administrators',
+        desc: 'IT and infrastructure professionals wanting to self-host n8n with Docker, manage SSL, and eliminate recurring Zapier bills.'
+      },
+      {
+        role: 'Operations & Business Process Engineers',
+        desc: 'Professionals managing cross-department data flows between CRMs, ERPs, SQL databases, and team communication channels.'
+      },
+      {
+        role: 'Backend Developers & Integrators',
+        desc: 'Coders writing custom Python nodes, webhook handlers, and database triggers to automate business events.'
+      },
+      {
+        role: 'Freelance Technical Automators',
+        desc: 'Consultants who want to architect and maintain self-hosted enterprise automation infrastructure for high-paying corporate clients.'
+      }
+    ];
+  }
+
+  if (slug === 'ai-product-design-ui-ux') {
+    return [
+      {
+        role: 'UI/UX & Digital Product Designers',
+        desc: 'Designers wanting to lead the next generation of AI-native streaming apps, latency feedback loops, and infinite canvas tools.'
+      },
+      {
+        role: 'Design Systems Leads & Specialists',
+        desc: 'Practitioners building dark-mode token architectures, scalable component libraries, and Figma variables for complex web apps.'
+      },
+      {
+        role: 'Frontend Engineers Transitioning to Product',
+        desc: 'Developers wanting to master visual hierarchy, user psychology, streaming UX patterns, and modern Figma prototyping.'
+      },
+      {
+        role: 'Design Agency Founders & Freelancers',
+        desc: 'Agencies upgrading their service menu to charge premium rates for AI product prototyping, UX audits, and design systems.'
+      }
+    ];
+  }
+
+  if (slug === 'generative-media-advertising') {
+    return [
+      {
+        role: 'Performance Marketers & Media Buyers',
+        desc: 'Growth marketers running paid social on Meta and TikTok needing massive ad creative volume to scale past $50k/mo.'
+      },
+      {
+        role: 'Creative Directors & Video Editors',
+        desc: 'Creators wanting to master Midjourney, Runway Gen-3, and ElevenLabs to slash video production timelines and costs.'
+      },
+      {
+        role: 'E-Commerce Brands & D2C Founders',
+        desc: 'Store owners wanting to produce high-converting UGC video ads and synthetic product scenes without expensive studio shoots.'
+      },
+      {
+        role: 'Digital Marketing Agencies',
+        desc: 'Agencies looking to expand client retainers with automated creative testing pipelines and algorithmic hook generation.'
+      }
+    ];
+  }
+
+  if (slug === 'ai-automation-digital-business-systems') {
+    return [
+      {
+        role: 'Freelancers & Solopreneurs',
+        desc: 'People who want to package high-demand automation systems and close ₦200,000+ to $2,500/month recurring client retainers.'
+      },
+      {
+        role: 'Agency Owners & Digital Marketers',
+        desc: 'Agencies looking to add high-margin CRM automations, lead triage bots, and Vibe Coding tools to their client menu.'
+      },
+      {
+        role: 'Operations & IT Managers',
+        desc: 'Professionals looking to modernize internal company infrastructure, connect fragmented tools, and eliminate manual busywork.'
+      },
+      {
+        role: 'Ambitious Knowledge Workers',
+        desc: 'Workers aiming to establish themselves as the indispensable systems and automation architect in their company.'
+      }
+    ];
+  }
+
+  // Default / ai-automation-digital-skills
+  return [
+    {
+      role: 'Complete Beginners to AI',
+      desc: 'Anyone feeling overwhelmed by AI who wants a structured, step-by-step path to master core prompt and productivity tools from zero.'
+    },
+    {
+      role: 'Office Workers & Administrators',
+      desc: 'Professionals looking to complete weekly reports, research, data summarization, and email drafts in minutes instead of hours.'
+    },
+    {
+      role: 'Content Creators & Marketers',
+      desc: 'Writers, designers, and marketers who want to 10x their creative output using generative copy, imagery, and audio tools.'
+    },
+    {
+      role: 'Small Business Owners',
+      desc: 'Entrepreneurs who want to leverage free and low-cost AI tools to handle customer service, marketing, and admin without hiring a team.'
+    }
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// HELPER: Course Prerequisites "What You Do NOT Need"
+// ---------------------------------------------------------------------------
+function getCoursePrerequisitesNotNeeded(course: AcademyCourse): string[] {
+  const slug = course.slug;
+
+  if (slug === 'machine-learning-data-science') {
+    return [
+      'Advanced mathematics degree or theoretical PhD',
+      'Prior machine learning or deep coding background (we teach Python from data basics)',
+      'Expensive local GPU hardware (cloud computing environments are provided)'
+    ];
+  }
+
+  if (slug === 'data-analysis-cohort') {
+    return [
+      'Prior computer science, coding, or statistics degree',
+      'Prior programming experience in Python or C++',
+      'Expensive enterprise software licenses (we use tools businesses already run on)'
+    ];
+  }
+
+  if (slug === 'fullstack-ai-engineering') {
+    return [
+      'PhD in machine learning or theoretical AI research',
+      'Prior experience with vector databases or LangGraph (we teach these from scratch)',
+      'Costly server infrastructure or local GPU rigs'
+    ];
+  }
+
+  if (slug === 'executive-ai-strategy') {
+    return [
+      'Programming, coding, or mathematical background',
+      'Technical engineering certifications or IT administration experience',
+      'Direct pipeline coding (focus is strategy, ROI, economics & governance)'
+    ];
+  }
+
+  if (slug === 'enterprise-workflow-automation') {
+    return [
+      'Advanced computer science degree or full-stack software background',
+      'Expensive recurring Zapier subscriptions (we focus on self-hosted n8n)',
+      'Physical on-premise server infrastructure'
+    ];
+  }
+
+  if (slug === 'ai-product-design-ui-ux') {
+    return [
+      'Coding or frontend software engineering background',
+      '3D rendering or motion design expertise',
+      'Paid enterprise design plugins or server setups'
+    ];
+  }
+
+  if (slug === 'generative-media-advertising') {
+    return [
+      'Film school degree or professional camera studio',
+      'Prior technical video editing expertise',
+      'Large advertising budget to practice'
+    ];
+  }
+
+  if (slug === 'ai-automation-digital-business-systems') {
+    return [
+      'Prior computer science degree or professional software background',
+      'Months of complex coding experience',
+      'Expensive proprietary software suites'
+    ];
+  }
+
+  // Default / digital skills
+  return [
+    'Prior tech or coding experience of any kind',
+    'Advanced mathematical or computer science knowledge',
+    'Expensive computer hardware'
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// HELPER: Dynamic Course Value Stack (Everything Included)
+// ---------------------------------------------------------------------------
+interface ValueStackItem {
+  title: string;
+  desc: string;
+}
+
+function getCourseValueStack(course: AcademyCourse): ValueStackItem[] {
+  const capstoneName = course.capstoneProjects[0]?.title || 'Practical Capstone Deliverable';
+  const highlights = course.highlights || [];
+
+  return [
+    {
+      title: `✅ ${course.duration} Structured Curriculum`,
+      desc: `Step-by-step masterclasses spanning ${course.weeklySyllabus.length} modules, specifically designed for ${course.title} with zero fluff and maximum real-world execution.`
+    },
+    {
+      title: `✅ Industry Capstone: ${capstoneName}`,
+      desc: course.capstoneProjects.length > 1
+        ? `Build and defend verifiable deliverables including "${capstoneName}" and "${course.capstoneProjects[1]?.title}" to anchor your professional portfolio.`
+        : `Build and defend "${capstoneName}" with direct mentor feedback to prove commercial competence.`
+    },
+    {
+      title: `✅ Official ${course.certificateType}`,
+      desc: `Verifiable ${course.certificateType} credential signed by Dean Sarumi Hammad upon graduation to showcase on your LinkedIn profile and CV.`
+    },
+    {
+      title: `✅ Direct Mentor Office Hours & Review`,
+      desc: `Interactive feedback, practical lab troubleshooting, and dedicated Q&A sessions throughout the cohort so you never get stuck.`
+    },
+    {
+      title: `✅ ${highlights[1] || 'Hands-On Domain Mastery'}`,
+      desc: highlights[2] || `Direct hands-on training with industry-standard tooling, real datasets, and production frameworks.`
+    },
+    {
+      title: `✅ ${course.format} Access & Network`,
+      desc: `Live interactive sessions, recorded replays in your student portal, complete project resources, and our active builder network.`
+    }
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// HELPER: Course Value Framing Quote
+// ---------------------------------------------------------------------------
+function getCourseValueQuote(course: AcademyCourse): string {
+  const slug = course.slug;
+
+  if (slug === 'data-analysis-cohort') {
+    return `The analytical capabilities gained in ${course.title} will pay for themselves the moment you deliver your first interactive Power BI dashboard, uncover a critical revenue leak, or secure your target data analyst role.`;
+  }
+  if (slug === 'machine-learning-data-science') {
+    return `The predictive modeling capabilities gained in ${course.title} will pay for themselves the moment you deploy your first machine learning algorithm, complete your capstone defense, or step into a high-paying data science role.`;
+  }
+  if (slug === 'fullstack-ai-engineering') {
+    return `The production engineering capabilities gained in ${course.title} will pay for themselves the moment you ship your first AI-native application, architect an autonomous agent swarm, or land a global engineering contract.`;
+  }
+  if (slug === 'executive-ai-strategy') {
+    return `The strategic governance frameworks gained in ${course.title} will pay for themselves the moment you prevent your first misallocated enterprise AI investment, establish sound data governance, or deploy high-ROI operational leverage.`;
+  }
+  if (slug === 'enterprise-workflow-automation') {
+    return `The enterprise systems capabilities gained in ${course.title} will pay for themselves the moment you replace your first recurring SaaS subscription with self-hosted n8n infrastructure or deploy a resilient cross-platform workflow.`;
+  }
+  if (slug === 'ai-product-design-ui-ux') {
+    return `The design systems and streaming UX capabilities gained in ${course.title} will pay for themselves the moment you ship your first AI-native prototype, deliver a client design system, or secure a senior product design role.`;
+  }
+  if (slug === 'generative-media-advertising') {
+    return `The programmatic creative capabilities gained in ${course.title} will pay for themselves the moment you scale your first winning ad campaign, cut video production costs by 80%, or onboard high-ticket performance marketing clients.`;
+  }
+  if (slug === 'ai-automation-digital-business-systems') {
+    return `The systems building and client acquisition skills gained in ${course.title} will pay for themselves the moment you close your first monthly retainer or deliver your first automated client infrastructure.`;
+  }
+  return `The practical digital fluency gained in ${course.title} will pay for itself the moment you automate hours of tedious weekly work, amplify your creative output, or stand out in your job applications.`;
+}
+
+// ---------------------------------------------------------------------------
+// HELPER: Course Testimonials
 // ---------------------------------------------------------------------------
 interface CourseTestimonial {
   quote: string;
@@ -547,32 +933,31 @@ interface CourseTestimonial {
 
 function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
   const slug = course.slug;
-  const track = course.track;
 
   if (slug === 'machine-learning-data-science') {
     return [
       {
         quote:
-          'I went from struggling with abstract math to building Scikit-Learn predictive pipelines and deploying a real Flask API. The capstone project was the centerpiece of my interview for an Associate ML role.',
-        author: 'Kelechi M.',
+          'Before this 18-week course, machine learning felt like an intimidating wall of pure theory and academic calculus. The curriculum broke down regression, feature engineering, and Scikit-Learn pipelines into practical steps. Defending my end-to-end predictive capstone helped me land my first role as an Associate ML Analyst.',
+        author: 'Tunde Adeyemi',
         role: 'Associate Machine Learning Analyst',
-        initials: 'KM',
+        initials: 'TA',
         gradient: 'from-blue-500 to-indigo-500'
       },
       {
         quote:
-          'The hands-on data cleaning and model evaluation modules gave me genuine competence. I stopped guessing which algorithm to use and learned how to properly validate predictive performance.',
-        author: 'Fatima B.',
+          'I spent months hopping between random online tutorials without building anything substantial. Here, building real predictive models, tuning hyperparameters, and deploying an inference API gave me a solid, tangible GitHub portfolio that hiring managers actually respected.',
+        author: 'Chiamaka Eze',
         role: 'Junior Data Scientist',
-        initials: 'FB',
+        initials: 'CE',
         gradient: 'from-purple-500 to-pink-500'
       },
       {
         quote:
-          'Structured, demanding, and intensely practical. Building an end-to-end churn prediction model during the cohort gave me the exact portfolio evidence I needed to land my first international remote contract.',
-        author: 'Tunde O.',
+          'The hybrid format with live online labs and practical feedback was game-changing. The mentors walked us through real messy datasets, taught us proper cross-validation, and helped us avoid common data leakage pitfalls. Worth every naira of the ₦60,000 tuition.',
+        author: 'Ibrahim Bello',
         role: 'Data Science Practitioner',
-        initials: 'TO',
+        initials: 'IB',
         gradient: 'from-emerald-500 to-teal-500'
       }
     ];
@@ -582,26 +967,171 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'Before this course, I only used Excel for basic tables. Now I write multi-table SQL queries and build live Power BI dashboards. I landed a promotion to Business Analyst within 3 months.',
-        author: 'Chidinma O.',
+          'I had zero coding background when I started. In 16 weeks, I went from struggling with basic Excel to writing multi-table SQL queries and building executive Power BI dashboards. I landed a full-time Business Operations Analyst role within 2 months of graduation.',
+        author: 'Blessing Okonkwo',
         role: 'Business Operations Analyst',
-        initials: 'CO',
+        initials: 'BO',
         gradient: 'from-amber-500 to-yellow-500'
       },
       {
         quote:
-          'The mentor support made all the difference. Learning relational databases and data visualization step-by-step removed all the intimidation. Highly recommended for any career switcher.',
-        author: 'Emmanuel K.',
+          'The focus on solving real business problems instead of just clicking buttons is what makes Vixora different. The capstone project was identical to the technical assessment I was given during my interviews.',
+        author: 'Emmanuel Oladipo',
         role: 'Data & BI Analyst',
-        initials: 'EK',
+        initials: 'EO',
         gradient: 'from-blue-500 to-cyan-500'
       },
       {
         quote:
-          'Having a live capstone portfolio on GitHub and Power BI Service helped me pass technical assessment tests that had previously rejected me.',
-        author: 'David K.',
+          'Mentors reviewed our SQL queries, challenged our dashboard layouts, and showed us how to present insights to leadership. That executive presentation training was what set me apart from other candidates.',
+        author: 'Zainab Mohammed',
         role: 'Financial Data Analyst',
-        initials: 'DK',
+        initials: 'ZM',
+        gradient: 'from-purple-500 to-indigo-500'
+      }
+    ];
+  }
+
+  if (slug === 'fullstack-ai-engineering') {
+    return [
+      {
+        quote:
+          'The LangGraph orchestration and pgvector search modules alone made this cohort worth 10x the price. I went from wrapping OpenAI endpoints to architecting an autonomous multi-agent research swarm that runs reliably in production.',
+        author: 'Alexandre Meyer',
+        role: 'AI Software Engineer',
+        initials: 'AM',
+        gradient: 'from-indigo-500 to-cyan-500'
+      },
+      {
+        quote:
+          'Code reviews by senior infrastructure leads were brutal and deeply educational. Learning how to handle token latency, streaming WebSockets, and self-healing evaluation loops transformed how I write software.',
+        author: 'Kavita Raman',
+        role: 'Senior Backend Engineer',
+        initials: 'KR',
+        gradient: 'from-emerald-500 to-teal-500'
+      },
+      {
+        quote:
+          'This is not a prompt engineering bootcamp. You write real TypeScript and Python microservices, deploy real vector indexes, and defend your architecture in front of seasoned engineers.',
+        author: 'David Van Der Berg',
+        role: 'Full-Stack AI Builder',
+        initials: 'DB',
+        gradient: 'from-purple-500 to-violet-500'
+      }
+    ];
+  }
+
+  if (slug === 'executive-ai-strategy') {
+    return [
+      {
+        quote:
+          'The executive AI audit and governance framework completely changed how our board evaluates vendor proposals. We avoided a costly 6-figure enterprise software mistake in month one.',
+        author: 'Dr. Olumide Adeleke',
+        role: 'Chief Technology Officer',
+        initials: 'OA',
+        gradient: 'from-amber-500 to-yellow-500'
+      },
+      {
+        quote:
+          'The ROI modeling template alone justified the tuition. We moved our operations unit from scattered employee experiments to a governed, measurable AI deployment with clear KPI tracking.',
+        author: 'Sarah Jenkins',
+        role: 'VP of Operations',
+        initials: 'SJ',
+        gradient: 'from-purple-500 to-indigo-500'
+      },
+      {
+        quote:
+          'The private executive briefings cut straight through the marketing noise. Essential strategic clarity for any leader stewarding enterprise capital and planning multi-year technological modernization.',
+        author: 'Marcus Thorne',
+        role: 'Managing Director',
+        initials: 'MT',
+        gradient: 'from-emerald-500 to-teal-500'
+      }
+    ];
+  }
+
+  if (slug === 'enterprise-workflow-automation') {
+    return [
+      {
+        quote:
+          'We migrated over 120 client workflows from Zapier to self-hosted n8n on our private cloud, saving more than $2,400 per month while unlocking custom Python logic and vector search.',
+        author: 'David Balogun',
+        role: 'Senior Systems Architect',
+        initials: 'DB',
+        gradient: 'from-blue-500 to-cyan-500'
+      },
+      {
+        quote:
+          'Learning Docker deployment, webhook security, and database triggers gave me the confidence to architect mission-critical data pipelines connecting our PostgreSQL database to HubSpot.',
+        author: 'Zainab Kabir',
+        role: 'Enterprise Integration Lead',
+        initials: 'ZK',
+        gradient: 'from-purple-500 to-indigo-500'
+      },
+      {
+        quote:
+          'The 50+ pre-built n8n enterprise workflow templates paid for the program on day one. I packaged self-hosted automation infrastructure as a new service for our enterprise clients.',
+        author: 'Roland Mensah',
+        role: 'Technical Operations Consultant',
+        initials: 'RM',
+        gradient: 'from-emerald-500 to-teal-500'
+      }
+    ];
+  }
+
+  if (slug === 'ai-product-design-ui-ux') {
+    return [
+      {
+        quote:
+          'Designing for AI is completely different from designing standard SaaS. Learning how to handle token streaming, latency states, and canvas workspaces in Figma helped me land a Senior Product Designer role at an AI startup.',
+        author: 'Jessica Taylor',
+        role: 'Lead Product Designer',
+        initials: 'JT',
+        gradient: 'from-pink-500 to-rose-500'
+      },
+      {
+        quote:
+          'The Vixora Obsidian Design Kit and token architecture are exceptional. I went from struggling with static layouts to building responsive, variable-driven AI component libraries.',
+        author: 'Ahmed Radwan',
+        role: 'Design Systems Engineer',
+        initials: 'AR',
+        gradient: 'from-purple-500 to-violet-500'
+      },
+      {
+        quote:
+          'Client expectations for AI interfaces are evolving rapidly. This course gave me the exact portfolio proof—an interactive AI canvas and design system—that won my biggest client project to date.',
+        author: 'Folake Davies',
+        role: 'Freelance UX Consultant',
+        initials: 'FD',
+        gradient: 'from-blue-500 to-indigo-500'
+      }
+    ];
+  }
+
+  if (slug === 'generative-media-advertising') {
+    return [
+      {
+        quote:
+          'We scaled our Meta ad spend from $15k to over $60k per month by testing 40+ generative video variations weekly. Our customer acquisition cost dropped by 34%.',
+        author: 'Daniel Evans',
+        role: 'Performance Marketing Lead',
+        initials: 'DE',
+        gradient: 'from-amber-500 to-orange-500'
+      },
+      {
+        quote:
+          'Creating photorealistic product scenes and synthetic UGC video in Runway and Midjourney cut our client video production timeline from three weeks to 48 hours.',
+        author: 'Chioma Valentine',
+        role: 'E-commerce Agency Founder',
+        initials: 'CV',
+        gradient: 'from-emerald-500 to-teal-500'
+      },
+      {
+        quote:
+          'The programmatic creative testing framework is gold. Instead of guessing which creative hook converts, we test systematic visual angles that reliably find winning ads.',
+        author: 'Liam O’Connor',
+        role: 'Paid Social Media Buyer',
+        initials: 'LO',
         gradient: 'from-purple-500 to-indigo-500'
       }
     ];
@@ -611,114 +1141,56 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'I closed my first ₦200,000 automation project for a real estate client two months into the program. The proposal templates and n8n modules paid for the course many times over.',
-        author: 'Femi A.',
+          'I closed my first ₦350,000 monthly automation retainer in week 8 of this program using the exact client acquisition scripts Dean Hammad shared. The n8n lead routing pipeline we built paid for my entire setup.',
+        author: 'Kelechi Nwosu',
         role: 'Freelance Automation Specialist',
-        initials: 'FA',
+        initials: 'KN',
         gradient: 'from-purple-500 to-indigo-500'
       },
       {
         quote:
-          'The mentorship alone was priceless. I stopped guessing and started building reliable multi-step workflows connecting CRMs, webhooks, and AI document parsing that clients eagerly pay for.',
-        author: 'Ngozi E.',
-        role: 'Agency Founder & Automation Lead',
-        initials: 'NE',
+          'The jump from simple prompt tools to building real business infrastructure changed everything for my agency. Clients do not care about ChatGPT tricks; they care about systems that save them 20 hours a week.',
+        author: 'Fatima Sanusi',
+        role: 'Agency Founder',
+        initials: 'FS',
         gradient: 'from-emerald-500 to-teal-500'
       },
       {
         quote:
-          'This is the clear difference between knowing AI tools and getting paid for AI. The client acquisition framework turned my technical skill into predictable monthly retainer income.',
-        author: 'David K.',
-        role: 'Systems & AI Consultant',
-        initials: 'DK',
+          'The Vibe Coding module alone gave me the ability to build custom micro-tools for my clients without waiting on developers. Hands down the highest ROI educational investment I have made.',
+        author: 'Damilola Adeleke',
+        role: 'Systems Consultant',
+        initials: 'DA',
         gradient: 'from-amber-500 to-yellow-500'
       }
     ];
   }
 
-  if (slug === 'ai-automation-digital-skills') {
-    return [
-      {
-        quote:
-          'I went from being totally confused by AI to building practical automations for my business. I save at least 10 hours a week on customer replies and report generation.',
-        author: 'Blessing U.',
-        role: 'Small Business Owner',
-        initials: 'BU',
-        gradient: 'from-pink-500 to-rose-500'
-      },
-      {
-        quote:
-          'I added practical AI automation skills to my CV after graduation and got called for 3 interviews in two weeks. It set me apart from everyone else applying.',
-        author: 'Tunde A.',
-        role: 'Operations Coordinator',
-        initials: 'TA',
-        gradient: 'from-blue-500 to-cyan-500'
-      },
-      {
-        quote:
-          'The 12 weeks flew by. Hands-on labs, patient instructors, and real templates. Best educational investment I made this year.',
-        author: 'Sarah M.',
-        role: 'Digital Content Creator',
-        initials: 'SM',
-        gradient: 'from-purple-500 to-indigo-500'
-      }
-    ];
-  }
-
-  if (track === 'Engineering & AI') {
-    return [
-      {
-        quote:
-          'Building production-grade autonomous agents and multi-stage RAG systems in this cohort took my engineering skill to a global standard.',
-        author: 'Chinedu E.',
-        role: 'AI Software Engineer',
-        initials: 'CE',
-        gradient: 'from-indigo-500 to-cyan-500'
-      },
-      {
-        quote:
-          'The rigorous focus on latency, semantic caching, and real evaluation suites bridged the gap between toy AI wrappers and enterprise software.',
-        author: 'Alexandre P.',
-        role: 'Senior Backend Engineer',
-        initials: 'AP',
-        gradient: 'from-emerald-500 to-teal-500'
-      },
-      {
-        quote:
-          'Direct code reviews from experienced AI architects pushed me to write clean, maintainable TypeScript and Python AI services.',
-        author: 'Tariq H.',
-        role: 'Full-Stack AI Builder',
-        initials: 'TH',
-        gradient: 'from-purple-500 to-violet-500'
-      }
-    ];
-  }
-
-  // Fallback for other courses
+  // Default / ai-automation-digital-skills
   return [
     {
       quote:
-        `The structured training and practical assignments in ${course.title} gave me the confidence and portfolio to achieve immediate results in my daily work.`,
-      author: 'Adeola S.',
-      role: 'Program Graduate',
-      initials: 'AS',
+        'I was completely overwhelmed by AI tools before this cohort. In 12 weeks, I learned how to automate my daily emails, write research briefs, and produce branded marketing materials in minutes. It completely changed how I work.',
+      author: 'Grace Okafor',
+      role: 'Operations Coordinator',
+      initials: 'GO',
+      gradient: 'from-pink-500 to-rose-500'
+    },
+    {
+      quote:
+        'As a small business owner, I could not afford an expensive marketing agency. Learning generative image workflows and AI customer reply systems saved me over ₦150,000 every single month in freelance fees.',
+      author: 'Oluwaseun Bakare',
+      role: 'Small Business Owner',
+      initials: 'OB',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      quote:
+        'The step-by-step guidance from scratch was exactly what I needed. No confusing technical jargon—just clear, practical tools that I started using on my job from week two.',
+      author: 'Amina Yusuf',
+      role: 'Digital Content Creator',
+      initials: 'AY',
       gradient: 'from-purple-500 to-indigo-500'
-    },
-    {
-      quote:
-        'Zero fluff, direct mentor interaction, and real-world project deliverables. Vixora Academy delivers unmatched practical depth.',
-      author: 'Michael B.',
-      role: 'Industry Specialist',
-      initials: 'MB',
-      gradient: 'from-amber-500 to-yellow-500'
-    },
-    {
-      quote:
-        'The verifiable certificate and hands-on capstone gave me immediate credibility with leadership and external clients.',
-      author: 'Chioma N.',
-      role: 'Growth & Operations Specialist',
-      initials: 'CN',
-      gradient: 'from-emerald-500 to-teal-500'
     }
   ];
 }
@@ -745,13 +1217,13 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
       },
       {
         course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
-        relationType: 'Advanced Upsell',
-        pitch: 'Scale your predictive models into full-stack autonomous AI applications with production LLM pipelines and cloud deployment.'
+        relationType: 'Natural Next Progression',
+        pitch: 'Scale your predictive models into full-stack autonomous AI applications with production LLM pipelines, vector databases, and cloud deployment.'
       },
       {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
+        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
         relationType: 'Companion Specialization',
-        pitch: 'Connect your predictive insights directly into automated client business workflows and high-margin retainers.'
+        pitch: 'Deploy self-hosted n8n pipelines to automate data extraction, trigger your predictive ML models, and sync scored predictions back to production databases.'
       }
     ];
   }
@@ -764,14 +1236,114 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
         pitch: 'The natural step after descriptive analytics: move from reporting past numbers into training predictive machine learning models.'
       },
       {
-        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
-        relationType: 'Companion Specialization',
-        pitch: 'Automate repetitive reporting tasks and customer communication with practical AI prompt & workflow tools.'
-      },
-      {
         course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
         relationType: 'Advanced Upsell',
-        pitch: 'Build automated data pipelines that extract, transform, and sync database records across enterprise tools using n8n.'
+        pitch: 'Build automated data pipelines that extract, transform, and sync database records across enterprise tools using self-hosted n8n.'
+      },
+      {
+        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        relationType: 'Companion Specialization',
+        pitch: 'Learn how to build custom interactive data apps, vector search engines, and analytics dashboards with modern full-stack web frameworks.'
+      }
+    ];
+  }
+
+  if (slug === 'fullstack-ai-engineering') {
+    return [
+      {
+        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
+        relationType: 'Companion Specialization',
+        pitch: 'Deepen your foundational statistical understanding, feature engineering, and model training capabilities behind AI systems.'
+      },
+      {
+        course: all.find(c => c.slug === 'ai-product-design-ui-ux') || all[6],
+        relationType: 'Companion Specialization',
+        pitch: 'Master the streaming UI patterns, canvas workspaces, and Figma design systems needed to build world-class user interfaces for your AI agents.'
+      },
+      {
+        course: all.find(c => c.slug === 'executive-ai-strategy') || all[4],
+        relationType: 'Advanced Upsell',
+        pitch: 'Learn how to pitch, budget, and align complex AI engineering initiatives with corporate C-suite executives and board members.'
+      }
+    ];
+  }
+
+  if (slug === 'executive-ai-strategy') {
+    return [
+      {
+        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
+        relationType: 'Companion Specialization',
+        pitch: 'Discover how self-hosted n8n and unmetered integration pipelines eliminate recurring SaaS fees and protect sensitive corporate data.'
+      },
+      {
+        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        relationType: 'Advanced Upsell',
+        pitch: 'Upskill your senior technical staff to architect resilient, scalable AI engineering infrastructure and autonomous agents.'
+      },
+      {
+        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
+        relationType: 'Companion Specialization',
+        pitch: 'Ensure operational teams have strong data literacy in SQL and Power BI to support enterprise AI readiness and KPI reporting.'
+      }
+    ];
+  }
+
+  if (slug === 'enterprise-workflow-automation') {
+    return [
+      {
+        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
+        relationType: 'Companion Specialization',
+        pitch: 'Combine automated n8n data flows with SQL data warehouses and executive Power BI dashboards for full-cycle business intelligence.'
+      },
+      {
+        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
+        relationType: 'Advanced Upsell',
+        pitch: 'Trigger machine learning models and predictive scoring endpoints directly from your self-hosted enterprise pipelines.'
+      },
+      {
+        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        relationType: 'Advanced Upsell',
+        pitch: 'Graduate from workflow orchestration to engineering custom full-stack autonomous AI systems with Python and TypeScript.'
+      }
+    ];
+  }
+
+  if (slug === 'ai-product-design-ui-ux') {
+    return [
+      {
+        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        relationType: 'Natural Next Progression',
+        pitch: 'Bridge Figma prototypes into functioning full-stack AI applications with React, TypeScript, and API integrations.'
+      },
+      {
+        course: all.find(c => c.slug === 'generative-media-advertising') || all[7],
+        relationType: 'Companion Specialization',
+        pitch: 'Generate high-fidelity marketing assets, synthetic UGC videos, and campaign visuals for the digital products you design.'
+      },
+      {
+        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
+        relationType: 'Prerequisite Foundation',
+        pitch: 'Build solid foundational fluency in core prompting, visual AI, and productivity automation tools.'
+      }
+    ];
+  }
+
+  if (slug === 'generative-media-advertising') {
+    return [
+      {
+        course: all.find(c => c.slug === 'ai-product-design-ui-ux') || all[6],
+        relationType: 'Companion Specialization',
+        pitch: 'Design high-converting landing pages, interactive product prototypes, and coherent visual design systems for your ad campaigns.'
+      },
+      {
+        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
+        relationType: 'Advanced Upsell',
+        pitch: 'Automate customer lead capture, CRM onboarding, and invoice distribution from your high-converting advertising funnels.'
+      },
+      {
+        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
+        relationType: 'Prerequisite Foundation',
+        pitch: 'Gain versatile general AI productivity and visual workflow skills at an accessible rate.'
       }
     ];
   }
@@ -780,7 +1352,7 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
     return [
       {
         course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
-        relationType: 'Advanced Upsell',
+        relationType: 'Natural Next Progression',
         pitch: 'The high-touch implementation tier: master n8n, Vibe Coding, client acquisition scripts, and closing ₦200,000+ monthly retainers.'
       },
       {
@@ -801,117 +1373,17 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
       {
         course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
         relationType: 'Prerequisite Foundation',
-        pitch: 'Recommended starting point if you are a complete beginner seeking to build confidence with core AI tools before client delivery.'
+        pitch: 'Recommended starting point if you need to build foundational confidence with core AI tools before client delivery.'
+      },
+      {
+        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
+        relationType: 'Advanced Upsell',
+        pitch: 'Scale from freelance client tools into self-hosted, unmetered enterprise n8n infrastructure with custom Python logic.'
       },
       {
         course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
         relationType: 'Advanced Upsell',
         pitch: 'Graduate from low-code platforms to building custom full-stack autonomous AI systems with Python and TypeScript.'
-      },
-      {
-        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
-        relationType: 'Companion Specialization',
-        pitch: 'Add predictive analytics and machine learning algorithms to your business consulting and automation proposals.'
-      }
-    ];
-  }
-
-  if (slug === 'fullstack-ai-engineering') {
-    return [
-      {
-        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
-        relationType: 'Companion Specialization',
-        pitch: 'Deepen your foundational statistical understanding, feature engineering, and model training capabilities.'
-      },
-      {
-        course: all.find(c => c.slug === 'executive-ai-strategy') || all[4],
-        relationType: 'Advanced Upsell',
-        pitch: 'Learn how to pitch, budget, and align complex AI engineering initiatives with corporate C-suite executives.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
-        relationType: 'Companion Specialization',
-        pitch: 'Deploy rapid client business solutions using low-code automation tools alongside your custom code.'
-      }
-    ];
-  }
-
-  if (slug === 'executive-ai-strategy') {
-    return [
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
-        relationType: 'Companion Specialization',
-        pitch: 'Sponsor key operational managers to master practical automation workflows and department-level implementation.'
-      },
-      {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
-        relationType: 'Advanced Upsell',
-        pitch: 'Upskill your senior technical staff to architect resilient, scalable AI engineering infrastructure.'
-      },
-      {
-        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
-        relationType: 'Companion Specialization',
-        pitch: 'Ensure operational teams have strong data literacy in SQL and Power BI to support enterprise AI readiness.'
-      }
-    ];
-  }
-
-  if (slug === 'enterprise-workflow-automation') {
-    return [
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
-        relationType: 'Natural Next Progression',
-        pitch: 'Learn the commercial side of automation: client acquisition, discovery calls, and selling monthly retainers.'
-      },
-      {
-        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
-        relationType: 'Companion Specialization',
-        pitch: 'Combine automated n8n data flows with SQL data warehouses and executive Power BI dashboards.'
-      },
-      {
-        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
-        relationType: 'Advanced Upsell',
-        pitch: 'Trigger machine learning models and predictive scoring endpoints directly from your enterprise workflows.'
-      }
-    ];
-  }
-
-  if (slug === 'ai-product-design-ui-ux') {
-    return [
-      {
-        course: all.find(c => c.slug === 'generative-media-advertising') || all[7],
-        relationType: 'Companion Specialization',
-        pitch: 'Generate high-fidelity marketing assets, UGC videos, and campaign visuals for the products you design.'
-      },
-      {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
-        relationType: 'Advanced Upsell',
-        pitch: 'Bridge UI/UX design with full-stack engineering to build your own functional AI product prototypes.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
-        relationType: 'Prerequisite Foundation',
-        pitch: 'Build solid foundational fluency in core prompting, visual AI, and productivity automation tools.'
-      }
-    ];
-  }
-
-  if (slug === 'generative-media-advertising') {
-    return [
-      {
-        course: all.find(c => c.slug === 'ai-product-design-ui-ux') || all[6],
-        relationType: 'Companion Specialization',
-        pitch: 'Design stunning user experiences, landing pages, and interactive product prototypes for ad campaigns.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
-        relationType: 'Prerequisite Foundation',
-        pitch: 'Gain versatile general AI productivity and visual workflow skills at an accessible rate.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
-        relationType: 'Advanced Upsell',
-        pitch: 'Automate customer lead capture, CRM onboarding, and invoice distribution from your advertising funnels.'
       }
     ];
   }
@@ -1036,6 +1508,9 @@ export function CourseLandingPage({
   const problem = getCourseProblemData(course);
   const transformationPhases = getCourseTransformationPhases(course);
   const audiencePersonas = getCourseAudiencePersonas(course);
+  const prerequisitesNotNeeded = getCoursePrerequisitesNotNeeded(course);
+  const valueStack = getCourseValueStack(course);
+  const valueQuote = getCourseValueQuote(course);
   const testimonials = getCourseTestimonials(course);
   const relatedCourses = getRelatedCourses(course);
 
@@ -1537,15 +2012,11 @@ export function CourseLandingPage({
                 <X className="w-4 h-4 text-rose-400" /> What You Do NOT Need
               </div>
               <ul className="space-y-2 text-xs sm:text-sm text-neutral-300">
-                <li className="flex items-center gap-2">
-                  <span className="text-rose-400 font-bold">&times;</span> Prior computer science degree or PhD
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-rose-400 font-bold">&times;</span> Years of complex coding background
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-rose-400 font-bold">&times;</span> Expensive high-end computing servers
-                </li>
+                {prerequisitesNotNeeded.map((item, idx) => (
+                  <li key={idx} className="flex items-center gap-2">
+                    <span className="text-rose-400 font-bold">&times;</span> {item}
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -1582,47 +2053,14 @@ export function CourseLandingPage({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-              <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ {course.duration} Structured Curriculum</div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Step-by-step masterclasses spanning {course.weeklySyllabus.length} modules, designed with zero fluff and maximum real-world execution.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-              <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ Portfolio Capstone Project</div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Build real-world client-ready deliverables: {course.capstoneProjects[0]?.title || 'A practical capstone project'} to display in your portfolio.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-              <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ Official Accredited Certificate</div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Verifiable {course.certificateType} signed by Dean Sarumi Hammad to showcase on your LinkedIn profile and CV.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-              <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ Mentor Office Hours & Q&A</div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Direct guidance, code reviews, and live Q&A sessions throughout the cohort so you never get stuck.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-              <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ Real Business Commercial Context</div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Learn not just the tools, but how they translate into billable freelance services, promotions, or commercial projects.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-              <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ Hybrid Access & Community</div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Access live virtual sessions, interactive practical labs, recorded replays, and our active builder network.
-              </p>
-            </div>
+            {valueStack.map((item, idx) => (
+              <div key={idx} className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
+                <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ {item.title}</div>
+                <p className="text-xs text-neutral-300 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
           </div>
 
         </div>
@@ -1929,7 +2367,7 @@ export function CourseLandingPage({
           {/* Value Framing Quote Box */}
           <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-950/60 via-[#180E38] to-indigo-950/60 border border-purple-800/40 text-center max-w-3xl mx-auto space-y-3">
             <p className="text-sm sm:text-base text-neutral-200 leading-relaxed font-medium italic">
-              "The commercial capabilities gained in {course.title} will pay for themselves the moment you implement your first automated solution, deliver your first project, or secure your target role."
+              "{valueQuote}"
             </p>
             <div className="pt-2 flex justify-center">
               <WhatsAppContactButton
