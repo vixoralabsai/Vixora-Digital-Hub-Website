@@ -52,6 +52,11 @@ export const IssueCertificatePanel: React.FC<IssueCertificatePanelProps> = ({
 
   const predefinedCourses = [
     {
+      title: 'Machine Learning & Data Science',
+      spec: 'Predictive Modeling, Scikit-Learn & Feature Engineering',
+      defaultCap: 'End-to-End Predictive Machine Learning Pipeline & Model Deployment'
+    },
+    {
       title: 'Autonomous AI Systems & Scalable Architecture',
       spec: 'Multi-Agent LLM Pipelines & Cloud Orchestration',
       defaultCap: 'Self-Healing Enterprise Support & Document Intelligence Swarm'

@@ -124,7 +124,8 @@ export interface AcademyCourse {
   title: string;
   subtitle: string;
   badge: string;
-  level: 'All Levels' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Executive';
+  level: 'All Levels' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Executive' | 'Beginner to Intermediate';
+  status?: 'active' | 'archived' | 'upcoming';
   track: 'Data & Analytics' | 'Engineering & AI' | 'Executive & Leadership' | 'Business Automation' | 'Design & Marketing';
   format: string;
   duration: string;
@@ -1759,6 +1760,219 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
       }
     ],
     certificateType: "Vixora Certified Growth & Media Specialist"
+  },
+  {
+    id: "course-machine-learning-data-science",
+    slug: "machine-learning-data-science",
+    title: "Machine Learning & Data Science",
+    subtitle: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.",
+    badge: "🔥 Practical 18-Week Hybrid Cohort",
+    level: "Beginner to Intermediate",
+    status: "active",
+    track: "Data & Analytics",
+    format: "Hybrid",
+    duration: "18 weeks",
+    commitment: "5-6 hrs/week (Interactive Sessions & Practical Labs)",
+    nextCohortDate: "November 16, 2026",
+    tuition: "₦60,000",
+    tuitionNote: "Practical 18-week hybrid cohort fee: ₦60,000. Limited seats available.",
+    seatsRemaining: 12,
+    targetAudience: "Aspiring Data Scientists, Data Analysts, Software Developers, STEM Graduates, and Professionals looking to build predictive models.",
+    description: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.",
+    heroPitch: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. Master data analysis, feature engineering, and predictive algorithms in 18 weeks.",
+    highlights: [
+      "18 weeks of comprehensive, practical training with zero fluff",
+      "Covers data analysis fundamentals, statistical modeling, Scikit-Learn, and ML algorithms",
+      "Hands-on portfolio projects: Exploratory Data Analysis, Predictive Modeling, and Model Deployment",
+      "End-to-end Final Capstone: Build, evaluate, and defend an industry-ready predictive system",
+      "Official Vixora Certificate of Completion upon graduation",
+      "Hybrid learning format with online live labs and practical workshop sessions",
+      "Mentorship from experienced data science and machine learning practitioners"
+    ],
+    outcomes: [
+      "Clean, explore, and analyze complex multi-dimensional datasets using Python, Pandas, and NumPy",
+      "Perform rigorous exploratory data analysis (EDA) and create executive-ready statistical charts",
+      "Engineer predictive features, handle missing data, perform categorical encoding, and normalize numerical signals",
+      "Train and evaluate regression models (Linear, Ridge, Lasso) and classification models (Logistic, SVM, Decision Trees, Random Forests)",
+      "Apply cross-validation, hyperparameter optimization, and evaluate precision, recall, F1, ROC-AUC, and RMSE metrics",
+      "Build unsupervised learning pipelines with K-Means clustering and PCA dimensionality reduction",
+      "Package and deploy predictive ML models as reusable pipelines and portfolio showcases"
+    ],
+    prerequisites: [
+      "A laptop with internet access",
+      "Basic computer literacy and numeracy",
+      "Curiosity and enthusiasm for working with real datasets (no advanced math or prior ML coding required)"
+    ],
+    curriculum: [
+      "Module 1 — Foundations of Data Science & Python for Analysis",
+      "Module 2 — Data Ingestion, Manipulation & Exploration with Pandas",
+      "Module 3 — Exploratory Data Analysis (EDA) & Data Visualization",
+      "Module 4 — Applied Probability, Statistics & Hypothesis Testing",
+      "Module 5 — Data Preprocessing, Cleaning & Imputation Workflows",
+      "Module 6 — Feature Engineering, Scaling & Encoding Strategies",
+      "Module 7 — Introduction to Machine Learning & Supervised Learning Concepts",
+      "Module 8 — Regression Algorithms (Linear, Polynomial & Regularized)",
+      "Module 9 — Classification Algorithms (Logistic Regression, KNN & SVM)",
+      "Module 10 — Decision Trees, Random Forests & Ensemble Methods",
+      "Module 11 — Model Evaluation, Cross-Validation & Diagnostics",
+      "Module 12 — Hyperparameter Optimization & Pipeline Orchestration",
+      "Module 13 — Unsupervised Learning (K-Means, Hierarchical Clustering & PCA)",
+      "Module 14 — Time Series Analysis & Sequential Forecasting",
+      "Module 15 — Model Explainability, Bias & Feature Importance (SHAP/LIME)",
+      "Module 16 — Model Deployment, Serialization & REST APIs",
+      "Module 17 — Capstone Development & Real-World Dataset Defense",
+      "Module 18 — Machine Learning Career, Portfolio Packaging & Technical Interviews"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 1-2",
+        title: "Foundations of Data Science & Python for Analysis",
+        description: "Set up the Python data science environment, master Jupyter Notebooks, core Python syntax, data structures, functions, and algorithmic thinking for data manipulation.",
+        topics: [
+          "Data science ecosystem overview: Roles, workflows, and business applications",
+          "Python syntax, variables, lists, dictionaries, tuples, and control flow",
+          "Writing reusable functions, list comprehensions, and error handling",
+          "Working with Jupyter Notebooks, VS Code, and virtual environments"
+        ],
+        handsOnLab: "Build an interactive CLI and notebook script to parse and clean raw business sales transaction records."
+      },
+      {
+        week: "Weeks 3-4",
+        title: "Data Manipulation & Exploration with Pandas and NumPy",
+        description: "Master multi-dimensional numerical computing with NumPy and tabular data operations with Pandas. Filter, aggregate, slice, and transform complex business datasets.",
+        topics: [
+          "NumPy arrays, vectorization, mathematical operations, and broadcasting",
+          "Pandas Series and DataFrames: Indexing, filtering, sorting, and grouping",
+          "Merging, joining, concatenating, and reshaping tabular datasets",
+          "Time series indexing and rolling statistical calculations in Pandas"
+        ],
+        handsOnLab: "Load, reshape, and calculate multi-store sales trends and customer lifetime metrics on an authentic multi-table retail dataset."
+      },
+      {
+        week: "Weeks 5-6",
+        title: "Exploratory Data Analysis (EDA) & Statistical Visualization",
+        description: "Learn to visually discover hidden patterns, distributions, correlations, and anomalies in data using Matplotlib, Seaborn, and statistical tests.",
+        topics: [
+          "Visualization principles, color theory, and chart selection for analytics",
+          "Histograms, box plots, scatter plots, pair plots, and correlation heatmaps",
+          "Detecting outliers, skewed distributions, and multi-modal phenomena",
+          "Formulating hypotheses and testing differences in groups (t-tests, ANOVA, Chi-square)"
+        ],
+        handsOnLab: "Perform an exhaustive Exploratory Data Analysis on a real-world healthcare dataset and compile executive visual findings."
+      },
+      {
+        week: "Weeks 7-8",
+        title: "Data Cleaning, Preprocessing & Feature Engineering",
+        description: "Transform raw, noisy, imperfect datasets into pristine feature matrices ready for machine learning algorithms.",
+        topics: [
+          "Handling missing data: Mean, median, KNN imputation, and indicator flags",
+          "Categorical encoding: One-hot encoding, target encoding, and ordinal mapping",
+          "Numerical scaling: Min-Max normalization, StandardScaler, and RobustScaler",
+          "Feature creation: Polynomial interactions, domain ratios, and text token features"
+        ],
+        handsOnLab: "Build a robust Scikit-Learn data cleaning and feature engineering ColumnTransformer pipeline."
+      },
+      {
+        week: "Weeks 9-10",
+        title: "Supervised Learning: Regression & Classification Algorithms",
+        description: "Understand mathematical foundations, intuition, assumptions, and practical implementation of core predictive models.",
+        topics: [
+          "Supervised learning mechanics: Loss functions, cost optimization, and gradient descent",
+          "Linear regression, Ridge, Lasso, and ElasticNet regularization",
+          "Logistic regression for binary and multi-class classification",
+          "K-Nearest Neighbors (KNN), Naive Bayes, and Support Vector Machines (SVM)"
+        ],
+        handsOnLab: "Train and compare multiple regression models to predict housing prices, evaluating bias-variance tradeoffs."
+      },
+      {
+        week: "Weeks 11-12",
+        title: "Ensemble Methods, Decision Trees & Random Forests",
+        description: "Dive deep into non-linear modeling, tree-based splits, bagging, boosting, and gradient boosted trees.",
+        topics: [
+          "Decision Trees: Information gain, Gini impurity, tree pruning, and depth constraints",
+          "Random Forests: Bootstrap aggregation, out-of-bag error, and feature importances",
+          "Gradient Boosting mechanics: XGBoost, LightGBM, and CatBoost overviews",
+          "Handling severe class imbalances using SMOTE, class weights, and threshold tuning"
+        ],
+        handsOnLab: "Build a customer churn prediction engine achieving >90% precision on an imbalanced telecom dataset."
+      },
+      {
+        week: "Weeks 13-14",
+        title: "Model Evaluation, Diagnostics & Hyperparameter Tuning",
+        description: "Master rigorous evaluation frameworks that prevent data leakage and ensure real-world model reliability.",
+        topics: [
+          "K-Fold Cross-Validation, Stratified splits, and TimeSeriesSplit",
+          "Confusion matrices, Precision, Recall, F1-Score, ROC-AUC, and PR-AUC curves",
+          "Regression metrics: MAE, MSE, RMSE, R-squared, and MAPE",
+          "Systematic tuning with GridSearchCV, RandomizedSearchCV, and Bayesian optimization"
+        ],
+        handsOnLab: "Run hyperparameter optimization sweeps and diagnose learning curves for high-stakes credit risk scoring."
+      },
+      {
+        week: "Weeks 15-16",
+        title: "Unsupervised Learning, Clustering & Model Explainability",
+        description: "Extract patterns without labels and decode 'black box' machine learning decisions for stakeholders.",
+        topics: [
+          "K-Means clustering, Elbow method, and Silhouette analysis",
+          "Principal Component Analysis (PCA) for dimensionality reduction and visualization",
+          "Interpreting predictions with SHAP (Shapley Additive exPlanations) and LIME",
+          "Model governance, algorithmic fairness, and ethical data science principles"
+        ],
+        handsOnLab: "Segment an e-commerce customer base using K-Means and generate individualized SHAP explanations for high-value shoppers."
+      },
+      {
+        week: "Weeks 17-18",
+        title: "Model Deployment, Capstone Defense & Career Readiness",
+        description: "Package models into reproducible artifacts, serve predictions through REST APIs, defend the final capstone, and package a job-ready portfolio.",
+        topics: [
+          "Model serialization with Joblib and ONNX",
+          "Creating high-performance inference endpoints with FastAPI",
+          "Docker containerization basics and cloud deployment walkthrough",
+          "Structuring a standout GitHub data science portfolio and technical interview preparation"
+        ],
+        handsOnLab: "Deploy an end-to-end predictive API with FastAPI and defend the final Capstone Project before the academy review board."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "End-to-End Predictive Machine Learning & Business Intelligence Engine",
+        description: "An industry-scale predictive modeling system that ingests real-world data, cleans and extracts features, trains and benchmarks multiple ML models, and presents predictions via an interactive dashboard.",
+        technologies: ["Python", "Pandas", "Scikit-Learn", "FastAPI", "Streamlit", "Matplotlib"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Marcus Sterling",
+        role: "Head of Data Systems & Analytics, Vixora",
+        bio: "10+ years engineering enterprise data pipelines, statistical modeling, and predictive analytics platforms.",
+        companyBackground: "Vixora Analytics Collective"
+      },
+      {
+        name: "Dr. Adebayo Vance",
+        role: "Principal AI Architect, Vixora Labs",
+        bio: "Former Lead AI Research Scientist with expertise in applied machine learning, neural networks, and scalable model inference.",
+        companyBackground: "Vixora Labs"
+      }
+    ],
+    faqs: [
+      {
+        q: "What is the format and duration of this course?",
+        a: "The course is 18 weeks long and delivered in a practical Hybrid format combining interactive online classes, hands-on lab assignments, and project mentorship."
+      },
+      {
+        q: "What is the tuition fee for the 18-week course?",
+        a: "Tuition is ₦60,000 for the full 18-week program, covering all course materials, practical labs, instructor mentorship, and the official Vixora certificate."
+      },
+      {
+        q: "Do I need a background in advanced mathematics or programming?",
+        a: "No. The course begins with foundational Python and data handling before progressing into machine learning algorithms and workflows step by step."
+      },
+      {
+        q: "Will I receive an official certificate upon completion?",
+        a: "Yes. Graduates who fulfill the coursework and successfully defend their final capstone project receive an official cryptographically verifiable Vixora Certificate of Completion."
+      }
+    ],
+    certificateType: "Official Vixora Certified Machine Learning & Data Science Specialist"
   }
 ];
 

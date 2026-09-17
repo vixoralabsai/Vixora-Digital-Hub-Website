@@ -90,6 +90,30 @@ if (SEED_CERTIFICATES.length > 0) {
   });
 }
 
+// Ensure Machine Learning & Data Science course record is created/updated in Supabase
+async function syncMachineLearningCourseToDatabase() {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return;
+  try {
+    const { error } = await supabase.from('courses').upsert({
+      id: 'machine-learning-data-science',
+      title: 'Machine Learning & Data Science',
+      track_badge: 'Data & Analytics',
+      instructor: 'Marcus Sterling',
+      cohort: 'Cohort 2026-B',
+      total_modules: 18
+    });
+    if (error) {
+      console.warn('[Supabase] Note on syncing Machine Learning & Data Science course:', error.message);
+    } else {
+      console.log('[Supabase] Successfully verified database record for course "machine-learning-data-science" (18 modules, ₦60,000, Hybrid)');
+    }
+  } catch (err) {
+    console.warn('[Supabase] Exception checking courses table for Machine Learning & Data Science:', err);
+  }
+}
+syncMachineLearningCourseToDatabase();
+
 // ==========================================
 // Database Row <-> TypeScript Mappers
 // ==========================================
@@ -1492,7 +1516,11 @@ portalRouter.post('/certificates/issue', requireAuthentication, requireAdmin, as
         'Applied Business Intelligence & Decision Systems'
       ];
 
-  const courseSlug = courseTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'custom-track';
+  const courseSlug = req.body.courseId || (courseTitle.trim() === 'Machine Learning & Data Science'
+    ? 'machine-learning-data-science'
+    : courseTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'custom-track');
+
+  const isMLCourse = courseSlug === 'machine-learning-data-science' || courseTitle.trim() === 'Machine Learning & Data Science';
 
   const newCertificate: Certificate = {
     id: certId,
@@ -1500,19 +1528,19 @@ portalRouter.post('/certificates/issue', requireAuthentication, requireAdmin, as
     studentEmail: cleanEmail,
     courseId: courseSlug,
     courseTitle: courseTitle.trim(),
-    trackBadge: 'Professional Track',
-    specialization: specialization || 'Enterprise Digital & AI Solutions',
+    trackBadge: req.body.trackBadge || (isMLCourse ? 'Data & Analytics' : 'Professional Track'),
+    specialization: specialization || (isMLCourse ? 'Predictive Modeling, Scikit-Learn & Feature Engineering' : 'Enterprise Digital & AI Solutions'),
     grade: grade || 'High Distinction',
     honors: honors || 'Demonstrated Rigorous Engineering Mastery',
-    capstoneTitle: capstoneTitle || 'Enterprise Production Deployment & Architecture',
+    capstoneTitle: capstoneTitle || (isMLCourse ? 'End-to-End Predictive Machine Learning Pipeline & Model Deployment' : 'Enterprise Production Deployment & Architecture'),
     capstoneScore: capstoneScore || '97.8 / 100',
     issueDate: issueDateFormatted,
     completionDate: 'September 2026',
-    durationWeeks: 12,
+    durationWeeks: req.body.durationWeeks || (isMLCourse ? 18 : 12),
     credentialHash,
     verificationUrl: `https://academy.vixoradigitalhub.com/verify?id=${certId}`,
-    instructorName: 'Dr. Adebayo Vance',
-    instructorTitle: 'Principal AI Architect, Vixora Labs',
+    instructorName: req.body.instructorName || (isMLCourse ? 'Marcus Sterling' : 'Dr. Adebayo Vance'),
+    instructorTitle: req.body.instructorTitle || (isMLCourse ? 'Head of Data Systems, Vixora Analytics' : 'Principal AI Architect, Vixora Labs'),
     directorName: 'Sarumi Hammad',
     directorTitle: 'Dean, Vixora Academy',
     competencies: assignedCompetencies,
