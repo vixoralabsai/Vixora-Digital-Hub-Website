@@ -502,6 +502,23 @@ export function Navbar({
               <span>Client Portal</span>
             </button>
 
+            {/* Admin Command Portal CTA (active or when on admin subdomain) */}
+            {(currentPage === 'admin' || (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))) && (
+              <button
+                id="nav-admin-portal-btn"
+                onClick={() => handleNavClick('admin', undefined, undefined, '/admin')}
+                title="Enterprise Admin Command Center"
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer shadow-xs ${
+                  currentPage === 'admin'
+                    ? 'bg-purple-600 text-white border-purple-400 shadow-purple-600/30'
+                    : 'bg-neutral-900/90 hover:bg-neutral-800 text-purple-300 hover:text-white border-purple-500/30 hover:border-purple-500/50'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-300" />
+                <span>Admin Command</span>
+              </button>
+            )}
+
             {/* Google Drive PRD Workspace Tool */}
             <button
               id="nav-drive-workspace-btn"
@@ -777,6 +794,15 @@ export function Navbar({
 
           {/* Direct CTA buttons in Mobile Menu */}
           <div className="pt-4 border-t border-purple-900/30 flex flex-col gap-2.5">
+            {(currentPage === 'admin' || (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))) && (
+              <button
+                onClick={() => handleNavClick('admin', undefined, undefined, '/admin')}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-purple-600/30 text-purple-200 border border-purple-500/50 flex items-center justify-center gap-2"
+              >
+                <ShieldCheck className="w-4 h-4 text-purple-300" />
+                <span>Admin Command Center</span>
+              </button>
+            )}
             <button
               onClick={() => handleNavClick('dashboard', undefined, undefined, '/pages/dashboard')}
               className="w-full py-2.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center justify-center gap-2"

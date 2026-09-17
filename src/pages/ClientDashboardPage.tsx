@@ -39,12 +39,14 @@ interface ClientDashboardPageProps {
   onOpenProjectModal: () => void;
   onOpenDriveWorkspace: () => void;
   onNavigateHome: () => void;
+  onNavigateToAdmin?: () => void;
 }
 
 export function ClientDashboardPage({
   onOpenProjectModal,
   onOpenDriveWorkspace,
   onNavigateHome,
+  onNavigateToAdmin,
 }: ClientDashboardPageProps) {
   const [session, setSession] = useState<ClientAuthSession | null>(null);
   const [allProjects, setAllProjects] = useState<ClientProject[]>([]);
@@ -122,6 +124,7 @@ export function ClientDashboardPage({
         <ClientAuthGate
           onAuthenticated={handleAuthenticated}
           onOpenConsultationModal={onOpenProjectModal}
+          onNavigateToAdmin={onNavigateToAdmin}
         />
       </div>
     );
@@ -220,6 +223,17 @@ export function ClientDashboardPage({
               <MessageSquare className="w-4 h-4 text-emerald-400" />
               <span className="hidden sm:inline">WhatsApp PM</span>
             </a>
+
+            {onNavigateToAdmin && (
+              <button
+                onClick={onNavigateToAdmin}
+                className="p-2.5 rounded-xl bg-purple-950/70 hover:bg-purple-900 text-purple-300 border border-purple-600/40 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Switch to Enterprise Admin Command Center"
+              >
+                <ShieldCheck className="w-4 h-4 text-purple-400" />
+                <span className="hidden sm:inline">Admin Command</span>
+              </button>
+            )}
 
             <button
               onClick={handleLogout}

@@ -23,6 +23,8 @@ export interface BrandConfig {
   cleanDomain: string;
   academyDomain: string;
   cleanAcademyDomain: string;
+  adminDomain: string;
+  cleanAdminDomain: string;
   email: string;
   secondaryEmail: string;
   phone: string;
@@ -54,6 +56,8 @@ export const BRAND_CONFIG: BrandConfig = {
   cleanDomain: "vixoradigitalhub.com",
   academyDomain: "https://academy.vixoradigitalhub.com",
   cleanAcademyDomain: "academy.vixoradigitalhub.com",
+  adminDomain: "https://admin.vixoradigitalhub.com",
+  cleanAdminDomain: "admin.vixoradigitalhub.com",
   email: "vixoralabsai@gmail.com",
   secondaryEmail: "hello@vixoradigitalhub.com",
   phone: "+1 (279) 257-4850",

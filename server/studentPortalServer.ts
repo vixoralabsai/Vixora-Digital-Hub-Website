@@ -32,6 +32,31 @@ import { requireAdmin, getAuthorizedAdminEmails } from './auth/requireAdmin.js';
 export const portalRouter = Router();
 
 // ==========================================
+// Environment & Fallback Gating Policy
+// ==========================================
+// Production invariant: process.env.NODE_ENV === 'production'
+// => In-memory fallback/demo stores must NEVER be used as authoritative API data.
+// In development/test with Supabase unconfigured, fallback stores may be used.
+export function isProductionEnvironment(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
+export function shouldPermitFallback(): boolean {
+  return !isProductionEnvironment() && !isSupabaseConfigured();
+}
+
+export class DatabaseServiceError extends Error {
+  public code: string;
+  public status: number;
+  constructor(message = 'Database service is unavailable.', code = 'DATABASE_UNAVAILABLE', status = 503) {
+    super(message);
+    this.name = 'DatabaseServiceError';
+    this.code = code;
+    this.status = status;
+  }
+}
+
+// ==========================================
 // In-Memory Fallback Cache & Seed State
 // ==========================================
 // When Supabase environment variables are connected, queries route to PostgreSQL.
@@ -170,22 +195,54 @@ async function getCertificateById(id: string): Promise<Certificate | null> {
         .eq('id', cleanId)
         .maybeSingle();
 
-      if (!certError && certRow) {
+      if (certError) {
+        console.error(`[Supabase] Error querying certificate ${cleanId}:`, certError);
+        if (isProductionEnvironment() || isSupabaseConfigured()) {
+          throw new DatabaseServiceError(`Database query failed for certificate ${cleanId}`, 'DATABASE_ERROR', 503);
+        }
+      }
+
+      if (certRow) {
         // Fetch related competencies
-        const { data: compRows } = await supabase
+        const { data: compRows, error: compError } = await supabase
           .from('certificate_competencies')
           .select('name')
           .eq('certificate_id', cleanId);
 
+        if (compError) {
+          console.warn(`[Supabase] Warning reading competencies for ${cleanId}:`, compError);
+        }
+
         const compList = (compRows || []).map((c: any) => c.name).filter(Boolean);
         return mapSupabaseCertificateToDomain(certRow as SupabaseCertificateRow, compList);
       }
-    } catch (err) {
-      console.warn(`[Supabase] Error querying certificate ${cleanId}, falling back to cache:`, err);
+
+      // certRow is null, meaning the certificate does not exist in Supabase
+      if (isProductionEnvironment() || isSupabaseConfigured()) {
+        return null;
+      }
+    } catch (err: any) {
+      if (err instanceof DatabaseServiceError) {
+        throw err;
+      }
+      console.error(`[Supabase] Outage or connection failure querying certificate ${cleanId}:`, err);
+      if (isProductionEnvironment() || isSupabaseConfigured()) {
+        throw new DatabaseServiceError(`Database connection error while querying certificate ${cleanId}`, 'DATABASE_UNAVAILABLE', 503);
+      }
+    }
+  } else {
+    // Supabase is not configured
+    if (isProductionEnvironment()) {
+      throw new DatabaseServiceError('Certificate registry database is not configured in production.', 'DATABASE_UNCONFIGURED', 503);
     }
   }
 
-  return fallbackCertificatesStore.get(cleanId) || null;
+  // Permitted ONLY in non-production environments when Supabase is not configured
+  if (shouldPermitFallback()) {
+    return fallbackCertificatesStore.get(cleanId) || null;
+  }
+
+  return null;
 }
 
 // 2. Fetch certificates for a student email
@@ -200,7 +257,18 @@ async function getCertificatesByStudentEmail(email: string): Promise<Certificate
         .select('*')
         .ilike('student_email', cleanEmail);
 
-      if (!error && certRows && certRows.length > 0) {
+      if (error) {
+        console.error(`[Supabase] Error querying student certificates for ${cleanEmail}:`, error);
+        if (isProductionEnvironment() || isSupabaseConfigured()) {
+          throw new DatabaseServiceError(`Failed querying certificates for ${cleanEmail}`, 'DATABASE_ERROR', 503);
+        }
+      }
+
+      if (certRows) {
+        if (certRows.length === 0) {
+          return [];
+        }
+
         const certIds = certRows.map((r: any) => r.id);
         const { data: compRows } = await supabase
           .from('certificate_competencies')
@@ -218,18 +286,31 @@ async function getCertificatesByStudentEmail(email: string): Promise<Certificate
           mapSupabaseCertificateToDomain(row as SupabaseCertificateRow, compMap.get(row.id) || [])
         );
       }
-    } catch (err) {
-      console.warn(`[Supabase] Error querying student certificates for ${cleanEmail}:`, err);
+    } catch (err: any) {
+      if (err instanceof DatabaseServiceError) throw err;
+      console.error(`[Supabase] Connection error querying student certificates for ${cleanEmail}:`, err);
+      if (isProductionEnvironment() || isSupabaseConfigured()) {
+        throw new DatabaseServiceError(`Database connection error querying certificates for ${cleanEmail}`, 'DATABASE_UNAVAILABLE', 503);
+      }
+    }
+  } else {
+    if (isProductionEnvironment()) {
+      throw new DatabaseServiceError('Certificate database is not configured in production.', 'DATABASE_UNCONFIGURED', 503);
     }
   }
 
-  const results: Certificate[] = [];
-  fallbackCertificatesStore.forEach((c) => {
-    if (c.studentEmail.toLowerCase() === cleanEmail) {
-      results.push(c);
-    }
-  });
-  return results;
+  // Permitted ONLY in non-production environments when Supabase is not configured
+  if (shouldPermitFallback()) {
+    const results: Certificate[] = [];
+    fallbackCertificatesStore.forEach((c) => {
+      if (c.studentEmail.toLowerCase() === cleanEmail) {
+        results.push(c);
+      }
+    });
+    return results;
+  }
+
+  return [];
 }
 
 // 3. Fetch Authenticated Student Profile & Link auth_user_id
@@ -363,14 +444,26 @@ async function getAuthenticatedStudentProfile(
       // No student record exists in Supabase for this authenticated user.
       // Do NOT synthesize fake records.
       return null;
-    } catch (err) {
+    } catch (err: any) {
+      if (err instanceof DatabaseServiceError) throw err;
       console.warn(`[Supabase] Error reading student profile for ${cleanEmail}:`, err);
+      if (isProductionEnvironment() || isSupabaseConfigured()) {
+        throw new DatabaseServiceError(`Database error reading student profile for ${cleanEmail}`, 'DATABASE_ERROR', 503);
+      }
+    }
+  } else {
+    if (isProductionEnvironment()) {
+      throw new DatabaseServiceError('Student database is not configured in production.', 'DATABASE_UNCONFIGURED', 503);
     }
   }
 
-  // Fallback cache lookup (for offline dev environment without Supabase)
-  const cachedStudent = fallbackStudentsStore.get(cleanEmail);
-  return cachedStudent || null;
+  // Fallback cache lookup (permitted ONLY in offline dev environment without Supabase)
+  if (shouldPermitFallback()) {
+    const cachedStudent = fallbackStudentsStore.get(cleanEmail);
+    return cachedStudent || null;
+  }
+
+  return null;
 }
 
 /**
@@ -439,7 +532,13 @@ async function saveIssuedCertificate(
   }
   fallbackCertificatesStore.set(cert.id, cert);
 
-  if (!supabase) return;
+  if (!supabase) {
+    if (isProductionEnvironment()) {
+      fallbackCertificatesStore.delete(cert.id);
+      throw new DatabaseServiceError('Cannot issue certificate: database is not configured in production.', 'DATABASE_UNCONFIGURED', 503);
+    }
+    return;
+  }
 
   try {
     // 1. Ensure course exists in courses table
@@ -597,9 +696,16 @@ async function getRecentEmailLogs(limitCount = 50): Promise<EmailDispatchLog[]> 
       if (!error && rows && rows.length > 0) {
         return rows.map((r: any) => mapSupabaseEmailLogToDomain(r as SupabaseEmailLogRow));
       }
+      if (!error && rows && rows.length === 0) {
+        return [];
+      }
     } catch (err) {
       console.warn('[Supabase] Error fetching email logs, using fallback cache:', err);
     }
+  }
+
+  if (isProductionEnvironment() || isSupabaseConfigured()) {
+    return [];
   }
 
   return fallbackEmailLogsStore.slice(0, limitCount);
@@ -1068,7 +1174,11 @@ portalRouter.get('/student/profile', requireAuthentication, async (req: Request,
     });
   } catch (err: any) {
     console.error('Error in /api/student/profile:', err);
-    return res.status(500).json({ error: 'Failed to retrieve student profile.' });
+    const status = err instanceof DatabaseServiceError ? err.status : 500;
+    return res.status(status).json({
+      error: 'Failed to retrieve student profile.',
+      code: err instanceof DatabaseServiceError ? err.code : 'PROFILE_RETRIEVAL_ERROR'
+    });
   }
 });
 
@@ -1113,7 +1223,22 @@ async function handleCertificateVerification(req: Request, res: Response, rawId?
     });
   }
 
-  const cert = await getCertificateById(certId);
+  let cert: Certificate | null = null;
+  try {
+    cert = await getCertificateById(certId);
+  } catch (err: any) {
+    console.error(`[Verification] Service failure querying certificate ${certId}:`, err);
+    const status = err instanceof DatabaseServiceError ? err.status : 503;
+    const code = err instanceof DatabaseServiceError ? err.code : 'SERVICE_UNAVAILABLE';
+    return res.status(status).json({
+      verified: false,
+      status: 'SERVICE_UNAVAILABLE',
+      error: 'Certificate verification service is temporarily unavailable. Please try again shortly.',
+      code,
+      checkedAt: new Date().toISOString()
+    });
+  }
+
   if (!cert) {
     return res.status(404).json({
       verified: false,
@@ -1196,7 +1321,19 @@ async function handleCertificatePdfDownload(req: Request, res: Response) {
     return res.status(400).json({ error: 'Certificate ID is required.' });
   }
 
-  const cert = await getCertificateById(certId);
+  let cert: Certificate | null = null;
+  try {
+    cert = await getCertificateById(certId);
+  } catch (err: any) {
+    console.error(`[PDF Download] Service failure querying certificate ${certId}:`, err);
+    const status = err instanceof DatabaseServiceError ? err.status : 503;
+    const code = err instanceof DatabaseServiceError ? err.code : 'SERVICE_UNAVAILABLE';
+    return res.status(status).json({
+      error: 'Certificate generation service is temporarily unavailable.',
+      code
+    });
+  }
+
   if (!cert) {
     return res.status(404).json({
       error: `Certificate '${certId}' not found in the registry.`
@@ -1238,7 +1375,21 @@ portalRouter.get('/certificates/list', requireAuthentication, requireAdmin, asyn
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && certRows) {
+      if (error) {
+        console.error('[Supabase] Error listing certificates:', error);
+        if (isProductionEnvironment() || isSupabaseConfigured()) {
+          return res.status(503).json({
+            error: 'Failed to retrieve certificates from database.',
+            code: 'DATABASE_ERROR'
+          });
+        }
+      }
+
+      if (certRows) {
+        if (certRows.length === 0) {
+          return res.json({ certificates: [] });
+        }
+
         const certIds = certRows.map((r: any) => r.id);
         const { data: compRows } = await supabase
           .from('certificate_competencies')
@@ -1257,14 +1408,31 @@ portalRouter.get('/certificates/list', requireAuthentication, requireAdmin, asyn
         );
         return res.json({ certificates: list });
       }
-    } catch (err) {
-      console.warn('[Supabase] Error listing certificates, falling back to cache:', err);
+    } catch (err: any) {
+      console.error('[Supabase] Error listing certificates:', err);
+      if (isProductionEnvironment() || isSupabaseConfigured()) {
+        return res.status(503).json({
+          error: 'Certificate database service is temporarily unavailable.',
+          code: 'DATABASE_UNAVAILABLE'
+        });
+      }
+    }
+  } else {
+    if (isProductionEnvironment()) {
+      return res.status(503).json({
+        error: 'Certificate registry database is not configured in production.',
+        code: 'DATABASE_UNCONFIGURED'
+      });
     }
   }
 
-  const list: Certificate[] = [];
-  fallbackCertificatesStore.forEach((cert) => list.push(cert));
-  return res.json({ certificates: list });
+  if (shouldPermitFallback()) {
+    const list: Certificate[] = [];
+    fallbackCertificatesStore.forEach((cert) => list.push(cert));
+    return res.json({ certificates: list });
+  }
+
+  return res.json({ certificates: [] });
 });
 
 // Issue Certificate & Automatically Send Email to Graduate (Protected Admin Endpoint)
@@ -1503,7 +1671,17 @@ portalRouter.post('/certificates/send-email', requireAuthentication, requireAdmi
     return res.status(400).json({ error: 'certificateId is required.' });
   }
 
-  const cert = await getCertificateById(certificateId);
+  let cert: Certificate | null = null;
+  try {
+    cert = await getCertificateById(certificateId);
+  } catch (err: any) {
+    const status = err instanceof DatabaseServiceError ? err.status : 503;
+    return res.status(status).json({
+      error: 'Certificate database service is unavailable.',
+      code: err instanceof DatabaseServiceError ? err.code : 'SERVICE_UNAVAILABLE'
+    });
+  }
+
   if (!cert) {
     return res.status(404).json({ error: 'Certificate not found.' });
   }
@@ -1549,7 +1727,17 @@ portalRouter.post('/certificates/:id/dispatch-email', requireAuthentication, req
     return res.status(400).json({ error: 'Certificate ID is required.' });
   }
 
-  const cert = await getCertificateById(certId);
+  let cert: Certificate | null = null;
+  try {
+    cert = await getCertificateById(certId);
+  } catch (err: any) {
+    const status = err instanceof DatabaseServiceError ? err.status : 503;
+    return res.status(status).json({
+      error: 'Certificate database service is unavailable.',
+      code: err instanceof DatabaseServiceError ? err.code : 'SERVICE_UNAVAILABLE'
+    });
+  }
+
   if (!cert) {
     return res.status(404).json({ error: `Certificate '${certId}' not found.` });
   }
@@ -1588,7 +1776,17 @@ portalRouter.post('/certificates/trigger-dispatch', requireAuthentication, requi
     return res.status(400).json({ error: 'certificateId is required.' });
   }
 
-  const cert = await getCertificateById(certificateId);
+  let cert: Certificate | null = null;
+  try {
+    cert = await getCertificateById(certificateId);
+  } catch (err: any) {
+    const status = err instanceof DatabaseServiceError ? err.status : 503;
+    return res.status(status).json({
+      error: 'Certificate database service is unavailable.',
+      code: err instanceof DatabaseServiceError ? err.code : 'SERVICE_UNAVAILABLE'
+    });
+  }
+
   if (!cert) {
     return res.status(404).json({ error: `Certificate '${certificateId}' not found.` });
   }
@@ -1617,21 +1815,52 @@ portalRouter.post('/certificates/batch-dispatch', requireAuthentication, require
 
   if (Array.isArray(certificateIds) && certificateIds.length > 0) {
     for (const id of certificateIds) {
-      const c = await getCertificateById(id);
-      if (c) targets.push(c);
+      try {
+        const c = await getCertificateById(id);
+        if (c) targets.push(c);
+      } catch (err) {
+        console.warn(`[Batch Dispatch] Error resolving certificate ${id}:`, err);
+      }
     }
   } else {
     // Dispatch all certificates in the registry
     const supabase = getSupabaseAdmin();
     if (supabase) {
-      const { data: certRows } = await supabase.from('certificates').select('*');
-      if (certRows) {
-        for (const row of certRows) {
-          targets.push(mapSupabaseCertificateToDomain(row as SupabaseCertificateRow));
+      try {
+        const { data: certRows, error } = await supabase.from('certificates').select('*');
+        if (error) {
+          console.error('[Batch Dispatch] Supabase query error:', error);
+          if (isProductionEnvironment() || isSupabaseConfigured()) {
+            return res.status(503).json({
+              error: 'Database error reading certificates for batch dispatch.',
+              code: 'DATABASE_ERROR'
+            });
+          }
+        }
+        if (certRows) {
+          for (const row of certRows) {
+            targets.push(mapSupabaseCertificateToDomain(row as SupabaseCertificateRow));
+          }
+        }
+      } catch (err: any) {
+        console.error('[Batch Dispatch] Connection error:', err);
+        if (isProductionEnvironment() || isSupabaseConfigured()) {
+          return res.status(503).json({
+            error: 'Database connection error during batch dispatch.',
+            code: 'DATABASE_UNAVAILABLE'
+          });
         }
       }
+    } else {
+      if (isProductionEnvironment()) {
+        return res.status(503).json({
+          error: 'Certificate database is not configured in production.',
+          code: 'DATABASE_UNCONFIGURED'
+        });
+      }
     }
-    if (targets.length === 0) {
+
+    if (targets.length === 0 && shouldPermitFallback()) {
       fallbackCertificatesStore.forEach((c) => targets.push(c));
     }
   }

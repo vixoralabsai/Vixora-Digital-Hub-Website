@@ -52,12 +52,14 @@ interface AdminDashboardPageProps {
   onNavigateHome: () => void;
   onOpenProjectModal?: () => void;
   onOpenDriveWorkspace?: () => void;
+  onNavigateToEnterpriseDashboard?: () => void;
 }
 
 export function AdminDashboardPage({
   onNavigateHome,
   onOpenProjectModal,
-  onOpenDriveWorkspace
+  onOpenDriveWorkspace,
+  onNavigateToEnterpriseDashboard
 }: AdminDashboardPageProps) {
   const [session, setSession] = useState<AdminSession | null>(() => getAdminSession());
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'credentials' | 'outbox' | 'students' | 'system'>('overview');
@@ -178,6 +180,7 @@ export function AdminDashboardPage({
         <AdminLoginGate
           onAuthenticated={handleAuthenticated}
           onBackToHome={onNavigateHome}
+          onNavigateToClientPortal={onNavigateToEnterpriseDashboard}
         />
       </div>
     );
@@ -272,6 +275,18 @@ export function AdminDashboardPage({
               >
                 <RefreshCw className={`w-4 h-4 ${isLoadingOverview ? 'animate-spin text-purple-400' : ''}`} />
               </button>
+
+              {/* Action: Enterprise Portal */}
+              {onNavigateToEnterpriseDashboard && (
+                <button
+                  onClick={onNavigateToEnterpriseDashboard}
+                  className="px-3 py-2 rounded-xl bg-purple-900/40 hover:bg-purple-800/50 border border-purple-700/50 text-purple-200 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Switch to Enterprise Client Portal"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-purple-300" />
+                  <span>Enterprise Portal</span>
+                </button>
+              )}
 
               {/* Action: View Public Site */}
               <button

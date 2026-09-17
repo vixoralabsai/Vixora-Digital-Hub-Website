@@ -27,11 +27,12 @@ import { supabase } from '../../lib/supabaseClient';
 interface AdminLoginGateProps {
   onAuthenticated: (session: AdminSession) => void;
   onBackToHome?: () => void;
+  onNavigateToClientPortal?: () => void;
 }
 
 type GateMode = 'login' | 'forgot' | 'verify_otp' | 'recovery_direct' | 'success';
 
-export function AdminLoginGate({ onAuthenticated, onBackToHome }: AdminLoginGateProps) {
+export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClientPortal }: AdminLoginGateProps) {
   // Mode State
   const [mode, setMode] = useState<GateMode>('login');
 
@@ -629,8 +630,22 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome }: AdminLoginGate
             </div>
           )}
 
+          {/* Client Portal Link */}
+          {onNavigateToClientPortal && (
+            <div className="mt-6 pt-5 border-t border-purple-900/30 text-center">
+              <button
+                type="button"
+                onClick={onNavigateToClientPortal}
+                className="inline-flex items-center gap-1.5 text-xs text-purple-300/80 hover:text-purple-200 transition-colors cursor-pointer group"
+              >
+                <Building2 className="w-3.5 h-3.5 text-purple-400 group-hover:scale-110 transition-transform" />
+                <span>Access Enterprise Client Project Portal &rarr;</span>
+              </button>
+            </div>
+          )}
+
           {/* Security Guarantee Footer */}
-          <div className="mt-8 pt-6 border-t border-purple-900/30 flex items-center justify-center gap-4 text-[11px] font-mono text-neutral-400">
+          <div className="mt-6 pt-5 border-t border-purple-900/30 flex items-center justify-center gap-4 text-[11px] font-mono text-neutral-400">
             <span className="flex items-center gap-1 text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5" /> Supabase Auth
             </span>

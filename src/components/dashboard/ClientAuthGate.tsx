@@ -17,9 +17,10 @@ import { ClientProject } from '../../types';
 interface ClientAuthGateProps {
   onAuthenticated: (session: ClientAuthSession, matchedProjects: ClientProject[]) => void;
   onOpenConsultationModal: () => void;
+  onNavigateToAdmin?: () => void;
 }
 
-export function ClientAuthGate({ onAuthenticated, onOpenConsultationModal }: ClientAuthGateProps) {
+export function ClientAuthGate({ onAuthenticated, onOpenConsultationModal, onNavigateToAdmin }: ClientAuthGateProps) {
   const [accessCode, setAccessCode] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [activeTab, setActiveTab] = useState<'code' | 'google' | 'demo'>('code');
@@ -368,14 +369,26 @@ export function ClientAuthGate({ onAuthenticated, onOpenConsultationModal }: Cli
             <span>End-to-end encrypted client repository with 100% IP retention</span>
           </div>
 
-          <div>
-            Don't have a project yet?{' '}
-            <button
-              onClick={onOpenConsultationModal}
-              className="text-purple-300 font-semibold hover:text-white underline cursor-pointer"
-            >
-              Start a Project & Get Access Code
-            </button>
+          <div className="flex items-center gap-4">
+            {onNavigateToAdmin && (
+              <button
+                type="button"
+                onClick={onNavigateToAdmin}
+                className="text-purple-400 hover:text-purple-300 font-mono flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Admin Login &rarr;</span>
+              </button>
+            )}
+            <span>
+              Don't have a project yet?{' '}
+              <button
+                onClick={onOpenConsultationModal}
+                className="text-purple-300 font-semibold hover:text-white underline cursor-pointer"
+              >
+                Start a Project
+              </button>
+            </span>
           </div>
         </div>
       </div>

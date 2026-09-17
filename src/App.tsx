@@ -79,7 +79,14 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
     };
   }
 
-  // 2. Canonical admin route (direct address bar access only: domain.com/admin or domain.com/#admin)
+  // Check if accessing via admin subdomain or parameter
+  const isAdminHost = typeof window !== 'undefined' && (
+    window.location.hostname === 'admin.vixoradigitalhub.com' ||
+    window.location.hostname.startsWith('admin.') ||
+    urlParams.get('subdomain') === 'admin'
+  );
+
+  // 2. Canonical admin route (direct address bar access only: domain.com/admin or domain.com/#admin or admin subdomain)
   if (
     cleanPath === '/admin' ||
     cleanPath === '/admin/login' ||
@@ -88,9 +95,21 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
     cleanHash === 'admin' ||
     cleanHash === 'admin/login' ||
     cleanHash === 'admin/dashboard' ||
-    pageParam === 'admin'
+    pageParam === 'admin' ||
+    (isAdminHost && (
+      cleanPath === '/' ||
+      cleanPath === '' ||
+      cleanPath === '/login' ||
+      cleanPath === '/dashboard' ||
+      cleanPath.startsWith('/admin')
+    ))
   ) {
     return { page: 'admin', path: '/admin' };
+  }
+
+  // Admin host accessing enterprise client dashboard explicitly
+  if (isAdminHost && (cleanPath === '/enterprise' || cleanPath === '/client' || cleanPath === '/client-dashboard')) {
+    return { page: 'dashboard', path: '/pages/dashboard' };
   }
 
   if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'dashboard', 'student-portal', 'certificate-portal'].includes(pageParam)) {
@@ -205,6 +224,11 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
     return { page: 'academy', path: '/pages/academy' };
   }
 
+  // Fallback for admin subdomain
+  if (isAdminHost && (cleanPath === '/' || cleanPath === '')) {
+    return { page: 'admin', path: '/admin' };
+  }
+
   // Default Home
   return { page: 'home', path: '/' };
 }
@@ -296,6 +320,11 @@ function AppContent() {
         window.location.hostname === 'www.vixoradigitalhub.com'
       );
 
+      const isAlreadyAdminHost = typeof window !== 'undefined' && (
+        window.location.hostname === 'admin.vixoradigitalhub.com' ||
+        window.location.hostname.startsWith('admin.')
+      );
+
       // On production domain, redirect all academy requests to academy.vixoradigitalhub.com
       if (page === 'academy' && isProductionHubHost && !isAlreadyAcademyHost) {
         window.location.href = BRAND_CONFIG.academyDomain;
@@ -309,6 +338,18 @@ function AppContent() {
 
       if ((page === 'student-portal' || page === 'certificate-portal') && isProductionHubHost && !isAlreadyAcademyHost) {
         window.location.href = `${BRAND_CONFIG.academyDomain}/pages/${page}`;
+        return;
+      }
+
+      // On production domain, redirect admin requests to admin.vixoradigitalhub.com
+      if (page === 'admin' && isProductionHubHost && !isAlreadyAdminHost) {
+        window.location.href = BRAND_CONFIG.adminDomain;
+        return;
+      }
+
+      // If user is on admin subdomain and navigates to public home, redirect to main hub domain
+      if (page === 'home' && isAlreadyAdminHost) {
+        window.location.href = BRAND_CONFIG.domain;
         return;
       }
 
@@ -466,6 +507,7 @@ function AppContent() {
             onOpenProjectModal={() => setProjectModalOpen(true)}
             onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
             onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
+            onNavigateToAdmin={() => handleNavigate('admin', undefined, undefined, '/admin')}
           />
         )}
 
@@ -500,12 +542,13 @@ function AppContent() {
             onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
             onOpenProjectModal={() => setProjectModalOpen(true)}
             onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+            onNavigateToEnterpriseDashboard={() => handleNavigate('dashboard', undefined, undefined, '/pages/dashboard')}
           />
         )}
       </main>
 
-      {/* Dynamic Footer: Dedicated AcademyFooter for Academy Subdomain vs agency Footer for Main Hub */}
-      {isAcademyView ? (
+      {/* Dynamic Footer: Dedicated AcademyFooter for Academy Subdomain vs agency Footer for Main Hub vs clean admin console */}
+      {route.page === 'admin' ? null : isAcademyView ? (
         <AcademyFooter
           onNavigate={handleNavigate}
           onOpenCorporateModal={() => setProjectModalOpen(true)}
