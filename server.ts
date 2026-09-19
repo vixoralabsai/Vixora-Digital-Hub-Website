@@ -3,7 +3,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import { portalRouter } from './server/studentPortalServer.js';
+import { portalRouter, isPlainObject } from './server/studentPortalServer.js';
 
 dotenv.config();
 
@@ -43,10 +43,37 @@ app.get('/api/health', (req, res) => {
 
 app.post('/api/analyze-requirements', async (req, res) => {
   try {
+    if (!isPlainObject(req.body)) {
+      return res.status(400).json({ error: 'Request body must be a valid JSON object.' });
+    }
+
     const { files, customInstructions } = req.body;
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return res.status(400).json({ error: 'No files provided for analysis.' });
+    }
+
+    if (files.length > 50) {
+      return res.status(400).json({ error: 'Maximum 50 files allowed per analysis request.' });
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!isPlainObject(f)) {
+        return res.status(400).json({ error: `File at index ${i} must be a valid object.` });
+      }
+      if (typeof f.name !== 'string' || f.name.length > 255) {
+        return res.status(400).json({ error: `File name at index ${i} must be a string up to 255 characters.` });
+      }
+      if (f.extractedContent !== undefined && f.extractedContent !== null && typeof f.extractedContent !== 'string') {
+        return res.status(400).json({ error: `extractedContent at index ${i} must be a string.` });
+      }
+    }
+
+    if (customInstructions !== undefined && customInstructions !== null) {
+      if (typeof customInstructions !== 'string' || customInstructions.length > 5000) {
+        return res.status(400).json({ error: 'customInstructions must be a string up to 5000 characters.' });
+      }
     }
 
     const ai = getGemini();
@@ -153,9 +180,19 @@ Return ONLY valid JSON matching this exact structure. Ensure the rawMarkdownRepo
 
 app.post('/api/ask-requirements', async (req, res) => {
   try {
+    if (!isPlainObject(req.body)) {
+      return res.status(400).json({ error: 'Request body must be a valid JSON object.' });
+    }
+
     const { question, prdContext } = req.body;
-    if (!question) {
-      return res.status(400).json({ error: 'Question is required.' });
+    if (!question || typeof question !== 'string' || question.trim().length === 0 || question.length > 2000) {
+      return res.status(400).json({ error: 'Question is required and must be a string up to 2000 characters.' });
+    }
+
+    if (prdContext !== undefined && prdContext !== null) {
+      if (typeof prdContext !== 'object' && typeof prdContext !== 'string') {
+        return res.status(400).json({ error: 'prdContext must be a valid object or string.' });
+      }
     }
 
     const ai = getGemini();

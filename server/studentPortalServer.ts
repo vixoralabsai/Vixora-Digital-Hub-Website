@@ -38,8 +38,7 @@ export const portalRouter = Router();
 // In-memory fallback/demo stores must NEVER be used as authoritative API data in production or unknown environments.
 // Fallback stores may be used ONLY in local development or automated tests when Supabase is explicitly unconfigured.
 export function isProductionEnvironment(): boolean {
-  const env = process.env.NODE_ENV;
-  return env !== 'development' && env !== 'test';
+  return process.env.NODE_ENV === 'production';
 }
 
 export function shouldPermitFallback(): boolean {
@@ -204,11 +203,114 @@ function mapSupabaseEmailLogToDomain(row: SupabaseEmailLogRow): EmailDispatchLog
 }
 
 // ==========================================
+// Strict Input Validation & Request Hardening Helpers
+// ==========================================
+
+export const CERT_ID_REGEX = /^[A-Za-z0-9\-_]{4,40}$/;
+
+export function isValidCertificateId(id: unknown): id is string {
+  if (typeof id !== 'string') return false;
+  const trimmed = id.trim();
+  if (trimmed.length < 4 || trimmed.length > 40) return false;
+  return CERT_ID_REGEX.test(trimmed);
+}
+
+// RFC 5321 compliant email validator with length limits and header injection prevention
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+export function isValidEmail(email: unknown): email is string {
+  if (typeof email !== 'string') return false;
+  const trimmed = email.trim();
+  if (trimmed.length < 5 || trimmed.length > 254) return false;
+  // Prevent CRLF and header injection characters
+  if (/[\r\n\0;,<>'"\\]/.test(trimmed)) return false;
+  return EMAIL_REGEX.test(trimmed);
+}
+
+export function isPlainObject(obj: unknown): obj is Record<string, any> {
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(obj);
+  if (proto !== null && proto !== Object.prototype) {
+    return false;
+  }
+  // Prevent prototype pollution
+  if (
+    Object.prototype.hasOwnProperty.call(obj, '__proto__') ||
+    Object.prototype.hasOwnProperty.call(obj, 'constructor') ||
+    Object.prototype.hasOwnProperty.call(obj, 'prototype')
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function parsePaginationQuery(
+  rawLimit: unknown,
+  rawOffset: unknown,
+  defaultLimit = 50,
+  maxLimit = 100,
+  rawPage?: unknown
+): { limit: number; offset: number; error?: string } {
+  let limit = defaultLimit;
+  let offset = 0;
+
+  if (rawLimit !== undefined && rawLimit !== null && rawLimit !== '') {
+    if (typeof rawLimit !== 'string' && typeof rawLimit !== 'number') {
+      return { limit, offset, error: 'Query parameter "limit" must be a valid integer.' };
+    }
+    const str = String(rawLimit).trim();
+    if (!/^\d+$/.test(str)) {
+      return { limit, offset, error: 'Query parameter "limit" must be a positive integer.' };
+    }
+    const parsed = parseInt(str, 10);
+    if (!Number.isFinite(parsed) || parsed < 1 || parsed > maxLimit) {
+      return { limit, offset, error: `Query parameter "limit" must be between 1 and ${maxLimit}.` };
+    }
+    limit = parsed;
+  }
+
+  if (rawOffset !== undefined && rawOffset !== null && rawOffset !== '') {
+    if (typeof rawOffset !== 'string' && typeof rawOffset !== 'number') {
+      return { limit, offset, error: 'Query parameter "offset" must be a valid integer.' };
+    }
+    const str = String(rawOffset).trim();
+    if (!/^\d+$/.test(str)) {
+      return { limit, offset, error: 'Query parameter "offset" must be a non-negative integer.' };
+    }
+    const parsed = parseInt(str, 10);
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100000) {
+      return { limit, offset, error: 'Query parameter "offset" must be between 0 and 100000.' };
+    }
+    offset = parsed;
+  } else if (rawPage !== undefined && rawPage !== null && rawPage !== '') {
+    if (typeof rawPage !== 'string' && typeof rawPage !== 'number') {
+      return { limit, offset, error: 'Query parameter "page" must be a valid integer.' };
+    }
+    const str = String(rawPage).trim();
+    if (!/^\d+$/.test(str)) {
+      return { limit, offset, error: 'Query parameter "page" must be a positive integer.' };
+    }
+    const parsed = parseInt(str, 10);
+    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 10000) {
+      return { limit, offset, error: 'Query parameter "page" must be between 1 and 10000.' };
+    }
+    offset = (parsed - 1) * limit;
+  }
+
+  return { limit, offset };
+}
+
+// ==========================================
 // Database Operations Helper Functions
 // ==========================================
 
 // 1. Fetch certificate by ID from Supabase
 async function getCertificateById(id: string): Promise<Certificate | null> {
+  if (!isValidCertificateId(id)) {
+    return null;
+  }
   const cleanId = id.toUpperCase().trim();
   const supabase = getSupabaseAdmin();
 
@@ -716,7 +818,7 @@ async function saveEmailLog(log: EmailDispatchLog): Promise<void> {
 }
 
 // 6. Fetch recent email logs from Supabase
-async function getRecentEmailLogs(limitCount = 50): Promise<EmailDispatchLog[]> {
+async function getRecentEmailLogs(limitCount = 50, offsetCount = 0): Promise<EmailDispatchLog[]> {
   const supabase = getSupabaseAdmin();
 
   if (supabase) {
@@ -725,7 +827,7 @@ async function getRecentEmailLogs(limitCount = 50): Promise<EmailDispatchLog[]> 
         .from('email_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(limitCount);
+        .range(offsetCount, offsetCount + limitCount - 1);
 
       if (!error && rows && rows.length > 0) {
         return rows.map((r: any) => mapSupabaseEmailLogToDomain(r as SupabaseEmailLogRow));
@@ -742,7 +844,7 @@ async function getRecentEmailLogs(limitCount = 50): Promise<EmailDispatchLog[]> 
     return [];
   }
 
-  return fallbackEmailLogsStore.slice(0, limitCount);
+  return fallbackEmailLogsStore.slice(offsetCount, offsetCount + limitCount);
 }
 
 // ==========================================
@@ -875,6 +977,14 @@ function getClientIp(req: Request): string {
 // Rate limit status endpoint
 portalRouter.get('/student/rate-limit-status', (req: Request, res: Response) => {
   const ip = getClientIp(req);
+  if (req.query.email !== undefined && req.query.email !== null && req.query.email !== '') {
+    if (typeof req.query.email !== 'string' || !isValidEmail(req.query.email)) {
+      return res.status(400).json({
+        error: 'Query parameter "email" must be a valid email address.',
+        code: 'INVALID_EMAIL_QUERY'
+      });
+    }
+  }
   const email = (req.query.email as string)?.toLowerCase().trim() || 'default';
   const key = `${ip}:${email}`;
   const status = loginRateLimiter.peek(key);
@@ -898,17 +1008,30 @@ function sanitizeUrl(rawUrl?: string): string {
  */
 portalRouter.post('/auth/forgot-password', async (req: Request, res: Response) => {
   const ip = getClientIp(req);
+
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const { email, portal, redirectOrigin } = req.body;
 
   if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'Email address is required.', code: 'EMAIL_REQUIRED' });
   }
 
-  const cleanEmail = email.toLowerCase().trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(cleanEmail)) {
+  if (!isValidEmail(email)) {
     return res.status(400).json({ error: 'Please enter a valid email address.', code: 'INVALID_EMAIL_FORMAT' });
   }
+
+  if (portal !== undefined && portal !== null && portal !== 'admin' && portal !== 'student') {
+    return res.status(400).json({ error: 'Portal parameter must be "admin" or "student".', code: 'INVALID_PORTAL' });
+  }
+
+  if (redirectOrigin !== undefined && redirectOrigin !== null && (typeof redirectOrigin !== 'string' || redirectOrigin.length > 300)) {
+    return res.status(400).json({ error: 'Invalid redirectOrigin parameter.', code: 'INVALID_ORIGIN' });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
 
   // Rate Limiting (5 requests per 10 minutes per IP+email)
   const rlCheck = emailRateLimiter.check(`forgot_pw:${ip}:${cleanEmail}`);
@@ -1092,6 +1215,10 @@ portalRouter.post('/auth/forgot-password', async (req: Request, res: Response) =
  * Verify OTP and reset password endpoint (Server-side resilient option)
  */
 portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Response) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
@@ -1101,15 +1228,29 @@ portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Res
     });
   }
 
-  if (typeof newPassword !== 'string' || newPassword.length < 6) {
+  if (!isValidEmail(email)) {
     return res.status(400).json({
-      error: 'Password must be at least 6 characters long.',
-      code: 'PASSWORD_TOO_SHORT'
+      error: 'Please enter a valid email address.',
+      code: 'INVALID_EMAIL_FORMAT'
     });
   }
 
   const cleanEmail = String(email).toLowerCase().trim();
   const cleanOtp = String(otp).trim();
+
+  if (!/^\d{6}$/.test(cleanOtp)) {
+    return res.status(400).json({
+      error: 'Verification code must be a 6-digit numeric code.',
+      code: 'INVALID_OTP_FORMAT'
+    });
+  }
+
+  if (typeof newPassword !== 'string' || newPassword.length < 6 || newPassword.length > 200) {
+    return res.status(400).json({
+      error: 'Password must be between 6 and 200 characters long.',
+      code: 'PASSWORD_INVALID_LENGTH'
+    });
+  }
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
@@ -1181,6 +1322,15 @@ portalRouter.get('/student/profile', requireAuthentication, async (req: Request,
     });
   }
 
+  if (req.query.email !== undefined) {
+    if (typeof req.query.email !== 'string' || !isValidEmail(req.query.email)) {
+      return res.status(400).json({
+        error: 'Invalid email query parameter format.',
+        code: 'INVALID_EMAIL_QUERY'
+      });
+    }
+  }
+
   // Prevent Student A from attempting to access Student B's profile:
   // Reject explicit mismatch if a query parameter is provided.
   const queryEmail = (req.query.email as string)?.toLowerCase().trim();
@@ -1220,8 +1370,6 @@ portalRouter.get('/student/profile', requireAuthentication, async (req: Request,
 // Certificate Portal & Verification Endpoints
 // ==========================================
 
-const CERT_ID_REGEX = /^[A-Za-z0-9\-_]{4,40}$/;
-
 // Shared Verification Handler with Cryptographic Integrity Check
 // Crucial: Runs strictly server-side using the service-role client.
 // Returns only safe verification fields to anonymous clients.
@@ -1242,18 +1390,21 @@ async function handleCertificateVerification(req: Request, res: Response, rawId?
     });
   }
 
-  const certId = (rawId || (req.query.id as string))?.toUpperCase().trim();
-  if (!certId) {
+  const rawTarget = rawId || (req.query.id as string);
+  if (!rawTarget || typeof rawTarget !== 'string') {
     return res.status(400).json({
       verified: false,
-      error: 'Certificate Credential ID is required (e.g. VA-2026-9042-ENG).'
+      error: 'Certificate Credential ID is required (e.g. VA-2026-9042-ENG).',
+      code: 'MISSING_CREDENTIAL_ID'
     });
   }
 
-  if (!CERT_ID_REGEX.test(certId)) {
+  const certId = rawTarget.toUpperCase().trim();
+  if (!isValidCertificateId(certId)) {
     return res.status(400).json({
       verified: false,
-      error: 'Invalid credential identifier format. Expected alphanumeric characters and hyphens only.'
+      error: 'Invalid credential identifier format. Expected 4-40 alphanumeric characters and hyphens only.',
+      code: 'INVALID_CREDENTIAL_ID'
     });
   }
 
@@ -1350,9 +1501,17 @@ async function handleCertificatePdfDownload(req: Request, res: Response) {
     });
   }
 
-  const certId = req.params.id?.toUpperCase().trim();
-  if (!certId) {
-    return res.status(400).json({ error: 'Certificate ID is required.' });
+  const rawId = req.params.id;
+  if (!rawId || typeof rawId !== 'string') {
+    return res.status(400).json({ error: 'Certificate ID is required.', code: 'MISSING_CERTIFICATE_ID' });
+  }
+
+  const certId = rawId.toUpperCase().trim();
+  if (!isValidCertificateId(certId)) {
+    return res.status(400).json({
+      error: 'Invalid certificate identifier format. Expected 4-40 alphanumeric characters and hyphens only.',
+      code: 'INVALID_CERTIFICATE_ID'
+    });
   }
 
   let cert: Certificate | null = null;
@@ -1387,7 +1546,7 @@ async function handleCertificatePdfDownload(req: Request, res: Response) {
     console.error('Failed to generate PDF for certificate', certId, err);
     return res.status(500).json({
       error: 'Failed to generate PDF certificate.',
-      details: err.message
+      code: 'PDF_GENERATION_FAILED'
     });
   }
 }
@@ -1400,14 +1559,46 @@ portalRouter.get('/certificates/download/:id', handleCertificatePdfDownload);
 
 // List all certificates
 portalRouter.get('/certificates/list', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
+  const { limit, offset, error: pageErr } = parsePaginationQuery(req.query.limit, req.query.offset, 100, 100, req.query.page);
+  if (pageErr) {
+    return res.status(400).json({ error: pageErr, code: 'INVALID_PAGINATION' });
+  }
+  const cleanSearch = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  if (req.query.search && cleanSearch.length > 100) {
+    return res.status(400).json({ error: 'Search query must be a string up to 100 characters.', code: 'INVALID_QUERY' });
+  }
+  const cleanCourseId = typeof req.query.courseId === 'string' ? req.query.courseId.trim() : '';
+  if (req.query.courseId && cleanCourseId.length > 100) {
+    return res.status(400).json({ error: 'courseId filter must be a string up to 100 characters.', code: 'INVALID_QUERY' });
+  }
+  if (req.query.status && !['active', 'revoked', 'suspended'].includes(req.query.status as string)) {
+    return res.status(400).json({ error: 'status filter must be active, revoked, or suspended.', code: 'INVALID_QUERY' });
+  }
+  const statusFilter = req.query.status as string | undefined;
+
   const supabase = getSupabaseAdmin();
 
   if (supabase) {
     try {
-      const { data: certRows, error } = await supabase
+      let query = supabase
         .from('certificates')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      if (cleanCourseId) {
+        query = query.eq('course_id', cleanCourseId);
+      }
+      if (statusFilter) {
+        query = query.eq('status', statusFilter);
+      }
+      if (cleanSearch) {
+        query = query.or(`student_name.ilike.%${cleanSearch}%,id.ilike.%${cleanSearch}%,course_title.ilike.%${cleanSearch}%`);
+      }
+
+      query = query
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      const { data: certRows, error } = await query;
 
       if (error) {
         console.error('[Supabase] Error listing certificates:', error);
@@ -1461,9 +1652,23 @@ portalRouter.get('/certificates/list', requireAuthentication, requireAdmin, asyn
   }
 
   if (shouldPermitFallback()) {
-    const list: Certificate[] = [];
-    fallbackCertificatesStore.forEach((cert) => list.push(cert));
-    return res.json({ certificates: list });
+    let list: Certificate[] = Array.from(fallbackCertificatesStore.values());
+    if (cleanCourseId) {
+      list = list.filter(c => c.courseId === cleanCourseId);
+    }
+    if (statusFilter) {
+      list = list.filter(c => c.status === statusFilter);
+    }
+    if (cleanSearch) {
+      const q = cleanSearch.toLowerCase();
+      list = list.filter(c =>
+        c.studentName.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
+        c.courseTitle.toLowerCase().includes(q)
+      );
+    }
+    const paged = list.slice(offset, offset + limit);
+    return res.json({ certificates: paged });
   }
 
   return res.json({ certificates: [] });
@@ -1482,29 +1687,141 @@ portalRouter.post('/certificates/issue', requireAuthentication, requireAdmin, as
     });
   }
 
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const {
     studentName,
     studentEmail,
     courseTitle,
+    courseId,
+    trackBadge,
     specialization,
     grade,
     honors,
     capstoneTitle,
     capstoneScore,
-    competencies
+    competencies,
+    durationWeeks,
+    instructorName,
+    instructorTitle,
+    directorName,
+    directorTitle,
+    status,
+    customCertificateId
   } = req.body;
 
-  if (!studentName || !studentEmail || !courseTitle) {
-    return res.status(400).json({ error: 'Student Name, Email, and Course Title are required.' });
+  if (typeof studentName !== 'string' || studentName.trim().length < 2 || studentName.trim().length > 150) {
+    return res.status(400).json({
+      error: 'studentName is required and must be a string between 2 and 150 characters.',
+      code: 'INVALID_STUDENT_NAME'
+    });
+  }
+
+  if (!isValidEmail(studentEmail)) {
+    return res.status(400).json({
+      error: 'studentEmail is required and must be a valid email address format.',
+      code: 'INVALID_EMAIL'
+    });
+  }
+
+  if (typeof courseTitle !== 'string' || courseTitle.trim().length < 2 || courseTitle.trim().length > 200) {
+    return res.status(400).json({
+      error: 'courseTitle is required and must be a string between 2 and 200 characters.',
+      code: 'INVALID_COURSE_TITLE'
+    });
+  }
+
+  if (customCertificateId !== undefined && customCertificateId !== null) {
+    if (!isValidCertificateId(customCertificateId)) {
+      return res.status(400).json({
+        error: 'customCertificateId must be between 4 and 40 alphanumeric characters and hyphens.',
+        code: 'INVALID_CERTIFICATE_ID'
+      });
+    }
+  }
+
+  if (durationWeeks !== undefined && durationWeeks !== null) {
+    if (typeof durationWeeks !== 'number' && typeof durationWeeks !== 'string') {
+      return res.status(400).json({
+        error: 'durationWeeks must be a positive integer between 1 and 104.',
+        code: 'INVALID_DURATION'
+      });
+    }
+    const parsedDuration = Number(durationWeeks);
+    if (!Number.isFinite(parsedDuration) || !Number.isInteger(parsedDuration) || parsedDuration < 1 || parsedDuration > 104) {
+      return res.status(400).json({
+        error: 'durationWeeks must be a positive integer between 1 and 104.',
+        code: 'INVALID_DURATION'
+      });
+    }
+  }
+
+  if (competencies !== undefined && competencies !== null) {
+    if (!Array.isArray(competencies)) {
+      return res.status(400).json({
+        error: 'competencies must be an array of strings.',
+        code: 'INVALID_COMPETENCIES'
+      });
+    }
+    if (competencies.length > 20) {
+      return res.status(400).json({
+        error: 'competencies array cannot exceed 20 items.',
+        code: 'COMPETENCIES_OVERSIZED'
+      });
+    }
+    for (let i = 0; i < competencies.length; i++) {
+      const comp = competencies[i];
+      if (typeof comp !== 'string' || comp.trim().length < 1 || comp.trim().length > 200) {
+        return res.status(400).json({
+          error: `Each competency item must be a non-empty string under 200 characters (issue at index ${i}).`,
+          code: 'INVALID_COMPETENCY_ITEM'
+        });
+      }
+    }
+  }
+
+  const optionalStringFields: Array<{ val: unknown; name: string; maxLen: number }> = [
+    { val: courseId, name: 'courseId', maxLen: 100 },
+    { val: trackBadge, name: 'trackBadge', maxLen: 100 },
+    { val: specialization, name: 'specialization', maxLen: 150 },
+    { val: grade, name: 'grade', maxLen: 50 },
+    { val: honors, name: 'honors', maxLen: 150 },
+    { val: capstoneTitle, name: 'capstoneTitle', maxLen: 200 },
+    { val: capstoneScore, name: 'capstoneScore', maxLen: 50 },
+    { val: instructorName, name: 'instructorName', maxLen: 150 },
+    { val: instructorTitle, name: 'instructorTitle', maxLen: 150 },
+    { val: directorName, name: 'directorName', maxLen: 150 },
+    { val: directorTitle, name: 'directorTitle', maxLen: 150 }
+  ];
+
+  for (const field of optionalStringFields) {
+    if (field.val !== undefined && field.val !== null) {
+      if (typeof field.val !== 'string' || field.val.trim().length === 0 || field.val.length > field.maxLen) {
+        return res.status(400).json({
+          error: `${field.name} must be a non-empty string up to ${field.maxLen} characters.`,
+          code: 'FIELD_TOO_LONG'
+        });
+      }
+    }
+  }
+
+  if (status !== undefined && status !== null && !['active', 'revoked', 'suspended'].includes(status)) {
+    return res.status(400).json({ error: 'status must be active, revoked, or suspended.', code: 'INVALID_STATUS' });
   }
 
   const cleanEmail = studentEmail.toLowerCase().trim();
   let certId: string;
-  try {
-    certId = await generateSecureCertificateId(courseTitle);
-  } catch (genErr) {
-    console.error('Failed to generate secure certificate ID:', genErr);
-    return res.status(500).json({ error: 'Failed to issue certificate: unable to allocate a unique credential identifier.' });
+  if (customCertificateId) {
+    certId = customCertificateId.toUpperCase().trim();
+  } else {
+    try {
+      certId = await generateSecureCertificateId(courseTitle);
+    } catch (genErr) {
+      console.error('Failed to generate secure certificate ID:', genErr);
+      return res.status(500).json({ error: 'Failed to issue certificate: unable to allocate a unique credential identifier.' });
+    }
   }
   
   const hashRaw = `${certId}:${cleanEmail}:${studentName}:${Date.now()}`;
@@ -1703,10 +2020,22 @@ async function executeCertificateEmailDispatch(
 // Send / Resend Certificate Email to Graduate with PDF Attachment (Protected Admin Endpoint)
 portalRouter.post('/certificates/send-email', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const ip = getClientIp(req);
+
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const { certificateId, customRecipientEmail, recipientEmail, email } = req.body;
 
-  if (!certificateId) {
-    return res.status(400).json({ error: 'certificateId is required.' });
+  if (!isValidCertificateId(certificateId)) {
+    return res.status(400).json({ error: 'Valid certificateId is required.', code: 'INVALID_CERTIFICATE_ID' });
+  }
+
+  const rawTargetEmail = customRecipientEmail ?? recipientEmail ?? email;
+  if (rawTargetEmail !== undefined && rawTargetEmail !== null) {
+    if (typeof rawTargetEmail !== 'string' || rawTargetEmail.trim().length === 0 || !isValidEmail(rawTargetEmail)) {
+      return res.status(400).json({ error: 'Recipient email address format is invalid.', code: 'INVALID_EMAIL' });
+    }
   }
 
   let cert: Certificate | null = null;
@@ -1724,7 +2053,7 @@ portalRouter.post('/certificates/send-email', requireAuthentication, requireAdmi
     return res.status(404).json({ error: 'Certificate not found.' });
   }
 
-  const targetEmail = (customRecipientEmail || recipientEmail || email || cert.studentEmail).toLowerCase().trim();
+  const targetEmail = (rawTargetEmail || cert.studentEmail).toLowerCase().trim();
   const rlCheck = emailRateLimiter.check(`${ip}:${targetEmail}`);
 
   res.setHeader('X-RateLimit-Limit', rlCheck.limit);
@@ -1760,9 +2089,22 @@ portalRouter.post('/certificates/send-email', requireAuthentication, requireAdmi
 // Dedicated RESTful Trigger Endpoint: Automate Email Dispatch by Certificate ID (Protected Admin Endpoint)
 portalRouter.post('/certificates/:id/dispatch-email', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
   const ip = getClientIp(req);
-  const certId = req.params.id?.toUpperCase().trim();
-  if (!certId) {
-    return res.status(400).json({ error: 'Certificate ID is required.' });
+  if (!isValidCertificateId(req.params.id)) {
+    return res.status(400).json({ error: 'Valid certificate ID is required.', code: 'INVALID_CERTIFICATE_ID' });
+  }
+  const certId = req.params.id.toUpperCase().trim();
+
+  if (req.body !== undefined && req.body !== null && Object.keys(req.body).length > 0) {
+    if (!isPlainObject(req.body)) {
+      return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+    }
+  }
+
+  const customEmail = req.body?.customRecipientEmail;
+  if (customEmail !== undefined && customEmail !== null) {
+    if (typeof customEmail !== 'string' || customEmail.trim().length === 0 || !isValidEmail(customEmail)) {
+      return res.status(400).json({ error: 'customRecipientEmail address format is invalid.', code: 'INVALID_EMAIL' });
+    }
   }
 
   let cert: Certificate | null = null;
@@ -1780,7 +2122,7 @@ portalRouter.post('/certificates/:id/dispatch-email', requireAuthentication, req
     return res.status(404).json({ error: `Certificate '${certId}' not found.` });
   }
 
-  const targetEmail = (req.body?.customRecipientEmail || cert.studentEmail).toLowerCase().trim();
+  const targetEmail = (customEmail || cert.studentEmail).toLowerCase().trim();
   const rlCheck = emailRateLimiter.check(`${ip}:${targetEmail}`);
 
   if (!rlCheck.allowed) {
@@ -1809,9 +2151,19 @@ portalRouter.post('/certificates/:id/dispatch-email', requireAuthentication, req
 
 // Dedicated Automated Dispatch Trigger (Alias with body: { certificateId }) (Protected Admin Endpoint)
 portalRouter.post('/certificates/trigger-dispatch', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const { certificateId, customRecipientEmail } = req.body;
-  if (!certificateId) {
-    return res.status(400).json({ error: 'certificateId is required.' });
+  if (!isValidCertificateId(certificateId)) {
+    return res.status(400).json({ error: 'Valid certificateId is required.', code: 'INVALID_CERTIFICATE_ID' });
+  }
+
+  if (customRecipientEmail !== undefined && customRecipientEmail !== null) {
+    if (typeof customRecipientEmail !== 'string' || customRecipientEmail.trim().length === 0 || !isValidEmail(customRecipientEmail)) {
+      return res.status(400).json({ error: 'customRecipientEmail address format is invalid.', code: 'INVALID_EMAIL' });
+    }
   }
 
   let cert: Certificate | null = null;
@@ -1848,10 +2200,43 @@ portalRouter.post('/certificates/trigger-dispatch', requireAuthentication, requi
 
 // Automated Cohort Batch Dispatch Trigger (Dispatches certificates with PDF attachments) (Protected Admin Endpoint)
 portalRouter.post('/certificates/batch-dispatch', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
+  const ip = getClientIp(req);
+  const rlCheck = emailRateLimiter.check(`batch_dispatch:${ip}`);
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: `Batch dispatch rate limit reached. Please wait ${rlCheck.resetInSeconds} seconds before triggering another batch.`,
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfterSeconds: rlCheck.resetInSeconds
+    });
+  }
+
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const { certificateIds } = req.body;
   const targets: Certificate[] = [];
 
-  if (Array.isArray(certificateIds) && certificateIds.length > 0) {
+  if (certificateIds !== undefined) {
+    if (!Array.isArray(certificateIds)) {
+      return res.status(400).json({ error: 'certificateIds must be an array of string IDs.', code: 'INVALID_BATCH_ARRAY' });
+    }
+    if (certificateIds.length === 0) {
+      return res.status(400).json({ error: 'certificateIds array cannot be empty.', code: 'EMPTY_BATCH_ARRAY' });
+    }
+    if (certificateIds.length > 50) {
+      return res.status(400).json({ error: 'certificateIds array cannot exceed maximum batch size of 50.', code: 'BATCH_TOO_LARGE' });
+    }
+    for (let i = 0; i < certificateIds.length; i++) {
+      const id = certificateIds[i];
+      if (!isValidCertificateId(id)) {
+        return res.status(400).json({
+          error: `Invalid certificate ID at index ${i}: '${String(id)}'. Expected 4-40 alphanumeric characters and hyphens.`,
+          code: 'INVALID_CERTIFICATE_ID'
+        });
+      }
+    }
+
     for (const id of certificateIds) {
       try {
         const c = await getCertificateById(id);
@@ -1940,7 +2325,11 @@ portalRouter.get('/certificates/email-config', requireAuthentication, requireAdm
 
 // Retrieve Live Outbox & Email Logs from Supabase (Protected Admin Endpoint)
 portalRouter.get('/certificates/email-logs', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
-  const logs = await getRecentEmailLogs(50);
+  const { limit, offset, error: pageErr } = parsePaginationQuery(req.query.limit, req.query.offset, 50, 100, req.query.page);
+  if (pageErr) {
+    return res.status(400).json({ error: pageErr, code: 'INVALID_PAGINATION' });
+  }
+  const logs = await getRecentEmailLogs(limit, offset);
   res.json({
     logs,
     totalSent: logs.length,
@@ -1954,10 +2343,22 @@ portalRouter.get('/certificates/email-logs', requireAuthentication, requireAdmin
 
 // 1. Admin Login (Server-side Supabase Auth Login with ADMIN_EMAILS verification)
 portalRouter.post('/admin/login', async (req: Request, res: Response) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and administrator password are required.' });
+    return res.status(400).json({ error: 'Email and administrator password are required.', code: 'MISSING_FIELDS' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email address format.', code: 'INVALID_EMAIL' });
+  }
+
+  if (typeof password !== 'string' || password.length < 1 || password.length > 200) {
+    return res.status(400).json({ error: 'Password must be a string up to 200 characters.', code: 'INVALID_PASSWORD' });
   }
 
   const cleanEmail = email.toLowerCase().trim();
@@ -2150,10 +2551,28 @@ portalRouter.get('/admin/overview', requireAuthentication, requireAdmin, async (
 
 // 5. Admin Live Test Email Dispatcher
 portalRouter.post('/admin/send-test-email', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
   const user = req.user!;
   const { to, subject, message } = req.body;
   if (!to || !subject) {
-    return res.status(400).json({ error: 'Recipient email and subject are required.' });
+    return res.status(400).json({ error: 'Recipient email and subject are required.', code: 'MISSING_FIELDS' });
+  }
+
+  if (!isValidEmail(to)) {
+    return res.status(400).json({ error: 'Recipient email address format is invalid.', code: 'INVALID_EMAIL' });
+  }
+
+  if (typeof subject !== 'string' || subject.trim().length === 0 || subject.trim().length > 200) {
+    return res.status(400).json({ error: 'Subject must be between 1 and 200 characters.', code: 'INVALID_SUBJECT' });
+  }
+
+  if (message !== undefined && message !== null) {
+    if (typeof message !== 'string' || message.length > 5000) {
+      return res.status(400).json({ error: 'Message must be a string up to 5000 characters.', code: 'INVALID_MESSAGE' });
+    }
   }
 
   const cleanTo = to.toLowerCase().trim();
@@ -2218,6 +2637,14 @@ portalRouter.post('/admin/send-test-email', requireAuthentication, requireAdmin,
 
 // 6. Admin Students List
 portalRouter.get('/admin/students', requireAuthentication, requireAdmin, async (req: Request, res: Response) => {
+  const { limit, offset, error: pageErr } = parsePaginationQuery(req.query.limit, req.query.offset, 100, 100);
+  if (pageErr) {
+    return res.status(400).json({ error: pageErr, code: 'INVALID_PAGINATION' });
+  }
+  if (req.query.search && (typeof req.query.search !== 'string' || req.query.search.length > 100)) {
+    return res.status(400).json({ error: 'Search query must be a string up to 100 characters.', code: 'INVALID_QUERY' });
+  }
+
   const supabase = getSupabaseAdmin();
 
   if (isProductionEnvironment() || isSupabaseConfigured()) {

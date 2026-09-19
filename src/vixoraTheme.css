@@ -1,132 +1,498 @@
-/* VIXORA DIGITAL HUB — GLOBAL LIGHT BRAND OVERRIDES
- * Keeps the existing component library intact while correcting contrast
- * and enforcing the locked Vixora palette across every route.
+/* VIXORA DIGITAL HUB — GLOBAL COLOR & ACCESSIBILITY CONTRAST SYSTEM
+ * Enforces strict WCAG AA contrast, consistent brand palette tokens,
+ * and reliable light/dark contrast boundaries across all views.
  */
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  --vixora-navy: #0F1535;
+  --vixora-navy-dark: #070A1E;
+  --vixora-purple: #5B5FED;
+  --vixora-purple-dark: #480878;
+  --vixora-accent-gold: #FFD700;
+  --vixora-white: #FFFFFF;
+  --vixora-surface: #F7F7FC;
+  --vixora-muted: #5F6078;
+  --vixora-border: #E5E5F0;
+}
 
-[class~="text-neutral-950"],
-[class~="text-neutral-900"],
-[class~="text-neutral-800"],
-[class~="text-neutral-700"],
-[class~="text-neutral-600"] { color: #000048 !important; }
+/* ==========================================================================
+   1. GLOBAL RULE: DARK BACKGROUNDS → LIGHT READABLE FOREGROUND TEXT
+   Whenever a dark background is used, foreground text must be LIGHT (#FFFFFF
+   or light neutral tones) and clearly readable.
+   DO NOT place dark navy, black, or similarly dark text on dark backgrounds.
+   ========================================================================== */
 
-/* Slate high-contrast tokens */
-[class~="text-slate-100"] { color: #F1F5F9 !important; }
-[class~="text-slate-200"] { color: #E2E8F0 !important; }
-[class~="text-slate-300"] { color: #CBD5E1 !important; }
-[class~="text-slate-900"] { color: #0F172A !important; }
-[class~="text-slate-950"] { color: #020617 !important; }
+/* Dark Containers, Sections, Cards, Banners, and Modals */
+.bg-\[\#0F1535\],
+.bg-\[\#1A1D4F\],
+.bg-\[\#000048\],
+.bg-\[\#000030\],
+.bg-\[\#000028\],
+.bg-\[\#08082F\],
+.bg-\[\#05020F\],
+.bg-\[\#070314\],
+.bg-\[\#0B051D\],
+.bg-\[\#0B0520\],
+.bg-\[\#0C061F\],
+.bg-\[\#0C0620\],
+.bg-\[\#0D0621\],
+.bg-\[\#1E113E\],
+.bg-\[\#0F0724\],
+.bg-neutral-900,
+.bg-neutral-950,
+.bg-purple-950,
+.bg-slate-900,
+.bg-slate-950,
+[class*="from-[#000048]"],
+[class*="from-[#0F1535]"],
+[class*="from-[#1A1D4F]"],
+[class*="from-[#480878]"],
+[class*="from-[#1E113E]"],
+[class*="bg-gradient-to-r from-[#000048]"],
+[class*="bg-gradient-to-r from-[#0F1535]"],
+#hero,
+#footer,
+footer,
+.modal-dark,
+[role="dialog"] [class*="bg-neutral-900"],
+[role="dialog"] [class*="bg-neutral-950"],
+[role="dialog"] [class*="bg-[#0C061F]"] {
+  color: #F8FAFC;
+}
 
-/* Primary gold/amber and cyan buttons & badges: clear dark text (text-slate-950 font-bold) */
+/* Headings on dark backgrounds must be pure white */
+.bg-\[\#0F1535\] h1, .bg-\[\#0F1535\] h2, .bg-\[\#0F1535\] h3, .bg-\[\#0F1535\] h4, .bg-\[\#0F1535\] h5, .bg-\[\#0F1535\] h6,
+.bg-\[\#1A1D4F\] h1, .bg-\[\#1A1D4F\] h2, .bg-\[\#1A1D4F\] h3, .bg-\[\#1A1D4F\] h4, .bg-\[\#1A1D4F\] h5, .bg-\[\#1A1D4F\] h6,
+.bg-\[\#000048\] h1, .bg-\[\#000048\] h2, .bg-\[\#000048\] h3, .bg-\[\#000048\] h4, .bg-\[\#000048\] h5, .bg-\[\#000048\] h6,
+.bg-\[\#070314\] h1, .bg-\[\#070314\] h2, .bg-\[\#070314\] h3, .bg-\[\#070314\] h4, .bg-\[\#070314\] h5, .bg-\[\#070314\] h6,
+.bg-\[\#0C061F\] h1, .bg-\[\#0C061F\] h2, .bg-\[\#0C061F\] h3, .bg-\[\#0C061F\] h4, .bg-\[\#0C061F\] h5, .bg-\[\#0C061F\] h6,
+.bg-\[\#0D0621\] h1, .bg-\[\#0D0621\] h2, .bg-\[\#0D0621\] h3, .bg-\[\#0D0621\] h4, .bg-\[\#0D0621\] h5, .bg-\[\#0D0621\] h6,
+.bg-\[\#1E113E\] h1, .bg-\[\#1E113E\] h2, .bg-\[\#1E113E\] h3, .bg-\[\#1E113E\] h4, .bg-\[\#1E113E\] h5, .bg-\[\#1E113E\] h6,
+.bg-neutral-900 h1, .bg-neutral-900 h2, .bg-neutral-900 h3, .bg-neutral-900 h4, .bg-neutral-900 h5, .bg-neutral-900 h6,
+.bg-neutral-950 h1, .bg-neutral-950 h2, .bg-neutral-950 h3, .bg-neutral-950 h4, .bg-neutral-950 h5, .bg-neutral-950 h6,
+[class*="from-[#000048]"] h1, [class*="from-[#000048]"] h2, [class*="from-[#000048]"] h3, [class*="from-[#000048]"] h4, [class*="from-[#000048]"] h5, [class*="from-[#000048]"] h6,
+[class*="from-[#0F1535]"] h1, [class*="from-[#0F1535]"] h2, [class*="from-[#0F1535]"] h3, [class*="from-[#0F1535]"] h4, [class*="from-[#0F1535]"] h5, [class*="from-[#0F1535]"] h6,
+[class*="from-[#480878]"] h1, [class*="from-[#480878]"] h2, [class*="from-[#480878]"] h3, [class*="from-[#480878]"] h4, [class*="from-[#480878]"] h5, [class*="from-[#480878]"] h6,
+#hero h1, #hero h2, #hero h3,
+#footer h1, #footer h2, #footer h3, #footer h4,
+footer h1, footer h2, footer h3, footer h4,
+[role="dialog"] [class*="bg-neutral-900"] h2,
+[role="dialog"] [class*="bg-neutral-900"] h3,
+[role="dialog"] [class*="bg-[#0C061F]"] h2,
+[role="dialog"] [class*="bg-[#0C061F]"] h3 {
+  color: #FFFFFF !important;
+}
+
+/* Subtext, descriptions, and labels on dark backgrounds */
+.bg-\[\#070314\] p,
+.bg-\[\#0F1535\] p,
+.bg-\[\#1A1D4F\] p,
+.bg-\[\#000048\] p,
+.bg-\[\#0C061F\] p,
+.bg-\[\#0D0621\] p,
+.bg-\[\#1E113E\] p,
+.bg-neutral-900 p,
+.bg-neutral-950 p,
+[class*="from-[#000048]"] p,
+[class*="from-[#0F1535]"] p,
+[class*="from-[#480878]"] p,
+#hero p,
+#footer p,
+footer p {
+  color: #CBD5E1;
+}
+
+/* Explicitly preserve light text tokens on dark canvases */
+.bg-\[\#070314\] [class~="text-white"],
+.bg-\[\#0F1535\] [class~="text-white"],
+.bg-\[\#1A1D4F\] [class~="text-white"],
+.bg-\[\#000048\] [class~="text-white"],
+.bg-\[\#0C061F\] [class~="text-white"],
+.bg-\[\#0D0621\] [class~="text-white"],
+.bg-\[\#1E113E\] [class~="text-white"],
+.bg-neutral-900 [class~="text-white"],
+.bg-neutral-950 [class~="text-white"],
+[class*="from-[#000048]"] [class~="text-white"],
+[class*="from-[#0F1535]"] [class~="text-white"],
+[class*="from-[#480878]"] [class~="text-white"],
+#hero [class~="text-white"],
+#footer [class~="text-white"],
+footer [class~="text-white"],
+[role="dialog"] [class~="text-white"] {
+  color: #FFFFFF !important;
+}
+
+/* Secondary neutral tokens on dark backgrounds */
+.bg-\[\#070314\] [class~="text-neutral-300"],
+.bg-\[\#0F1535\] [class~="text-neutral-300"],
+.bg-\[\#000048\] [class~="text-neutral-300"],
+.bg-\[\#0C061F\] [class~="text-neutral-300"],
+.bg-\[\#1E113E\] [class~="text-neutral-300"],
+.bg-neutral-900 [class~="text-neutral-300"],
+.bg-neutral-950 [class~="text-neutral-300"],
+#hero [class~="text-neutral-300"] {
+  color: #CBD5E1 !important;
+}
+
+.bg-\[\#070314\] [class~="text-neutral-400"],
+.bg-\[\#0F1535\] [class~="text-neutral-400"],
+.bg-\[\#000048\] [class~="text-neutral-400"],
+.bg-\[\#0C061F\] [class~="text-neutral-400"],
+.bg-\[\#1E113E\] [class~="text-neutral-400"],
+.bg-neutral-900 [class~="text-neutral-400"],
+.bg-neutral-950 [class~="text-neutral-400"],
+#hero [class~="text-neutral-400"] {
+  color: #94A3B8 !important;
+}
+
+/* Light purple and blue accents on dark backgrounds */
+.bg-\[\#070314\] [class~="text-purple-200"],
+.bg-\[\#000048\] [class~="text-purple-200"],
+.bg-\[\#0F1535\] [class~="text-purple-200"],
+[class*="from-[#000048]"] [class~="text-purple-200"],
+[class*="from-[#480878]"] [class~="text-purple-200"] {
+  color: #E2D4FD !important;
+}
+
+.bg-\[\#070314\] [class~="text-purple-300"],
+.bg-\[\#000048\] [class~="text-purple-300"],
+.bg-\[\#0F1535\] [class~="text-purple-300"],
+[class*="from-[#000048]"] [class~="text-purple-300"],
+[class*="from-[#480878]"] [class~="text-purple-300"] {
+  color: #C7A0FF !important;
+}
+
+/* ==========================================================================
+   2. BUTTONS AUDIT — SYSTEM-WIDE CONTRAST RULES
+   ========================================================================== */
+
+/* (A) Buttons with Dark Navy / Purple / Dark Neutral / Gradient Backgrounds:
+   Button text MUST be light/white, with strong visual contrast.
+   Icons inside buttons MUST match the light text color. */
+button[class*="bg-[#480878]"],
+button[class*="bg-[#5B5FED]"],
+button[class*="bg-[#7000F8]"],
+button[class*="bg-[#9030F8]"],
+button[class*="bg-[#0F1535]"],
+button[class*="bg-[#000048]"],
+button[class*="bg-purple-600"],
+button[class*="bg-purple-700"],
+button[class*="bg-purple-800"],
+button[class*="bg-purple-900"],
+button[class*="bg-purple-950"],
+button[class*="bg-indigo-600"],
+button[class*="bg-indigo-700"],
+button[class*="bg-neutral-900"],
+button[class*="bg-neutral-950"],
+button[class*="bg-slate-900"],
+button[class*="bg-slate-950"],
+button[class*="from-[#480878]"],
+button[class*="from-[#000048]"],
+button[class*="from-[#0F1535]"],
+button[class*="from-purple-600"],
+button[class*="from-indigo-600"],
+a[class*="bg-[#480878]"],
+a[class*="bg-[#5B5FED]"],
+a[class*="bg-[#7000F8]"],
+a[class*="bg-[#0F1535]"],
+a[class*="bg-[#000048]"],
+a[class*="bg-purple-600"],
+a[class*="bg-purple-700"],
+a[class*="from-[#480878]"],
+a[class*="from-[#000048]"],
+a[class*="from-[#0F1535]"] {
+  color: #FFFFFF !important;
+}
+
+button[class*="bg-[#480878]"] *,
+button[class*="bg-[#5B5FED]"] *,
+button[class*="bg-[#7000F8]"] *,
+button[class*="bg-[#9030F8]"] *,
+button[class*="bg-[#0F1535]"] *,
+button[class*="bg-[#000048]"] *,
+button[class*="bg-purple-600"] *,
+button[class*="bg-purple-700"] *,
+button[class*="bg-purple-800"] *,
+button[class*="bg-purple-900"] *,
+button[class*="bg-purple-950"] *,
+button[class*="from-[#480878]"] *,
+button[class*="from-[#000048]"] *,
+button[class*="from-[#0F1535]"] *,
+button[class*="from-purple-600"] *,
+button[class*="from-indigo-600"] *,
+a[class*="bg-[#480878]"] *,
+a[class*="bg-[#5B5FED]"] *,
+a[class*="bg-[#7000F8]"] *,
+a[class*="bg-[#0F1535]"] *,
+a[class*="bg-[#000048]"] *,
+a[class*="from-[#480878]"] *,
+a[class*="from-[#000048]"] *,
+a[class*="from-[#0F1535]"] * {
+  color: #FFFFFF !important;
+}
+
+/* Icons inside dark buttons must be white */
+button[class*="bg-[#480878]"] svg,
+button[class*="bg-[#5B5FED]"] svg,
+button[class*="bg-[#7000F8]"] svg,
+button[class*="bg-[#9030F8]"] svg,
+button[class*="bg-[#0F1535]"] svg,
+button[class*="bg-[#000048]"] svg,
+button[class*="bg-purple-600"] svg,
+button[class*="bg-purple-700"] svg,
+button[class*="bg-purple-800"] svg,
+button[class*="bg-purple-900"] svg,
+button[class*="bg-purple-950"] svg,
+button[class*="from-[#480878]"] svg,
+button[class*="from-[#000048]"] svg,
+button[class*="from-[#0F1535]"] svg,
+button[class*="from-purple-600"] svg,
+button[class*="from-indigo-600"] svg,
+a[class*="bg-[#480878]"] svg,
+a[class*="bg-[#5B5FED]"] svg,
+a[class*="bg-[#7000F8]"] svg,
+a[class*="bg-[#0F1535]"] svg,
+a[class*="bg-[#000048]"] svg,
+a[class*="from-[#480878]"] svg,
+a[class*="from-[#000048]"] svg,
+a[class*="from-[#0F1535]"] svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* (B) Buttons with Accent Yellow / Gold (#FFD700 / #FFC107 / amber / yellow) Backgrounds:
+   Button text MUST be sufficiently dark (such as dark navy #0F1535 or black #020617)
+   to guarantee readability. DO NOT use white text on yellow/gold buttons. */
 button[class*="bg-amber-400"],
 button[class*="bg-amber-500"],
 button[class*="bg-yellow-400"],
 button[class*="bg-yellow-500"],
+button[class*="bg-[#FFD700]"],
+button[class*="bg-[#FFC107]"],
 span[class*="bg-amber-400"],
 span[class*="bg-amber-500"],
 span[class*="bg-yellow-400"],
 span[class*="bg-yellow-500"],
+span[class*="bg-[#FFD700]"],
+span[class*="bg-[#FFC107]"],
 a[class*="bg-amber-400"],
 a[class*="bg-amber-500"],
-button[class*="bg-cyan-400"],
-button[class*="bg-cyan-500"],
-span[class*="bg-cyan-400"],
-span[class*="bg-cyan-500"],
-a[class*="bg-cyan-400"],
-a[class*="bg-cyan-500"] {
-  color: #020617 !important;
+a[class*="bg-yellow-400"],
+a[class*="bg-yellow-500"],
+a[class*="bg-[#FFD700]"],
+a[class*="bg-[#FFC107]"],
+.bg-amber-400,
+.bg-amber-500,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-\[\#FFD700\],
+.bg-\[\#FFC107\] {
+  color: #0F1535 !important;
   font-weight: 700 !important;
 }
 
-[class~="text-neutral-500"],
-[class~="text-neutral-400"],
-[class~="text-neutral-300"] { color: #5F6078 !important; }
-
-[class~="text-purple-950"],
-[class~="text-purple-900"],
-[class~="text-purple-800"],
-[class~="text-purple-700"],
-[class~="text-purple-600"],
-[class~="text-purple-500"],
-[class~="text-purple-400"] { color: #480878 !important; }
-[class~="text-purple-300"] { color: #7000F8 !important; }
-
-[class~="text-indigo-950"],
-[class~="text-indigo-900"],
-[class~="text-indigo-800"],
-[class~="text-indigo-700"],
-[class~="text-indigo-600"],
-[class~="text-indigo-500"],
-[class~="text-indigo-400"] { color: #480878 !important; }
-[class~="text-indigo-300"] { color: #7000F8 !important; }
-
-[class~="bg-neutral-50"],
-[class~="bg-neutral-100"],
-[class~="bg-neutral-900"],
-[class~="bg-neutral-950"] { background-color: #FFFFFF !important; }
-[class~="bg-neutral-200"],
-[class~="bg-neutral-800"] { background-color: #F7F7FC !important; }
-
-.bg-white [class~="text-white"],
-.bg-\[\#F7F7FC\] [class~="text-white"],
-.bg-\[\#FFFFFF\] [class~="text-white"],
-[class~="bg-neutral-50"] [class~="text-white"],
-[class~="bg-neutral-100"] [class~="text-white"],
-[class~="bg-neutral-900"] [class~="text-white"],
-[class~="bg-neutral-950"] [class~="text-white"] { color: #000048 !important; }
-
-[class~="bg-[#070314]"],
-[class~="bg-[#0A051A]"],
-[class~="bg-[#0A051C]"],
-[class~="bg-[#0D0621]"],
-[class~="bg-[#0B061A]"],
-[class~="bg-[#0C061F]"],
-[class~="bg-[#0C0620]"],
-[class~="bg-[#0E0722]"] { background-color: #FFFFFF !important; }
-
-[class~="bg-[#0E0728]/60"],
-[class~="bg-[#110A2E]/80"] { background-color: rgba(247,247,252,.96) !important; }
-[class~="bg-[#1C1145]"] { background-color: #F0E8FF !important; }
-
-[class~="border-neutral-800"],
-[class~="border-neutral-700"],
-[class~="border-neutral-600"] { border-color: #E5E5F0 !important; }
-
-[class~="bg-purple-600"] { background-color: #480878 !important; }
-[class~="bg-purple-500"] { background-color: #7000F8 !important; }
-[class~="bg-purple-400"] { background-color: #9030F8 !important; }
-[class~="bg-indigo-600"] { background-color: #480878 !important; }
-[class~="bg-indigo-500"] { background-color: #7000F8 !important; }
-
-[class~="bg-purple-50"],
-[class~="bg-purple-950"] { background-color: #F7F7FC !important; }
-[class~="bg-purple-900"] { background-color: #F0E8FF !important; }
-
-[class~="bg-[#070314]/92"] {
-  background-color: rgba(0,0,72,.96) !important;
-  border-color: rgba(255,255,255,.14) !important;
+button[class*="bg-amber-400"] *,
+button[class*="bg-amber-500"] *,
+button[class*="bg-yellow-400"] *,
+button[class*="bg-yellow-500"] *,
+button[class*="bg-[#FFD700]"] *,
+button[class*="bg-[#FFC107]"] *,
+a[class*="bg-amber-400"] *,
+a[class*="bg-amber-500"] *,
+a[class*="bg-yellow-400"] *,
+a[class*="bg-yellow-500"] *,
+a[class*="bg-[#FFD700]"] *,
+a[class*="bg-[#FFC107]"] * {
+  color: #0F1535 !important;
+  font-weight: 700 !important;
 }
 
-.nav-dropdown-container [class~="bg-[#0b0620]/95"] {
-  background-color: rgba(255,255,255,.98) !important;
+/* Icons inside yellow/gold buttons must be dark navy */
+button[class*="bg-amber-400"] svg,
+button[class*="bg-amber-500"] svg,
+button[class*="bg-yellow-400"] svg,
+button[class*="bg-yellow-500"] svg,
+button[class*="bg-[#FFD700]"] svg,
+button[class*="bg-[#FFC107]"] svg,
+a[class*="bg-amber-400"] svg,
+a[class*="bg-amber-500"] svg,
+a[class*="bg-yellow-400"] svg,
+a[class*="bg-yellow-500"] svg,
+a[class*="bg-[#FFD700]"] svg,
+a[class*="bg-[#FFC107]"] svg {
+  color: #0F1535 !important;
+  stroke: #0F1535 !important;
+}
+
+/* (C) Buttons with Light / White Backgrounds:
+   Text must be dark navy (#0F1535) or primary purple (#5B5FED) */
+button[class*="bg-white"],
+button[class*="bg-[#FFFFFF]"],
+button[class*="bg-neutral-100"],
+button[class*="bg-slate-100"],
+a[class*="bg-white"],
+a[class*="bg-[#FFFFFF]"] {
+  color: #0F1535;
+}
+
+/* ==========================================================================
+   3. LIGHT SECTIONS — TYPOGRAPHY & CONTRAST
+   For light/white sections or cards:
+   - headings: dark navy (#0F1535 / #000048)
+   - body text: dark readable text (dark gray / slate)
+   - secondary text: muted dark/gray text that meets WCAG AA contrast (>= 4.5:1)
+   - DO NOT use light gray or white text on light backgrounds
+   ========================================================================== */
+
+/* Headings in light sections */
+.bg-white h1, .bg-white h2, .bg-white h3, .bg-white h4, .bg-white h5, .bg-white h6,
+.bg-\[\#F7F7FC\] h1, .bg-\[\#F7F7FC\] h2, .bg-\[\#F7F7FC\] h3, .bg-\[\#F7F7FC\] h4, .bg-\[\#F7F7FC\] h5, .bg-\[\#F7F7FC\] h6,
+.bg-\[\#FFFFFF\] h1, .bg-\[\#FFFFFF\] h2, .bg-\[\#FFFFFF\] h3, .bg-\[\#FFFFFF\] h4, .bg-\[\#FFFFFF\] h5, .bg-\[\#FFFFFF\] h6,
+.vixora-page h1, .vixora-page h2, .vixora-page h3, .vixora-page h4, .vixora-page h5, .vixora-page h6 {
+  color: #0F1535;
+}
+
+/* Body text in light sections */
+.bg-white p,
+.bg-\[\#F7F7FC\] p,
+.bg-\[\#FFFFFF\] p,
+.vixora-page p {
+  color: #334155;
+}
+
+/* Prevent accidental white text on light backgrounds */
+.bg-white > span[class~="text-white"],
+.bg-white > p[class~="text-white"],
+.bg-\[\#F7F7FC\] > span[class~="text-white"],
+.bg-\[\#F7F7FC\] > p[class~="text-white"],
+.bg-\[\#FFFFFF\] > span[class~="text-white"],
+.bg-\[\#FFFFFF\] > p[class~="text-white"] {
+  color: #0F1535 !important;
+}
+
+/* Secondary / muted text in light sections */
+.text-neutral-500,
+.text-neutral-400 {
+  color: #5F6078;
+}
+
+/* Brand links */
+a:not([class*="bg-"]):hover {
+  transition: color 0.2s ease-in-out;
+}
+
+/* ==========================================================================
+   4. FORM LABELS & INPUTS CONTRAST
+   Form inputs: borders clearly visible, text typed by user easily readable
+   ========================================================================== */
+
+/* Form inputs on light sections */
+.bg-white input:not([type="checkbox"]):not([type="radio"]),
+.bg-white select,
+.bg-white textarea,
+.bg-\[\#F7F7FC\] input:not([type="checkbox"]):not([type="radio"]),
+.bg-\[\#F7F7FC\] select,
+.bg-\[\#F7F7FC\] textarea {
+  background-color: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #0F1535 !important;
+}
+
+.bg-white input::placeholder,
+.bg-white textarea::placeholder,
+.bg-\[\#F7F7FC\] input::placeholder,
+.bg-\[\#F7F7FC\] textarea::placeholder {
+  color: #94A3B8;
+}
+
+/* Form inputs in dark modals / sections */
+.modal-dark input,
+.modal-dark select,
+.modal-dark textarea,
+[role="dialog"] input:not([type="checkbox"]):not([type="radio"]),
+[role="dialog"] select,
+[role="dialog"] textarea,
+.bg-\[\#0C061F\] input:not([type="checkbox"]):not([type="radio"]),
+.bg-\[\#0C061F\] select,
+.bg-\[\#0C061F\] textarea,
+.bg-neutral-900 input:not([type="checkbox"]):not([type="radio"]),
+.bg-neutral-900 select,
+.bg-neutral-900 textarea {
+  background-color: rgba(7, 10, 30, 0.85);
+  border-color: rgba(91, 95, 237, 0.45);
+  color: #FFFFFF !important;
+}
+
+[role="dialog"] input::placeholder,
+[role="dialog"] textarea::placeholder,
+.bg-\[\#0C061F\] input::placeholder,
+.bg-\[\#0C061F\] textarea::placeholder {
+  color: #94A3B8;
+}
+
+/* Form labels */
+.bg-white label,
+.bg-\[\#F7F7FC\] label,
+.vixora-page label {
+  color: #0F1535;
+  font-weight: 600;
+}
+
+[role="dialog"] label,
+.bg-\[\#0C061F\] label,
+.bg-neutral-900 label {
+  color: #E2E8F0 !important;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   5. NAVIGATION & FOOTER CONTRAST ENHANCEMENTS
+   ========================================================================== */
+
+/* Navbar Dropdowns */
+.nav-dropdown-container [class~="bg-[#0b0620]/95"],
+.nav-dropdown-container [class~="bg-[#0C0620]"] {
+  background-color: rgba(255, 255, 255, 0.98) !important;
   border-color: #E5E5F0 !important;
-  box-shadow: 0 20px 45px rgba(0,0,72,.16) !important;
+  box-shadow: 0 20px 45px rgba(15, 21, 53, 0.12) !important;
 }
-.nav-dropdown-container [class~="text-white"] { color: #000048 !important; }
+
+.nav-dropdown-container [class~="text-white"] {
+  color: #0F1535 !important;
+}
+
 .nav-dropdown-container [class~="text-neutral-400"],
-.nav-dropdown-container [class~="text-neutral-500"] { color: #5F6078 !important; }
-.nav-dropdown-container [class~="hover:bg-purple-950/60"]:hover { background-color: #F7F7FC !important; }
+.nav-dropdown-container [class~="text-neutral-500"] {
+  color: #5F6078 !important;
+}
 
-[class~="from-[#070314]"],
-[class~="to-[#070314]"] { --tw-gradient-from: #FFFFFF !important; --tw-gradient-to: #FFFFFF !important; }
-[class~="via-[#070314]/85"] { --tw-gradient-via: rgba(255,255,255,.88) !important; }
-[class~="via-[#070314]/65"] { --tw-gradient-via: rgba(255,255,255,.68) !important; }
+.nav-dropdown-container [class~="hover:bg-purple-950/60"]:hover {
+  background-color: #F7F7FC !important;
+}
 
-[class~="bg-[#08082F]"] { background-color: #08082F !important; }
+/* Footers */
+#footer, footer {
+  background-color: #08082F !important;
+  color: #CBD5E1 !important;
+}
 
-input, select, textarea { background-color: #FFFFFF; color: #000048; border-color: #E5E5F0; }
-input::placeholder, textarea::placeholder { color: #5F6078; }
+#footer h1, #footer h2, #footer h3, #footer h4,
+footer h1, footer h2, footer h3, footer h4 {
+  color: #FFFFFF !important;
+}
 
+#footer a, footer a {
+  color: #CBD5E1 !important;
+}
+
+#footer a:hover, footer a:hover {
+  color: #FFFFFF !important;
+}
+
+/* Theme toggle disabled (light-only branding for public site) */
 #theme-toggle-btn,
-button[aria-label="Toggle Theme"] { display: none !important; }
+button[aria-label="Toggle Theme"] {
+  display: none !important;
+}
+
