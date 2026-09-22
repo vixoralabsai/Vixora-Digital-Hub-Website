@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Copy, Check, Building2, CreditCard, ShieldCheck } from 'lucide-react';
+import { Copy, Check, Building2, CreditCard, ShieldCheck, Zap } from 'lucide-react';
 import { BANK_PAYMENT_DETAILS } from '../data/vixoraContent';
 
 interface BankPaymentDetailsCardProps {
   courseTitle?: string;
   tuitionAmount?: string;
   className?: string;
+  onPayOnline?: () => void;
 }
 
 export function BankPaymentDetailsCard({
   courseTitle,
   tuitionAmount = '₦60,000',
-  className = ''
+  className = '',
+  onPayOnline
 }: BankPaymentDetailsCardProps) {
   const [copied, setCopied] = useState(false);
 
@@ -30,12 +32,24 @@ export function BankPaymentDetailsCard({
           </div>
           <div>
             <h4 className="text-sm font-bold text-white">Direct Bank Transfer Option</h4>
-            <p className="text-[11px] font-mono text-slate-200">Instant manual verification via Admissions WhatsApp</p>
+            <p className="text-[11px] font-mono text-slate-200">Manual verification via Admissions WhatsApp desk</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold">
-          <ShieldCheck className="w-3 h-3" />
-          <span>Official Corporate Account</span>
+        <div className="flex items-center gap-2">
+          {onPayOnline && (
+            <button
+              type="button"
+              onClick={onPayOnline}
+              className="px-3 py-1 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Zap className="w-3 h-3 text-emerald-400 fill-emerald-400" />
+              <span>Or Pay with Paystack</span>
+            </button>
+          )}
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-mono font-bold">
+            <ShieldCheck className="w-3 h-3" />
+            <span>Official Corporate Account</span>
+          </div>
         </div>
       </div>
 

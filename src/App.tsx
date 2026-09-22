@@ -32,6 +32,7 @@ import { PagesDirectoryPage } from './pages/PagesDirectoryPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { PaymentCallbackPage } from './pages/PaymentCallbackPage';
 
 import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
@@ -50,7 +51,8 @@ export type PageType =
   | 'categories'
   | 'student-portal'
   | 'certificate-portal'
-  | 'admin';
+  | 'admin'
+  | 'payment-callback';
 
 interface RouteState {
   page: PageType;
@@ -121,6 +123,15 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
   }
 
   // 3. Canonical /pages permalinks
+  if (
+    cleanPath === '/payment/callback' ||
+    cleanPath === '/payment/success' ||
+    cleanPath === '/payment/receipt' ||
+    ((urlParams.get('reference') || urlParams.get('trxref')) && cleanPath.startsWith('/payment'))
+  ) {
+    return { page: 'payment-callback', path: cleanPath };
+  }
+
   if (cleanPath === '/pages') {
     return { page: 'pages-directory', path: '/pages' };
   }
@@ -545,10 +556,17 @@ function AppContent() {
             onNavigateToEnterpriseDashboard={() => handleNavigate('dashboard', undefined, undefined, '/pages/dashboard')}
           />
         )}
+
+        {route.page === 'payment-callback' && (
+          <PaymentCallbackPage
+            onNavigateHome={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}
+            onNavigateToPortal={() => handleNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
+          />
+        )}
       </main>
 
       {/* Dynamic Footer: Dedicated AcademyFooter for Academy Subdomain vs agency Footer for Main Hub vs clean admin console */}
-      {route.page === 'admin' ? null : isAcademyView ? (
+      {(route.page === 'admin' || route.page === 'payment-callback') ? null : isAcademyView ? (
         <AcademyFooter
           onNavigate={handleNavigate}
           onOpenCorporateModal={() => setProjectModalOpen(true)}
@@ -579,6 +597,7 @@ function AppContent() {
         isOpen={enrollmentModalOpen}
         course={courseForEnrollment}
         onClose={() => setEnrollmentModalOpen(false)}
+        onGoToPortal={() => handleNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
       />
 
       {/* Persistent Floating WhatsApp Inbound Live Connect Widget */}

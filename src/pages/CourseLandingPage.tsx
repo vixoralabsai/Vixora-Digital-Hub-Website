@@ -2361,6 +2361,7 @@ export function CourseLandingPage({
             <BankPaymentDetailsCard
               courseTitle={course.title}
               tuitionAmount={pricing.early}
+              onPayOnline={() => onEnroll(course)}
             />
           </div>
 

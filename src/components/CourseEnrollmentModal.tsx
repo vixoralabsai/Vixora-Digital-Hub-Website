@@ -11,22 +11,28 @@ import {
   ShieldCheck,
   Sparkles,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import { AcademyCourse, COMPANY_CONTACT } from '../data/vixoraContent';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
 import { BankPaymentDetailsCard } from './BankPaymentDetailsCard';
+import { PaystackPaymentButton } from './PaystackPaymentButton';
+import { PaymentReceiptModal } from './PaymentReceiptModal';
+import { VerifiedPaymentData } from '../lib/paystack';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;
   course: AcademyCourse | null;
   onClose: () => void;
+  onGoToPortal?: () => void;
 }
 
 export function CourseEnrollmentModal({
   isOpen,
   course,
-  onClose
+  onClose,
+  onGoToPortal
 }: CourseEnrollmentModalProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -34,9 +40,12 @@ export function CourseEnrollmentModal({
   const [currentRole, setCurrentRole] = useState('');
   const [company, setCompany] = useState('');
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
+  const [selfPaymentMethod, setSelfPaymentMethod] = useState<'paystack' | 'bank_transfer'>('paystack');
   const [experienceLevel, setExperienceLevel] = useState('Intermediate (2-5 yrs)');
   const [goals, setGoals] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [verifiedPayment, setVerifiedPayment] = useState<VerifiedPaymentData | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   if (!isOpen || !course) return null;
 
@@ -53,7 +62,14 @@ export function CourseEnrollmentModal({
     setCurrentRole('');
     setCompany('');
     setGoals('');
+    setShowReceipt(false);
+    setVerifiedPayment(null);
     onClose();
+  };
+
+  const handlePaymentSuccess = (payment: VerifiedPaymentData) => {
+    setVerifiedPayment(payment);
+    setShowReceipt(true);
   };
 
   const encodedWhatsAppMessage = encodeURIComponent(
@@ -133,6 +149,24 @@ export function CourseEnrollmentModal({
                   <span>{email}</span>
                 </div>
               </div>
+
+              {fundingType === 'self' && (
+                <div className="pt-2 text-left">
+                  <div className="text-xs font-semibold text-neutral-300 font-mono mb-2 text-center">
+                    Instant Online Seat Confirmation:
+                  </div>
+                  <PaystackPaymentButton
+                    email={email}
+                    studentName={fullName}
+                    phone={phone}
+                    courseId={course.id}
+                    courseTitle={course.title}
+                    tuition={course.tuition}
+                    onSuccess={handlePaymentSuccess}
+                    variant="card"
+                  />
+                </div>
+              )}
 
               <div className="space-y-3 pt-2">
                 <div className="text-xs font-semibold text-neutral-300 font-mono">
@@ -316,15 +350,56 @@ export function CourseEnrollmentModal({
                   </div>
                 </div>
 
-                {fundingType === 'self' && (
-                  <div className="pt-2">
+              {fundingType === 'self' && (
+                <div className="pt-2 space-y-3">
+                  <div className="flex rounded-xl bg-neutral-950 p-1 border border-neutral-800">
+                    <button
+                      type="button"
+                      onClick={() => setSelfPaymentMethod('paystack')}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        selfPaymentMethod === 'paystack'
+                          ? 'bg-emerald-600 text-white shadow-md'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>Instant Online (Paystack)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelfPaymentMethod('bank_transfer')}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        selfPaymentMethod === 'bank_transfer'
+                          ? 'bg-purple-600 text-white shadow-md'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      <span>Direct Bank Transfer</span>
+                    </button>
+                  </div>
+
+                  {selfPaymentMethod === 'paystack' ? (
+                    <PaystackPaymentButton
+                      email={email}
+                      studentName={fullName}
+                      phone={phone}
+                      courseId={course.id}
+                      courseTitle={course.title}
+                      tuition={course.tuition}
+                      onSuccess={handlePaymentSuccess}
+                      variant="card"
+                    />
+                  ) : (
                     <BankPaymentDetailsCard
                       courseTitle={course.title}
                       tuitionAmount={course.tuition}
+                      onPayOnline={() => setSelfPaymentMethod('paystack')}
                     />
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
+            </div>
 
               {/* Goals */}
               <div className="space-y-1.5">
@@ -366,6 +441,14 @@ export function CourseEnrollmentModal({
           )}
         </div>
       </div>
+
+      {/* Verified Payment Receipt Modal */}
+      <PaymentReceiptModal
+        isOpen={showReceipt}
+        payment={verifiedPayment}
+        onClose={handleResetAndClose}
+        onGoToPortal={onGoToPortal}
+      />
     </div>
   );
 }
