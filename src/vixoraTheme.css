@@ -364,34 +364,58 @@ a[class*="bg-[#FFFFFF]"] {
 /*
  * Strong light-surface contrast guard.
  * Explicit white text on a light surface is corrected unless that text is
- * inside a dark/gradient surface where white is intentional.
+ * itself or a descendant of a dark/gradient surface where white is intentional.
  */
 .bg-white [class~="text-white"]:not(:is(
-  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] * ,
-  [class*="bg-purple-"] *, [class*="bg-indigo-"] *, [class*="bg-blue-"] *,
-  [class*="bg-neutral-8"] *, [class*="bg-neutral-9"] *,
-  [class*="bg-slate-8"] *, [class*="bg-slate-9"] *,
-  [class*="from-"] *, [class*="via-"] *, [class*="to-"] *
+  [class*="bg-[#0"], [class*="bg-[#0"] *,
+  [class*="bg-[#1"], [class*="bg-[#1"] *,
+  [class*="bg-[#2"], [class*="bg-[#2"] *,
+  [class*="bg-purple-"], [class*="bg-purple-"] *,
+  [class*="bg-indigo-"], [class*="bg-indigo-"] *,
+  [class*="bg-blue-"], [class*="bg-blue-"] *,
+  [class*="bg-neutral-8"], [class*="bg-neutral-8"] *,
+  [class*="bg-neutral-9"], [class*="bg-neutral-9"] *,
+  [class*="bg-slate-8"], [class*="bg-slate-8"] *,
+  [class*="bg-slate-9"], [class*="bg-slate-9"] *,
+  [class*="from-"], [class*="from-"] *,
+  [class*="via-"], [class*="via-"] *,
+  [class*="to-"], [class*="to-"] *
 )) {
   color: #0F1535 !important;
 }
 
-.bg-\\[\\#F7F7FC\\] [class~="text-white"]:not(:is(
-  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] * ,
-  [class*="bg-purple-"] *, [class*="bg-indigo-"] *, [class*="bg-blue-"] *,
-  [class*="bg-neutral-8"] *, [class*="bg-neutral-9"] *,
-  [class*="bg-slate-8"] *, [class*="bg-slate-9"] *,
-  [class*="from-"] *, [class*="via-"] *, [class*="to-"] *
+.bg-\[\#F7F7FC\] [class~="text-white"]:not(:is(
+  [class*="bg-[#0"], [class*="bg-[#0"] *,
+  [class*="bg-[#1"], [class*="bg-[#1"] *,
+  [class*="bg-[#2"], [class*="bg-[#2"] *,
+  [class*="bg-purple-"], [class*="bg-purple-"] *,
+  [class*="bg-indigo-"], [class*="bg-indigo-"] *,
+  [class*="bg-blue-"], [class*="bg-blue-"] *,
+  [class*="bg-neutral-8"], [class*="bg-neutral-8"] *,
+  [class*="bg-neutral-9"], [class*="bg-neutral-9"] *,
+  [class*="bg-slate-8"], [class*="bg-slate-8"] *,
+  [class*="bg-slate-9"], [class*="bg-slate-9"] *,
+  [class*="from-"], [class*="from-"] *,
+  [class*="via-"], [class*="via-"] *,
+  [class*="to-"], [class*="to-"] *
 )) {
   color: #0F1535 !important;
 }
 
-.bg-\\[\\#FFFFFF\\] [class~="text-white"]:not(:is(
-  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] * ,
-  [class*="bg-purple-"] *, [class*="bg-indigo-"] *, [class*="bg-blue-"] *,
-  [class*="bg-neutral-8"] *, [class*="bg-neutral-9"] *,
-  [class*="bg-slate-8"] *, [class*="bg-slate-9"] *,
-  [class*="from-"] *, [class*="via-"] *, [class*="to-"] *
+.bg-\[\#FFFFFF\] [class~="text-white"]:not(:is(
+  [class*="bg-[#0"], [class*="bg-[#0"] *,
+  [class*="bg-[#1"], [class*="bg-[#1"] *,
+  [class*="bg-[#2"], [class*="bg-[#2"] *,
+  [class*="bg-purple-"], [class*="bg-purple-"] *,
+  [class*="bg-indigo-"], [class*="bg-indigo-"] *,
+  [class*="bg-blue-"], [class*="bg-blue-"] *,
+  [class*="bg-neutral-8"], [class*="bg-neutral-8"] *,
+  [class*="bg-neutral-9"], [class*="bg-neutral-9"] *,
+  [class*="bg-slate-8"], [class*="bg-slate-8"] *,
+  [class*="bg-slate-9"], [class*="bg-slate-9"] *,
+  [class*="from-"], [class*="from-"] *,
+  [class*="via-"], [class*="via-"] *,
+  [class*="to-"], [class*="to-"] *
 )) {
   color: #0F1535 !important;
 }
