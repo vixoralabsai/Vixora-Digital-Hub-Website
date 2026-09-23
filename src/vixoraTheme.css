@@ -367,7 +367,7 @@ a[class*="bg-[#FFFFFF]"] {
  * inside a dark/gradient surface where white is intentional.
  */
 .bg-white [class~="text-white"]:not(:is(
-  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] " ] *,
+  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] * ,
   [class*="bg-purple-"] *, [class*="bg-indigo-"] *, [class*="bg-blue-"] *,
   [class*="bg-neutral-8"] *, [class*="bg-neutral-9"] *,
   [class*="bg-slate-8"] *, [class*="bg-slate-9"] *,
@@ -377,7 +377,7 @@ a[class*="bg-[#FFFFFF]"] {
 }
 
 .bg-\\[\\#F7F7FC\\] [class~="text-white"]:not(:is(
-  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] " ] *,
+  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] * ,
   [class*="bg-purple-"] *, [class*="bg-indigo-"] *, [class*="bg-blue-"] *,
   [class*="bg-neutral-8"] *, [class*="bg-neutral-9"] *,
   [class*="bg-slate-8"] *, [class*="bg-slate-9"] *,
@@ -387,7 +387,7 @@ a[class*="bg-[#FFFFFF]"] {
 }
 
 .bg-\\[\\#FFFFFF\\] [class~="text-white"]:not(:is(
-  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] " ] *,
+  [class*="bg-[#0"] *, [class*="bg-[#1"] *, [class*="bg-[#2"] * ,
   [class*="bg-purple-"] *, [class*="bg-indigo-"] *, [class*="bg-blue-"] *,
   [class*="bg-neutral-8"] *, [class*="bg-neutral-9"] *,
   [class*="bg-slate-8"] *, [class*="bg-slate-9"] *,
