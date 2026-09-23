@@ -1,7 +1,14 @@
 /**
  * Paystack Client Integration Helper for Vixora Academy
- * Supports both Inline Popup and Server-Side Hosted Checkout with Verification
+ * Provides secure client-side communication with the backend Paystack endpoints.
+ *
+ * Rules:
+ * - Browser is NEVER authoritative for amount, currency, tuition, or reference.
+ * - Secret keys are NEVER imported or referenced here in client-side code.
+ * - Supabase JWT Bearer token is automatically attached when user is logged in.
  */
+
+import { supabase } from './supabaseClient';
 
 export interface PaystackConfig {
   configured: boolean;
@@ -9,19 +16,14 @@ export interface PaystackConfig {
   publicKey: string | null;
   currency: string;
   mode: 'test' | 'live';
-  defaultTuitionNaira: number;
   merchantName: string;
-  channels: string[];
 }
 
 export interface InitializePaymentParams {
-  email: string;
+  courseId: string;
   studentName?: string;
+  email: string;
   phone?: string;
-  courseId?: string;
-  courseTitle?: string;
-  tuition?: string;
-  amount?: number;
   callbackUrl?: string;
 }
 
@@ -30,9 +32,11 @@ export interface InitializePaymentResponse {
   authorizationUrl?: string;
   accessCode?: string;
   reference: string;
-  amountNaira: number;
-  amountKobo: number;
-  currency: string;
+  amountNaira?: number;
+  amountKobo?: number;
+  currency?: string;
+  courseId?: string;
+  courseTitle?: string;
   publicKey?: string | null;
   error?: string;
   code?: string;
@@ -44,27 +48,38 @@ export interface VerifiedPaymentData {
   status: string;
   amount: number;
   currency: string;
-  channel: string;
-  paidAt: string;
-  studentName: string;
+  channel: string | null;
+  paidAt: string | null;
+  studentName: string | null;
   studentEmail: string;
   courseTitle: string;
   courseId: string;
-  gatewayResponse: string;
-  authorizationCode?: string | null;
-  cardType?: string | null;
-  bank?: string | null;
+  emailDispatchedAt?: string | null;
+  gatewayResponse?: string;
   last4?: string | null;
 }
 
 export interface VerifyPaymentResponse {
   verified: boolean;
-  status?: string;
-  message?: string;
+  alreadyFulfilled?: boolean;
   payment?: VerifiedPaymentData;
   error?: string;
   code?: string;
+  status?: number;
   reference?: string;
+}
+
+export interface LaunchCheckoutOptions {
+  authorizationUrl?: string;
+  accessCode?: string;
+  reference: string;
+  email: string;
+  studentName?: string;
+  phone?: string;
+  publicKey?: string | null;
+  onSuccess?: (reference: string) => void;
+  onCancel?: () => void;
+  onError?: (error: string) => void;
 }
 
 declare global {
@@ -92,6 +107,15 @@ declare global {
 }
 
 /**
+ * Validates transaction reference format client-side before sending to backend
+ */
+export function isValidClientReference(ref: unknown): boolean {
+  if (typeof ref !== 'string') return false;
+  const trimmed = ref.trim();
+  return /^[A-Za-z0-9_\-.:]{4,80}$/.test(trimmed);
+}
+
+/**
  * Loads Paystack inline.js script dynamically
  */
 export function loadPaystackInlineScript(): Promise<boolean> {
@@ -112,7 +136,7 @@ export function loadPaystackInlineScript(): Promise<boolean> {
     script.async = true;
     script.onload = () => resolve(true);
     script.onerror = () => {
-      console.warn('Failed to load Paystack inline JS SDK, fallback to redirect checkout');
+      console.warn('[Paystack] Inline SDK failed to load. Will fallback to hosted redirect.');
       resolve(false);
     };
     document.body.appendChild(script);
@@ -120,84 +144,198 @@ export function loadPaystackInlineScript(): Promise<boolean> {
 }
 
 /**
- * Fetch Paystack config status from server
+ * Fetch public Paystack config from backend
  */
 export async function getPaystackConfig(): Promise<PaystackConfig> {
   try {
-    const res = await fetch('/api/paystack/config');
-    if (!res.ok) {
-      throw new Error(`Config fetch failed: ${res.status}`);
+    const res = await fetch('/api/payments/paystack/config');
+    if (res.ok) {
+      return await res.json();
     }
-    return await res.json();
+    // Fallback to legacy route
+    const legacyRes = await fetch('/api/paystack/config');
+    if (legacyRes.ok) {
+      return await legacyRes.json();
+    }
   } catch (err) {
-    console.warn('Failed to fetch Paystack config:', err);
-    return {
-      configured: false,
-      hasPublicKey: false,
-      publicKey: null,
-      currency: 'NGN',
-      mode: 'test',
-      defaultTuitionNaira: 60000,
-      merchantName: 'Vixora Digital Hub',
-      channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
-    };
+    console.warn('[Paystack Config] Unable to load config:', err);
   }
+
+  return {
+    configured: false,
+    hasPublicKey: false,
+    publicKey: null,
+    currency: 'NGN',
+    mode: 'test',
+    merchantName: 'Vixora Academy'
+  };
 }
 
 /**
- * Initialize a transaction on the server
+ * Initialize payment on backend.
+ * Only courseId and customer identity are sent.
+ * Browser NEVER supplies amount or reference.
  */
 export async function initializePaystackPayment(
   params: InitializePaymentParams
 ): Promise<InitializePaymentResponse> {
-  const res = await fetch('/api/paystack/initialize', {
-    method: 'POST',
-    headers: {
+  try {
+    // Attach Supabase Auth Bearer token if user is signed in
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(params)
-  });
+    };
 
-  const data = await res.json();
-  if (!res.ok) {
+    if (supabase) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+      } catch {
+        // Guest mode, proceed without token
+      }
+    }
+
+    // Only forward safe, non-financial fields
+    const payload = {
+      courseId: params.courseId,
+      studentName: params.studentName,
+      email: params.email,
+      phone: params.phone,
+      callbackUrl: params.callbackUrl
+    };
+
+    const res = await fetch('/api/payments/paystack/initialize', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        success: false,
+        reference: data.reference || '',
+        error: data.error || 'Failed to initialize payment.',
+        code: data.code || 'INIT_FAILED',
+        help: data.help
+      };
+    }
+
+    return {
+      success: true,
+      reference: data.reference,
+      authorizationUrl: data.authorizationUrl,
+      accessCode: data.accessCode,
+      amountNaira: data.amountNaira,
+      amountKobo: data.amountKobo,
+      currency: data.currency || 'NGN',
+      courseId: data.courseId,
+      courseTitle: data.courseTitle
+    };
+  } catch (err: any) {
     return {
       success: false,
       reference: '',
-      amountNaira: 0,
-      amountKobo: 0,
-      currency: 'NGN',
-      error: data.error || data.message || 'Failed to initialize payment',
-      code: data.code,
-      help: data.help
+      error: err?.message || 'Network error connecting to payment gateway.',
+      code: 'NETWORK_ERROR'
     };
   }
-
-  return data;
 }
 
 /**
- * Verify a completed transaction with Paystack via server
+ * Verifies transaction reference strictly through backend.
+ * Validates reference client-side before calling server.
  */
 export async function verifyPaystackPayment(reference: string): Promise<VerifyPaymentResponse> {
+  const cleanRef = (reference || '').trim();
+
+  if (!isValidClientReference(cleanRef)) {
+    return {
+      verified: false,
+      error: 'Invalid payment reference format.',
+      code: 'INVALID_REFERENCE',
+      reference: cleanRef
+    };
+  }
+
   try {
-    const res = await fetch(`/api/paystack/verify/${encodeURIComponent(reference)}`);
+    const res = await fetch('/api/payments/paystack/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ reference: cleanRef })
+    });
+
     const data = await res.json();
     return data;
   } catch (err: any) {
     return {
       verified: false,
-      error: err.message || 'Network error verifying payment.',
+      error: err?.message || 'Network error verifying payment.',
       code: 'NETWORK_ERROR',
-      reference
+      reference: cleanRef
     };
   }
 }
 
 /**
- * Utility to parse formatted tuition into numerical Naira value
+ * Launches Paystack checkout via inline popup or authorizationUrl redirect.
  */
-export function extractTuitionNaira(tuitionStr?: string): number {
-  if (!tuitionStr) return 60000;
-  const num = parseInt(tuitionStr.replace(/[^0-9]/g, ''), 10);
-  return isNaN(num) || num === 0 ? 60000 : num;
+export async function launchPaystackCheckout(options: LaunchCheckoutOptions): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  const publicKey = options.publicKey || (import.meta as any).env?.VITE_PAYSTACK_PUBLIC_KEY;
+
+  // 1. Try Paystack inline popup if public key is available
+  if (publicKey) {
+    const isScriptLoaded = await loadPaystackInlineScript();
+
+    if (isScriptLoaded && window.PaystackPop?.setup) {
+      try {
+        const handler = window.PaystackPop.setup({
+          key: publicKey,
+          email: options.email,
+          ref: options.reference,
+          access_code: options.accessCode,
+          metadata: {
+            studentName: options.studentName,
+            phone: options.phone
+          },
+          callback: function (response: any) {
+            const confirmedRef = response?.reference || response?.trxref || options.reference;
+            if (options.onSuccess) {
+              options.onSuccess(confirmedRef);
+            } else {
+              window.location.href = `/payment/callback?reference=${encodeURIComponent(confirmedRef)}`;
+            }
+          },
+          onClose: function () {
+            if (options.onCancel) {
+              options.onCancel();
+            }
+          }
+        });
+
+        if (handler && typeof handler.openIframe === 'function') {
+          handler.openIframe();
+          return;
+        }
+      } catch (popupErr) {
+        console.warn('[Paystack Popup] Popup open failed, falling back to redirect:', popupErr);
+      }
+    }
+  }
+
+  // 2. Fallback to Paystack hosted checkout URL
+  if (options.authorizationUrl) {
+    window.location.href = options.authorizationUrl;
+    return;
+  }
+
+  if (options.onError) {
+    options.onError('Payment authorization URL could not be generated. Please try again or contact admissions.');
+  }
 }

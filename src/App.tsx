@@ -409,17 +409,19 @@ function AppContent() {
     }
   };
 
-  const isAcademyView = ['academy', 'academy-course', 'student-portal', 'certificate-portal'].includes(route.page);
+  const isAcademyNav = ['academy', 'academy-course', 'student-portal', 'certificate-portal', 'payment-callback'].includes(route.page);
+  const isAcademyLightBg = ['academy', 'academy-course', 'student-portal', 'certificate-portal'].includes(route.page);
+  const isAcademyView = isAcademyLightBg;
 
   return (
     <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
-      isAcademyView ? 'bg-[#F7F7FC] text-[#000048]' : 'bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white'
+      isAcademyLightBg ? 'bg-[#F7F7FC] text-[#000048]' : 'bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white'
     }`}>
       {/* Viewport Top Scroll Progress Indicator for Long-Form Pages */}
       <ScrollProgressBar currentPage={route.page} />
 
       {/* Dynamic Navigation Bar: AcademyNavbar for Academy Subdomain vs agency Navbar for Main Hub */}
-      {isAcademyView ? (
+      {isAcademyNav ? (
         <AcademyNavbar
           currentPage={route.page}
           currentPath={route.path}

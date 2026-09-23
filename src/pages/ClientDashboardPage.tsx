@@ -120,7 +120,7 @@ export function ClientDashboardPage({
   // If not authenticated, render Auth Gate
   if (!session || !currentProject) {
     return (
-      <div className="pt-28 pb-20 min-h-screen">
+      <div className="pt-28 pb-20 min-h-screen bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white">
         <ClientAuthGate
           onAuthenticated={handleAuthenticated}
           onOpenConsultationModal={onOpenProjectModal}
@@ -131,7 +131,7 @@ export function ClientDashboardPage({
   }
 
   return (
-    <div className="pt-28 pb-24 min-h-screen">
+    <div className="pt-28 pb-24 min-h-screen bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Top Portal Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-3xl bg-[#0D0621] border border-purple-900/40 shadow-xl">

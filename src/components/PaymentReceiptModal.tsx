@@ -143,7 +143,9 @@ export function PaymentReceiptModal({
 
             <div className="flex items-center justify-between">
               <span className="text-neutral-400">Payment Date:</span>
-              <span className="text-neutral-300">{new Date(payment.paidAt).toLocaleString()}</span>
+              <span className="text-neutral-300">
+                {payment.paidAt ? new Date(payment.paidAt).toLocaleString() : 'Confirmed'}
+              </span>
             </div>
           </div>
 

@@ -1,25 +1,24 @@
 import assert from 'node:assert/strict';
 import crypto from 'crypto';
 import {
-  paystackRouter,
   getPaystackSecretKey,
   getPaystackPublicKey,
   isPaystackConfigured,
   payInitRateLimiter,
-  payVerifyRateLimiter,
   clearPaymentStoresForTesting,
   fallbackPaymentsStore,
+  simulateEnrollmentFailureForTesting,
   processPaymentFulfillment,
   isValidEmail,
   isValidTransactionReference
 } from '../server/paystackServer.js';
-import { findCanonicalCourse, getAllCanonicalCourses } from '../server/payments/courseCatalog.js';
+import { findCanonicalCourse } from '../server/payments/courseCatalog.js';
 
 // Setup Mock Environment Variables for Testing
 process.env.PAYSTACK_SECRET_KEY = 'sk_test_mock_secret_key_vixora_academy';
 process.env.VITE_PAYSTACK_PUBLIC_KEY = 'pk_test_mock_public_key_vixora_academy';
 
-console.log('🧪 Starting Vixora Academy Paystack Phase 2 Test Suite...\n');
+console.log('🧪 Starting Vixora Academy Paystack Phase 2 & 2.6 Hardened Test Suite...\n');
 
 let testsPassed = 0;
 let testsFailed = 0;
@@ -52,7 +51,7 @@ async function runAllTests() {
   });
 
   // ------------------------------------------------------------------------
-  // Test 2: Invalid course rejected
+  // Test 2: Invalid course lookup rejected
   // ------------------------------------------------------------------------
   await runTest('2. Invalid course lookup rejected', () => {
     const invalidCourse = findCanonicalCourse('non-existent-course-12345');
@@ -65,7 +64,6 @@ async function runAllTests() {
   await runTest('3. Client-supplied fake amount ignored (backend authoritative price)', () => {
     const course = findCanonicalCourse('data-analysis-cohort');
     assert.ok(course);
-    // Even if a malicious client attempts to pay ₦100 (10000 kobo), the authoritative price is 6000000 kobo
     const fakeClientAmount = 100;
     assert.notEqual(course.nairaAmount, fakeClientAmount);
     assert.equal(course.nairaAmount, 60000);
@@ -85,25 +83,22 @@ async function runAllTests() {
   // Test 5: Malformed reference rejected
   // ------------------------------------------------------------------------
   await runTest('5. Malformed reference validation', () => {
-    assert.equal(isValidTransactionReference('bad'), false); // Too short
+    assert.equal(isValidTransactionReference('bad'), false);
     assert.equal(isValidTransactionReference('bad reference with spaces'), false);
     assert.equal(isValidTransactionReference('bad<script>alert(1)</script>'), false);
     assert.equal(isValidTransactionReference('VIX-PS-1774288000-A1B2C3D4'), true);
   });
 
   // ------------------------------------------------------------------------
-  // Test 6: Rate limiter enforcement
+  // Test 6: Rate limit enforcement
   // ------------------------------------------------------------------------
   await runTest('6. Rate limit enforcement (pay_init limiter)', () => {
     payInitRateLimiter.reset();
     const testKey = '127.0.0.1:rate_test@example.com';
-    
-    // Max 5 attempts
     for (let i = 0; i < 5; i++) {
       const res = payInitRateLimiter.check(testKey);
       assert.equal(res.allowed, true, `Attempt ${i + 1} should be allowed`);
     }
-    // 6th attempt must be rejected
     const blocked = payInitRateLimiter.check(testKey);
     assert.equal(blocked.allowed, false, '6th attempt must be blocked by rate limiter');
     assert.equal(blocked.remaining, 0);
@@ -114,7 +109,6 @@ async function runAllTests() {
   // ------------------------------------------------------------------------
   await runTest('7. Verification of unknown reference', async () => {
     const unknownRef = 'VIX-PS-9999999999-UNKNOWN';
-    // When Paystack verify fails or transaction not found
     const res = await processPaymentFulfillment(unknownRef, {
       status: 'failed',
       currency: 'NGN',
@@ -165,7 +159,7 @@ async function runAllTests() {
       id: 888002,
       status: 'success',
       reference: testRef9,
-      amount: 3000000, // ₦30,000 paid for ₦60,000 course
+      amount: 3000000,
       currency: 'NGN',
       customer: { email: 'fraud.test@example.com' },
       metadata: { courseId: 'course-data-analysis-cohort' }
@@ -186,7 +180,7 @@ async function runAllTests() {
       status: 'success',
       reference: testRef10,
       amount: 6000000,
-      currency: 'USD', // Not NGN
+      currency: 'USD',
       customer: { email: 'currency.test@example.com' },
       metadata: { courseId: 'course-data-analysis-cohort' }
     };
@@ -200,7 +194,6 @@ async function runAllTests() {
   // Test 11: Duplicate verification (Idempotency)
   // ------------------------------------------------------------------------
   await runTest('11. Duplicate verification idempotency', async () => {
-    // Calling verification on already fulfilled testRef8
     const res = await processPaymentFulfillment(testRef8, {
       status: 'success',
       reference: testRef8,
@@ -217,7 +210,6 @@ async function runAllTests() {
   // Test 12: Duplicate webhook (Idempotency)
   // ------------------------------------------------------------------------
   await runTest('12. Duplicate webhook idempotency', async () => {
-    // Replay of testRef8 via webhook payload
     const res = await processPaymentFulfillment(testRef8, {
       status: 'success',
       reference: testRef8,
@@ -239,12 +231,10 @@ async function runAllTests() {
     const validSignature = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
     const invalidSignature = crypto.createHmac('sha512', 'wrong_secret').update(rawBody).digest('hex');
 
-    // Valid check
     const validBuf = Buffer.from(validSignature, 'hex');
     const computedBuf = Buffer.from(crypto.createHmac('sha512', secret).update(rawBody).digest('hex'), 'hex');
     assert.ok(crypto.timingSafeEqual(validBuf, computedBuf), 'Valid signature matches');
 
-    // Invalid check
     const invalidBuf = Buffer.from(invalidSignature, 'hex');
     assert.equal(crypto.timingSafeEqual(invalidBuf, computedBuf), false, 'Invalid signature rejected');
   });
@@ -253,10 +243,8 @@ async function runAllTests() {
   // Test 14: Webhook with malformed payload
   // ------------------------------------------------------------------------
   await runTest('14. Webhook with malformed payload', async () => {
-    // Calling fulfillment with missing data
     const res = await processPaymentFulfillment('VIX-PS-MALFORMED', {
-      status: 'success',
-      // Missing currency and amount
+      status: 'success'
     });
     assert.equal(res.verified, false);
   });
@@ -296,7 +284,7 @@ async function runAllTests() {
       reference: existingRef,
       amount: 6000000,
       currency: 'NGN',
-      customer: { email: 'newguest@example.com' }, // same email as test 15
+      customer: { email: 'newguest@example.com' },
       metadata: {
         courseId: 'course-data-analysis-cohort'
       }
@@ -330,7 +318,6 @@ async function runAllTests() {
   // Test 18: Email idempotency
   // ------------------------------------------------------------------------
   await runTest('18. Email dispatch idempotency', async () => {
-    // Calling processPaymentFulfillment multiple times for same reference
     const repeatRef = 'VIX-PS-EMAIL-IDEMP-018';
     const data = {
       id: 888018,
@@ -380,6 +367,209 @@ async function runAllTests() {
     assert.equal(json.includes(secretKey), false, 'Config response must NEVER include secret key');
     assert.equal(configResponse.currency, 'NGN');
     assert.equal(configResponse.configured, true);
+  });
+
+  // ------------------------------------------------------------------------
+  // PHASE 2.6 HARDENING TESTS
+  // ------------------------------------------------------------------------
+
+  // ------------------------------------------------------------------------
+  // Test 21: Durable Email Idempotency across simulated cold start
+  // ------------------------------------------------------------------------
+  await runTest('21. Simulated cold start does not cause duplicate email dispatch', async () => {
+    const coldStartRef = 'VIX-PS-COLDSTART-021';
+    const dispatchTime = '2026-09-22T13:00:00.000Z';
+
+    // Seed the database/fallback store with an existing record that already has email_dispatched_at set
+    fallbackPaymentsStore.set(coldStartRef, {
+      id: coldStartRef,
+      student_id: 'STU-COLDSTART',
+      course_id: 'course-data-analysis-cohort',
+      amount: 60000,
+      amount_kobo: 6000000,
+      currency: 'NGN',
+      channel: 'card',
+      status: 'success',
+      fulfillment_status: 'fulfilled',
+      fulfillment_error: null,
+      email_dispatched_at: dispatchTime,
+      paystack_transaction_id: '888021',
+      customer_email: 'coldstart@example.com',
+      customer_name: 'Cold Start Student',
+      customer_phone: null,
+      paid_at: dispatchTime,
+      raw_response: {},
+      created_at: dispatchTime,
+      updated_at: dispatchTime
+    });
+
+    // Verification runs on a new/restarted process with empty in-memory set
+    const res = await processPaymentFulfillment(coldStartRef, {
+      id: 888021,
+      status: 'success',
+      reference: coldStartRef,
+      amount: 6000000,
+      currency: 'NGN',
+      customer: { email: 'coldstart@example.com' },
+      metadata: { courseId: 'course-data-analysis-cohort' }
+    });
+
+    assert.equal(res.verified, true);
+    assert.equal(res.alreadyFulfilled, true);
+    assert.equal(res.payment?.emailDispatchedAt, dispatchTime, 'Must retain durable dispatch timestamp');
+  });
+
+  // ------------------------------------------------------------------------
+  // Test 22: Enrollment failure does not silently report successful fulfillment
+  // ------------------------------------------------------------------------
+  const failureRef = 'VIX-PS-ENROLL-FAIL-022';
+  await runTest('22. Enrollment failure does not silently report successful fulfillment', async () => {
+    simulateEnrollmentFailureForTesting.add(failureRef);
+
+    const data = {
+      id: 888022,
+      status: 'success',
+      reference: failureRef,
+      amount: 6000000,
+      currency: 'NGN',
+      customer: { email: 'enroll.fail@example.com', first_name: 'Failed Enrollment Student' },
+      metadata: { courseId: 'course-data-analysis-cohort', studentName: 'Failed Enrollment Student' }
+    };
+
+    const res = await processPaymentFulfillment(failureRef, data);
+
+    // Payment itself succeeded at Paystack, but fulfillment failed
+    assert.equal(res.verified, false, 'Must NOT report verified=true when enrollment fails');
+    assert.equal(res.code, 'ENROLLMENT_FAILED');
+    assert.equal(res.status, 500);
+
+    // Verify durable record preserves that Paystack payment succeeded, but tracks failed fulfillment
+    const record = fallbackPaymentsStore.get(failureRef);
+    assert.ok(record, 'Payment record must be persisted for reconciliation');
+    assert.equal(record.status, 'success', 'Must preserve that Paystack money was received');
+    assert.equal(record.fulfillment_status, 'failed', 'Fulfillment status must explicitly reflect failure');
+    assert.ok(record.fulfillment_error, 'Diagnostic fulfillment error must be recorded');
+    assert.equal(record.email_dispatched_at, null, 'Email must NOT be marked sent when enrollment fails');
+  });
+
+  // ------------------------------------------------------------------------
+  // Test 23: Later retry completes enrollment after transient failure
+  // ------------------------------------------------------------------------
+  await runTest('23. Later retry can complete enrollment after transient failure', async () => {
+    // Clear simulated failure flag (simulating database recovery / reconnection)
+    simulateEnrollmentFailureForTesting.delete(failureRef);
+
+    const data = {
+      id: 888022,
+      status: 'success',
+      reference: failureRef,
+      amount: 6000000,
+      currency: 'NGN',
+      customer: { email: 'enroll.fail@example.com' },
+      metadata: { courseId: 'course-data-analysis-cohort' }
+    };
+
+    // Retry verification (e.g. from webhook replay or user retry)
+    const res = await processPaymentFulfillment(failureRef, data);
+
+    assert.equal(res.verified, true, 'Retry must succeed and report verified=true');
+    const record = fallbackPaymentsStore.get(failureRef);
+    assert.ok(record);
+    assert.equal(record.fulfillment_status, 'fulfilled', 'Fulfillment status must transition to fulfilled');
+    assert.equal(record.fulfillment_error, null, 'Error must be cleared on successful fulfillment');
+  });
+
+  // ------------------------------------------------------------------------
+  // Test 24: Failed Paystack transaction records failed status and does not enroll
+  // ------------------------------------------------------------------------
+  await runTest('24. Failed Paystack transaction records failed status and does not enroll', async () => {
+    const failedRef = 'VIX-PS-FAILED-024';
+    fallbackPaymentsStore.set(failedRef, {
+      id: failedRef,
+      student_id: null,
+      course_id: 'course-data-analysis-cohort',
+      amount: 60000,
+      amount_kobo: 6000000,
+      currency: 'NGN',
+      channel: null,
+      status: 'pending',
+      fulfillment_status: 'pending',
+      fulfillment_error: null,
+      email_dispatched_at: null,
+      paystack_transaction_id: null,
+      customer_email: 'failed.payer@example.com',
+      customer_name: null,
+      customer_phone: null,
+      paid_at: null,
+      raw_response: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+
+    const failedPayload = {
+      id: 888024,
+      status: 'failed',
+      reference: failedRef,
+      amount: 6000000,
+      currency: 'NGN',
+      gateway_response: 'Insufficient funds'
+    };
+
+    const res = await processPaymentFulfillment(failedRef, failedPayload);
+
+    assert.equal(res.verified, false);
+    assert.equal(res.code, 'PAYMENT_NOT_SUCCESSFUL');
+
+    const updatedRecord = fallbackPaymentsStore.get(failedRef);
+    assert.ok(updatedRecord);
+    assert.equal(updatedRecord.status, 'failed', 'Database status must be updated to failed');
+    assert.equal(updatedRecord.student_id, null, 'Student ID must NOT be assigned');
+  });
+
+  // ------------------------------------------------------------------------
+  // Test 25: Abandoned Paystack transaction records abandoned status
+  // ------------------------------------------------------------------------
+  await runTest('25. Abandoned Paystack transaction records abandoned status', async () => {
+    const abandonedRef = 'VIX-PS-ABANDONED-025';
+    fallbackPaymentsStore.set(abandonedRef, {
+      id: abandonedRef,
+      student_id: null,
+      course_id: 'course-data-analysis-cohort',
+      amount: 60000,
+      amount_kobo: 6000000,
+      currency: 'NGN',
+      channel: null,
+      status: 'pending',
+      fulfillment_status: 'pending',
+      fulfillment_error: null,
+      email_dispatched_at: null,
+      paystack_transaction_id: null,
+      customer_email: 'abandoned.payer@example.com',
+      customer_name: null,
+      customer_phone: null,
+      paid_at: null,
+      raw_response: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+
+    const abandonedPayload = {
+      id: 888025,
+      status: 'abandoned',
+      reference: abandonedRef,
+      amount: 6000000,
+      currency: 'NGN',
+      gateway_response: 'Customer closed window'
+    };
+
+    const res = await processPaymentFulfillment(abandonedRef, abandonedPayload);
+
+    assert.equal(res.verified, false);
+    assert.equal(res.code, 'PAYMENT_NOT_SUCCESSFUL');
+
+    const updatedRecord = fallbackPaymentsStore.get(abandonedRef);
+    assert.ok(updatedRecord);
+    assert.equal(updatedRecord.status, 'abandoned', 'Database status must be updated to abandoned');
   });
 
   console.log('\n========================================');

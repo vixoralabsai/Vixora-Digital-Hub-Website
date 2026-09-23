@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import { getSupabaseAdmin, isSupabaseConfigured } from './supabaseAdmin.js';
+import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
-import { findCanonicalCourse, CanonicalCourse } from './payments/courseCatalog.js';
+import { findCanonicalCourse } from './payments/courseCatalog.js';
 
 export const paystackRouter = Router();
 
@@ -161,6 +161,9 @@ export interface PaymentRecord {
   currency: 'NGN';
   channel: string | null;
   status: 'pending' | 'success' | 'failed' | 'abandoned';
+  fulfillment_status: 'pending' | 'fulfilled' | 'failed';
+  fulfillment_error: string | null;
+  email_dispatched_at: string | null;
   paystack_transaction_id: string | null;
   customer_email: string;
   customer_name: string | null;
@@ -172,11 +175,11 @@ export interface PaymentRecord {
 }
 
 export const fallbackPaymentsStore = new Map<string, PaymentRecord>();
-const dispatchedEmailsSet = new Set<string>();
+export const simulateEnrollmentFailureForTesting = new Set<string>();
 
 export function clearPaymentStoresForTesting() {
   fallbackPaymentsStore.clear();
-  dispatchedEmailsSet.clear();
+  simulateEnrollmentFailureForTesting.clear();
   payInitRateLimiter.reset();
   payVerifyRateLimiter.reset();
 }
@@ -256,6 +259,7 @@ export interface FulfillmentResult {
     studentEmail: string;
     courseId: string;
     courseTitle: string;
+    emailDispatchedAt?: string | null;
   };
   error?: string;
   code?: string;
@@ -297,8 +301,12 @@ export async function processPaymentFulfillment(
     existingPayment = fallbackPaymentsStore.get(reference) || null;
   }
 
-  // Idempotency: If already fulfilled with 'success', return existing record immediately
-  if (existingPayment && existingPayment.status === 'success') {
+  // Idempotency: Only short-circuit if payment is already 'success' AND course enrollment succeeded
+  if (
+    existingPayment &&
+    existingPayment.status === 'success' &&
+    existingPayment.fulfillment_status === 'fulfilled'
+  ) {
     const canonical = findCanonicalCourse(existingPayment.course_id);
     return {
       verified: true,
@@ -313,7 +321,8 @@ export async function processPaymentFulfillment(
         studentName: existingPayment.customer_name,
         studentEmail: existingPayment.customer_email,
         courseId: existingPayment.course_id,
-        courseTitle: canonical?.title || 'Vixora Academy Cohort'
+        courseTitle: canonical?.title || 'Vixora Academy Cohort',
+        emailDispatchedAt: existingPayment.email_dispatched_at
       }
     };
   }
@@ -364,7 +373,34 @@ export async function processPaymentFulfillment(
   }
 
   // 3. Strict verification of transaction state & parameters
+  // FIX 3: Record failed/abandoned transactions in the database rather than leaving as pending
   if (paystackData.status !== 'success') {
+    let mappedStatus: 'failed' | 'abandoned' | 'pending' = 'pending';
+    if (paystackData.status === 'failed' || paystackData.status === 'abandoned') {
+      mappedStatus = paystackData.status;
+    }
+
+    const failedUpdate = {
+      status: mappedStatus,
+      raw_response: sanitizePaystackResponse(paystackData),
+      updated_at: new Date().toISOString()
+    };
+
+    if (supabase) {
+      try {
+        await supabase.from('payments').update(failedUpdate).eq('id', reference);
+      } catch (dbErr) {
+        console.warn('[Supabase failed status update]:', dbErr);
+      }
+    }
+
+    if (fallbackPaymentsStore.has(reference)) {
+      const rec = fallbackPaymentsStore.get(reference)!;
+      rec.status = mappedStatus;
+      rec.raw_response = sanitizePaystackResponse(paystackData);
+      rec.updated_at = new Date().toISOString();
+    }
+
     return {
       verified: false,
       error: `Payment is not successful (status: ${paystackData.status}).`,
@@ -446,18 +482,26 @@ export async function processPaymentFulfillment(
   const paystackTxId = String(paystackData.id || '');
   const authUserId = paystackData.metadata?.authUserId || null;
 
-  // 4. Student Creation / Matching
+  // 4. Student Creation / Matching & Enrollment
+  // FIX 2: Enrollment failure must not be silent. Do not report fulfillment success if student/enrollment fails.
   let studentId: string | null = existingPayment?.student_id || null;
+  let fulfillmentError: string | null = null;
+  let isFulfilled = false;
 
   if (supabase) {
     try {
+      if (simulateEnrollmentFailureForTesting.has(reference)) {
+        throw new Error('Simulated database failure during enrollment.');
+      }
+
       // Step A: Find existing student by email (or auth_user_id)
-      let studentQuery = supabase
+      const studentQuery = supabase
         .from('students')
         .select('id, email, auth_user_id')
         .eq('email', customerEmail);
 
-      const { data: matchedStudent } = await studentQuery.maybeSingle();
+      const { data: matchedStudent, error: findStudentErr } = await studentQuery.maybeSingle();
+      if (findStudentErr) throw findStudentErr;
 
       if (matchedStudent) {
         studentId = matchedStudent.id;
@@ -467,60 +511,99 @@ export async function processPaymentFulfillment(
         }
       } else {
         // Step B: Create student if not found
-        const newStudentId = `STU-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
-        const { data: createdStudent } = await supabase
+        const newStudentId = crypto.randomUUID();
+        const studentCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
+        const { data: createdStudent, error: createStudentErr } = await supabase
           .from('students')
           .insert({
             id: newStudentId,
             name: customerName,
             email: customerEmail,
             auth_user_id: authUserId,
-            enrolled_date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            student_code: studentCode,
+            enrolled_at: new Date().toISOString(),
             role: 'student'
           })
           .select('id')
           .maybeSingle();
 
+        if (createStudentErr) throw createStudentErr;
         if (createdStudent) {
           studentId = createdStudent.id;
+        } else {
+          throw new Error('Student record could not be created in database.');
         }
       }
 
       // Step C: Idempotent Enrollment Fulfillment
       // Preserve existing cohort, progress, modules, and certificate_id
-      if (studentId) {
-        const { data: existingEnrollment } = await supabase
-          .from('enrollments')
-          .select('student_id, course_id, status, progress_percent')
-          .eq('student_id', studentId)
-          .eq('course_id', canonicalCourse.id)
-          .maybeSingle();
-
-        if (!existingEnrollment) {
-          await supabase.from('enrollments').insert({
-            student_id: studentId,
-            course_id: canonicalCourse.id,
-            status: 'enrolled',
-            cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
-            progress_percent: 0,
-            completed_modules: 0,
-            total_modules: canonicalCourse.totalModules
-          });
-        } else {
-          // If enrollment already exists, ensure status is 'enrolled' without resetting progress
-          await supabase
-            .from('enrollments')
-            .update({ status: 'enrolled', updated_at: new Date().toISOString() })
-            .eq('student_id', studentId)
-            .eq('course_id', canonicalCourse.id);
-        }
+      if (!studentId) {
+        throw new Error('Valid student identifier unavailable for enrollment.');
       }
-    } catch (dbErr) {
-      console.warn('[Supabase Fulfillment Error]:', dbErr);
+
+      // Resolve course_id in database (either matching canonicalCourse.id or canonicalCourse.slug)
+      let dbCourseId = canonicalCourse.id;
+      const { data: dbCourse } = await supabase
+        .from('courses')
+        .select('id')
+        .or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`)
+        .maybeSingle();
+
+      if (dbCourse) {
+        dbCourseId = dbCourse.id;
+      }
+
+      const { data: existingEnrollment, error: findEnrollmentErr } = await supabase
+        .from('enrollments')
+        .select('student_id, course_id, status, progress_percent')
+        .eq('student_id', studentId)
+        .eq('course_id', dbCourseId)
+        .maybeSingle();
+
+      if (findEnrollmentErr) throw findEnrollmentErr;
+
+      if (!existingEnrollment) {
+        const { error: insertEnrollmentErr } = await supabase.from('enrollments').insert({
+          id: crypto.randomUUID(),
+          student_id: studentId,
+          course_id: dbCourseId,
+          status: 'enrolled',
+          cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
+          progress_percent: 0,
+          completed_modules: 0,
+          total_modules: canonicalCourse.totalModules,
+          enrolled_at: new Date().toISOString()
+        });
+        if (insertEnrollmentErr) throw insertEnrollmentErr;
+      } else {
+        // If enrollment already exists, ensure status is 'enrolled' without resetting progress
+        const { error: updateEnrollmentErr } = await supabase
+          .from('enrollments')
+          .update({ status: 'enrolled', updated_at: new Date().toISOString() })
+          .eq('student_id', studentId)
+          .eq('course_id', dbCourseId);
+        if (updateEnrollmentErr) throw updateEnrollmentErr;
+      }
+
+      isFulfilled = true;
+    } catch (enrollErr: any) {
+      console.error('[Supabase Enrollment Fulfillment Failure]:', enrollErr);
+      fulfillmentError = enrollErr?.message || String(enrollErr);
+      isFulfilled = false;
+    }
+  } else {
+    // When Supabase is not configured (or testing)
+    if (simulateEnrollmentFailureForTesting.has(reference)) {
+      isFulfilled = false;
+      fulfillmentError = 'Simulated database failure during enrollment.';
+    } else {
+      isFulfilled = true;
+      studentId = existingPayment?.student_id || `STU-${Date.now().toString(36).toUpperCase()}`;
     }
   }
 
   // 5. Durable Payment Record Creation / Update
+  // Preserves that the Paystack payment was genuinely successful, but explicitly tracks fulfillment_status
   const updatedPaymentRecord: PaymentRecord = {
     id: reference,
     student_id: studentId,
@@ -529,12 +612,15 @@ export async function processPaymentFulfillment(
     amount_kobo: canonicalCourse.koboAmount,
     currency: 'NGN',
     channel,
-    status: 'success',
+    status: 'success', // Genuinely successful at Paystack
+    fulfillment_status: isFulfilled ? 'fulfilled' : 'failed',
+    fulfillment_error: fulfillmentError,
     paystack_transaction_id: paystackTxId,
     customer_email: customerEmail,
     customer_name: customerName,
     customer_phone: customerPhone,
     paid_at: paidAt,
+    email_dispatched_at: existingPayment?.email_dispatched_at || null,
     raw_response: sanitizePaystackResponse(paystackData),
     created_at: existingPayment?.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString()
@@ -551,10 +637,50 @@ export async function processPaymentFulfillment(
   // Always update fallback store
   fallbackPaymentsStore.set(reference, updatedPaymentRecord);
 
-  // 6. Idempotent Confirmation / Receipt Email
-  if (!dispatchedEmailsSet.has(reference)) {
-    dispatchedEmailsSet.add(reference);
+  // If enrollment failed, abort here: do NOT report success and do NOT send email yet
+  if (!isFulfilled) {
+    return {
+      verified: false,
+      error: `Tuition payment of ₦${canonicalCourse.nairaAmount.toLocaleString()} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
+      code: 'ENROLLMENT_FAILED',
+      status: 500,
+      payment: {
+        reference,
+        status: 'success',
+        amount: canonicalCourse.nairaAmount,
+        currency: 'NGN',
+        channel,
+        paidAt,
+        studentName: customerName,
+        studentEmail: customerEmail,
+        courseId: canonicalCourse.id,
+        courseTitle: canonicalCourse.title
+      }
+    };
+  }
 
+  // 6. FIX 1: Durable Email Idempotency (Supabase/DB state is the source of truth)
+  // Check if email has already been dispatched in the database record
+  let alreadyEmailed = Boolean(existingPayment?.email_dispatched_at);
+
+  if (!alreadyEmailed && supabase) {
+    try {
+      const { data: latestPayment } = await supabase
+        .from('payments')
+        .select('email_dispatched_at')
+        .eq('id', reference)
+        .maybeSingle();
+      if (latestPayment?.email_dispatched_at) {
+        alreadyEmailed = true;
+      }
+    } catch (dbErr) {
+      console.warn('[Supabase email check]:', dbErr);
+    }
+  }
+
+  let finalEmailDispatchedAt = existingPayment?.email_dispatched_at || null;
+
+  if (!alreadyEmailed) {
     try {
       const emailSubject = `🎓 Payment Receipt & Admission Confirmed: ${canonicalCourse.title} (₦${canonicalCourse.nairaAmount.toLocaleString()})`;
       const whatsappUrl = getWhatsAppUrl(
@@ -608,13 +734,31 @@ export async function processPaymentFulfillment(
         </div>
       `;
 
-      await dispatchGenericEmail({
+      const emailResult = await dispatchGenericEmail({
         to: customerEmail,
         toName: customerName,
         subject: emailSubject,
         html: emailHtml,
         text: `Tuition Payment Receipt: ${canonicalCourse.title}. Reference: ${reference}. Amount: ₦${canonicalCourse.nairaAmount.toLocaleString()} NGN. Welcome to Vixora Academy!`
       });
+
+      // Requirement 5: Do NOT mark email as sent BEFORE email provider successfully accepts it
+      if (emailResult && (emailResult.delivered || emailResult.status === 'delivered')) {
+        finalEmailDispatchedAt = new Date().toISOString();
+        if (supabase) {
+          try {
+            await supabase
+              .from('payments')
+              .update({ email_dispatched_at: finalEmailDispatchedAt })
+              .eq('id', reference);
+          } catch (dbErr) {
+            console.warn('[Supabase email_dispatched_at update]:', dbErr);
+          }
+        }
+        if (fallbackPaymentsStore.has(reference)) {
+          fallbackPaymentsStore.get(reference)!.email_dispatched_at = finalEmailDispatchedAt;
+        }
+      }
     } catch (mailErr) {
       console.warn('[Paystack Email Dispatch Warning]:', mailErr);
     }
@@ -632,7 +776,8 @@ export async function processPaymentFulfillment(
       studentName: customerName,
       studentEmail: customerEmail,
       courseId: canonicalCourse.id,
-      courseTitle: canonicalCourse.title
+      courseTitle: canonicalCourse.title,
+      emailDispatchedAt: finalEmailDispatchedAt
     }
   };
 }
@@ -752,6 +897,9 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       currency: 'NGN',
       channel: null,
       status: 'pending',
+      fulfillment_status: 'pending',
+      fulfillment_error: null,
+      email_dispatched_at: null,
       paystack_transaction_id: null,
       customer_email: cleanEmail,
       customer_name: cleanStudentName,

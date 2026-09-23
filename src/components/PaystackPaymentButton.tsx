@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CreditCard, ShieldCheck, Loader2, ArrowRight, ExternalLink, AlertCircle } from 'lucide-react';
+import { CreditCard, ShieldCheck, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import {
   initializePaystackPayment,
-  loadPaystackInlineScript,
+  launchPaystackCheckout,
   verifyPaystackPayment,
   VerifiedPaymentData
 } from '../lib/paystack';
@@ -13,8 +13,8 @@ interface PaystackPaymentButtonProps {
   phone?: string;
   courseId: string;
   courseTitle: string;
-  tuition: string;
-  onSuccess: (payment: VerifiedPaymentData) => void;
+  tuitionDisplay: string;
+  onSuccess?: (payment: VerifiedPaymentData) => void;
   className?: string;
   variant?: 'primary' | 'card';
 }
@@ -25,7 +25,7 @@ export function PaystackPaymentButton({
   phone,
   courseId,
   courseTitle,
-  tuition,
+  tuitionDisplay,
   onSuccess,
   className = '',
   variant = 'primary'
@@ -45,13 +45,12 @@ export function PaystackPaymentButton({
 
     try {
       // 1. Initialize transaction on our server
+      // Note: Frontend sends ONLY customer info & courseId; authoritative amount is determined by backend.
       const initRes = await initializePaystackPayment({
         email,
         studentName,
         phone,
         courseId,
-        courseTitle,
-        tuition,
         callbackUrl: typeof window !== 'undefined'
           ? `${window.location.origin}/payment/callback?courseId=${encodeURIComponent(courseId)}`
           : undefined
@@ -60,7 +59,7 @@ export function PaystackPaymentButton({
       if (!initRes.success || !initRes.reference) {
         if (initRes.code === 'PAYSTACK_NOT_CONFIGURED') {
           setErrorMessage(
-            'Paystack Secret Key is not configured yet. Please add PAYSTACK_SECRET_KEY to Settings -> Secrets in your project.'
+            'Payment processing is currently undergoing system setup. Please contact admissions directly or try again shortly.'
           );
         } else {
           setErrorMessage(initRes.error || 'Failed to initialize Paystack checkout.');
@@ -69,77 +68,47 @@ export function PaystackPaymentButton({
         return;
       }
 
-      const reference = initRes.reference;
-      const publicKey = initRes.publicKey || (import.meta as any).env?.VITE_PAYSTACK_PUBLIC_KEY;
-
-      // 2. Attempt Paystack Inline popup if public key is available
-      if (publicKey && typeof window !== 'undefined') {
-        const scriptLoaded = await loadPaystackInlineScript();
-
-        if (scriptLoaded && window.PaystackPop) {
-          try {
-            // Function must be a standard non-async function to pass Paystack's constructor and prototype check
-            const handleSuccess = function (response: any) {
-              setIsLoading(true);
-              const refToVerify = response?.reference || response?.trxref || reference;
-              verifyPaystackPayment(refToVerify)
-                .then((verifyRes) => {
-                  setIsLoading(false);
-                  if (verifyRes.verified && verifyRes.payment) {
-                    onSuccess(verifyRes.payment);
-                  } else {
-                    setErrorMessage(verifyRes.error || 'Payment verification failed. Please contact support.');
-                  }
-                })
-                .catch((err: any) => {
-                  setIsLoading(false);
-                  setErrorMessage(err?.message || 'Payment verification failed. Please contact support.');
-                });
-            };
-
-            const handleClose = function () {
+      // 2. Launch Paystack Checkout
+      await launchPaystackCheckout({
+        reference: initRes.reference,
+        authorizationUrl: initRes.authorizationUrl,
+        accessCode: initRes.accessCode,
+        publicKey: initRes.publicKey,
+        email,
+        studentName,
+        phone,
+        onSuccess: (confirmedRef) => {
+          setIsLoading(true);
+          verifyPaystackPayment(confirmedRef)
+            .then((verifyRes) => {
               setIsLoading(false);
-            };
-
-            const handler = window.PaystackPop.setup({
-              key: publicKey,
-              email,
-              amount: initRes.amountKobo,
-              currency: initRes.currency || 'NGN',
-              ref: reference,
-              channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-              metadata: {
-                studentName: studentName || email.split('@')[0],
-                courseTitle,
-                courseId
-              },
-              callback: handleSuccess,
-              onSuccess: handleSuccess,
-              onClose: handleClose,
-              onCancel: handleClose
+              if (verifyRes.verified && verifyRes.payment) {
+                if (onSuccess) {
+                  onSuccess(verifyRes.payment);
+                } else {
+                  window.location.href = `/payment/callback?reference=${encodeURIComponent(confirmedRef)}`;
+                }
+              } else {
+                setErrorMessage(verifyRes.error || 'Payment verification could not be confirmed.');
+              }
+            })
+            .catch((err: any) => {
+              setIsLoading(false);
+              setErrorMessage(err?.message || 'Payment verification failed. Please contact support.');
             });
-
-            if (handler && typeof handler.openIframe === 'function') {
-              handler.openIframe();
-              return;
-            }
-          } catch (popupErr: any) {
-            console.warn('Paystack inline popup initialization failed, falling back to hosted checkout:', popupErr);
-            // Fall through to hosted redirect fallback below
-          }
+        },
+        onCancel: () => {
+          setIsLoading(false);
+          setErrorMessage('Payment was cancelled. You can try again whenever you are ready.');
+        },
+        onError: (err) => {
+          setIsLoading(false);
+          setErrorMessage(err);
         }
-      }
-
-      // 3. Fallback to standard Paystack hosted checkout URL
-      if (initRes.authorizationUrl) {
-        // Open Paystack hosted checkout
-        window.location.href = initRes.authorizationUrl;
-      } else {
-        throw new Error('No authorization URL returned from Paystack.');
-      }
+      });
     } catch (err: any) {
       console.error('Paystack Checkout Error:', err);
-      setErrorMessage(err.message || 'An unexpected error occurred with Paystack checkout.');
+      setErrorMessage(err?.message || 'An unexpected error occurred with Paystack checkout.');
       setIsLoading(false);
     }
   };
@@ -174,10 +143,10 @@ export function PaystackPaymentButton({
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-300">
             <div>
               <span className="text-neutral-400">Total Tuition: </span>
-              <strong className="text-base text-emerald-400 font-bold">{tuition}</strong>
+              <strong className="text-base text-emerald-400 font-bold">{tuitionDisplay}</strong>
             </div>
             <div className="text-[11px] font-mono text-neutral-400">
-              Cards • Bank Transfer • USSD • Apple Pay
+              Cards • Bank Transfer • USSD • Mobile Money
             </div>
           </div>
 
@@ -195,7 +164,7 @@ export function PaystackPaymentButton({
             ) : (
               <>
                 <CreditCard className="w-4 h-4" />
-                <span>Pay {tuition} Online with Paystack</span>
+                <span>Pay {tuitionDisplay} Online with Paystack</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -216,7 +185,7 @@ export function PaystackPaymentButton({
           ) : (
             <>
               <CreditCard className="w-4 h-4" />
-              <span>Pay {tuition} via Paystack</span>
+              <span>Pay {tuitionDisplay} via Paystack</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
