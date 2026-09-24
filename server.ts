@@ -256,4 +256,11 @@ async function startServer() {
   });
 }
 
-startServer();
+// Vercel loads this Express app through api/[...path].ts.
+// Keep the standalone server behavior for local/Node hosting, but do not
+// start a second listener when the module is loaded as a Vercel function.
+export default app;
+
+if (!process.env.VERCEL) {
+  startServer();
+}
