@@ -1,5 +1,5 @@
 import { ACADEMY_COURSES } from '../../src/data/vixoraContent.js';
-import { getCoursePrices, CoursePrices } from '../../src/data/coursePricing.js';
+import { getCoursePrices, type CoursePrices } from '../../src/data/coursePricing.js';
 
 export interface CanonicalCourse {
   id: string;
