@@ -43,10 +43,12 @@ async function runAllTests() {
   // Test 0: Structured course pricing contract
   // ------------------------------------------------------------------------
   await runTest('0. Structured pricing contract preserves approved prices without FX conversion', () => {
-    assert.deepEqual(getCoursePrices('course-data-analysis-cohort'), { NGN: 60000, USD: null });
+    assert.deepEqual(getCoursePrices('course-data-analysis-cohort'), { NGN: 60000, USD: 50 });
+    assert.deepEqual(getCoursePrices('course-ai-automation-digital-skills'), { NGN: 30000, USD: 25 });
+    assert.deepEqual(getCoursePrices('course-ai-automation-digital-business-systems'), { NGN: 60000, USD: 50 });
     assert.equal(getCoursePrice('course-fullstack-ai', 'USD'), 1850);
     assert.equal(getCoursePrice('course-fullstack-ai', 'NGN'), null);
-    assert.equal(getCoursePrice('course-machine-learning-data-science', 'NGN'), 60000);
+    assert.deepEqual(getCoursePrices('course-machine-learning-data-science'), { NGN: 60000, USD: 60 });
     assert.equal(getCoursePrice('unknown-course', 'NGN'), null);
   });
 
