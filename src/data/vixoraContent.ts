@@ -1169,6 +1169,224 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     certificateType: "Vixora Certificate of Advanced Mastery in AI Automation & Digital Business Systems"
   },
   {
+    id: "course-fullstack-vibe-coding",
+    slug: "full-stack-vibe-coding",
+    title: "Full Stack Vibe Coding",
+    subtitle: "Build real full-stack web applications with AI as your coding partner — from idea and interface design to backend logic, databases, authentication, deployment, and production-ready delivery.",
+    badge: "🚀 Practical 12-Week Build Cohort",
+    level: "Beginner to Intermediate",
+    status: "upcoming",
+    track: "Engineering & AI",
+    format: "12-Week Hybrid, Project-Based Cohort",
+    duration: "12 weeks",
+    commitment: "5-7 hrs/week (Live Sessions + Build Labs)",
+    nextCohortDate: "Coming Soon",
+    tuition: "₦50,000",
+    tuitionNote: "Full program fee: ₦50,000. International pricing: $100.",
+    seatsRemaining: 20,
+    targetAudience: "Aspiring developers, freelancers, entrepreneurs, students, designers, and professionals who want to build and launch modern web applications with AI-assisted development.",
+    description: "Learn to turn ideas into working full-stack products using modern AI-assisted development workflows. You will learn how to plan an application, build responsive interfaces, create backend APIs, connect databases, add authentication, integrate third-party services, debug with AI, use Git and GitHub, deploy to production, and present a finished portfolio project.",
+    heroPitch: "Stop watching coding tutorials. Start building real products with AI as your development partner.",
+    highlights: [
+      "Learn practical Vibe Coding from idea to deployed application",
+      "Build frontend interfaces with HTML, CSS, JavaScript, React, and modern UI workflows",
+      "Create backend APIs, database models, authentication, and real application logic",
+      "Use AI coding tools for planning, generation, debugging, refactoring, and documentation",
+      "Build and deploy portfolio-ready full-stack projects",
+      "Learn Git, GitHub, environment variables, API security, and production basics",
+      "Finish with a capstone product you can demonstrate to clients, employers, or users"
+    ],
+    outcomes: [
+      "Break a product idea into requirements, user flows, pages, components, data models, and implementation tasks",
+      "Use AI coding assistants effectively without blindly accepting generated code",
+      "Build responsive frontend applications with React and reusable components",
+      "Build backend APIs and connect them to a relational database",
+      "Implement authentication, authorization, validation, error handling, and secure environment configuration",
+      "Connect external APIs and services to create useful real-world product features",
+      "Use Git and GitHub to manage versions, branches, commits, and collaboration",
+      "Debug full-stack applications by reading errors, tracing requests, testing fixes, and using AI as a debugging partner",
+      "Deploy a full-stack application and configure its production environment",
+      "Package and present a portfolio-ready product and explain the technical decisions behind it"
+    ],
+    prerequisites: [
+      "A laptop with reliable internet access",
+      "Basic computer literacy and willingness to learn",
+      "No computer science degree or professional programming experience required",
+      "A willingness to practice between live sessions and build your own project"
+    ],
+    curriculum: [
+      "Module 1 — Vibe Coding Foundations: How to Build with AI",
+      "Module 2 — Web Foundations: HTML, CSS, JavaScript & Git",
+      "Module 3 — React Frontend Development & Modern UI",
+      "Module 4 — Backend APIs & Server-Side Application Logic",
+      "Module 5 — Databases, Authentication & Data Security",
+      "Module 6 — APIs, Integrations & Real-World Product Features",
+      "Module 7 — AI-Assisted Debugging, Testing & Code Quality",
+      "Module 8 — Full-Stack Architecture & Production Readiness",
+      "Module 9 — Build Sprint: From Product Idea to MVP",
+      "Module 10 — Deployment, Domains & Production Operations",
+      "Module 11 — Capstone Development, Review & Portfolio",
+      "Module 12 — Launch, Client Delivery & Monetization"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 1",
+        title: "Vibe Coding Foundations: From Idea to Build Plan",
+        description: "Understand the Vibe Coding workflow and learn how to use AI as a development partner while keeping control of architecture, code quality, and product decisions.",
+        topics: [
+          "What Vibe Coding is and where AI-assisted development fits in a real workflow",
+          "Turning an idea into requirements, user stories, pages, features, and acceptance criteria",
+          "Prompting AI for planning, architecture, code generation, explanations, and reviews",
+          "Choosing a practical stack and setting up the development environment"
+        ],
+        handsOnLab: "Turn a product idea into a build specification and use an AI coding assistant to generate the first working project structure."
+      },
+      {
+        week: "Week 2",
+        title: "Web Foundations, JavaScript & Git",
+        description: "Build the core web skills needed to understand and control AI-generated code instead of treating it as a black box.",
+        topics: [
+          "HTML structure, semantic elements, forms, accessibility, and page layout",
+          "CSS fundamentals, responsive design, Flexbox, Grid, and reusable styling patterns",
+          "JavaScript variables, functions, arrays, objects, events, async code, and modules",
+          "Git, GitHub, commits, branches, pull requests, and recovering from mistakes"
+        ],
+        handsOnLab: "Build and publish a responsive landing page from a written specification using AI-assisted development and Git."
+      },
+      {
+        week: "Weeks 3-4",
+        title: "React Frontend Development & Modern UI",
+        description: "Move from static pages to reusable, interactive frontend applications with React.",
+        topics: [
+          "React components, props, state, events, and reusable UI patterns",
+          "Forms, validation, loading states, error states, and conditional rendering",
+          "Routing, layouts, reusable components, and responsive application structure",
+          "Designing clean interfaces with AI-assisted UI generation and iterative refinement"
+        ],
+        handsOnLab: "Build a responsive dashboard with authentication screens, forms, reusable components, and interactive application states."
+      },
+      {
+        week: "Weeks 5-6",
+        title: "Backend APIs & Server-Side Logic",
+        description: "Learn how the frontend communicates with a backend and how business logic is implemented securely on the server.",
+        topics: [
+          "Client-server architecture, HTTP methods, status codes, and REST API design",
+          "Building API routes, controllers, validation, and structured responses",
+          "Environment variables, secrets, server-side configuration, and error handling",
+          "Connecting frontend actions to backend endpoints and tracing requests end to end"
+        ],
+        handsOnLab: "Build a backend API for a simple business application and connect it to the React frontend."
+      },
+      {
+        week: "Weeks 7-8",
+        title: "Databases, Authentication & Integrations",
+        description: "Turn a frontend and API into a real application by persisting data, managing users, and connecting external services.",
+        topics: [
+          "Relational database concepts, tables, relationships, queries, and migrations",
+          "User registration, login, sessions, protected routes, and role-based access",
+          "CRUD operations, validation, authorization, and common application security risks",
+          "Working with third-party APIs, webhooks, file storage, email, and other integrations"
+        ],
+        handsOnLab: "Build a secure authenticated application that stores user data, protects private routes, and consumes an external API."
+      },
+      {
+        week: "Week 9",
+        title: "AI-Assisted Debugging, Testing & Code Quality",
+        description: "Learn to diagnose problems systematically and use AI to accelerate debugging without introducing hidden defects.",
+        topics: [
+          "Reading browser, frontend, backend, and database errors",
+          "Debugging by reproducing, isolating, explaining, testing, and verifying fixes",
+          "Writing practical unit and integration tests for important application behavior",
+          "Refactoring AI-generated code, reducing duplication, improving naming, and documenting decisions"
+        ],
+        handsOnLab: "Take a deliberately broken full-stack application, diagnose its failures, fix them with AI assistance, and verify the result with tests."
+      },
+      {
+        week: "Week 10",
+        title: "Full-Stack Architecture & Production Deployment",
+        description: "Prepare an application for real users by understanding architecture, deployment, domains, and production configuration.",
+        topics: [
+          "Separating frontend, backend, database, and external service responsibilities",
+          "Production builds, environment configuration, logs, monitoring, and basic performance checks",
+          "Deploying frontend and backend services and connecting a production database",
+          "Custom domains, HTTPS, CORS, rate limiting, backups, and basic security hardening"
+        ],
+        handsOnLab: "Deploy a complete full-stack application to a live environment and connect it to a custom domain."
+      },
+      {
+        week: "Week 11",
+        title: "Capstone Build Sprint & Portfolio Development",
+        description: "Apply the full workflow to a product of your choice and receive structured review during the build.",
+        topics: [
+          "Capstone planning, scope control, architecture review, and milestone planning",
+          "Rapid feature development with AI-assisted coding and manual verification",
+          "User experience polish, responsive testing, accessibility, and edge cases",
+          "Writing a strong README, project case study, technical documentation, and demo script"
+        ],
+        handsOnLab: "Build the core production version of your capstone and complete a mentor-led code and product review."
+      },
+      {
+        week: "Week 12",
+        title: "Launch, Client Delivery & Monetization",
+        description: "Finish the capstone, launch it publicly, and learn how to turn full-stack Vibe Coding into freelance and product opportunities.",
+        topics: [
+          "Final testing, bug fixing, deployment verification, and launch checklist",
+          "Presenting a technical product to clients, employers, partners, or users",
+          "Packaging web development offers, project scoping, proposals, and delivery milestones",
+          "Building a portfolio, finding prospects, and positioning Vibe Coding as a practical business skill"
+        ],
+        handsOnLab: "Launch and present the final capstone, then create a portfolio-ready case study and a client-ready project offer."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Full-Stack Business Application",
+        description: "Build and deploy a complete web application that solves a real business problem, with a responsive frontend, backend API, database, authentication, validation, and production deployment.",
+        technologies: ["React", "JavaScript/TypeScript", "Backend API", "Supabase/PostgreSQL", "GitHub", "Vercel"]
+      },
+      {
+        title: "AI-Powered Productivity or Service Tool",
+        description: "Create a focused SaaS-style tool that uses an AI API or automation workflow to deliver a useful feature to a defined audience.",
+        technologies: ["React", "AI API", "Backend API", "Database", "Authentication", "Cloud Deployment"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Academy Instructors",
+        role: "Full-Stack Development & Vibe Coding Instructors",
+        bio: "Practitioners focused on helping learners move from AI-assisted coding experiments to structured, working, and deployable products.",
+        companyBackground: "Vixora Academy"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need to know how to code before joining?",
+        a: "No. The course starts from the foundations and progressively introduces frontend, backend, databases, APIs, Git, and deployment. You will learn how to work with AI without depending on AI blindly."
+      },
+      {
+        q: "Is Vibe Coding just asking AI to write the whole website?",
+        a: "No. You will learn a structured workflow: plan the product, ask AI for targeted implementation, inspect the generated code, test it, debug it, and understand the important parts before shipping."
+      },
+      {
+        q: "What will I build during the course?",
+        a: "You will complete practical exercises throughout the program and finish with a full-stack capstone that you can deploy and use as a portfolio project."
+      },
+      {
+        q: "Will I learn backend development too?",
+        a: "Yes. The curriculum covers APIs, server-side logic, databases, authentication, integrations, security basics, and deployment so you can understand the complete application lifecycle."
+      },
+      {
+        q: "Can I use this skill to freelance?",
+        a: "Yes. The final module covers packaging your skills into practical web development offers, project scoping, proposals, portfolio presentation, prospecting, and client delivery."
+      },
+      {
+        q: "What do I receive after completing the course?",
+        a: "Learners who complete the required coursework and capstone receive a Vixora certificate of completion and leave with a deployed project suitable for their portfolio."
+      }
+    ],
+    certificateType: "Vixora Certificate of Completion in Full Stack Vibe Coding"
+  },
+  {
     id: "course-fullstack-ai",
     slug: "fullstack-ai-engineering",
     title: "Full-Stack & Autonomous AI Engineering Cohort",
