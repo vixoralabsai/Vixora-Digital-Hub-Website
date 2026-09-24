@@ -1,9 +1,13 @@
-import { ACADEMY_COURSES, AcademyCourse } from '../../src/data/vixoraContent.js';
+import { ACADEMY_COURSES } from '../../src/data/vixoraContent.js';
+import { getCoursePrices, CoursePrices } from '../../src/data/coursePricing.js';
 
 export interface CanonicalCourse {
   id: string;
   slug: string;
   title: string;
+  /** Structured commercial prices. Null means that currency is not configured. */
+  prices: CoursePrices;
+  /** Legacy NGN payment fields retained during Phase 1 compatibility work. */
   nairaAmount: number;
   koboAmount: number;
   currency: 'NGN';
@@ -13,39 +17,43 @@ export interface CanonicalCourse {
 }
 
 /**
- * Standardizes course prices into authoritative Naira amounts.
- * Tuition format in vixoraContent: "₦60,000", "₦30,000", or "$1,850".
- * For courses in USD, standard fixed peg is 1 USD = 1,000 NGN.
+ * Phase 1 compatibility helper.
+ *
+ * The structured course pricing contract is now authoritative. Existing
+ * Paystack NGN flows still consume nairaAmount/koboAmount until the currency
+ * routing/payment phase is implemented. No live FX conversion is introduced
+ * by the new pricing model.
  */
-function calculateCanonicalNaira(tuition: string): number {
-  if (!tuition) return 60000;
-  
-  if (tuition.includes('₦')) {
+function getLegacyNairaAmount(courseId: string, tuition: string): number {
+  const prices = getCoursePrices(courseId);
+  if (prices?.NGN != null) return prices.NGN;
+
+  // Preserve the existing behavior for USD-priced courses during the
+  // transition. This is intentionally temporary and is NOT the new pricing
+  // model. It will be removed when USD checkout is implemented.
+  if (prices?.USD != null) return prices.USD * 1000;
+
+  if (tuition?.includes('₦')) {
     const num = parseInt(tuition.replace(/[^0-9]/g, ''), 10);
-    return isNaN(num) || num <= 0 ? 60000 : num;
-  }
-  
-  if (tuition.includes('$')) {
-    const num = parseInt(tuition.replace(/[^0-9]/g, ''), 10);
-    if (!isNaN(num) && num > 0) {
-      // 1 USD = 1,000 NGN standard peg for local currency processing
-      return num * 1000;
-    }
+    if (!isNaN(num) && num > 0) return num;
   }
 
-  const raw = parseInt(tuition.replace(/[^0-9]/g, ''), 10);
-  return isNaN(raw) || raw <= 0 ? 60000 : raw;
+  const raw = parseInt(tuition?.replace(/[^0-9]/g, '') || '', 10);
+  return !isNaN(raw) && raw > 0 ? raw : 60000;
 }
 
 // Build canonical map indexed by both canonical ID and slug
 const canonicalCourseMap = new Map<string, CanonicalCourse>();
 
 for (const course of ACADEMY_COURSES) {
-  const naira = calculateCanonicalNaira(course.tuition);
+  const prices = getCoursePrices(course.id);
+  const resolvedPrices: CoursePrices = prices ?? { NGN: null, USD: null };
+  const naira = getLegacyNairaAmount(course.id, course.tuition);
   const canonical: CanonicalCourse = {
     id: course.id,
     slug: course.slug,
     title: course.title,
+    prices: resolvedPrices,
     nairaAmount: naira,
     koboAmount: naira * 100,
     currency: 'NGN',
