@@ -39,6 +39,10 @@ export const COURSE_PRICING: Record<string, CoursePrices> = {
     NGN: 60000,
     USD: 50,
   },
+  'course-fullstack-vibe-coding': {
+    NGN: 50000,
+    USD: 100,
+  },
   'course-fullstack-ai': {
     NGN: null,
     USD: 1850,
