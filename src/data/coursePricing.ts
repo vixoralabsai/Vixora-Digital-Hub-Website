@@ -29,15 +29,15 @@ export interface CoursePricing {
 export const COURSE_PRICING: Record<string, CoursePrices> = {
   'course-data-analysis-cohort': {
     NGN: 60000,
-    USD: null,
+    USD: 50,
   },
   'course-ai-automation-digital-skills': {
     NGN: 30000,
-    USD: null,
+    USD: 25,
   },
   'course-ai-automation-digital-business-systems': {
     NGN: 60000,
-    USD: null,
+    USD: 50,
   },
   'course-fullstack-ai': {
     NGN: null,
@@ -61,7 +61,7 @@ export const COURSE_PRICING: Record<string, CoursePrices> = {
   },
   'course-machine-learning-data-science': {
     NGN: 60000,
-    USD: null,
+    USD: 60,
   },
 };
 
