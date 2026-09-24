@@ -13,6 +13,7 @@ import {
   isValidTransactionReference
 } from '../server/paystackServer.js';
 import { findCanonicalCourse } from '../server/payments/courseCatalog.js';
+import { getCoursePrice, getCoursePrices } from '../src/data/coursePricing.js';
 
 // Setup Mock Environment Variables for Testing
 process.env.PAYSTACK_SECRET_KEY = 'sk_test_mock_secret_key_vixora_academy';
@@ -37,6 +38,17 @@ async function runTest(name: string, fn: () => Promise<void> | void) {
 
 async function runAllTests() {
   clearPaymentStoresForTesting();
+
+  // ------------------------------------------------------------------------
+  // Test 0: Structured course pricing contract
+  // ------------------------------------------------------------------------
+  await runTest('0. Structured pricing contract preserves approved prices without FX conversion', () => {
+    assert.deepEqual(getCoursePrices('course-data-analysis-cohort'), { NGN: 60000, USD: null });
+    assert.equal(getCoursePrice('course-fullstack-ai', 'USD'), 1850);
+    assert.equal(getCoursePrice('course-fullstack-ai', 'NGN'), null);
+    assert.equal(getCoursePrice('course-machine-learning-data-science', 'NGN'), 60000);
+    assert.equal(getCoursePrice('unknown-course', 'NGN'), null);
+  });
 
   // ------------------------------------------------------------------------
   // Test 1: Initialization with valid course
