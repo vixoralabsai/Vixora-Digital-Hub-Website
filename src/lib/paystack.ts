@@ -287,54 +287,39 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
 export async function launchPaystackCheckout(options: LaunchCheckoutOptions): Promise<void> {
   if (typeof window === 'undefined') return;
 
-  const publicKey = options.publicKey || (import.meta as any).env?.VITE_PAYSTACK_PUBLIC_KEY;
+  /*
+   * Use Paystack's server-initialized hosted checkout as the primary path.
+   * The backend has already created the transaction and returned an
+   * authorization_url. Redirecting to that URL avoids relying on a browser
+   * SDK version/shape and keeps amount/currency/reference server-authoritative.
+   *
+   * Paystack documents this redirect flow as:
+   * backend initialization -> authorization_url -> checkout -> callback.
+   */
+  if (options.authorizationUrl) {
+    try {
+      const checkoutUrl = new URL(options.authorizationUrl);
 
-  // 1. Try Paystack inline popup if public key is available
-  if (publicKey) {
-    const isScriptLoaded = await loadPaystackInlineScript();
-
-    if (isScriptLoaded && window.PaystackPop?.setup) {
-      try {
-        const handler = window.PaystackPop.setup({
-          key: publicKey,
-          email: options.email,
-          ref: options.reference,
-          access_code: options.accessCode,
-          metadata: {
-            studentName: options.studentName,
-            phone: options.phone
-          },
-          callback: function (response: any) {
-            const confirmedRef = response?.reference || response?.trxref || options.reference;
-            if (options.onSuccess) {
-              options.onSuccess(confirmedRef);
-            } else {
-              window.location.href = `/payment/callback?reference=${encodeURIComponent(confirmedRef)}`;
-            }
-          },
-          onClose: function () {
-            if (options.onCancel) {
-              options.onCancel();
-            }
-          }
-        });
-
-        if (handler && typeof handler.openIframe === 'function') {
-          handler.openIframe();
-          return;
-        }
-      } catch (popupErr) {
-        console.warn('[Paystack Popup] Popup open failed, falling back to redirect:', popupErr);
+      if (checkoutUrl.protocol !== 'https:' || checkoutUrl.hostname !== 'checkout.paystack.com') {
+        throw new Error('Paystack returned an invalid checkout URL.');
       }
+
+      window.location.assign(checkoutUrl.toString());
+      return;
+    } catch (err: any) {
+      console.error('[Paystack Checkout] Invalid authorization URL:', err);
+      if (options.onError) {
+        options.onError('Paystack returned an invalid checkout link. Please try again or contact admissions.');
+      }
+      return;
     }
   }
 
-  // 2. Fallback to Paystack hosted checkout URL
-  if (options.authorizationUrl) {
-    window.location.href = options.authorizationUrl;
-    return;
-  }
-
+  /*
+   * No hosted checkout URL means initialization did not produce a usable
+   * transaction. Do not attempt to construct a client-side transaction or
+   * supply an amount here.
+   */
   if (options.onError) {
     options.onError('Payment authorization URL could not be generated. Please try again or contact admissions.');
   }
