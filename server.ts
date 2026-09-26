@@ -235,6 +235,26 @@ Provide a direct, helpful, and concise answer with actionable technical clarity.
 // Serve public directory for static assets (images, logos)
 app.use(express.static(path.join(process.cwd(), 'public')));
 
+// Ensure all unmatched /api routes return JSON 404, never falling through to SPA HTML
+app.all('/api/*', (_req, res) => {
+  res.status(404).json({
+    error: 'API endpoint not found.',
+    code: 'NOT_FOUND'
+  });
+});
+
+// Global Express error handler returning JSON for all /api requests
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.path.startsWith('/api')) {
+    const status = typeof err.status === 'number' ? err.status : 500;
+    return res.status(status).json({
+      error: err?.message || 'Internal server error',
+      code: err?.code || 'SERVER_ERROR'
+    });
+  }
+  next(err);
+});
+
 // Vite Middleware for Development & Static fallback for Production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

@@ -1031,6 +1031,7 @@ async function handleVerificationRequest(req: Request, res: Response) {
 }
 
 paystackRouter.post('/verify', handleVerificationRequest);
+paystackRouter.get('/verify', handleVerificationRequest);
 paystackRouter.get('/verify/:reference', handleVerificationRequest);
 paystackRouter.post('/verify/:reference', handleVerificationRequest);
 

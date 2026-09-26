@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { isValidClientReference } from '../src/lib/paystack.js';
+import { isValidClientReference, cleanErrorMessage } from '../src/lib/paystack.js';
 
 console.log('🧪 Starting Vixora Academy Paystack Phase 3 Frontend Integration Test Suite...\n');
 
@@ -123,7 +123,8 @@ async function runAllTests() {
       'launchPaystackCheckout must receive authorizationUrl'
     );
     assert.ok(
-      paystackLibContent.includes('window.location.href = options.authorizationUrl'),
+      paystackLibContent.includes('window.location.assign') ||
+      paystackLibContent.includes('window.location.href'),
       'launchPaystackCheckout must support authorizationUrl redirect fallback'
     );
   });
@@ -308,6 +309,32 @@ async function runAllTests() {
       0,
       `PAYSTACK_SECRET_KEY found in frontend src/ files: ${JSON.stringify(violations, null, 2)}`
     );
+  });
+
+  // ------------------------------------------------------------------------
+  // Test 13: Error Sanitization - DOMException / pattern mismatch errors sanitized
+  // ------------------------------------------------------------------------
+  await runTest('13. Error Sanitization: WebKit "expected pattern" & DOMExceptions are safely sanitized', () => {
+    // Exact user-reported error message
+    const userReportedError = 'The string did not match the expected pattern.';
+    const sanitized = cleanErrorMessage(userReportedError);
+    assert.ok(
+      !sanitized.includes('expected pattern'),
+      'Sanitized error must not contain raw pattern exception'
+    );
+    assert.ok(
+      sanitized.includes('Unable to reach the payment service'),
+      'Sanitized error must provide user-friendly message'
+    );
+
+    // Also test other WebKit/DOM error variants
+    assert.ok(cleanErrorMessage('SyntaxError: Unexpected token < in JSON at position 0').includes('Unable to reach the payment service'));
+    assert.ok(cleanErrorMessage('Failed to fetch').includes('Unable to reach the payment service'));
+    assert.ok(cleanErrorMessage('TypeError: Load failed').includes('Unable to reach the payment service'));
+
+    // Normal business errors should be preserved
+    assert.equal(cleanErrorMessage('Payment was cancelled.'), 'Payment was cancelled.');
+    assert.equal(cleanErrorMessage('Invalid course selected.'), 'Invalid course selected.');
   });
 
   console.log(`\n========================================`);

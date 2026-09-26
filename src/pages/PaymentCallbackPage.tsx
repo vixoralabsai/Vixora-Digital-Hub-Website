@@ -16,6 +16,7 @@ import {
 import {
   verifyPaystackPayment,
   isValidClientReference,
+  cleanErrorMessage,
   VerifiedPaymentData
 } from '../lib/paystack';
 import { getWhatsAppUrl } from '../data/brandConfig';
@@ -68,7 +69,7 @@ export function PaymentCallbackPage({
     } catch (err: any) {
       setPageState('error');
       setErrorMessage(
-        err?.message || 'A network error occurred while verifying the transaction. Please try again.'
+        cleanErrorMessage(err?.message) || 'A network error occurred while verifying the transaction. Please try again.'
       );
     }
   }, []);

@@ -21,6 +21,7 @@ import { PaymentReceiptModal } from './PaymentReceiptModal';
 import {
   initializePaystackPayment,
   launchPaystackCheckout,
+  cleanErrorMessage,
   VerifiedPaymentData
 } from '../lib/paystack';
 import { supabase } from '../lib/supabaseClient';
@@ -167,7 +168,7 @@ export function CourseEnrollmentModal({
         });
       } catch (err: any) {
         console.error('Enrollment initialization error:', err);
-        setErrorMessage(err?.message || 'A network error occurred while initializing checkout.');
+        setErrorMessage(cleanErrorMessage(err?.message) || 'A network error occurred while initializing checkout.');
         setIsSubmitting(false);
       }
       return;

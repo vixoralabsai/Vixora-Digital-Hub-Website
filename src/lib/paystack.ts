@@ -116,6 +116,86 @@ export function isValidClientReference(ref: unknown): boolean {
 }
 
 /**
+ * Sanitizes technical, browser-specific DOMException or SyntaxError messages
+ * (e.g. WebKit's generic "The string did not match the expected pattern.")
+ * into clean, user-friendly error messages.
+ */
+export function cleanErrorMessage(msg?: unknown): string {
+  if (!msg || typeof msg !== 'string') return '';
+  const trimmed = msg.trim();
+  const lower = trimmed.toLowerCase();
+
+  if (
+    lower.includes('expected pattern') ||
+    lower.includes('syntaxerror') ||
+    lower.includes('unexpected token') ||
+    lower.includes('failed to fetch') ||
+    lower.includes('load failed') ||
+    lower.includes('network request failed') ||
+    lower.includes('type error')
+  ) {
+    return 'Unable to reach the payment service. Please verify your connection or try again shortly.';
+  }
+
+  return trimmed;
+}
+
+/**
+ * Defensively parses response text to avoid Safari/WebKit DOMException 12:
+ * "The string did not match the expected pattern."
+ * when an endpoint returns HTML (404/500/502/proxy error) instead of valid JSON.
+ */
+async function parseSafeResponseJson<T = any>(
+  res: Response,
+  defaultErrorMsg = 'Payment service error.'
+): Promise<{ ok: boolean; status: number; data: T | null; error?: string }> {
+  const status = res.status;
+  try {
+    const text = await res.text();
+    if (!text || !text.trim()) {
+      return {
+        ok: res.ok,
+        status,
+        data: null,
+        error: res.ok ? undefined : `${defaultErrorMsg} (HTTP ${status})`
+      };
+    }
+
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return {
+          ok: res.ok,
+          status,
+          data: parsed,
+          error: parsed?.error ? cleanErrorMessage(parsed.error) : undefined
+        };
+      } catch {
+        // Fall through to non-JSON handler
+      }
+    }
+
+    // Response was non-JSON (e.g. HTML from proxy or error page)
+    return {
+      ok: false,
+      status,
+      data: null,
+      error: status >= 500
+        ? 'Payment gateway service is temporarily unavailable. Please retry shortly.'
+        : `${defaultErrorMsg} (HTTP ${status})`
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      status,
+      data: null,
+      error: cleanErrorMessage(err?.message) || defaultErrorMsg
+    };
+  }
+}
+
+/**
  * Loads Paystack inline.js script dynamically
  */
 export function loadPaystackInlineScript(): Promise<boolean> {
@@ -147,21 +227,7 @@ export function loadPaystackInlineScript(): Promise<boolean> {
  * Fetch public Paystack config from backend
  */
 export async function getPaystackConfig(): Promise<PaystackConfig> {
-  try {
-    const res = await fetch('/api/payments/paystack/config');
-    if (res.ok) {
-      return await res.json();
-    }
-    // Fallback to legacy route
-    const legacyRes = await fetch('/api/paystack/config');
-    if (legacyRes.ok) {
-      return await legacyRes.json();
-    }
-  } catch (err) {
-    console.warn('[Paystack Config] Unable to load config:', err);
-  }
-
-  return {
+  const fallbackConfig: PaystackConfig = {
     configured: false,
     hasPublicKey: false,
     publicKey: null,
@@ -169,6 +235,25 @@ export async function getPaystackConfig(): Promise<PaystackConfig> {
     mode: 'test',
     merchantName: 'Vixora Academy'
   };
+
+  try {
+    const res = await fetch('/api/payments/paystack/config');
+    const parsed = await parseSafeResponseJson<PaystackConfig>(res);
+    if (parsed.ok && parsed.data && typeof parsed.data.configured === 'boolean') {
+      return parsed.data;
+    }
+
+    // Fallback to legacy route
+    const legacyRes = await fetch('/api/paystack/config');
+    const legacyParsed = await parseSafeResponseJson<PaystackConfig>(legacyRes);
+    if (legacyParsed.ok && legacyParsed.data && typeof legacyParsed.data.configured === 'boolean') {
+      return legacyParsed.data;
+    }
+  } catch (err) {
+    console.warn('[Paystack Config] Unable to load config:', err);
+  }
+
+  return fallbackConfig;
 }
 
 /**
@@ -211,14 +296,16 @@ export async function initializePaystackPayment(
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
+    const parsed = await parseSafeResponseJson<any>(res, 'Failed to initialize payment.');
+    const data = parsed.data || {};
 
-    if (!res.ok) {
+    if (!parsed.ok || !data.success) {
+      const rawError = data.error || parsed.error || 'Failed to initialize payment.';
       return {
         success: false,
         reference: data.reference || '',
-        error: data.error || 'Failed to initialize payment.',
-        code: data.code || 'INIT_FAILED',
+        error: cleanErrorMessage(rawError),
+        code: data.code || (parsed.status === 429 ? 'RATE_LIMIT_EXCEEDED' : 'INIT_FAILED'),
         help: data.help
       };
     }
@@ -238,7 +325,7 @@ export async function initializePaystackPayment(
     return {
       success: false,
       reference: '',
-      error: err?.message || 'Network error connecting to payment gateway.',
+      error: cleanErrorMessage(err?.message) || 'Network error connecting to payment gateway.',
       code: 'NETWORK_ERROR'
     };
   }
@@ -269,12 +356,22 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
       body: JSON.stringify({ reference: cleanRef })
     });
 
-    const data = await res.json();
-    return data;
+    const parsed = await parseSafeResponseJson<VerifyPaymentResponse>(res, 'Verification error.');
+    if (!parsed.ok || !parsed.data) {
+      return {
+        verified: false,
+        error: cleanErrorMessage(parsed.error || parsed.data?.error) || "We're confirming your payment. Please wait or click retry.",
+        code: parsed.data?.code || 'VERIFICATION_UNAVAILABLE',
+        status: parsed.status,
+        reference: cleanRef
+      };
+    }
+
+    return parsed.data;
   } catch (err: any) {
     return {
       verified: false,
-      error: err?.message || 'Network error verifying payment.',
+      error: cleanErrorMessage(err?.message) || 'Network error verifying payment.',
       code: 'NETWORK_ERROR',
       reference: cleanRef
     };
@@ -300,16 +397,29 @@ export async function launchPaystackCheckout(options: LaunchCheckoutOptions): Pr
     try {
       const checkoutUrl = new URL(options.authorizationUrl);
 
-      if (checkoutUrl.protocol !== 'https:' || checkoutUrl.hostname !== 'checkout.paystack.com') {
-        throw new Error('Paystack returned an invalid checkout URL.');
+      // Validate that it is an official Paystack secure HTTPS domain
+      const isPaystackHost =
+        checkoutUrl.protocol === 'https:' &&
+        (checkoutUrl.hostname === 'checkout.paystack.com' ||
+          checkoutUrl.hostname === 'standard.paystack.co' ||
+          checkoutUrl.hostname.endsWith('.paystack.com') ||
+          checkoutUrl.hostname.endsWith('.paystack.co'));
+
+      if (!isPaystackHost) {
+        throw new Error('Paystack returned an invalid checkout link.');
       }
 
-      window.location.assign(checkoutUrl.toString());
+      // Universal cross-browser redirect
+      try {
+        window.location.assign(checkoutUrl.href);
+      } catch {
+        window.location.href = checkoutUrl.href;
+      }
       return;
     } catch (err: any) {
       console.error('[Paystack Checkout] Invalid authorization URL:', err);
       if (options.onError) {
-        options.onError('Paystack returned an invalid checkout link. Please try again or contact admissions.');
+        options.onError(cleanErrorMessage(err?.message) || 'Paystack returned an invalid checkout link. Please try again or contact admissions.');
       }
       return;
     }
