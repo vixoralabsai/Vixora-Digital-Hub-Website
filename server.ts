@@ -21,6 +21,17 @@ app.use(
   })
 );
 
+// Cross-Origin Resource Sharing (CORS) & Preflight Handler
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Mount Student & Certificate Portal APIs with Rate Limiting
 app.use('/api', portalRouter);
 
@@ -281,6 +292,16 @@ async function startServer() {
 // start a second listener when the module is loaded as a Vercel function.
 export default app;
 
-if (!process.env.VERCEL) {
+const isMainScript =
+  typeof process !== 'undefined' &&
+  Boolean(process.argv?.[1]) &&
+  !process.env.VERCEL &&
+  !process.env.AWS_LAMBDA_FUNCTION_NAME &&
+  (process.argv[1].endsWith('server.ts') ||
+    process.argv[1].endsWith('server.cjs') ||
+    process.argv[1].endsWith('server.js') ||
+    process.argv[1].includes('tsx'));
+
+if (isMainScript) {
   startServer();
 }

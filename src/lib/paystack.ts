@@ -137,6 +137,10 @@ export function cleanErrorMessage(msg?: unknown): string {
     return 'Unable to reach the payment service. Please verify your connection or try again shortly.';
   }
 
+  if (lower.includes('405') || lower.includes('method not allowed')) {
+    return 'Payment gateway service is currently updating. Please try again in a few moments.';
+  }
+
   return trimmed;
 }
 
@@ -177,6 +181,15 @@ async function parseSafeResponseJson<T = any>(
     }
 
     // Response was non-JSON (e.g. HTML from proxy or error page)
+    if (status === 405) {
+      return {
+        ok: false,
+        status,
+        data: null,
+        error: 'Payment service connection is currently synchronizing. Please try again in a moment.'
+      };
+    }
+
     return {
       ok: false,
       status,
@@ -290,13 +303,32 @@ export async function initializePaystackPayment(
       callbackUrl: params.callbackUrl
     };
 
-    const res = await fetch('/api/payments/paystack/initialize', {
+    let res = await fetch('/api/payments/paystack/initialize', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload)
     });
 
-    const parsed = await parseSafeResponseJson<any>(res, 'Failed to initialize payment.');
+    let parsed = await parseSafeResponseJson<any>(res, 'Failed to initialize payment.');
+
+    // If endpoint is not found or method is rejected (e.g. proxy/hosting divergence), fallback to canonical legacy path
+    if ((res.status === 404 || res.status === 405 || !parsed.ok) && (!parsed.data || !parsed.data.success)) {
+      try {
+        const fallbackRes = await fetch('/api/paystack/initialize', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload)
+        });
+        const fallbackParsed = await parseSafeResponseJson<any>(fallbackRes, 'Failed to initialize payment.');
+        if (fallbackParsed.ok && fallbackParsed.data?.success) {
+          res = fallbackRes;
+          parsed = fallbackParsed;
+        }
+      } catch {
+        // Retain original response
+      }
+    }
+
     const data = parsed.data || {};
 
     if (!parsed.ok || !data.success) {
@@ -348,7 +380,7 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
   }
 
   try {
-    const res = await fetch('/api/payments/paystack/verify', {
+    let res = await fetch('/api/payments/paystack/verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -356,7 +388,28 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
       body: JSON.stringify({ reference: cleanRef })
     });
 
-    const parsed = await parseSafeResponseJson<VerifyPaymentResponse>(res, 'Verification error.');
+    let parsed = await parseSafeResponseJson<VerifyPaymentResponse>(res, 'Verification error.');
+
+    // If 404 or 405, fallback to canonical legacy path
+    if ((res.status === 404 || res.status === 405 || !parsed.ok) && (!parsed.data || !parsed.data.verified)) {
+      try {
+        const fallbackRes = await fetch('/api/paystack/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ reference: cleanRef })
+        });
+        const fallbackParsed = await parseSafeResponseJson<VerifyPaymentResponse>(fallbackRes, 'Verification error.');
+        if (fallbackParsed.ok && fallbackParsed.data) {
+          res = fallbackRes;
+          parsed = fallbackParsed;
+        }
+      } catch {
+        // Retain original response
+      }
+    }
+
     if (!parsed.ok || !parsed.data) {
       return {
         verified: false,
