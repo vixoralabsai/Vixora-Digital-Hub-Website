@@ -118,6 +118,52 @@ body {
   color: transparent;
 }
 
+/* Reference VibeCoding-inspired typography & neo-brutalist tactile shadows */
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.font-hand {
+  font-family: 'Gochi Hand', 'Caveat', cursive;
+}
+
+.shadow-retro {
+  box-shadow: 4px 4px 0px #1A1D4F;
+}
+
+.shadow-retro-sm {
+  box-shadow: 2px 2px 0px #1A1D4F;
+}
+
+.shadow-retro-lg {
+  box-shadow: 6px 6px 0px #1A1D4F;
+}
+
+.shadow-retro-xl {
+  box-shadow: 8px 8px 0px #1A1D4F;
+}
+
+.shadow-retro-purple {
+  box-shadow: 4px 4px 0px #5B5FED;
+}
+
+.shadow-retro-gold {
+  box-shadow: 4px 4px 0px #FFC107;
+}
+
+@keyframes bounceSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce-soft {
+  animation: bounceSoft 3s ease-in-out infinite;
+}
+
 input, select, textarea {
   background: var(--vixora-white);
   border-color: var(--vixora-border);

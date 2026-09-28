@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import { portalRouter, isPlainObject } from './server/studentPortalServer.js';
 import { paystackRouter } from './server/paystackServer.js';
 
@@ -35,9 +34,11 @@ app.use((req, res, next) => {
 // Mount Student & Certificate Portal APIs with Rate Limiting
 app.use('/api', portalRouter);
 
-// Mount Paystack Payment Gateway API (supported on /api/payments/paystack and legacy /api/paystack)
+// Mount Paystack Payment Gateway API (supported on both /api/payments/paystack, /api/paystack, and stripped serverless paths)
 app.use('/api/payments/paystack', paystackRouter);
 app.use('/api/paystack', paystackRouter);
+app.use('/payments/paystack', paystackRouter);
+app.use('/paystack', paystackRouter);
 
 // Lazy initialization of Gemini client
 let aiClient: GoogleGenAI | null = null;
@@ -269,6 +270,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Vite Middleware for Development & Static fallback for Production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',

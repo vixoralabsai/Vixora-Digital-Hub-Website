@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   X,
-  CheckCircle2,
   GraduationCap,
   Calendar,
   CreditCard,
@@ -12,7 +11,10 @@ import {
   ExternalLink,
   Zap,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Phone,
+  Mail,
+  User
 } from 'lucide-react';
 import { AcademyCourse } from '../data/vixoraContent';
 import { getWhatsAppUrl } from '../data/brandConfig';
@@ -25,6 +27,7 @@ import {
   VerifiedPaymentData
 } from '../lib/paystack';
 import { supabase } from '../lib/supabaseClient';
+import { StickerLabel, TactileButton } from './course/CourseVisualDecorations';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;
@@ -39,15 +42,16 @@ export function CourseEnrollmentModal({
   onClose,
   onGoToPortal
 }: CourseEnrollmentModalProps) {
+  // Only 3 required student profile fields: Full Name, Email, and Phone
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [currentRole, setCurrentRole] = useState('');
-  const [company, setCompany] = useState('');
+
+  // Payment preference state
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
   const [selfPaymentMethod, setSelfPaymentMethod] = useState<'paystack' | 'bank_transfer'>('paystack');
-  const [experienceLevel, setExperienceLevel] = useState('Intermediate (2-5 yrs)');
-  const [goals, setGoals] = useState('');
+
+  // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isApplicationSubmitted, setIsApplicationSubmitted] = useState(false);
@@ -86,9 +90,8 @@ export function CourseEnrollmentModal({
     setFullName('');
     setEmail('');
     setPhone('');
-    setCurrentRole('');
-    setCompany('');
-    setGoals('');
+    setFundingType('self');
+    setSelfPaymentMethod('paystack');
     setShowReceipt(false);
     setVerifiedPayment(null);
     onClose();
@@ -182,51 +185,57 @@ export function CourseEnrollmentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-[#0F1535]/80 backdrop-blur-sm transition-opacity"
         onClick={handleResetAndClose}
       />
 
-      {/* Modal Card */}
-      <div className="relative w-full max-w-2xl bg-neutral-900 border border-purple-900/50 rounded-3xl shadow-2xl shadow-purple-950/60 overflow-hidden z-10 my-8">
+      {/* Modal Card with Unified Retro Design Language */}
+      <div className="relative w-full max-w-xl bg-[#FFFDF9] border-2 border-[#1A1D4F] rounded-2xl shadow-retro-lg overflow-hidden z-10 my-8 text-left animate-in fade-in zoom-in-95 duration-150">
+        
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-purple-950/80 via-neutral-900 to-indigo-950/80 p-6 sm:p-8 border-b border-purple-900/30 relative">
+        <div className="bg-[#F8F9FE] p-6 sm:p-7 border-b-2 border-[#1A1D4F] relative">
           <button
             onClick={handleResetAndClose}
-            className="absolute top-6 right-6 p-2 rounded-full bg-neutral-800/80 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+            className="absolute top-5 right-5 p-1.5 rounded-lg border-2 border-[#1A1D4F] bg-white text-[#1A1D4F] hover:bg-[#FFF6EC] shadow-retro-sm transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 stroke-[2.5]" />
           </button>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-3">
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>Admissions Portal &bull; {course.badge}</span>
+          <div className="flex items-center gap-2 mb-2.5">
+            <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={-1}>
+              ✦ Admissions Portal
+            </StickerLabel>
+            <span className="text-xs font-black px-2 py-0.5 rounded border border-[#1A1D4F] bg-[#FFF6EC] text-[#FF8A65]">
+              {course.badge}
+            </span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h2 className="font-display font-black text-2xl sm:text-3xl text-[#1A1D4F] tracking-tight">
             Enroll in {course.title}
           </h2>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs text-neutral-300 mt-2 font-mono">
-            <span className="flex items-center gap-1.5 text-purple-300">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-[#1A1D4F]/70 mt-2 font-mono">
+            <span className="flex items-center gap-1 text-[#5B5FED]">
               <Calendar className="w-3.5 h-3.5" /> Next Cohort: {course.nextCohortDate}
             </span>
             <span>&bull;</span>
-            <span className="text-emerald-400 font-semibold">{course.tuition} Tuition</span>
+            <span className="text-[#10B981] font-black">{course.tuition} Tuition</span>
             <span>&bull;</span>
-            <span className="text-amber-400">{course.seatsRemaining} Seats Remaining</span>
+            <span className="text-[#FF8A65]">{course.seatsRemaining} Seats Remaining</span>
           </div>
         </div>
 
         {/* Content Body */}
-        <div className="p-6 sm:p-8 max-h-[75vh] overflow-y-auto">
+        <div className="p-6 sm:p-7 max-h-[75vh] overflow-y-auto space-y-6">
+          
           {/* Error Banner */}
           {errorMessage && (
-            <div className="mb-6 p-4 rounded-2xl bg-rose-950/70 border border-rose-800/80 text-xs text-rose-200 flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-rose-50 border-2 border-rose-500 text-xs text-rose-900 flex items-start gap-3 shadow-retro-sm">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <span className="font-semibold text-rose-100">{errorMessage}</span>
-                <p className="text-[11px] text-rose-300/80">
+                <span className="font-black text-rose-900">{errorMessage}</span>
+                <p className="text-[11px] text-rose-700">
                   Your information has been preserved. You can click &quot;Submit Enrollment &amp; Pay&quot; to try again.
                 </p>
               </div>
@@ -234,30 +243,37 @@ export function CourseEnrollmentModal({
           )}
 
           {isApplicationSubmitted ? (
-            <div className="text-center py-6 space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-                <CheckCircle2 className="w-8 h-8" />
+            /* Application Submitted / Alternative Checkout View */
+            <div className="text-center py-4 space-y-5">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-[#D1F2D9] border-2 border-[#1A1D4F] shadow-retro flex items-center justify-center text-[#10B981]">
+                <GraduationCap className="w-7 h-7 text-[#1A1D4F]" />
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-white">Application Received!</h3>
-                <p className="text-sm text-neutral-300 max-w-md mx-auto">
-                  Thank you, <strong className="text-purple-300">{fullName}</strong>. Our admissions team has reserved a provisional seat for you in the <strong className="text-white">{course.title}</strong> cohort.
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-black text-[#1A1D4F]">Application Received!</h3>
+                <p className="text-xs sm:text-sm text-[#1A1D4F]/80 max-w-md mx-auto">
+                  Thank you, <strong className="text-[#5B5FED]">{fullName}</strong>. Our admissions team has reserved a provisional seat for you in the <strong className="text-[#1A1D4F]">{course.title}</strong> cohort.
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 text-left space-y-2 text-xs font-mono text-neutral-300">
+              <div className="p-4 rounded-xl bg-[#F8F9FE] border-2 border-[#1A1D4F] shadow-retro-sm text-left space-y-2 text-xs font-mono text-[#1A1D4F]">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Applicant:</span>
-                  <span>{fullName} ({email})</span>
+                  <span className="text-[#1A1D4F]/60">Applicant:</span>
+                  <span className="font-bold">{fullName} ({email})</span>
+                </div>
+                {phone && (
+                  <div className="flex justify-between">
+                    <span className="text-[#1A1D4F]/60">Phone:</span>
+                    <span className="font-bold">{phone}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-[#1A1D4F]/60">Course Track:</span>
+                  <span className="font-bold">{course.track}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Course Track:</span>
-                  <span>{course.track}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Payment Option:</span>
-                  <span className="capitalize">{fundingType}</span>
+                  <span className="text-[#1A1D4F]/60">Payment Option:</span>
+                  <span className="font-bold capitalize">{fundingType}</span>
                 </div>
               </div>
 
@@ -272,7 +288,7 @@ export function CourseEnrollmentModal({
                 />
               ) : (
                 <div className="space-y-3 pt-2">
-                  <div className="text-xs font-semibold text-neutral-300 font-mono">
+                  <div className="text-xs font-black uppercase text-[#1A1D4F]">
                     Fast-Track Corporate Admissions via WhatsApp:
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -283,10 +299,10 @@ export function CourseEnrollmentModal({
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold inline-flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/20"
+                      className="px-4 py-3 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] text-xs font-bold inline-flex items-center justify-center gap-2 shadow-retro-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
                     >
                       <span>🇺🇸 Global Admissions Desk</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
                     </a>
                     <a
                       href={getWhatsAppUrl(
@@ -295,189 +311,156 @@ export function CourseEnrollmentModal({
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold inline-flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/20"
+                      className="px-4 py-3 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] text-xs font-bold inline-flex items-center justify-center gap-2 shadow-retro-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
                     >
                       <span>🇳🇬 Nigeria (08114542934)</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
                     </a>
                   </div>
                 </div>
               )}
 
-              <button
-                type="button"
+              <TactileButton
+                variant="outline"
+                size="md"
+                className="w-full"
                 onClick={handleResetAndClose}
-                className="w-full py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold transition-all"
               >
-                Close
-              </button>
+                Close Window
+              </TactileButton>
             </div>
           ) : (
-            <form onSubmit={handleFormSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-neutral-300">
-                    Full Name <span className="text-purple-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    disabled={isSubmitting}
-                    placeholder="e.g. Alex Morgan"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white text-sm outline-none transition-all placeholder:text-neutral-600 disabled:opacity-60"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-neutral-300">
-                    Email Address <span className="text-purple-400">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    disabled={isSubmitting}
-                    placeholder="alex@company.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white text-sm outline-none transition-all placeholder:text-neutral-600 disabled:opacity-60"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-neutral-300">
-                    Phone / WhatsApp (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    disabled={isSubmitting}
-                    placeholder="+234 811 454 2934"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white text-sm outline-none transition-all placeholder:text-neutral-600 disabled:opacity-60"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-neutral-300">
-                    Current Title &amp; Company
-                  </label>
-                  <input
-                    type="text"
-                    disabled={isSubmitting}
-                    placeholder="e.g. Data Analyst @ Acme"
-                    value={currentRole}
-                    onChange={(e) => setCurrentRole(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white text-sm outline-none transition-all placeholder:text-neutral-600 disabled:opacity-60"
-                  />
-                </div>
-              </div>
-
-              {/* Experience Level */}
+            /* Streamlined 3-Field Enrollment Form */
+            <form onSubmit={handleFormSubmit} className="space-y-5">
+              
+              {/* Field 1: Full Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-neutral-300">
-                  Current Experience Level
+                <label className="block text-xs font-black uppercase text-[#1A1D4F] tracking-wide">
+                  <span className="flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#5B5FED]" /> Full Name <span className="text-[#5B5FED]">*</span>
+                  </span>
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    'Beginner (< 1 yr)',
-                    'Intermediate (2-5 yrs)',
-                    'Senior (5+ yrs)',
-                    'Executive / Lead'
-                  ].map((lvl) => (
-                    <button
-                      key={lvl}
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={() => setExperienceLevel(lvl)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all ${
-                        experienceLevel === lvl
-                          ? 'bg-purple-600/30 border-purple-500 text-white'
-                          : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
-                      } disabled:opacity-50`}
-                    >
-                      {lvl}
-                    </button>
-                  ))}
-                </div>
+                <input
+                  type="text"
+                  required
+                  disabled={isSubmitting}
+                  placeholder="e.g. Alex Morgan"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] font-bold text-sm outline-none transition-all placeholder:text-[#1A1D4F]/35 shadow-retro-sm focus:border-[#5B5FED] disabled:opacity-60"
+                />
               </div>
 
-              {/* Tuition & Payment Method Selection */}
-              <div className="space-y-2">
+              {/* Field 2: Email Address */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black uppercase text-[#1A1D4F] tracking-wide">
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-[#5B5FED]" /> Email Address <span className="text-[#5B5FED]">*</span>
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  disabled={isSubmitting}
+                  placeholder="alex@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] font-bold text-sm outline-none transition-all placeholder:text-[#1A1D4F]/35 shadow-retro-sm focus:border-[#5B5FED] disabled:opacity-60"
+                />
+              </div>
+
+              {/* Field 3: Phone Number */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black uppercase text-[#1A1D4F] tracking-wide">
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-[#10B981]" /> Phone / WhatsApp Number
+                  </span>
+                </label>
+                <input
+                  type="tel"
+                  disabled={isSubmitting}
+                  placeholder="+234 811 454 2934"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] font-bold text-sm outline-none transition-all placeholder:text-[#1A1D4F]/35 shadow-retro-sm focus:border-[#5B5FED] disabled:opacity-60"
+                />
+              </div>
+
+              {/* Tuition & Payment Preference Selection */}
+              <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-neutral-300">
+                  <label className="text-xs font-black uppercase text-[#1A1D4F]">
                     Payment Preference
                   </label>
-                  <span className="text-xs font-mono text-emerald-400 font-bold">
-                    Official Tuition: {course.tuition}
+                  <span className="text-xs font-mono text-[#10B981] font-black bg-[#D1F2D9] px-2 py-0.5 rounded border border-[#10B981]">
+                    Tuition: {course.tuition}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <div
                     onClick={() => !isSubmitting && setFundingType('self')}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
                       fundingType === 'self'
-                        ? 'bg-purple-950/60 border-purple-500 text-white'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                        ? 'bg-[#EEF2FF] border-[#5B5FED] shadow-retro-sm text-[#1A1D4F]'
+                        : 'bg-white border-[#1A1D4F]/30 hover:border-[#1A1D4F] text-[#1A1D4F]/70'
                     } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <CreditCard className="w-4 h-4 text-purple-400" />
-                      <span className="text-xs font-bold">Self-Funded</span>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <CreditCard className="w-4 h-4 text-[#5B5FED]" />
+                      <span className="text-xs font-black text-[#1A1D4F]">Self-Funded</span>
                     </div>
-                    <p className="text-[11px] text-neutral-400">
+                    <p className="text-[11px] leading-tight text-[#1A1D4F]/75">
                       Instant online checkout &amp; seat confirmation.
                     </p>
                   </div>
 
                   <div
                     onClick={() => !isSubmitting && setFundingType('installments')}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
                       fundingType === 'installments'
-                        ? 'bg-purple-950/60 border-purple-500 text-white'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                        ? 'bg-[#EEF2FF] border-[#5B5FED] shadow-retro-sm text-[#1A1D4F]'
+                        : 'bg-white border-[#1A1D4F]/30 hover:border-[#1A1D4F] text-[#1A1D4F]/70'
                     } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Sparkles className="w-4 h-4 text-indigo-400" />
-                      <span className="text-xs font-bold">Installments</span>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Sparkles className="w-4 h-4 text-[#FF8A65]" />
+                      <span className="text-xs font-black text-[#1A1D4F]">Installments</span>
                     </div>
-                    <p className="text-[11px] text-neutral-400">
-                      Flexible monthly payment schedule.
+                    <p className="text-[11px] leading-tight text-[#1A1D4F]/75">
+                      Flexible monthly milestone schedule.
                     </p>
                   </div>
 
                   <div
                     onClick={() => !isSubmitting && setFundingType('employer')}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
                       fundingType === 'employer'
-                        ? 'bg-purple-950/60 border-purple-500 text-white'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                        ? 'bg-[#EEF2FF] border-[#5B5FED] shadow-retro-sm text-[#1A1D4F]'
+                        : 'bg-white border-[#1A1D4F]/30 hover:border-[#1A1D4F] text-[#1A1D4F]/70'
                     } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Building2 className="w-4 h-4 text-purple-400" />
-                      <span className="text-xs font-bold">Employer Invoice</span>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Building2 className="w-4 h-4 text-[#FFC107]" />
+                      <span className="text-xs font-black text-[#1A1D4F]">Employer Invoice</span>
                     </div>
-                    <p className="text-[11px] text-neutral-400">
-                      Corporate tax invoices &amp; L&amp;D sponsorship.
+                    <p className="text-[11px] leading-tight text-[#1A1D4F]/75">
+                      Corporate invoice &amp; L&amp;D sponsorship.
                     </p>
                   </div>
                 </div>
 
                 {fundingType === 'self' && (
-                  <div className="pt-2 space-y-3">
-                    <div className="flex rounded-xl bg-neutral-950 p-1 border border-neutral-800">
+                  <div className="pt-2 space-y-2.5">
+                    <div className="flex rounded-xl bg-white p-1 border-2 border-[#1A1D4F] shadow-retro-sm">
                       <button
                         type="button"
                         disabled={isSubmitting}
                         onClick={() => setSelfPaymentMethod('paystack')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           selfPaymentMethod === 'paystack'
-                            ? 'bg-emerald-600 text-white shadow-md'
-                            : 'text-neutral-400 hover:text-white'
+                            ? 'bg-[#10B981] text-white shadow-sm'
+                            : 'text-[#1A1D4F]/70 hover:text-[#1A1D4F]'
                         }`}
                       >
                         <Zap className="w-3.5 h-3.5" />
@@ -487,10 +470,10 @@ export function CourseEnrollmentModal({
                         type="button"
                         disabled={isSubmitting}
                         onClick={() => setSelfPaymentMethod('bank_transfer')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           selfPaymentMethod === 'bank_transfer'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'text-neutral-400 hover:text-white'
+                            ? 'bg-[#5B5FED] text-white shadow-sm'
+                            : 'text-[#1A1D4F]/70 hover:text-[#1A1D4F]'
                         }`}
                       >
                         <CreditCard className="w-3.5 h-3.5" />
@@ -499,12 +482,14 @@ export function CourseEnrollmentModal({
                     </div>
 
                     {selfPaymentMethod === 'paystack' && (
-                      <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-neutral-300 space-y-1 font-mono">
-                        <div className="flex items-center justify-between text-white font-semibold font-sans">
-                          <span>Paystack Multi-Channel Gateway</span>
-                          <span className="text-emerald-400">{course.tuition}</span>
+                      <div className="p-3 rounded-xl bg-[#D1F2D9]/40 border-2 border-[#10B981] text-xs text-[#1A1D4F] space-y-1 font-mono">
+                        <div className="flex items-center justify-between text-[#1A1D4F] font-bold font-sans">
+                          <span className="flex items-center gap-1.5">
+                            <ShieldCheck className="w-4 h-4 text-[#10B981]" /> Paystack Multi-Channel Gateway
+                          </span>
+                          <span className="text-[#10B981] font-black">{course.tuition}</span>
                         </div>
-                        <p className="text-[11px] text-neutral-400">
+                        <p className="text-[11px] text-[#1A1D4F]/75 font-sans">
                           Supports Debit/Credit Cards, Bank Transfer, USSD, Apple Pay &amp; Mobile Money.
                         </p>
                       </div>
@@ -513,57 +498,43 @@ export function CourseEnrollmentModal({
                 )}
               </div>
 
-              {/* Goals / Background */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-neutral-300">
-                  What is your primary goal for this cohort?
-                </label>
-                <textarea
-                  rows={2}
-                  disabled={isSubmitting}
-                  placeholder="e.g. Master enterprise AI workflows and earn the verified alumni credential."
-                  value={goals}
-                  onChange={(e) => setGoals(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white text-sm outline-none transition-all placeholder:text-neutral-600 resize-none disabled:opacity-60"
-                />
-              </div>
-
               {/* Footer Actions */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-800">
-                <div className="flex items-center gap-2 text-xs text-neutral-400">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>256-bit encrypted admissions &bull; Verified Paystack security</span>
+              <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t-2 border-[#1A1D4F]/10">
+                <div className="flex items-center gap-1.5 text-xs text-[#1A1D4F]/70 font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
+                  <span>256-bit encrypted &bull; Verified Paystack security</span>
                 </div>
 
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <button
-                    type="button"
+                <div className="flex gap-2.5 w-full sm:w-auto">
+                  <TactileButton
+                    variant="outline"
+                    size="md"
                     disabled={isSubmitting}
                     onClick={handleResetAndClose}
-                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
+                    className="flex-1 sm:flex-initial"
                   >
                     Cancel
-                  </button>
+                  </TactileButton>
 
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-sm font-black border-2 border-[#1A1D4F] bg-[#FFC107] hover:bg-[#ffb700] text-[#1A1D4F] shadow-retro hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-retro-sm active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[#1A1D4F]" />
                         <span>Connecting to Paystack...</span>
                       </>
                     ) : fundingType === 'self' && selfPaymentMethod === 'paystack' ? (
                       <>
                         <span>Submit Enrollment &amp; Pay</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     ) : (
                       <>
                         <span>Submit Application</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>

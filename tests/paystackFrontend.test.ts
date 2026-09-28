@@ -337,6 +337,28 @@ async function runAllTests() {
     assert.equal(cleanErrorMessage('Invalid course selected.'), 'Invalid course selected.');
   });
 
+  // ------------------------------------------------------------------------
+  // Test 14: Simplified Enrollment Modal Fields Verification
+  // ------------------------------------------------------------------------
+  await runTest('14. Simplified Enrollment Modal: title, experience, and goals fields removed', () => {
+    assert.ok(
+      !modalContent.includes('Current Title & Company') && !modalContent.includes('Current Title &amp; Company'),
+      'CourseEnrollmentModal must not contain "Current Title & Company"'
+    );
+    assert.ok(
+      !modalContent.includes('Current Experience Level'),
+      'CourseEnrollmentModal must not contain "Current Experience Level"'
+    );
+    assert.ok(
+      !modalContent.includes('What is your primary goal for this cohort?'),
+      'CourseEnrollmentModal must not contain "What is your primary goal for this cohort?"'
+    );
+    assert.ok(
+      modalContent.includes('Full Name') && modalContent.includes('Email Address'),
+      'CourseEnrollmentModal must retain Full Name and Email Address'
+    );
+  });
+
   console.log(`\n========================================`);
   console.log(`Phase 3 Frontend Tests: ${testsPassed} Passed | ${testsFailed} Failed`);
   console.log(`========================================\n`);

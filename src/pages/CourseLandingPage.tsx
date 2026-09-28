@@ -49,6 +49,24 @@ import { AcademyCourse, CourseSyllabusModule, ACADEMY_COURSES } from '../data/vi
 import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
 import { WhatsAppContactButton } from '../components/WhatsAppContactButton';
 import { BankPaymentDetailsCard } from '../components/BankPaymentDetailsCard';
+import { CourseHeroSection } from '../components/course/CourseHeroSection';
+import { CourseCurriculumSection } from '../components/course/CourseCurriculumSection';
+import { CoursePricingSection } from '../components/course/CoursePricingSection';
+import {
+  ToolsMarqueeSection,
+  CourseProblemSection,
+  CourseRoadmapSection,
+  CourseProjectsSection,
+  CoursePedagogySection,
+  CourseAudienceSection,
+  CourseSpecsMatrixSection,
+  CourseTestimonialsSection,
+  CourseFaqSection,
+  CourseFinalCtaSection,
+  CourseMobileStickyBar
+} from '../components/course/CourseSections';
+import { getCourseTools } from '../components/course/CourseToolsData';
+import { StickerLabel, TactileButton } from '../components/course/CourseVisualDecorations';
 
 interface CourseLandingPageProps {
   course: AcademyCourse;
@@ -1409,13 +1427,7 @@ export function CourseLandingPage({
   onSelectCourse,
   onNavigateHome
 }: CourseLandingPageProps) {
-  const [expandedModules, setExpandedModules] = useState<{ [key: number]: boolean }>({ 0: true, 1: true });
-  const [expandedFaqs, setExpandedFaqs] = useState<{ [key: number]: boolean }>({ 0: true, 1: true });
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [showStickyBanner, setShowStickyBanner] = useState(true);
-
-  // Live ticking countdown timer
+  // Live ticking countdown timer for cohort urgency
   const [timeLeft, setTimeLeft] = useState({ hours: 4, minutes: 20, seconds: 43 });
 
   useEffect(() => {
@@ -1434,72 +1446,17 @@ export function CourseLandingPage({
     return () => clearInterval(timer);
   }, []);
 
-  const toggleModule = (idx: number) => {
-    setExpandedModules(prev => ({
-      ...prev,
-      [idx]: !prev[idx]
-    }));
-  };
-
-  const toggleAllModules = (expand: boolean) => {
-    const next: { [key: number]: boolean } = {};
-    course.weeklySyllabus.forEach((_, idx) => {
-      next[idx] = expand;
-    });
-    setExpandedModules(next);
-  };
-
-  const toggleFaq = (idx: number) => {
-    setExpandedFaqs(prev => ({
-      ...prev,
-      [idx]: !prev[idx]
-    }));
-  };
-
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  };
-
-  const handleDownloadSyllabus = () => {
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 3000);
-    const content =
-      `VIXORA ACADEMY - OFFICIAL COURSE SYLLABUS\n` +
-      `Course: ${course.title}\n` +
-      `Track: ${course.track}\n` +
-      `Level: ${course.level}\n` +
-      `Duration: ${course.duration}\n` +
-      `Format: ${course.format}\n` +
-      `Tuition: ${course.tuition}\n` +
-      `Next Cohort: ${course.nextCohortDate}\n\n` +
-      `COURSE OVERVIEW:\n${course.description}\n\n` +
-      `CURRICULUM BREAKDOWN:\n` +
-      course.weeklySyllabus
-        .map(
-          m =>
-            `${m.week}: ${m.title}\n${m.description}\nKey Topics: ${m.topics.join(', ')}\nHands-On Lab: ${m.handsOnLab}\n`
-        )
-        .join('\n---\n') +
-      `\n\nOFFICIAL ENROLLMENT PORTAL: ${BRAND_CONFIG.academyDomain}/course/${course.slug}\n` +
-      `WhatsApp Admissions: ${BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber} / ${BRAND_CONFIG.whatsapp.nigeria.displayNumber}`;
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Vixora-Academy-${course.slug}-Syllabus.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const handleSwitchToCourse = (targetCourse: AcademyCourse) => {
     if (onSelectCourse) {
       onSelectCourse(targetCourse);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -1509,1154 +1466,195 @@ export function CourseLandingPage({
   const transformationPhases = getCourseTransformationPhases(course);
   const audiencePersonas = getCourseAudiencePersonas(course);
   const prerequisitesNotNeeded = getCoursePrerequisitesNotNeeded(course);
-  const valueStack = getCourseValueStack(course);
-  const valueQuote = getCourseValueQuote(course);
   const testimonials = getCourseTestimonials(course);
   const relatedCourses = getRelatedCourses(course);
+  const tools = getCourseTools(course);
 
   return (
-    <div id="course-landing-page" className="min-h-screen bg-[#070314] text-neutral-100 font-sans selection:bg-purple-600 selection:text-white pb-28">
-      {/* 1. TOP BREADCRUMB & BACK NAVIGATION */}
-      <nav className="sticky top-0 z-40 bg-[#0A051C]/90 backdrop-blur-md border-b border-purple-900/40">
+    <div id="course-landing-page" className="min-h-screen bg-[#FFFDF9] text-[#1A1D4F] font-sans selection:bg-[#5B5FED] selection:text-white pb-20 sm:pb-12 text-left">
+      
+      {/* 1. TOP STICKY NAVIGATION BAR */}
+      <nav className="sticky top-0 z-40 bg-[#FFFDF9]/95 backdrop-blur-md border-b-2 border-[#1A1D4F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-neutral-400 overflow-hidden">
+          
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm overflow-hidden font-bold">
             <button
               onClick={onBackToAcademy}
-              className="inline-flex items-center gap-1.5 text-neutral-300 hover:text-white transition-colors cursor-pointer shrink-0 font-medium"
+              className="inline-flex items-center gap-1.5 text-[#1A1D4F] hover:text-[#5B5FED] transition-colors cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-purple-400" />
+              <ArrowLeft className="w-4 h-4 text-[#5B5FED]" />
               <span>Academy Catalog</span>
             </button>
-            <span className="text-neutral-600">/</span>
-            <span className="text-neutral-400 hidden md:inline truncate">{course.track}</span>
-            <span className="text-neutral-600 hidden md:inline">/</span>
-            <span className="text-amber-300 font-semibold truncate">{course.title}</span>
+            <span className="text-[#1A1D4F]/30">/</span>
+            <span className="text-[#1A1D4F]/60 hidden md:inline truncate">{course.track}</span>
+            <span className="text-[#1A1D4F]/30 hidden md:inline">/</span>
+            <span className="text-[#5B5FED] font-black truncate">{course.title}</span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <WhatsAppContactButton
-              variant="secondary"
-              label="Admissions"
-              message={`Hello Vixora Admissions, I am inquiring about the ${course.title} (${course.tuition}).`}
-              className="hidden sm:inline-flex py-1.5 px-3 text-xs"
-            />
-            <button
+          {/* Quick Header Actions */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+            <a
+              href={getWhatsAppUrl(`Hello Vixora Admissions, I am inquiring about ${course.title} (${course.tuition}).`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-[#1A1D4F] bg-white text-xs font-bold text-[#1A1D4F] shadow-retro-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-[#10B981]" />
+              <span>Admissions</span>
+            </a>
+
+            <TactileButton
+              variant="primary"
+              size="sm"
               onClick={() => onEnroll(course)}
-              className="px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-neutral-950 shadow-md shadow-amber-500/20 transition-all cursor-pointer flex items-center gap-1.5"
             >
               <span>Enroll ({course.tuition})</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </TactileButton>
           </div>
         </div>
 
-        {/* Mini Quick-Jump Navigation Ribbon */}
-        <div className="border-t border-purple-900/20 bg-[#070314]/70 overflow-x-auto scrollbar-none">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4 sm:gap-6 text-xs font-mono text-neutral-400 whitespace-nowrap">
-            <button onClick={() => scrollToSection('problem')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              The Reality
+        {/* Quick Section Anchor Ribbon */}
+        <div className="border-t border-[#1A1D4F]/15 bg-[#FFF6EC]/70 overflow-x-auto scrollbar-none">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4 sm:gap-6 text-xs font-bold text-[#1A1D4F]/70 whitespace-nowrap">
+            <button onClick={() => scrollToSection("problem")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              01. Reality
             </button>
-            <button onClick={() => scrollToSection('transformation')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              Transformation
+            <button onClick={() => scrollToSection("transformation")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              02. Roadmap
             </button>
-            <button onClick={() => scrollToSection('curriculum')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              Syllabus
+            <button onClick={() => scrollToSection("curriculum")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              03. Syllabus
             </button>
-            <button onClick={() => scrollToSection('audience')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              Who It's For
+            <button onClick={() => scrollToSection("projects")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              04. Capstones
             </button>
-            <button onClick={() => scrollToSection('related-tracks')} className="hover:text-amber-300 text-purple-300 font-semibold transition-colors cursor-pointer flex items-center gap-1">
-              <Compass className="w-3.5 h-3.5 text-amber-400" />
-              Related Tracks & Progression
+            <button onClick={() => scrollToSection("audience")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              05. Who It\s For
             </button>
-            <button onClick={() => scrollToSection('pricing')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              Pricing
+            <button onClick={() => scrollToSection("pricing")} className="hover:text-[#5B5FED] font-black text-[#5B5FED] transition-colors cursor-pointer">
+              06. Tuition
             </button>
-            <button onClick={() => scrollToSection('reviews')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              Reviews
+            <button onClick={() => scrollToSection("reviews")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              07. Reviews
             </button>
-            <button onClick={() => scrollToSection('faq')} className="hover:text-amber-300 transition-colors cursor-pointer">
-              FAQ
+            <button onClick={() => scrollToSection("faq")} className="hover:text-[#5B5FED] transition-colors cursor-pointer">
+              08. FAQ
             </button>
           </div>
         </div>
       </nav>
 
-      {/* 2. HERO SECTION (Tailored to Current Course) */}
-      <section className="relative pt-12 pb-20 overflow-hidden border-b border-purple-900/30">
-        {/* Glow backdrop elements */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-purple-600/15 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute top-10 right-10 w-96 h-96 bg-indigo-600/10 blur-[100px] rounded-full pointer-events-none" />
+      {/* 2. HERO SECTION */}
+      <CourseHeroSection
+        course={course}
+        onEnroll={() => onEnroll(course)}
+        onScrollToCurriculum={() => scrollToSection("curriculum")}
+        timeLeft={timeLeft}
+      />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
-            {/* Left Column: Course Identity & Value Pitch */}
-            <div className="lg:col-span-7 space-y-6 text-left">
-              {/* Badges / Eyebrow */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider uppercase bg-purple-950/80 border border-purple-600/50 text-purple-300">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  {course.track}
-                </span>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-neutral-900/80 border border-neutral-700 text-neutral-300">
-                  <Clock className="w-3 h-3 text-purple-400" />
-                  {course.duration} &bull; {course.format}
-                </span>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-300">
-                  <UserCheck className="w-3 h-3" />
-                  {course.level}
-                </span>
-                {course.badge && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                    {course.badge}
-                  </span>
-                )}
-              </div>
+      {/* 3. TOOLS & STACK MARQUEE */}
+      <ToolsMarqueeSection tools={tools} />
 
-              {/* Course Title */}
-              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-[1.15]">
-                {course.title}
-              </h1>
+      {/* 4. THE REALITY & MARKET GAP (PROBLEM vs SOLUTION) */}
+      <CourseProblemSection problem={problem} course={course} />
 
-              {/* Subtitle / Commercial Promise */}
-              <p className="text-base sm:text-lg text-neutral-300 font-normal leading-relaxed max-w-2xl">
-                {course.subtitle}
+      {/* 5. THE 4-STAGE TRANSFORMATION ROADMAP */}
+      <CourseRoadmapSection phases={transformationPhases} />
+
+      {/* 6. INTERACTIVE CURRICULUM & SYLLABUS BREAKDOWN */}
+      <CourseCurriculumSection course={course} />
+
+      {/* 7. PRACTICAL CAPSTONE PROJECTS */}
+      <CourseProjectsSection capstones={course.capstoneProjects} courseTitle={course.title} />
+
+      {/* 8. THE VIXORA LEARNING EXPERIENCE (PEDAGOGY) */}
+      <CoursePedagogySection />
+
+      {/* 9. WHO THIS COURSE IS FOR & WHAT YOU DO NOT NEED */}
+      <CourseAudienceSection personas={audiencePersonas} notNeeded={prerequisitesNotNeeded} />
+
+      {/* 10. FAST FACTS COURSE SPECIFICATIONS MATRIX */}
+      <CourseSpecsMatrixSection course={course} />
+
+      {/* 11. VERIFIED STUDENT TESTIMONIALS */}
+      <CourseTestimonialsSection testimonials={testimonials} />
+
+      {/* 12. TRANSPARENT PRICING & COHORT TUITION CARD */}
+      <CoursePricingSection
+        course={course}
+        onEnroll={() => onEnroll(course)}
+        pricing={pricing}
+      />
+
+      {/* 13. FREQUENTLY ASKED QUESTIONS */}
+      <CourseFaqSection faqs={course.faqs} />
+
+      {/* 14. RELATED TRACKS & SPECIALIZATION PATHWAYS */}
+      {relatedCourses.length > 0 && (
+        <section className="bg-[#FFFDF9] border-b-2 border-[#1A1D4F] py-20 text-left">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-2xl mx-auto space-y-2 mb-12">
+              <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={-1}>
+                ✦ Learning Pathways
+              </StickerLabel>
+              <h2 className="font-display font-black text-2xl sm:text-3xl text-[#1A1D4F]">
+                Complementary & Advanced Tracks
+              </h2>
+              <p className="text-xs sm:text-sm text-[#1A1D4F]/75">
+                Build a competitive multi-disciplinary stack across software, data, and autonomous systems.
               </p>
-
-              {/* Social Proof Cohort Badge */}
-              <div className="flex flex-wrap items-center gap-4 pt-1">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 border-2 border-[#070314] flex items-center justify-center text-[10px] font-bold text-white">
-                    KM
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-500 border-2 border-[#070314] flex items-center justify-center text-[10px] font-bold text-white">
-                    FA
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 border-2 border-[#070314] flex items-center justify-center text-[10px] font-bold text-white">
-                    TO
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-500 border-2 border-[#070314] flex items-center justify-center text-[10px] font-bold text-neutral-950">
-                    +48
-                  </div>
-                </div>
-                <div className="text-xs font-mono text-neutral-300">
-                  <span className="text-amber-300 font-bold">{course.seatsRemaining} seats remaining</span> at early rate &bull; Next cohort:{' '}
-                  <span className="text-white font-medium">{course.nextCohortDate}</span>
-                </div>
-              </div>
-
-              {/* Dual Action CTAs */}
-              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-                <button
-                  onClick={() => onEnroll(course)}
-                  className="px-8 py-4 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-neutral-950 shadow-xl shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Apply Now — {course.tuition}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => scrollToSection('curriculum')}
-                  className="px-6 py-4 rounded-2xl text-sm font-bold bg-[#150B30] hover:bg-purple-900/40 text-purple-200 border border-purple-700/50 hover:border-purple-500 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <BookOpen className="w-4 h-4 text-purple-400" />
-                  <span>View Curriculum ({course.weeklySyllabus.length} Modules)</span>
-                </button>
-              </div>
-
-              {/* Trust micro-copy */}
-              <div className="flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-neutral-400 font-mono pt-1">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>{course.certificateType}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-amber-400" />
-                  <span>Direct Mentor Office Hours</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-purple-400" />
-                  <span>Portfolio Capstone Defense</span>
-                </div>
-              </div>
-
             </div>
 
-            {/* Right Column: Interactive Course Overview Card */}
-            <div className="lg:col-span-5">
-              <div className="rounded-3xl bg-gradient-to-b from-[#180C3D] to-[#0E0624] border border-purple-700/50 p-6 sm:p-7 shadow-2xl shadow-purple-950/60 space-y-6 relative overflow-hidden">
-                
-                {/* Header of Preview Card */}
-                <div className="flex items-center justify-between border-b border-purple-800/40 pb-4">
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-mono text-purple-300 font-bold uppercase tracking-wider">
-                      Cohort Overview
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {relatedCourses.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white border-2 border-[#1A1D4F] shadow-retro rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:-translate-y-1 transition-transform"
+                >
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-[#FFF6EC] border border-[#1A1D4F] rounded text-[#FF8A65]">
+                      {item.relationType}
                     </span>
-                    <h3 className="text-lg font-extrabold text-white truncate max-w-[240px] sm:max-w-xs">
-                      {course.title}
+                    <h3 className="text-lg font-black text-[#1A1D4F] leading-snug">
+                      {item.course.title}
                     </h3>
+                    <p className="text-xs text-[#1A1D4F]/75 leading-relaxed line-clamp-3">
+                      {item.pitch}
+                    </p>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                    {course.tuition}
-                  </span>
-                </div>
 
-                {/* Practical Preview Player / Interactive Card */}
-                <div
-                  onClick={() => setShowVideoModal(true)}
-                  className="aspect-video rounded-2xl bg-gradient-to-tr from-purple-950 via-[#1C0D45] to-indigo-950 border border-purple-600/40 flex flex-col items-center justify-center p-4 text-center cursor-pointer group hover:border-amber-400/60 transition-all relative overflow-hidden"
-                >
-                  <div className="w-12 h-12 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center shadow-lg shadow-amber-400/30 group-hover:scale-110 transition-transform mb-2">
-                    <Play className="w-5 h-5 fill-neutral-950 ml-0.5" />
-                  </div>
-                  <div className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">
-                    Click to Preview Course Lab & Projects
-                  </div>
-                  <div className="text-[10px] font-mono text-neutral-400 mt-0.5">
-                    {course.duration} &bull; {course.weeklySyllabus.length} Interactive Modules
-                  </div>
-                </div>
-
-                {/* Key Course Highlights Stack */}
-                <div className="space-y-2.5 pt-1">
-                  <div className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider">
-                    Included In This Program
-                  </div>
-                  {course.highlights.slice(0, 4).map((hl, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5 text-xs text-neutral-200">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>{hl}</span>
+                  <div className="pt-3 border-t-2 border-[#1A1D4F]/10 flex items-center justify-between">
+                    <div className="text-xs font-black text-[#1A1D4F]">
+                      {item.course.tuition}
                     </div>
-                  ))}
-                </div>
-
-                {/* Quick Action Button inside Card */}
-                <button
-                  onClick={() => onEnroll(course)}
-                  className="w-full py-3 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-neutral-950 shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>Secure Early Seat ({course.tuition})</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 3. THE PROBLEM (Tailored Course Reality Check) */}
-      <section id="problem" className="py-20 border-b border-purple-900/30 bg-[#090418]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-3xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
-              {problem.tag}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              {problem.headline}
-            </h2>
-            <p className="text-sm sm:text-base text-neutral-300 leading-relaxed">
-              {problem.sub}
-            </p>
-          </div>
-
-          {/* 3 Problem Diagnostic Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {problem.points.map((pt, idx) => (
-              <div
-                key={idx}
-                className="p-6 sm:p-7 rounded-3xl bg-[#130A2B] border border-purple-800/40 hover:border-purple-600/60 transition-all space-y-3 shadow-xl"
-              >
-                <div className="text-3xl">{pt.icon}</div>
-                <h3 className="text-base font-bold text-white">{pt.title}</h3>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-                  {pt.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Highlight Quote Box */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-950/60 via-[#180A38] to-indigo-950/60 border border-purple-700/50 text-center max-w-3xl mx-auto">
-            <p className="text-sm sm:text-base text-neutral-200 font-medium italic leading-relaxed">
-              {problem.quote}
-            </p>
-            <div className="text-xs font-mono text-amber-400 font-bold uppercase tracking-wider mt-3">
-              — Dean Sarumi Hammad, Vixora Academy
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. THE TRANSFORMATION (Structured 3-Phase Progression) */}
-      <section id="transformation" className="py-20 border-b border-purple-900/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400">
-              The Learning Journey
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              From Beginner to Verified Practitioner in {course.duration}
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-              Our curriculum is structured to guarantee practical, portfolio-backed competence rather than abstract passive viewing.
-            </p>
-          </div>
-
-          {/* 3 Step Transformation Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {transformationPhases.map((phase, idx) => (
-              <div
-                key={idx}
-                className="p-7 rounded-3xl bg-[#140D2D] border border-purple-800/40 relative space-y-4 shadow-xl flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold uppercase text-amber-400">
-                      Step 0{idx + 1}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-purple-900/50 text-purple-200 border border-purple-700/40">
-                      {phase.duration}
-                    </span>
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
-                    {phase.phase}
-                  </h3>
-                  <div className="text-xs font-semibold text-purple-300">
-                    {phase.title}
-                  </div>
-                  <p className="text-xs text-neutral-300 leading-relaxed">
-                    {phase.description}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-purple-900/40 text-[11px] font-mono text-neutral-400 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Hands-on labs & practical validation</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 5. FULL CURRICULUM SYLLABUS */}
-      <section id="curriculum" className="py-20 border-b border-purple-900/30 bg-[#0A051C]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-purple-400">
-              Week-by-Week Breakdown
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Complete Course Curriculum
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-              Explore the exact weekly roadmap, tools, and hands-on capstone milestones.
-            </p>
-
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => toggleAllModules(true)}
-                className="text-xs font-mono text-purple-300 hover:text-white transition-colors cursor-pointer"
-              >
-                Expand All
-              </button>
-              <span className="text-neutral-600">&bull;</span>
-              <button
-                onClick={() => toggleAllModules(false)}
-                className="text-xs font-mono text-purple-300 hover:text-white transition-colors cursor-pointer"
-              >
-                Collapse All
-              </button>
-            </div>
-          </div>
-
-          {/* Module Accordions */}
-          <div className="space-y-3.5">
-            {course.weeklySyllabus.map((module, idx) => {
-              const isExpanded = expandedModules[idx] ?? false;
-              return (
-                <div
-                  key={idx}
-                  className={`rounded-2xl border transition-all overflow-hidden ${
-                    isExpanded
-                      ? 'bg-[#150B30] border-purple-600/70 shadow-lg'
-                      : 'bg-[#100726] border-purple-900/40 hover:border-purple-800'
-                  }`}
-                >
-                  <button
-                    onClick={() => toggleModule(idx)}
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
-                          {module.week}
-                        </span>
-                        <span className="text-neutral-500">&bull;</span>
-                        <span className="text-xs font-mono text-neutral-400">{module.topics.length} Key Topics</span>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-bold text-white">{module.title}</h3>
-                    </div>
-
-                    <div className="text-neutral-400 shrink-0">
-                      {isExpanded ? <ChevronUp className="w-5 h-5 text-amber-400" /> : <ChevronDown className="w-5 h-5" />}
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="px-5 pb-5 pt-1 space-y-4 border-t border-purple-900/40 text-xs sm:text-sm">
-                      <p className="text-neutral-300 leading-relaxed">{module.description}</p>
-
-                      <div className="space-y-2">
-                        <div className="text-xs font-mono font-semibold text-purple-300 uppercase tracking-wider">
-                          Topics Covered
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {module.topics.map((t, tIdx) => (
-                            <div key={tIdx} className="flex items-center gap-2 text-neutral-200">
-                              <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                              <span>{t}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {module.handsOnLab && (
-                        <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-800/50 space-y-1">
-                          <div className="text-[11px] font-mono font-bold uppercase text-emerald-400 flex items-center gap-1.5">
-                            <Cpu className="w-3.5 h-3.5" /> Hands-On Practical Lab
-                          </div>
-                          <div className="text-xs text-neutral-200 font-medium">{module.handsOnLab}</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Download Full Syllabus Action */}
-          <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-            <div className="space-y-1">
-              <div className="text-sm font-bold text-white">Need a PDF / Text copy of this syllabus?</div>
-              <p className="text-xs text-neutral-400">Download the complete module guide to share with your sponsor or employer.</p>
-            </div>
-
-            <button
-              onClick={handleDownloadSyllabus}
-              className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-purple-700/50 flex items-center gap-2 cursor-pointer transition-all shrink-0"
-            >
-              {downloadSuccess ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Syllabus Downloaded
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4 text-purple-400" /> Download Syllabus
-                </>
-              )}
-            </button>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 6. WHO THIS IS FOR (Target Audience & Readiness) */}
-      <section id="audience" className="py-20 border-b border-purple-900/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
-              Audience Alignment
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Is This Course Right for You?
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-              Designed specifically for ambitious learners, career shifters, and professionals ready to build tangible commercial capabilities.
-            </p>
-          </div>
-
-          {/* 4 Audience Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {audiencePersonas.map((persona, idx) => (
-              <div
-                key={idx}
-                className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2.5 shadow-md"
-              >
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm sm:text-base">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>{persona.role}</span>
-                </div>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed pl-6">
-                  {persona.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Prerequisites: What You Need vs Do NOT Need */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-            {/* What you do NOT need */}
-            <div className="p-6 rounded-2xl bg-[#12082A] border border-neutral-800 space-y-3">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-                <X className="w-4 h-4 text-rose-400" /> What You Do NOT Need
-              </div>
-              <ul className="space-y-2 text-xs sm:text-sm text-neutral-300">
-                {prerequisitesNotNeeded.map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-2">
-                    <span className="text-rose-400 font-bold">&times;</span> {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* What you DO need */}
-            <div className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/50 space-y-3">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-400" /> What You DO Need
-              </div>
-              <ul className="space-y-2 text-xs sm:text-sm text-neutral-300">
-                {course.prerequisites.map((req, rIdx) => (
-                  <li key={rIdx} className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 7. WHAT YOU GET (Value Stack) */}
-      <section className="py-20 border-b border-purple-900/30 bg-[#090418]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="text-center space-y-2 max-w-2xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
-              The Complete Value Stack
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Everything Included When You Join
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {valueStack.map((item, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-[#140D2D] border border-purple-800/40 space-y-2">
-                <div className="text-emerald-400 font-bold text-base sm:text-lg">✅ {item.title}</div>
-                <p className="text-xs text-neutral-300 leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 8. RELATED PROGRAMS & PROGRESSION TRACKS (Upsell & Cross-Sell Section) */}
-      <section id="related-tracks" className="py-20 border-b border-purple-900/30 bg-[#0C061F]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-widest text-amber-300 bg-amber-950/50 px-3 py-1 rounded-full border border-amber-500/40">
-              <Compass className="w-3.5 h-3.5" /> Program Ecosystem & Upsells
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Related Programs & Progression Tracks
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-              Compare this course with companion tracks across Vixora Academy. Whether you want to build foundational skills first, step up to an advanced tier, or bundle complementary capabilities—explore your optimal path.
-            </p>
-          </div>
-
-          {/* Comparison Matrix: Current Course vs. Recommended Upsells */}
-          <div className="rounded-3xl bg-[#140D2D] border border-purple-800/50 overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                <thead>
-                  <tr className="border-b border-purple-800/60 bg-[#090418]">
-                    <th className="py-4 px-5 text-neutral-400 font-mono font-semibold uppercase text-xs">Track Dimension</th>
-                    
-                    {/* Current Course Column */}
-                    <th className="py-4 px-5 text-white font-bold bg-purple-950/50 border-x border-purple-700/60">
-                      <div className="space-y-1">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-400 text-neutral-950 font-black inline-block">
-                          CURRENT VIEWED TRACK
-                        </span>
-                        <div className="text-sm font-extrabold text-white">{course.title}</div>
-                      </div>
-                    </th>
-
-                    {/* Related Courses Columns */}
-                    {relatedCourses.map((rel, rIdx) => (
-                      <th key={rIdx} className="py-4 px-5 text-purple-200 font-bold bg-[#170C3B]/60 border-r border-purple-800/40">
-                        <div className="space-y-1">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-purple-800/80 text-purple-200 border border-purple-600/50 font-semibold inline-block">
-                            {rel.relationType}
-                          </span>
-                          <div className="text-sm font-extrabold text-white truncate max-w-[200px]">
-                            {rel.course.title}
-                          </div>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-purple-900/30 text-neutral-300">
-                  <tr>
-                    <td className="py-3.5 px-5 font-semibold text-neutral-400">Track & Domain</td>
-                    <td className="py-3.5 px-5 bg-purple-950/20 border-x border-purple-700/40 font-semibold text-amber-300">
-                      {course.track}
-                    </td>
-                    {relatedCourses.map((rel, rIdx) => (
-                      <td key={rIdx} className="py-3.5 px-5 border-r border-purple-900/30">
-                        {rel.course.track}
-                      </td>
-                    ))}
-                  </tr>
-
-                  <tr>
-                    <td className="py-3.5 px-5 font-semibold text-neutral-400">Experience Level</td>
-                    <td className="py-3.5 px-5 bg-purple-950/20 border-x border-purple-700/40 text-white font-medium">
-                      {course.level}
-                    </td>
-                    {relatedCourses.map((rel, rIdx) => (
-                      <td key={rIdx} className="py-3.5 px-5 border-r border-purple-900/30">
-                        {rel.course.level}
-                      </td>
-                    ))}
-                  </tr>
-
-                  <tr>
-                    <td className="py-3.5 px-5 font-semibold text-neutral-400">Duration & Format</td>
-                    <td className="py-3.5 px-5 bg-purple-950/20 border-x border-purple-700/40 text-white">
-                      {course.duration} &bull; {course.format}
-                    </td>
-                    {relatedCourses.map((rel, rIdx) => (
-                      <td key={rIdx} className="py-3.5 px-5 border-r border-purple-900/30">
-                        {rel.course.duration} &bull; {rel.course.format}
-                      </td>
-                    ))}
-                  </tr>
-
-                  <tr>
-                    <td className="py-3.5 px-5 font-semibold text-neutral-400">Core Focus</td>
-                    <td className="py-3.5 px-5 bg-purple-950/20 border-x border-purple-700/40 text-neutral-200">
-                      {course.subtitle}
-                    </td>
-                    {relatedCourses.map((rel, rIdx) => (
-                      <td key={rIdx} className="py-3.5 px-5 border-r border-purple-900/30 text-neutral-300">
-                        {rel.pitch}
-                      </td>
-                    ))}
-                  </tr>
-
-                  <tr className="bg-purple-950/30 font-bold">
-                    <td className="py-4 px-5 text-white font-mono">Tuition & Enrollment</td>
-                    
-                    {/* Current Course Action */}
-                    <td className="py-4 px-5 border-x border-purple-700/60 text-emerald-400 bg-purple-950/40">
-                      <div className="text-base font-black text-amber-300">{course.tuition}</div>
-                      <button
-                        onClick={() => scrollToSection('pricing')}
-                        className="mt-2 w-full py-2 px-3 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-400 text-neutral-950 hover:brightness-110 transition-all cursor-pointer text-center"
-                      >
-                        Enroll in This Track
-                      </button>
-                    </td>
-
-                    {/* Related Course Actions */}
-                    {relatedCourses.map((rel, rIdx) => (
-                      <td key={rIdx} className="py-4 px-5 border-r border-purple-900/30">
-                        <div className="text-base font-black text-white">{rel.course.tuition}</div>
-                        <button
-                          onClick={() => handleSwitchToCourse(rel.course)}
-                          className="mt-2 w-full py-2 px-3 rounded-xl text-xs font-bold bg-[#21124A] hover:bg-purple-700 text-purple-200 hover:text-white border border-purple-600/50 transition-all cursor-pointer text-center flex items-center justify-center gap-1"
-                        >
-                          <span>Explore Track</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Individual Upsell / Companion Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedCourses.map((rel, idx) => (
-              <div
-                key={idx}
-                className="p-6 rounded-3xl bg-[#140D2D] border border-purple-800/40 hover:border-amber-400/50 transition-all space-y-4 shadow-xl flex flex-col justify-between group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-purple-900/60 text-amber-300 border border-purple-600/40">
-                      {rel.relationType}
-                    </span>
-                    <span className="text-xs font-mono font-bold text-white">
-                      {rel.course.tuition}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-extrabold text-white group-hover:text-amber-300 transition-colors">
-                    {rel.course.title}
-                  </h3>
-
-                  <p className="text-xs text-neutral-300 leading-relaxed">
-                    {rel.pitch}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-purple-900/40 space-y-3">
-                  <div className="text-[11px] font-mono text-neutral-400">
-                    {rel.course.duration} &bull; {rel.course.format}
-                  </div>
-                  <button
-                    onClick={() => handleSwitchToCourse(rel.course)}
-                    className="w-full py-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-purple-900/50 text-neutral-200 hover:text-white border border-purple-700/50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>View {rel.course.title}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Multi-Course Bundle & Team Inquiry Callout */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-950/80 via-[#180E38] to-indigo-950/80 border border-purple-700/60 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
-            <div className="space-y-1.5 max-w-xl">
-              <div className="text-sm sm:text-base font-bold text-white flex items-center gap-2 justify-center sm:justify-start">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Looking to Bundle Multiple Tracks or Sponsor a Team?</span>
-              </div>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                Connect directly with Vixora Academy admissions on WhatsApp to discuss custom bundle packages, corporate cohorts, or installment plans.
-              </p>
-            </div>
-
-            <WhatsAppContactButton
-              variant="primary"
-              label="Inquire About Bundles"
-              message={`Hello Vixora Admissions, I would like to inquire about multi-track bundle discounts or corporate enrollment for ${course.title}.`}
-              className="shrink-0"
-            />
-          </div>
-
-        </div>
-      </section>
-
-      {/* 9. PRICING SECTION */}
-      <section id="pricing" className="py-20 border-b border-purple-900/30 bg-[#0A051C]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-widest text-amber-300 bg-amber-950/50 px-3 py-1 rounded-full border border-amber-500/40">
-              <CreditCard className="w-3.5 h-3.5" /> Tuition & Early Bird Rate
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Invest in Practical, Commercial Skills
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-400">
-              Lock in your early applicant seat before standard admissions commence.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            
-            {/* Early Bird Price Card (Highlighted) */}
-            <div className="relative rounded-3xl bg-gradient-to-b from-[#22134F] to-[#12082E] border-2 border-amber-400/80 p-7 sm:p-8 shadow-2xl shadow-amber-500/10 space-y-6 flex flex-col justify-between">
-              <div className="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-gradient-to-r from-amber-400 to-yellow-400 text-neutral-950 shadow-md">
-                ⭐ BEST VALUE &bull; LIMITED SEATS
-              </div>
-
-              <div className="space-y-3">
-                <div className="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">
-                  Early Applicant Rate
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <div className="text-4xl sm:text-5xl font-black text-white">{pricing.early}</div>
-                  <div className="text-sm font-mono text-neutral-500 line-through">{pricing.standard}</div>
-                </div>
-                <p className="text-xs text-amber-200/90 font-medium">
-                  {pricing.savings} &bull; Limited seats available for next cohort
-                </p>
-              </div>
-
-              <div className="space-y-2.5 pt-4 border-t border-purple-800/40 text-xs sm:text-sm text-neutral-200">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-amber-400" /> Full {course.duration} Access ({course.weeklySyllabus.length} Modules)
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-amber-400" /> Hands-On Capstone Project & Defense
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-amber-400" /> Official {course.certificateType}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-amber-400" /> Direct Mentor Q&A & Community Access
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => onEnroll(course)}
-                  className="w-full py-4 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-neutral-950 shadow-xl shadow-amber-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <span>Secure Spot at {pricing.early}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Standard Price Card */}
-            <div className="rounded-3xl bg-[#140D2D] border border-purple-900/40 p-7 sm:p-8 space-y-6 flex flex-col justify-between opacity-85 hover:opacity-100 transition-opacity">
-              <div className="space-y-3">
-                <div className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider">
-                  Standard Admissions Price
-                </div>
-                <div className="text-4xl sm:text-5xl font-black text-neutral-300">{pricing.standard}</div>
-                <p className="text-xs text-neutral-400">
-                  Effective after early bird period closes
-                </p>
-              </div>
-
-              <div className="space-y-2.5 pt-4 border-t border-purple-900/30 text-xs sm:text-sm text-neutral-400">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-neutral-500" /> Full {course.duration} Access</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-neutral-500" /> Capstone Project & Defense</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-neutral-500" /> Official Certificate of Completion</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-neutral-500" /> Standard Admissions Queue</div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => onEnroll(course)}
-                  className="w-full py-3.5 rounded-2xl text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-700 transition-all cursor-pointer"
-                >
-                  Apply Standard ({pricing.standard})
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Bank Payment Details Box */}
-          <div className="max-w-2xl mx-auto pt-2">
-            <BankPaymentDetailsCard
-              courseTitle={course.title}
-              tuitionAmount={pricing.early}
-              onPayOnline={() => onEnroll(course)}
-            />
-          </div>
-
-          {/* Value Framing Quote Box */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-950/60 via-[#180E38] to-indigo-950/60 border border-purple-800/40 text-center max-w-3xl mx-auto space-y-3">
-            <p className="text-sm sm:text-base text-neutral-200 leading-relaxed font-medium italic">
-              "{valueQuote}"
-            </p>
-            <div className="pt-2 flex justify-center">
-              <WhatsAppContactButton
-                variant="secondary"
-                label="Have Questions? Inquire via WhatsApp"
-                message={`Hello Vixora Academy! I would like to discuss enrolling in the ${course.title} at the ${course.tuition} early price.`}
-              />
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 10. SOCIAL PROOF & STUDENT TESTIMONIALS */}
-      <section id="reviews" className="py-20 border-b border-purple-900/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="text-center space-y-2 max-w-2xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
-              Verified Student Outcomes
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Real Impact From Vixora Graduates
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, idx) => (
-              <div
-                key={idx}
-                className="p-7 rounded-3xl bg-[#140D2D] border border-purple-800/40 space-y-4 shadow-xl flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex text-amber-400 gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs sm:text-sm text-neutral-200 leading-relaxed italic">
-                    "{t.quote}"
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-purple-900/40 flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-full bg-gradient-to-tr ${t.gradient} text-white font-bold text-xs flex items-center justify-center`}>
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">{t.author}</div>
-                    <div className="text-[10px] text-amber-300 font-mono">{t.role}</div>
+                    <button
+                      onClick={() => handleSwitchToCourse(item.course)}
+                      className="inline-flex items-center gap-1 text-xs font-black text-[#5B5FED] hover:underline cursor-pointer"
+                    >
+                      <span>Explore Track</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 11. FAQ (Course FAQs & Admissions Accordions) */}
-      <section id="faq" className="py-20 border-b border-purple-900/30 bg-[#0A051C]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="text-center space-y-2 max-w-2xl mx-auto">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-purple-400">
-              Got Questions?
-            </span>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
-              Frequently Asked Questions
-            </h2>
-          </div>
-
-          <div className="space-y-3">
-            {course.faqs.map((faq, idx) => {
-              const isExpanded = expandedFaqs[idx] ?? false;
-              return (
-                <div
-                  key={idx}
-                  className="rounded-2xl bg-[#140D2D] border border-purple-800/40 overflow-hidden"
-                >
-                  <button
-                    onClick={() => toggleFaq(idx)}
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 hover:bg-purple-900/20 transition-colors cursor-pointer"
-                  >
-                    <span className="text-sm sm:text-base font-bold text-white">{faq.q}</span>
-                    <div className="text-amber-400 shrink-0">
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </div>
-                  </button>
-                  {isExpanded && (
-                    <div className="px-5 pb-5 text-xs sm:text-sm text-neutral-300 border-t border-purple-900/40 pt-3 leading-relaxed">
-                      {faq.a}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Universal Admissions FAQ: Recordings & Flexibility */}
-            <div className="rounded-2xl bg-[#140D2D] border border-purple-800/40 overflow-hidden">
-              <button
-                onClick={() => toggleFaq(99)}
-                className="w-full p-5 text-left flex items-center justify-between gap-4 hover:bg-purple-900/20 transition-colors cursor-pointer"
-              >
-                <span className="text-sm sm:text-base font-bold text-white">What if I miss a live session? Are replays available?</span>
-                <div className="text-amber-400 shrink-0">
-                  {expandedFaqs[99] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </div>
-              </button>
-              {expandedFaqs[99] && (
-                <div className="px-5 pb-5 text-xs sm:text-sm text-neutral-300 border-t border-purple-900/40 pt-3 leading-relaxed">
-                  Yes, every live masterclass and practical lab is recorded in high definition and posted to your private student portal within 24 hours. You also receive complete source code, slides, and access to mentor office hours to ask questions.
-                </div>
-              )}
+              ))}
             </div>
           </div>
-
-        </div>
-      </section>
-
-      {/* 12. FINAL HIGH-CONVERTING CTA SECTION */}
-      <section className="py-20 bg-gradient-to-b from-[#140A30] via-[#0E0624] to-[#070314] relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">
-            <Flame className="w-3.5 h-3.5" /> Next Cohort Starts Soon
-          </div>
-
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-            Stop Delaying Your Transition.{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-200">
-              Master {course.title}.
-            </span>
-          </h2>
-
-          <p className="text-sm sm:text-base text-neutral-300 max-w-2xl mx-auto leading-relaxed">
-            {course.duration} from now, you could have a verified capstone portfolio, an official credential, and the exact capabilities hiring teams and paying clients seek.
-          </p>
-
-          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 max-w-md mx-auto text-xs font-mono text-red-300">
-            ⏳ Only {course.seatsRemaining} seats left at the {course.tuition} early applicant rate.
-          </div>
-
-          <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-            <button
-              onClick={() => onEnroll(course)}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-neutral-950 shadow-xl shadow-amber-500/30 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Apply Now — Claim Early Rate ({course.tuition})</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <WhatsAppContactButton
-              variant="secondary"
-              label="Chat on WhatsApp"
-              message={`Hello Vixora Admissions, I would like to confirm my seat for the ${course.title} at the ${course.tuition} early price.`}
-              className="w-full sm:w-auto"
-            />
-          </div>
-
-          <div className="text-xs font-mono text-neutral-400 pt-2">
-            {course.duration} &bull; {course.format} &bull; {course.certificateType}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 13. PERSISTENT / STICKY EARLY-BIRD OFFER BANNER */}
-      {showStickyBanner && (
-        <div className="fixed bottom-0 inset-x-0 z-40 bg-[#160B33]/95 backdrop-blur-xl border-t border-amber-400/40 py-3 px-4 sm:px-6 shadow-2xl shadow-black/80">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-            
-            {/* Left: Offer Details */}
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white font-mono text-[11px] font-extrabold uppercase shrink-0">
-                <Flame className="w-3 h-3" /> Special offer
-              </div>
-
-              <div>
-                <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
-                  <span className="text-neutral-400 line-through text-xs font-mono">{pricing.standard}</span>
-                  <span className="text-amber-400 font-mono">{pricing.early}</span>
-                  <span className="text-xs font-normal text-amber-200 hidden md:inline">
-                    — {pricing.savings} limited early applicant rate
-                  </span>
-                </div>
-                <div className="text-[11px] text-neutral-400 hidden lg:block">
-                  Cohort begins {course.nextCohortDate}. {course.seatsRemaining} seats remaining at early price.
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Live Countdown & Action Button */}
-            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-              {/* Countdown Ticker */}
-              <div className="flex items-center gap-1.5 text-xs font-mono">
-                <span className="text-[11px] text-neutral-400 hidden md:inline">expires in</span>
-                <span className="px-2 py-0.5 rounded bg-neutral-900 text-amber-300 font-bold border border-amber-400/30">
-                  {String(timeLeft.hours).padStart(2, '0')}
-                </span>
-                <span className="text-neutral-500 font-bold">:</span>
-                <span className="px-2 py-0.5 rounded bg-neutral-900 text-amber-300 font-bold border border-amber-400/30">
-                  {String(timeLeft.minutes).padStart(2, '0')}
-                </span>
-                <span className="text-neutral-500 font-bold">:</span>
-                <span className="px-2 py-0.5 rounded bg-neutral-900 text-amber-300 font-bold border border-amber-400/30">
-                  {String(timeLeft.seconds).padStart(2, '0')}
-                </span>
-              </div>
-
-              {/* Action Button */}
-              <button
-                onClick={() => onEnroll(course)}
-                className="px-5 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-neutral-950 shadow-md shadow-amber-500/30 transition-all flex items-center gap-1 cursor-pointer shrink-0"
-              >
-                <span>Claim {pricing.early}</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-
-              {/* Close Button */}
-              <button
-                onClick={() => setShowStickyBanner(false)}
-                className="text-neutral-400 hover:text-white p-1 transition-colors cursor-pointer"
-                title="Dismiss Banner"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-          </div>
-        </div>
+        </section>
       )}
 
-      {/* 14. INTERACTIVE COURSE OVERVIEW VIDEO/LAB PREVIEW MODAL */}
-      {showVideoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="relative w-full max-w-2xl bg-[#12082A] border border-purple-600/50 rounded-3xl overflow-hidden p-6 sm:p-8 space-y-5 shadow-2xl">
-            <button
-              onClick={() => setShowVideoModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-xl bg-neutral-900 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      {/* 15. FINAL HIGH-CONVERSION ENROLLMENT BANNER */}
+      <CourseFinalCtaSection
+        course={course}
+        onEnroll={() => onEnroll(course)}
+      />
 
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[11px] font-mono border border-amber-400/30">
-                <Sparkles className="w-3 h-3" /> {course.title}
-              </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white">
-                Course Walkthrough & Practical Lab Preview
-              </h3>
-            </div>
-
-            <div className="aspect-video rounded-2xl bg-gradient-to-tr from-purple-950 via-[#180A38] to-indigo-950 border border-purple-500/40 flex flex-col items-center justify-center p-6 text-center space-y-3 relative overflow-hidden">
-              <div className="w-14 h-14 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center shadow-lg shadow-amber-400/30">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <div className="text-base font-bold text-white">{course.duration} Practical Mastery Cohort</div>
-              <p className="text-xs text-neutral-300 max-w-md">
-                {course.description}
-              </p>
-              {course.capstoneProjects[0] && (
-                <div className="text-[11px] font-mono text-amber-300 bg-purple-900/60 px-3 py-1 rounded-full border border-purple-700/50">
-                  Capstone: {course.capstoneProjects[0].title}
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <button
-                onClick={() => {
-                  setShowVideoModal(false);
-                  onEnroll(course);
-                }}
-                className="py-3 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-neutral-950 transition-all cursor-pointer text-center"
-              >
-                Enroll Now ({course.tuition})
-              </button>
-              <button
-                onClick={() => setShowVideoModal(false)}
-                className="py-3 rounded-xl text-xs font-medium bg-neutral-900 hover:bg-neutral-800 text-neutral-300 transition-colors cursor-pointer text-center"
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 16. MOBILE STICKY ENROLLMENT BAR */}
+      <CourseMobileStickyBar
+        course={course}
+        onEnroll={() => onEnroll(course)}
+      />
 
     </div>
   );

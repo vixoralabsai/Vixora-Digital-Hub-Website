@@ -137,10 +137,20 @@ export function getImageFallbacks(url?: string): string[] {
 }
 
 export function getWhatsAppUrl(
-  channel: 'us' | 'ng' = 'us',
+  channelOrMessage: 'us' | 'ng' | string = 'us',
   customMessage?: string
 ): string {
+  let channel: 'us' | 'ng' = 'us';
+  let message: string | undefined = customMessage;
+
+  if (channelOrMessage === 'ng' || channelOrMessage === 'us') {
+    channel = channelOrMessage;
+  } else if (typeof channelOrMessage === 'string' && channelOrMessage.length > 0) {
+    message = channelOrMessage;
+    channel = 'us';
+  }
+
   const selected = channel === 'ng' ? BRAND_CONFIG.whatsapp.nigeria : BRAND_CONFIG.whatsapp.usAndGlobal;
-  const message = customMessage || "Hello Vixora Digital Hub Team, I would like to discuss a project.";
-  return `https://wa.me/${selected.cleanDigits}?text=${encodeURIComponent(message)}`;
+  const finalMessage = message || "Hello Vixora Digital Hub Team, I would like to discuss a project.";
+  return `https://wa.me/${selected.cleanDigits}?text=${encodeURIComponent(finalMessage)}`;
 }
