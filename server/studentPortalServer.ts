@@ -682,7 +682,8 @@ async function saveIssuedCertificate(
     });
 
     // 2. Ensure student exists in students table
-    let studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
+    let studentId = crypto.randomUUID();
+    const studentCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
     const { data: existingStudent } = await supabase
       .from('students')
       .select('id')
@@ -694,6 +695,7 @@ async function saveIssuedCertificate(
     } else {
       await supabase.from('students').insert({
         id: studentId,
+        student_code: studentCode,
         name: cert.studentName,
         email: cert.studentEmail,
         enrolled_date: cert.issueDate,

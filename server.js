@@ -5277,7 +5277,18 @@ paystackRouter.post("/initialize", async (req, res) => {
       });
     }
     const secretKey = getPaystackSecretKey();
+    console.log("[Server Paystack Init Diagnostic: Request]", {
+      courseId,
+      hasEmail: Boolean(email),
+      hasPhone: Boolean(phone),
+      hasSecretKey: Boolean(secretKey),
+      keyPrefix: secretKey ? secretKey.startsWith("sk_live_") ? "sk_live_..." : secretKey.startsWith("sk_test_") ? "sk_test_..." : "unknown..." : "none"
+    });
     if (!secretKey) {
+      console.warn("[Server Paystack Init Diagnostic: Rejected]", {
+        reason: "PAYSTACK_SECRET_KEY is empty in process.env",
+        status: 503
+      });
       return res.status(503).json({
         error: "Paystack Secret Key is not configured on the server. Please add PAYSTACK_SECRET_KEY in Settings -> Secrets.",
         code: "PAYSTACK_NOT_CONFIGURED",
@@ -5335,6 +5346,12 @@ paystackRouter.post("/initialize", async (req, res) => {
         amountNaira: canonicalCourse.nairaAmount
       }
     };
+    console.log("[Server Paystack Init Diagnostic: Calling Paystack API]", {
+      reference,
+      amountKobo: canonicalCourse.koboAmount,
+      currency: "NGN",
+      callbackHost: new URL(finalCallbackUrl).hostname
+    });
     const response = await fetch(`${PAYSTACK_API_BASE}/transaction/initialize`, {
       method: "POST",
       headers: {
@@ -5344,6 +5361,14 @@ paystackRouter.post("/initialize", async (req, res) => {
       body: JSON.stringify(paystackPayload)
     });
     const data = await response.json();
+    console.log("[Server Paystack Init Diagnostic: Paystack Response]", {
+      status: response.status,
+      ok: response.ok,
+      paystackStatus: data.status,
+      hasAuthUrl: Boolean(data.data?.authorization_url),
+      hasAccessCode: Boolean(data.data?.access_code),
+      reference
+    });
     if (!response.ok || !data.status || !data.data) {
       return res.status(response.status >= 400 && response.status < 500 ? 400 : 502).json({
         error: data.message || "Failed to initialize Paystack transaction.",

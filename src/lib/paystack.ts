@@ -303,6 +303,14 @@ export async function initializePaystackPayment(
       callbackUrl: params.callbackUrl
     };
 
+    console.log('[Paystack Diagnostic: Request]', {
+      courseId: params.courseId,
+      email: params.email,
+      hasPhone: Boolean(params.phone),
+      requestUrl: '/api/payments/paystack/initialize',
+      method: 'POST'
+    });
+
     let res = await fetch('/api/payments/paystack/initialize', {
       method: 'POST',
       headers,
@@ -310,6 +318,18 @@ export async function initializePaystackPayment(
     });
 
     let parsed = await parseSafeResponseJson<any>(res, 'Failed to initialize payment.');
+
+    console.log('[Paystack Diagnostic: Response]', {
+      status: res.status,
+      contentType: res.headers.get('content-type'),
+      ok: res.ok,
+      code: parsed.data?.code,
+      hasAuthUrl: Boolean(parsed.data?.authorizationUrl),
+      hasAccessCode: Boolean(parsed.data?.accessCode),
+      hasPublicKey: Boolean(parsed.data?.publicKey),
+      reference: parsed.data?.reference,
+      errorName: parsed.data?.error || parsed.error
+    });
 
     // If endpoint is not found or method is rejected (e.g. proxy/hosting divergence), fallback to canonical legacy path
     if ((res.status === 404 || res.status === 405 || !parsed.ok) && (!parsed.data || !parsed.data.success)) {
