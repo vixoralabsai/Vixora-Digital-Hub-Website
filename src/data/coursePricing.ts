@@ -27,6 +27,10 @@ export interface CoursePricing {
  * Missing counterpart prices are intentionally null until explicitly set.
  */
 export const COURSE_PRICING: Record<string, CoursePrices> = {
+  'course-ai-image-short-videos-creation': {
+    NGN: 1000,
+    USD: 1,
+  },
   'course-data-analysis-cohort': {
     NGN: 60000,
     USD: 50,

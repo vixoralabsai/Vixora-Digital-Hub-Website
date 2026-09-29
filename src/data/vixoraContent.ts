@@ -655,6 +655,142 @@ export const BANK_PAYMENT_DETAILS = {
 
 export const ACADEMY_COURSES: AcademyCourse[] = [
   {
+    id: "course-ai-image-short-videos-creation",
+    slug: "ai-image-short-videos-creation",
+    title: "AI Image & Short Videos Creation",
+    subtitle: "Master prompt engineering, photorealistic AI image generation, viral short video editing, voice cloning, and content monetization in a practical 4-week sprint.",
+    badge: "⚡ Fast-Track Pilot • ₦1,000",
+    level: "Beginner",
+    status: "active",
+    track: "Design & Marketing",
+    format: "4-Week Practical Sprint (Online + Hands-On Labs)",
+    duration: "4 Weeks",
+    commitment: "3-4 hrs/week (Flexible Bite-Sized Sessions & Live Labs)",
+    nextCohortDate: "October 9, 2026",
+    tuition: "₦1,000",
+    tuitionNote: "Special pilot gateway test price: ₦1,000 (Standard: ₦25,000). Instant enrollment access.",
+    seatsRemaining: 25,
+    targetAudience: "Content Creators, Small Business Owners, Social Media Managers, Marketers, Freelancers, and Complete Beginners.",
+    description: "Learn how to use state-of-the-art AI tools to create photorealistic images, stylized graphics, viral short-form video scripts, synthetic voiceovers, and captivating personal or faceless videos. From Midjourney, Flux, and Ideogram to CapCut, ElevenLabs, and Runway, you'll build an automated creative content engine from your laptop or smartphone.",
+    heroPitch: "You don't need expensive cameras, a studio, or complex video editing software. In 4 weeks, learn to generate stunning AI images, produce engaging short-form videos, and monetize content for brands and personal growth.",
+    highlights: [
+      "Generate photorealistic images, high-CTR thumbnails, and brand assets with AI prompts",
+      "Produce viral TikTok, Instagram Reels, and YouTube Shorts from text prompts in minutes",
+      "Master AI voice cloning, automated captioning, dynamic b-roll, and sound design",
+      "Build high-converting faceless theme pages and client video marketing campaigns",
+      "Special ₦1,000 pilot tuition with instant automated gateway verification & enrollment",
+      "Official Vixora Digital Hub Certificate of Completion upon graduation"
+    ],
+    outcomes: [
+      "Write precision prompts for photorealistic AI photography, product renders, and concept art",
+      "Automate short-form video generation using AI scriptwriting, voiceover, and b-roll pipelines",
+      "Edit engaging 9:16 vertical videos with CapCut, dynamic kinetic subtitles, and sound effects",
+      "Produce faceless content channels for affiliate marketing, digital products, and brand deals",
+      "Offer high-ticket AI content creation services to SMEs, e-commerce stores, and influencers"
+    ],
+    prerequisites: [
+      "A smartphone or laptop with internet connection",
+      "Zero prior graphic design, video editing, or AI knowledge required (taught from scratch)",
+      "Curiosity and willingness to practice hands-on creative prompts"
+    ],
+    curriculum: [
+      "Module 1 — Foundations of AI Image Generation & Prompt Engineering",
+      "Module 2 — Character Consistency, Styles & Product Visual Mockups",
+      "Module 3 — AI Scriptwriting, Voice Cloning & Audio Synthesis",
+      "Module 4 — Video Generation, Dynamic Editing & Viral Short Form Formats",
+      "Module 5 — Faceless Channel Workflows, Client Services & Monetization"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 01",
+        title: "AI Image Generation & Professional Prompt Crafting",
+        description: "Master modern diffusion models, prompt syntax, aspect ratios, lighting, camera angles, and stylization.",
+        topics: [
+          "Understanding modern AI image generators (Midjourney, Flux, Ideogram, Leonardo)",
+          "Prompt engineering formula: Subject + Medium + Style + Lighting + Camera Lens",
+          "Aspect ratios, negative prompts, resolution upscaling, and composition rules",
+          "Generating realistic human portraits, hyper-detailed photography, and digital art"
+        ],
+        handsOnLab: "Lab 01: Create a portfolio of 5 photorealistic commercial assets and 3 brand concept visuals using precision prompting."
+      },
+      {
+        week: "Week 02",
+        title: "Character Consistency, Styles & E-Commerce Mockups",
+        description: "Generate consistent characters across multiple scenes and professional product photography.",
+        topics: [
+          "Maintaining facial and clothing consistency across different poses and backgrounds",
+          "AI product photography: placing 3D products in luxury studio and lifestyle scenes",
+          "Text rendering inside images for posters, logos, and YouTube/Reels thumbnails",
+          "Fixing artifacts, inpainting, outpainting, and background replacement"
+        ],
+        handsOnLab: "Lab 02: Design a complete e-commerce visual lookbook with a consistent AI model and branded product mockups."
+      },
+      {
+        week: "Week 03",
+        title: "AI Scriptwriting, Voice Cloning & Audio Synthesis",
+        description: "Write viral hooks, generate human-like synthetic voiceovers, and produce clean audio.",
+        topics: [
+          "High-retention short-form video scripting using ChatGPT and Claude",
+          "The 3-second hook framework: Visual, auditory, and psychological curiosity loops",
+          "AI voice cloning, natural pacing, emotion modulation, and multilingual synthesis (ElevenLabs)",
+          "Audio mixing: background music selection, beat drops, and sound effects (SFX)"
+        ],
+        handsOnLab: "Lab 03: Script and record 3 viral voiceover tracks with cloned voices, sound design, and retention hooks."
+      },
+      {
+        week: "Week 04",
+        title: "Short-Form Video Production, Viral Hooks & Capstone",
+        description: "Assemble AI images, text-to-video clips, and voiceovers into high-performing vertical videos.",
+        topics: [
+          "Text-to-video and image-to-video AI tools (Runway, Pika, Kling, Luma Dream Machine)",
+          "Editing vertical videos (9:16) with CapCut: zoom-ins, transitions, overlays, and color grading",
+          "Auto-captions, kinetic typography, b-roll sequencing, and trending audio pairing",
+          "Publishing strategies, algorithmic triggers, and monetization via client retainers"
+        ],
+        handsOnLab: "Final Capstone: Produce and publish a complete 45-second viral AI video with custom generated visuals, synthetic voiceover, kinetic subtitles, and sound effects."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Viral Multi-Platform Short Video Campaign",
+        description: "A complete 9:16 short-form video campaign designed for TikTok, Reels, and Shorts featuring AI-generated scenes, synthetic voiceover, and kinetic typography.",
+        technologies: ["Midjourney / Flux", "ElevenLabs", "CapCut", "Runway Gen-2", "ChatGPT"]
+      },
+      {
+        title: "AI Brand Commercial Lookbook & Product Mockup Series",
+        description: "A high-fashion or commercial e-commerce advertising package with consistent AI models, customized product backdrops, and promotional banners.",
+        technologies: ["Ideogram", "Flux", "Photoshop AI", "Canva", "Inpainting Tools"]
+      }
+    ],
+    instructors: [
+      {
+        name: "David Adeleke",
+        role: "Lead AI Creative Producer & Media Director",
+        bio: "Digital media producer and generative AI practitioner specializing in viral short-form storytelling, brand advertising, and automated content engines.",
+        companyBackground: "Vixora Digital Hub"
+      }
+    ],
+    faqs: [
+      {
+        q: "Can I take this course using just my smartphone?",
+        a: "Yes! Most modern AI image tools, scriptwriters, and mobile editing apps like CapCut, Ideogram, and ElevenLabs run smoothly on iOS and Android as well as laptops."
+      },
+      {
+        q: "Do I need any previous graphic design or video editing experience?",
+        a: "None at all. We start from absolute zero, guiding you through prompt formulation, tool setup, and step-by-step video assembly."
+      },
+      {
+        q: "Why is the price ₦1,000?",
+        a: "This is a special fast-track pilot rate enabling prospective students and community members to experience Vixora Academy's live hands-on teaching and verify our automated payment gateway."
+      },
+      {
+        q: "Will I receive a verified certificate upon completion?",
+        a: "Yes. Once you complete the weekly practical labs and submit your final short video capstone, you will be awarded an official Vixora Digital Hub Certificate of Completion with a digital verification QR code."
+      }
+    ],
+    certificateType: "Certificate of Completion in AI Creative Media & Video Production"
+  },
+  {
     id: "course-data-analysis-cohort",
     slug: "data-analysis-cohort",
     title: "Data Analysis Cohort",
@@ -665,7 +801,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     format: "16-Week Hybrid Cohort (Online & Physical)",
     duration: "16 Weeks",
     commitment: "5-6 hrs/week (Flexible Bite-Sized Sessions & Practical Labs)",
-    nextCohortDate: "November 9, 2026",
+    nextCohortDate: "October 9, 2026",
     tuition: "₦60,000",
     tuitionNote: "Early applicant price: ₦60,000 (Standard: ₦65,000). Limited seats, ends soon.",
     seatsRemaining: 10,
@@ -848,7 +984,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     format: "12-Week Hybrid Cohort (Online + Practical Sessions)",
     duration: "12 Weeks",
     commitment: "4-5 hrs/week (Flexible Bite-Sized Sessions)",
-    nextCohortDate: "October 26, 2026",
+    nextCohortDate: "October 9, 2026",
     tuition: "₦30,000",
     tuitionNote: "Early applicant rate (Standard: ₦35,000). Limited cohort seats available.",
     seatsRemaining: 14,
@@ -1004,7 +1140,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     format: "12-Week Implementation & Mentorship-Led Cohort",
     duration: "12 Weeks",
     commitment: "5-6 hrs/week (Implementation Labs + Mentorship)",
-    nextCohortDate: "November 2, 2026",
+    nextCohortDate: "October 9, 2026",
     tuition: "₦60,000",
     tuitionNote: "Early bird rate: ₦60,000 (Standard: ₦65,000 — regular value ₦100,000 – ₦150,000+). Includes direct mentorship, client acquisition training & real client projects.",
     seatsRemaining: 8,

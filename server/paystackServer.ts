@@ -291,7 +291,10 @@ export async function processPaymentFulfillment(
         .select('*')
         .eq('id', reference)
         .maybeSingle();
-      if (data) existingPayment = data;
+      if (data) {
+        existingPayment = data;
+        fallbackPaymentsStore.set(reference, data);
+      }
     } catch (dbErr) {
       console.warn('[Supabase payments query]:', dbErr);
     }
@@ -305,8 +308,10 @@ export async function processPaymentFulfillment(
   if (
     existingPayment &&
     existingPayment.status === 'success' &&
-    existingPayment.fulfillment_status === 'fulfilled'
+    existingPayment.fulfillment_status === 'fulfilled' &&
+    !simulateEnrollmentFailureForTesting.has(reference)
   ) {
+    fallbackPaymentsStore.set(reference, existingPayment);
     const canonical = findCanonicalCourse(existingPayment.course_id);
     return {
       verified: true,
@@ -620,7 +625,7 @@ export async function processPaymentFulfillment(
     customer_name: customerName,
     customer_phone: customerPhone,
     paid_at: paidAt,
-    email_dispatched_at: existingPayment?.email_dispatched_at || null,
+    email_dispatched_at: isFulfilled ? (existingPayment?.email_dispatched_at || null) : null,
     raw_response: sanitizePaystackResponse(paystackData),
     created_at: existingPayment?.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString()
@@ -1066,8 +1071,19 @@ paystackRouter.post('/verify/:reference', handleVerificationRequest);
 
 // ==============================================================================
 // 12. Paystack Webhook Endpoint
-// POST /webhook
+// POST /webhook (and GET /webhook for status health check)
 // ==============================================================================
+paystackRouter.get('/webhook', (_req: Request, res: Response) => {
+  return res.json({
+    status: 'active',
+    endpoint: 'Paystack Webhook Listener',
+    service: 'Vixora Academy Payment Gateway',
+    expectedMethod: 'POST',
+    configured: isPaystackConfigured(),
+    message: 'This endpoint is active and listening for automated webhook POST events from Paystack.'
+  });
+});
+
 paystackRouter.post('/webhook', async (req: Request, res: Response) => {
   try {
     const secretKey = getPaystackSecretKey();

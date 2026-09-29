@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TrustedBy } from './components/TrustedBy';
@@ -18,8 +18,10 @@ import { DriveWorkspaceModal } from './components/DriveWorkspaceModal';
 import { CourseEnrollmentModal } from './components/CourseEnrollmentModal';
 import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
 import { ScrollProgressBar } from './components/ScrollProgressBar';
+import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
 import { AcademyNavbar } from './components/AcademyNavbar';
 import { AcademyFooter } from './components/AcademyFooter';
+import { LoadingProvider, useLoading } from './context/LoadingContext';
 
 // Standalone Pages
 import { AboutPage } from './pages/AboutPage';
@@ -245,6 +247,10 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
 }
 
 function AppContent() {
+  const { startLoading, stopLoading } = useLoading();
+  const autoOpenedSlugRef = useRef<string | null>(null);
+  const dismissedSlugsRef = useRef<Set<string>>(new Set());
+
   const [route, setRoute] = useState<RouteState>(() =>
     parseLocationPath(
       typeof window !== 'undefined' ? window.location.pathname : '/',
@@ -273,12 +279,41 @@ function AppContent() {
     }
   }, [route.courseSlug]);
 
+  // Automatically trigger payment/enrollment popup ONCE when landing on a course page
+  useEffect(() => {
+    if (route.page === 'academy-course' && route.courseSlug) {
+      const activeSlug = route.courseSlug;
+      if (
+        autoOpenedSlugRef.current !== activeSlug &&
+        !dismissedSlugsRef.current.has(activeSlug)
+      ) {
+        autoOpenedSlugRef.current = activeSlug;
+        const targetCourse = ACADEMY_COURSES.find(c => c.slug === activeSlug || c.id === activeSlug);
+        if (targetCourse) {
+          setCourseForEnrollment(targetCourse);
+          setEnrollmentModalOpen(true);
+        }
+      }
+    } else if (route.page !== 'academy-course') {
+      autoOpenedSlugRef.current = null;
+    }
+  }, [route.page, route.courseSlug]);
+
+  const handleCloseEnrollmentModal = useCallback(() => {
+    if (route.courseSlug) {
+      dismissedSlugsRef.current.add(route.courseSlug);
+    }
+    setEnrollmentModalOpen(false);
+  }, [route.courseSlug]);
+
   // Handle browser back, forward, and hash navigation
   useEffect(() => {
     const handleUrlChange = () => {
+      startLoading('Loading page...');
       const parsed = parseLocationPath(window.location.pathname, window.location.search, window.location.hash);
       setRoute(parsed);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => stopLoading(), 220);
     };
 
     window.addEventListener('popstate', handleUrlChange);
@@ -287,7 +322,7 @@ function AppContent() {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
     };
-  }, []);
+  }, [startLoading, stopLoading]);
 
   // Universal Navigation Handler supporting permalinks
   const handleNavigate = useCallback(
@@ -369,6 +404,8 @@ function AppContent() {
         window.history.pushState({}, '', targetPath);
       }
 
+      startLoading('Loading page...');
+
       // Parse and set internal state
       const parsed = parseLocationPath(
         targetPath.split('#')[0] || '/',
@@ -382,23 +419,33 @@ function AppContent() {
           if (el) {
             el.scrollIntoView({ behavior: 'smooth' });
           }
+          stopLoading();
         }, 50);
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => stopLoading(), 220);
       }
     },
-    []
+    [startLoading, stopLoading]
   );
 
-  const handleSelectCourse = (course: AcademyCourse) => {
+  const handleSelectCourse = useCallback((course: AcademyCourse) => {
+    if (course.slug) {
+      dismissedSlugsRef.current.delete(course.slug);
+    }
     setSelectedCourse(course);
-    handleNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`);
-  };
-
-  const handleEnrollInCourse = (course: AcademyCourse) => {
     setCourseForEnrollment(course);
     setEnrollmentModalOpen(true);
-  };
+    handleNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`);
+  }, [handleNavigate]);
+
+  const handleEnrollInCourse = useCallback((course: AcademyCourse) => {
+    if (course.slug) {
+      dismissedSlugsRef.current.delete(course.slug);
+    }
+    setCourseForEnrollment(course);
+    setEnrollmentModalOpen(true);
+  }, []);
 
   const handleExploreServices = () => {
     if (route.page !== 'home') {
@@ -598,7 +645,7 @@ function AppContent() {
       <CourseEnrollmentModal
         isOpen={enrollmentModalOpen}
         course={courseForEnrollment}
-        onClose={() => setEnrollmentModalOpen(false)}
+        onClose={handleCloseEnrollmentModal}
         onGoToPortal={() => handleNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
       />
 
@@ -611,7 +658,10 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <LoadingProvider>
+        <GlobalLoadingIndicator />
+        <AppContent />
+      </LoadingProvider>
     </ThemeProvider>
   );
 }

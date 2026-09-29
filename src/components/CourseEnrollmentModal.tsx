@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLoading } from '../context/LoadingContext';
 import {
   X,
   GraduationCap,
@@ -52,6 +53,7 @@ export function CourseEnrollmentModal({
   const [selfPaymentMethod, setSelfPaymentMethod] = useState<'paystack' | 'bank_transfer'>('paystack');
 
   // UI state
+  const { startLoading, stopLoading } = useLoading();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isApplicationSubmitted, setIsApplicationSubmitted] = useState(false);
@@ -85,6 +87,7 @@ export function CourseEnrollmentModal({
 
   const handleResetAndClose = () => {
     setIsSubmitting(false);
+    stopLoading();
     setErrorMessage(null);
     setIsApplicationSubmitted(false);
     setFullName('');
@@ -118,6 +121,7 @@ export function CourseEnrollmentModal({
     // Path 1: Self-Funded via Paystack Instant Online Checkout
     if (fundingType === 'self' && selfPaymentMethod === 'paystack') {
       setIsSubmitting(true);
+      startLoading('Connecting to Paystack...');
 
       try {
         // Step 1: Backend Paystack Initialize
@@ -144,6 +148,7 @@ export function CourseEnrollmentModal({
             setErrorMessage(initRes.error || 'Failed to initialize payment checkout.');
           }
           setIsSubmitting(false);
+          stopLoading();
           return;
         }
 
@@ -162,10 +167,12 @@ export function CourseEnrollmentModal({
           },
           onCancel: () => {
             setIsSubmitting(false);
+            stopLoading();
             setErrorMessage('Payment was cancelled. You can try again whenever you are ready.');
           },
           onError: (err) => {
             setIsSubmitting(false);
+            stopLoading();
             setErrorMessage(err || 'Failed to open payment gateway.');
           }
         });
@@ -173,6 +180,7 @@ export function CourseEnrollmentModal({
         console.error('Enrollment initialization error:', err);
         setErrorMessage(cleanErrorMessage(err?.message) || 'A network error occurred while initializing checkout.');
         setIsSubmitting(false);
+        stopLoading();
       }
       return;
     }
@@ -497,6 +505,20 @@ export function CourseEnrollmentModal({
                   </div>
                 )}
               </div>
+
+              {/* Active Loading Feedback Banner */}
+              {isSubmitting && (
+                <div className="p-3 rounded-xl bg-purple-50 border-2 border-purple-200 flex items-center gap-3 animate-in fade-in duration-150">
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+                    <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-purple-600" />
+                  </div>
+                  <div className="text-left text-xs">
+                    <p className="font-bold text-purple-950">Connecting to Secure Paystack Gateway...</p>
+                    <p className="text-[11px] text-purple-700">Securing your cohort seat for {course.nextCohortDate}...</p>
+                  </div>
+                </div>
+              )}
 
               {/* Footer Actions */}
               <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t-2 border-[#1A1D4F]/10">

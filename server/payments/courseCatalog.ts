@@ -58,7 +58,7 @@ for (const course of ACADEMY_COURSES) {
     koboAmount: naira * 100,
     currency: 'NGN',
     totalModules: course.weeklySyllabus?.length || course.curriculum?.length || 12,
-    nextCohortDate: course.nextCohortDate || 'November 9, 2026',
+    nextCohortDate: course.nextCohortDate || 'October 9, 2026',
     tuitionDisplay: course.tuition
   };
 
