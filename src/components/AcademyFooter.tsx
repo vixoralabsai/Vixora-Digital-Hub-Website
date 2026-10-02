@@ -35,8 +35,9 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
             >
               <div className="p-2 bg-white rounded-2xl shadow-lg border border-purple-100 flex items-center justify-center">
                 <img
-                  src="/images/vixora-academy-logo.jpg"
-                  alt="Vixora Academy — Learn. Apply. Earn."
+                  src={BRAND_CONFIG.academyLogo?.imageUrl || "https://i.imgur.com/mGAj2sK.png"}
+                  alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.png'; }}
                   className="h-10 w-auto max-w-[200px] object-contain rounded-xl"
                 />
               </div>

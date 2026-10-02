@@ -24,6 +24,7 @@ import {
   dispatchGenericEmail,
   getEmailConfigStatus
 } from './emailService.js';
+import { buildPasswordResetEmail, buildCertificateAwardEmail } from './emailTemplates.js';
 import { generateCertificatePdfBuffer } from './certificatePdfGenerator.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from './supabaseAdmin.js';
 import { requireAuthentication } from './auth/authMiddleware.js';
@@ -1137,7 +1138,7 @@ portalRouter.post('/auth/forgot-password', async (req: Request, res: Response) =
     if (linkErr || !linkData?.properties) {
       console.error('Supabase recovery link error:', linkErr);
       return res.status(500).json({
-        error: 'Failed to generate cryptographic recovery credentials with Supabase.',
+        error: 'Unable to generate a password reset link at this time. Please try again shortly or contact admissions support.',
         code: 'RECOVERY_LINK_GENERATION_FAILED'
       });
     }
@@ -1150,27 +1151,21 @@ portalRouter.post('/auth/forgot-password', async (req: Request, res: Response) =
       ? `🔐 Administrator Password Recovery — Vixora Digital Hub`
       : `🔐 Reset Your Password — Vixora Academy`;
 
-    const htmlContent = generatePasswordResetEmailHtml({
+    const resetEmailData = buildPasswordResetEmail({
+      studentName: recipientName,
       email: cleanEmail,
-      recipientName,
-      actionLink,
-      otpCode: emailOtp,
-      portal: isPortalAdmin ? 'admin' : 'student'
+      otpCode: emailOtp || '',
+      recoveryUrl: actionLink
     });
 
-    const textContent = generatePasswordResetEmailText({
-      email: cleanEmail,
-      recipientName,
-      actionLink,
-      otpCode: emailOtp,
-      portal: isPortalAdmin ? 'admin' : 'student'
-    });
+    const htmlContent = resetEmailData.html;
+    const textContent = resetEmailData.text;
 
     // 6. Dispatch live email via Resend API / verified Gmail SMTP
     const dispatchResult = await dispatchGenericEmail({
       to: cleanEmail,
       toName: recipientName,
-      subject,
+      subject: resetEmailData.subject,
       html: htmlContent,
       text: textContent
     });
@@ -1974,9 +1969,20 @@ async function executeCertificateEmailDispatch(
     console.error('Failed generating certificate PDF buffer for email dispatch:', pdfErr);
   }
 
-  const emailHtml = generateCertificateEmailHtml(cert);
-  const emailText = generateCertificateEmailText(cert);
-  const emailSubject = `🎓 Congratulations ${cert.studentName}! Your Vixora Academy Certificate is Ready`;
+  const verificationUrl = cert.verificationUrl || `https://academy.vixoradigitalhub.com/verify?code=${encodeURIComponent(cert.id)}`;
+  const certEmailData = buildCertificateAwardEmail({
+    studentName: cert.studentName,
+    studentEmail: targetEmail,
+    courseTitle: cert.courseTitle,
+    certificateId: cert.id,
+    grade: cert.grade || 'Distinction',
+    issuedDate: cert.issueDate,
+    verificationUrl
+  });
+
+  const emailHtml = certEmailData.html;
+  const emailText = certEmailData.text;
+  const emailSubject = certEmailData.subject;
 
   const dispatchResult = await dispatchCertificateEmail({
     to: targetEmail,

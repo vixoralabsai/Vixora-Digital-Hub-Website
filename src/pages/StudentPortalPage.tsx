@@ -75,13 +75,44 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   const [recoveryErrorMessage, setRecoveryErrorMessage] = useState<string | null>(null);
   const [recoveryLoading, setRecoveryLoading] = useState(false);
   const [forgotCooldown, setForgotCooldown] = useState<number>(0);
+  const [isRecoveryActive, setIsRecoveryActive] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      return hash.includes('type=recovery') || search.includes('type=recovery');
+    }
+    return false;
+  });
 
-  // Auto-detect recovery link hash or Supabase auth event on mount
+  // Auto-detect recovery link hash, error parameters, or Supabase auth event on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash || '';
       const search = window.location.search || '';
+
+      // Check for Supabase expired link or access denied error in URL
+      if (hash.includes('error=') || search.includes('error=')) {
+        const rawParams = search || (hash.startsWith('#') ? `?${hash.slice(1)}` : `?${hash}`);
+        const urlParams = new URLSearchParams(rawParams.includes('?') ? rawParams.split('?')[1] : rawParams);
+        const errorCode = urlParams.get('error_code') || urlParams.get('error');
+        if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
+          setRecoveryErrorMessage('Your secure password setup link has expired or has already been used. Please enter your email below to receive a fresh 6-digit verification code.');
+        } else {
+          setRecoveryErrorMessage('The authentication link could not be verified. Please request a new verification code below.');
+        }
+        setAuthMode('forgot');
+        setActiveTab('dashboard');
+        setIsRecoveryActive(false);
+        try {
+          window.history.replaceState({}, '', window.location.pathname);
+        } catch {
+          // ignore history update failures
+        }
+        return;
+      }
+
       if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+        setIsRecoveryActive(true);
         setAuthMode('recovery_direct');
         setActiveTab('dashboard');
       }
@@ -90,6 +121,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     if (supabase) {
       const { data: authSub } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'PASSWORD_RECOVERY') {
+          setIsRecoveryActive(true);
           setAuthMode('recovery_direct');
           setActiveTab('dashboard');
         }
@@ -119,6 +151,15 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     const restoreSession = async () => {
       try {
         if (!supabase) {
+          if (isMounted) setIsRestoringSession(false);
+          return;
+        }
+
+        // If a password recovery session is actively being established, do NOT prematurely
+        // restore regular dashboard session. The student must set their password first.
+        const hash = typeof window !== 'undefined' ? window.location.hash : '';
+        const search = typeof window !== 'undefined' ? window.location.search : '';
+        if (isRecoveryActive || hash.includes('type=recovery') || search.includes('type=recovery')) {
           if (isMounted) setIsRestoringSession(false);
           return;
         }
@@ -475,7 +516,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
 
     try {
       if (!supabase) {
-        setRecoveryErrorMessage('Supabase client unavailable.');
+        setRecoveryErrorMessage('Authentication service is temporarily unavailable. Please retry shortly.');
         return;
       }
 
@@ -484,8 +525,21 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
       });
 
       if (uErr) {
-        setRecoveryErrorMessage(uErr.message || 'Failed to update password.');
+        const msg = uErr.message?.toLowerCase() || '';
+        if (msg.includes('expired') || msg.includes('token') || msg.includes('auth')) {
+          setRecoveryErrorMessage('Your password setup session has expired or has already been used. Please enter your email below to receive a fresh 6-digit verification code.');
+          setAuthMode('forgot');
+        } else {
+          setRecoveryErrorMessage(uErr.message || 'Unable to update your password. Please ensure it is at least 6 characters long.');
+        }
         return;
+      }
+
+      setIsRecoveryActive(false);
+      try {
+        window.history.replaceState({}, '', window.location.pathname);
+      } catch {
+        // ignore
       }
 
       const { data: sData } = await supabase.auth.getSession();
@@ -698,9 +752,9 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
               <div className="max-w-md mx-auto bg-white rounded-3xl border border-purple-100 shadow-sm p-12 text-center my-8">
                 <div className="w-10 h-10 border-3 border-[#7000F8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                 <p className="text-sm font-semibold text-[#000048]">Restoring student session...</p>
-                <p className="text-xs text-neutral-400 mt-1">Verifying cryptographic credentials with Supabase</p>
+                <p className="text-xs text-neutral-400 mt-1">Verifying student credentials</p>
               </div>
-            ) : !isLoggedIn ? (
+            ) : (!isLoggedIn || isRecoveryActive || authMode === 'recovery_direct') ? (
               /* Student Authentication Card with Multi-Mode (Login & Forgot Password Flow) */
               <div className="max-w-lg mx-auto bg-white rounded-3xl border border-purple-100 shadow-xl p-8">
                 <div className="text-center mb-6">
@@ -1056,7 +1110,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                   <form onSubmit={handleDirectPasswordReset} className="space-y-4">
                     <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-[#000048] flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-[#7000F8] shrink-0" />
-                      <span>Cryptographic recovery token validated. Please choose your new password.</span>
+                      <span>Your identity has been verified. Please choose a new password for your Vixora student account.</span>
                     </div>
 
                     <div>
@@ -1143,7 +1197,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                     <span>How do students get login details?</span>
                   </div>
                   <p className="text-[11px] leading-relaxed">
-                    Students receive their official login email and temporary password automatically in their welcome confirmation email upon admission into a cohort. For support, contact the Admissions Desk on WhatsApp.
+                    Upon admission, students receive an official welcome email containing their Student ID and a secure link to set their permanent password. If you ever need to create or reset your password, enter your registered email above to receive a 6-digit code or reset link.
                   </p>
                 </div>
 

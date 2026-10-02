@@ -134,6 +134,15 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
     return { page: 'payment-callback', path: cleanPath };
   }
 
+  // Automatic routing for password recovery tokens and auth callbacks arriving at root or any path
+  const hasRecoveryToken = cleanHash.includes('type=recovery') || search.includes('type=recovery') ||
+    cleanHash.includes('otp_expired') || search.includes('otp_expired') ||
+    cleanHash.includes('error=access_denied') || search.includes('error=access_denied');
+
+  if (hasRecoveryToken && !isAdminHost) {
+    return { page: 'student-portal', path: '/pages/student-portal', certId: certParam };
+  }
+
   if (cleanPath === '/pages') {
     return { page: 'pages-directory', path: '/pages' };
   }

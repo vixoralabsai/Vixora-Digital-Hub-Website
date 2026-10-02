@@ -447,7 +447,7 @@ async function runAllTests() {
       reference: failureRef,
       amount: 6000000,
       currency: 'NGN',
-      customer: { email: 'enroll.fail@example.com', first_name: 'Failed Enrollment Student' },
+      customer: { email: 'vixoraaihub@gmail.com', first_name: 'Failed Enrollment Student' },
       metadata: { courseId: 'course-data-analysis-cohort', studentName: 'Failed Enrollment Student' }
     };
 
@@ -480,7 +480,7 @@ async function runAllTests() {
       reference: failureRef,
       amount: 6000000,
       currency: 'NGN',
-      customer: { email: 'enroll.fail@example.com' },
+      customer: { email: 'vixoraaihub@gmail.com' },
       metadata: { courseId: 'course-data-analysis-cohort' }
     };
 

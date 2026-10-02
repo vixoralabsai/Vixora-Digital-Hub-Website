@@ -3,7 +3,8 @@ import crypto from 'crypto';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
-import { findCanonicalCourse } from './payments/courseCatalog.js';
+import { findCanonicalCourse, type CanonicalCourse } from './payments/courseCatalog.js';
+import { buildStudentOnboardingEmail } from './emailTemplates.js';
 
 export const paystackRouter = Router();
 
@@ -266,6 +267,56 @@ export interface FulfillmentResult {
   status?: number;
 }
 
+/**
+ * Self-healing helper: Ensures the canonical course exists in the Supabase 'courses' table
+ * before creating payments or enrollments. This guarantees foreign key
+ * constraints (e.g. "enrollments_course_id_fkey" and "payments_course_id_fkey") are never violated.
+ */
+export async function ensureCourseRecordInDatabase(
+  canonicalCourse: CanonicalCourse,
+  supabase: any
+): Promise<string> {
+  if (!supabase) return canonicalCourse.id;
+
+  try {
+    const { data: matchedCourse } = await supabase
+      .from('courses')
+      .select('id')
+      .or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`)
+      .maybeSingle();
+
+    if (matchedCourse?.id) {
+      return matchedCourse.id;
+    }
+
+    // Auto-provision course record in Supabase
+    const coursePayload = {
+      id: canonicalCourse.id,
+      slug: canonicalCourse.slug,
+      title: canonicalCourse.title,
+      badge: canonicalCourse.tuitionDisplay || `₦${canonicalCourse.nairaAmount.toLocaleString()}`,
+      total_modules: canonicalCourse.totalModules || 4,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: inserted, error: insertErr } = await supabase
+      .from('courses')
+      .upsert(coursePayload, { onConflict: 'id' })
+      .select('id')
+      .maybeSingle();
+
+    if (!insertErr && inserted?.id) {
+      return inserted.id;
+    }
+  } catch (err) {
+    console.warn('[Auto-provision course record warning]:', err);
+  }
+
+  return canonicalCourse.id;
+}
+
 export async function processPaymentFulfillment(
   reference: string,
   verifiedPaystackData?: any
@@ -485,16 +536,23 @@ export async function processPaymentFulfillment(
   const paidAt = paystackData.paid_at || new Date().toISOString();
   const channel = paystackData.channel || 'card';
   const paystackTxId = String(paystackData.id || '');
-  const authUserId = paystackData.metadata?.authUserId || null;
+  let authUserId = paystackData.metadata?.authUserId || null;
 
   // 4. Student Creation / Matching & Enrollment
   // FIX 2: Enrollment failure must not be silent. Do not report fulfillment success if student/enrollment fails.
   let studentId: string | null = existingPayment?.student_id || null;
+  let studentCode: string | null = null;
+  let generatedTempPassword: string | null = null;
+  let directPasswordSetupLink: string | null = null;
   let fulfillmentError: string | null = null;
   let isFulfilled = false;
+  let dbCourseId = canonicalCourse.id;
 
   if (supabase) {
     try {
+      // Self-healing: Resolve & auto-provision course in database to satisfy foreign keys
+      dbCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+
       if (simulateEnrollmentFailureForTesting.has(reference)) {
         throw new Error('Simulated database failure during enrollment.');
       }
@@ -502,22 +560,23 @@ export async function processPaymentFulfillment(
       // Step A: Find existing student by email (or auth_user_id)
       const studentQuery = supabase
         .from('students')
-        .select('id, email, auth_user_id')
+        .select('id, email, auth_user_id, student_code')
         .eq('email', customerEmail);
 
       const { data: matchedStudent, error: findStudentErr } = await studentQuery.maybeSingle();
       if (findStudentErr) throw findStudentErr;
 
+      let studentCode = matchedStudent?.student_code;
+
       if (matchedStudent) {
         studentId = matchedStudent.id;
-        // If student exists but lacked auth_user_id, link it now
-        if (authUserId && !matchedStudent.auth_user_id) {
-          await supabase.from('students').update({ auth_user_id: authUserId }).eq('id', studentId);
+        if (matchedStudent.auth_user_id) {
+          authUserId = matchedStudent.auth_user_id;
         }
       } else {
         // Step B: Create student if not found
         const newStudentId = crypto.randomUUID();
-        const studentCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
+        studentCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
         const { data: createdStudent, error: createStudentErr } = await supabase
           .from('students')
           .insert({
@@ -529,14 +588,67 @@ export async function processPaymentFulfillment(
             enrolled_at: new Date().toISOString(),
             role: 'student'
           })
-          .select('id')
+          .select('id, student_code')
           .maybeSingle();
 
         if (createStudentErr) throw createStudentErr;
         if (createdStudent) {
           studentId = createdStudent.id;
+          studentCode = createdStudent.student_code;
         } else {
           throw new Error('Student record could not be created in database.');
+        }
+      }
+
+      // Step B.2: Automatically Provision Supabase Auth User & 1-Click Password Setup Link
+      if (supabase.auth?.admin) {
+        try {
+          const portalBaseUrl = 'https://academy.vixoradigitalhub.com/pages/student-portal';
+
+          let authUserExists = false;
+          try {
+            const { data: linkData, error: probeErr } = await supabase.auth.admin.generateLink({
+              type: 'recovery',
+              email: customerEmail,
+              options: { redirectTo: portalBaseUrl }
+            });
+            if (linkData?.user && !probeErr) {
+              authUserExists = true;
+              authUserId = linkData.user.id;
+              directPasswordSetupLink = linkData.properties?.action_link || null;
+            }
+          } catch {
+            authUserExists = false;
+          }
+
+          if (!authUserExists) {
+            generatedTempPassword = `Vixora@${crypto.randomBytes(3).toString('hex').toUpperCase()}!`;
+            const { data: newAuth } = await supabase.auth.admin.createUser({
+              email: customerEmail,
+              password: generatedTempPassword,
+              email_confirm: true,
+              user_metadata: {
+                name: customerName,
+                role: 'student'
+              }
+            });
+
+            if (newAuth?.user) {
+              authUserId = newAuth.user.id;
+              const { data: linkData } = await supabase.auth.admin.generateLink({
+                type: 'recovery',
+                email: customerEmail,
+                options: { redirectTo: portalBaseUrl }
+              });
+              directPasswordSetupLink = linkData?.properties?.action_link || null;
+            }
+          }
+
+          if (authUserId && studentId) {
+            await supabase.from('students').update({ auth_user_id: authUserId }).eq('id', studentId);
+          }
+        } catch (authProvisionErr) {
+          console.warn('[Student Auth Provisioning Warning]:', authProvisionErr);
         }
       }
 
@@ -544,18 +656,6 @@ export async function processPaymentFulfillment(
       // Preserve existing cohort, progress, modules, and certificate_id
       if (!studentId) {
         throw new Error('Valid student identifier unavailable for enrollment.');
-      }
-
-      // Resolve course_id in database (either matching canonicalCourse.id or canonicalCourse.slug)
-      let dbCourseId = canonicalCourse.id;
-      const { data: dbCourse } = await supabase
-        .from('courses')
-        .select('id')
-        .or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`)
-        .maybeSingle();
-
-      if (dbCourse) {
-        dbCourseId = dbCourse.id;
       }
 
       const { data: existingEnrollment, error: findEnrollmentErr } = await supabase
@@ -612,7 +712,7 @@ export async function processPaymentFulfillment(
   const updatedPaymentRecord: PaymentRecord = {
     id: reference,
     student_id: studentId,
-    course_id: canonicalCourse.id,
+    course_id: dbCourseId,
     amount: canonicalCourse.nairaAmount,
     amount_kobo: canonicalCourse.koboAmount,
     currency: 'NGN',
@@ -687,64 +787,31 @@ export async function processPaymentFulfillment(
 
   if (!alreadyEmailed) {
     try {
-      const emailSubject = `🎓 Payment Receipt & Admission Confirmed: ${canonicalCourse.title} (₦${canonicalCourse.nairaAmount.toLocaleString()})`;
       const whatsappUrl = getWhatsAppUrl(
         'ng',
         `Hello Admissions! I just completed my tuition payment of ₦${canonicalCourse.nairaAmount.toLocaleString()} for ${canonicalCourse.title} via Paystack. Reference: ${reference}. My email is ${customerEmail}.`
       );
 
-      const emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0b061d; color: #ffffff; border-radius: 16px; border: 1px solid #3b1d7a;">
-          <div style="border-bottom: 1px solid #2a1458; padding-bottom: 16px; margin-bottom: 20px;">
-            <h2 style="color: #a855f7; margin: 0; font-size: 22px; font-weight: 800;">Vixora Academy</h2>
-            <p style="color: #94a3b8; font-size: 13px; margin: 4px 0 0 0;">Official Tuition Payment Receipt &amp; Admissions Confirmation</p>
-          </div>
-          <div style="background: #150d36; border: 1px solid #3b1d7a; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
-            <div style="display: inline-block; padding: 4px 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 9999px; color: #34d399; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
-              ✓ Payment Verified via Paystack
-            </div>
-            <h3 style="color: #ffffff; margin: 0 0 8px 0; font-size: 18px;">Welcome to ${canonicalCourse.title}!</h3>
-            <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin: 0;">
-              Dear <strong>${customerName}</strong>, your tuition payment of <strong>₦${canonicalCourse.nairaAmount.toLocaleString()}</strong> has been verified. Your seat in the upcoming cohort is officially reserved.
-            </p>
-          </div>
-          <div style="background: #0f0926; border: 1px solid #25124d; border-radius: 12px; padding: 16px; margin-bottom: 20px; font-size: 13px;">
-            <table style="width: 100%; border-collapse: collapse; color: #e2e8f0;">
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Transaction Reference:</td>
-                <td style="padding: 6px 0; font-family: monospace; font-weight: bold; text-align: right; color: #facc15;">${reference}</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Amount Paid:</td>
-                <td style="padding: 6px 0; font-weight: bold; text-align: right; color: #34d399;">₦${canonicalCourse.nairaAmount.toLocaleString()} NGN</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Payment Channel:</td>
-                <td style="padding: 6px 0; text-align: right; text-transform: capitalize;">${channel}</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Cohort Start:</td>
-                <td style="padding: 6px 0; text-align: right; color: #a855f7;">${canonicalCourse.nextCohortDate}</td>
-              </tr>
-            </table>
-          </div>
-          <div style="text-align: center; margin: 24px 0;">
-            <a href="${whatsappUrl}" style="display: inline-block; padding: 12px 24px; background: #10b981; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px;">
-              💬 Join Admissions WhatsApp Cohort Group
-            </a>
-          </div>
-          <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #2a1458; padding-top: 14px;">
-            <p style="margin: 0;">Vixora Digital Hub &bull; ${BRAND_CONFIG.email}</p>
-          </div>
-        </div>
-      `;
+      const emailPayload = buildStudentOnboardingEmail({
+        customerName,
+        customerEmail,
+        courseTitle: canonicalCourse.title,
+        tuitionNaira: canonicalCourse.nairaAmount,
+        reference,
+        nextCohortDate: canonicalCourse.nextCohortDate,
+        channel,
+        studentCode: studentCode || 'STU-ACTIVE',
+        generatedTempPassword,
+        directPasswordSetupLink,
+        whatsappUrl
+      });
 
       const emailResult = await dispatchGenericEmail({
         to: customerEmail,
         toName: customerName,
-        subject: emailSubject,
-        html: emailHtml,
-        text: `Tuition Payment Receipt: ${canonicalCourse.title}. Reference: ${reference}. Amount: ₦${canonicalCourse.nairaAmount.toLocaleString()} NGN. Welcome to Vixora Academy!`
+        subject: emailPayload.subject,
+        html: emailPayload.html,
+        text: emailPayload.text
       });
 
       // Requirement 5: Do NOT mark email as sent BEFORE email provider successfully accepts it
@@ -905,11 +972,17 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         ? callbackUrl
         : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
 
+    const supabase = getSupabaseAdmin();
+    let resolvedCourseId = canonicalCourse.id;
+    if (supabase) {
+      resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+    }
+
     // 8. Pre-create durable pending payment record in database
     const initialPaymentRecord: PaymentRecord = {
       id: reference,
       student_id: null,
-      course_id: canonicalCourse.id,
+      course_id: resolvedCourseId,
       amount: canonicalCourse.nairaAmount,
       amount_kobo: canonicalCourse.koboAmount,
       currency: 'NGN',
@@ -928,7 +1001,6 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       updated_at: new Date().toISOString()
     };
 
-    const supabase = getSupabaseAdmin();
     if (supabase) {
       try {
         await supabase.from('payments').insert(initialPaymentRecord);

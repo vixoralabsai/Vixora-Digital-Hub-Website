@@ -86,8 +86,9 @@ export function AcademyNavbar({
             >
               <div className="p-1.5 bg-white rounded-xl shadow-md border border-purple-100 flex items-center justify-center shrink-0">
                 <img
-                  src="/images/vixora-academy-logo.jpg"
-                  alt="Vixora Academy — Learn. Apply. Earn."
+                  src={BRAND_CONFIG.academyLogo?.imageUrl || "https://i.imgur.com/mGAj2sK.png"}
+                  alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.png'; }}
                   className="h-9 w-auto max-w-[170px] sm:max-w-[210px] object-contain rounded-lg"
                 />
               </div>

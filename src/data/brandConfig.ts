@@ -43,6 +43,11 @@ export interface BrandConfig {
     darkImageUrl?: string;
     altText: string;
   };
+  academyLogo: {
+    imageUrl: string;
+    fallbackUrl?: string;
+    altText: string;
+  };
   heroBackground: {
     imageUrl: string;
     overlayOpacity: number;
@@ -90,9 +95,14 @@ export const BRAND_CONFIG: BrandConfig = {
   logo: {
     imageUrl: "/images/vixora-digital-hub-logo.png",
     secondaryImageUrl: "/images/vixora-digital-hub-logo.png",
-    mobileImageUrl: "/images/vixora-digital-hub-logo.png",
+    mobileImageUrl: "/images/brand-logo-mobile.png",
     darkImageUrl: "/images/vixora-digital-hub-logo.png",
     altText: "Vixora Digital Hub Logo"
+  },
+  academyLogo: {
+    imageUrl: "https://i.imgur.com/mGAj2sK.png",
+    fallbackUrl: "/images/vixora-academy-logo.png",
+    altText: "Vixora Academy"
   },
   heroBackground: {
     imageUrl: "/images/hero-background.png",
