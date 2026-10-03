@@ -158,6 +158,53 @@ async function runAllAuthTests() {
     assert.equal(parseLocationTest('/', '', ''), 'home');
   });
 
+  // ------------------------------------------------------------------------
+  // Test 7: Password update via recovery redirect access_token succeeds
+  // ------------------------------------------------------------------------
+  await runTest('7. Password update via recovery action link token succeeds', async () => {
+    // Generate recovery link
+    const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: testStudentEmail,
+      options: {
+        redirectTo: 'https://academy.vixoradigitalhub.com/pages/student-portal?type=recovery'
+      }
+    });
+
+    assert.ok(linkData?.properties?.action_link);
+    // Click action link to get 303 redirect with access_token
+    const res = await fetch(linkData.properties.action_link, { redirect: 'manual' });
+    const location = res.headers.get('location') || '';
+    assert.ok(location.includes('access_token='));
+
+    const match = location.match(/access_token=([^&]+)/);
+    assert.ok(match && match[1]);
+    const accessToken = decodeURIComponent(match[1]);
+
+    // Verify token with Supabase Auth
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(accessToken);
+    assert.equal(userErr, null);
+    assert.ok(userData?.user);
+    assert.equal(userData.user.email, testStudentEmail);
+
+    // Update password
+    const testNewPass = `Vixora@TokenPass${Math.floor(1000 + Math.random() * 9000)}!`;
+    const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(userData.user.id, {
+      password: testNewPass
+    });
+    assert.equal(updateErr, null);
+
+    // Confirm login works
+    const { data: loginData, error: loginErr } = await anonClient.auth.signInWithPassword({
+      email: testStudentEmail,
+      password: testNewPass
+    });
+    assert.equal(loginErr, null);
+    assert.ok(loginData?.session?.access_token);
+
+    await anonClient.auth.signOut();
+  });
+
   console.log('\n========================================');
   console.log('📊 Focused Auth Test Suite: All Tests Passed!');
   console.log('========================================\n');

@@ -515,23 +515,51 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     setRecoverySuccessMessage(null);
 
     try {
-      if (!supabase) {
-        setRecoveryErrorMessage('Authentication service is temporarily unavailable. Please retry shortly.');
-        return;
+      let updated = false;
+
+      // 1. Primary: client-side Supabase updateUser
+      if (supabase) {
+        try {
+          const { error: uErr } = await supabase.auth.updateUser({
+            password: newPassword
+          });
+          if (!uErr) {
+            updated = true;
+          }
+        } catch {
+          // Proceed to token-based server fallback
+        }
       }
 
-      const { error: uErr } = await supabase.auth.updateUser({
-        password: newPassword
-      });
+      // 2. Secondary fallback: Extract access_token from URL hash/search and update securely via server
+      if (!updated) {
+        const hash = typeof window !== 'undefined' ? window.location.hash : '';
+        const search = typeof window !== 'undefined' ? window.location.search : '';
+        const match = hash.match(/access_token=([^&]+)/) || search.match(/access_token=([^&]+)/);
+        const accessToken = match ? decodeURIComponent(match[1]) : null;
 
-      if (uErr) {
-        const msg = uErr.message?.toLowerCase() || '';
-        if (msg.includes('expired') || msg.includes('token') || msg.includes('auth')) {
-          setRecoveryErrorMessage('Your password setup session has expired or has already been used. Please enter your email below to receive a fresh 6-digit verification code.');
-          setAuthMode('forgot');
-        } else {
-          setRecoveryErrorMessage(uErr.message || 'Unable to update your password. Please ensure it is at least 6 characters long.');
+        if (accessToken) {
+          const res = await fetch('/api/auth/reset-password-with-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken, newPassword })
+          });
+          const resData = await res.json().catch(() => ({}));
+          if (res.ok && resData.success) {
+            updated = true;
+          } else if (resData.error) {
+            setRecoveryErrorMessage(resData.error);
+            if (resData.code === 'TOKEN_EXPIRED') {
+              setAuthMode('forgot');
+            }
+            return;
+          }
         }
+      }
+
+      if (!updated) {
+        setRecoveryErrorMessage('Your password setup session has expired or has already been used. Please enter your email below to receive a fresh 6-digit verification code.');
+        setAuthMode('forgot');
         return;
       }
 
@@ -542,23 +570,25 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
         // ignore
       }
 
-      const { data: sData } = await supabase.auth.getSession();
-      const token = sData?.session?.access_token;
-      if (token) {
-        const profileRes = await fetch('/api/student/profile', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (profileRes.ok) {
-          const pData = await profileRes.json();
-          setIsLoggedIn(true);
-          setCurrentStudent(pData.student);
-          const certs = pData.certificates || [];
-          setStudentCertificates(certs);
-          if (certs.length > 0) {
-            setSelectedCertificate(certs[0]);
+      if (supabase) {
+        const { data: sData } = await supabase.auth.getSession();
+        const token = sData?.session?.access_token;
+        if (token) {
+          const profileRes = await fetch('/api/student/profile', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (profileRes.ok) {
+            const pData = await profileRes.json();
+            setIsLoggedIn(true);
+            setCurrentStudent(pData.student);
+            const certs = pData.certificates || [];
+            setStudentCertificates(certs);
+            if (certs.length > 0) {
+              setSelectedCertificate(certs[0]);
+            }
+            setAuthMode('login');
+            return;
           }
-          setAuthMode('login');
-          return;
         }
       }
 

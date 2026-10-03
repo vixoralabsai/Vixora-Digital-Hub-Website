@@ -9,10 +9,15 @@ function sanitizeSupabaseUrl(rawUrl?: string): string {
   return rawUrl.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
 }
 
-const env = (typeof import.meta !== 'undefined' && (import.meta as any).env) || (typeof process !== 'undefined' && process.env) || {};
-const rawUrl = (env.VITE_SUPABASE_URL as string) || '';
-const supabaseUrl = sanitizeSupabaseUrl(rawUrl);
-const supabaseAnonKey = ((env.VITE_SUPABASE_ANON_KEY as string) || '').trim();
+const rawUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) ||
+  'https://xenjfszsppwqadgwzpxl.supabase.co';
+
+const supabaseUrl = sanitizeSupabaseUrl(rawUrl as string);
+
+const supabaseAnonKey = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+  (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) ||
+  '').trim();
 
 export const supabase: SupabaseClient | null = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)

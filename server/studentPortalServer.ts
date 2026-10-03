@@ -1296,6 +1296,61 @@ portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Res
   }
 });
 
+/**
+ * Direct recovery password update using verified access token from recovery redirect
+ */
+portalRouter.post('/auth/reset-password-with-token', async (req: Request, res: Response) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
+  const { accessToken, newPassword } = req.body;
+  if (!accessToken || typeof accessToken !== 'string') {
+    return res.status(400).json({ error: 'Valid session access token is required.', code: 'TOKEN_REQUIRED' });
+  }
+
+  if (typeof newPassword !== 'string' || newPassword.length < 6 || newPassword.length > 200) {
+    return res.status(400).json({ error: 'Password must be between 6 and 200 characters long.', code: 'PASSWORD_INVALID_LENGTH' });
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return res.status(503).json({ error: 'Authentication service is unavailable.', code: 'AUTH_UNAVAILABLE' });
+  }
+
+  try {
+    const { data: userData, error: userErr } = await supabase.auth.getUser(accessToken);
+    if (userErr || !userData?.user) {
+      return res.status(401).json({
+        error: 'Your password setup link or session has expired. Please request a new recovery link.',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(userData.user.id, {
+      password: String(newPassword)
+    });
+
+    if (updateErr) {
+      return res.status(400).json({
+        error: updateErr.message || 'Unable to update password. Please ensure it is at least 6 characters.',
+        code: 'UPDATE_FAILED'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Password successfully updated. You can now sign in with your new credentials.'
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/reset-password-with-token:', err);
+    return res.status(500).json({
+      error: 'An internal error occurred while updating your password.',
+      code: 'RESET_FAILED'
+    });
+  }
+});
+
 // Student Email Login Deprecation & Hardening
 // Direct password-less login and mock vix_st token generation are completely retired.
 // Authentication MUST be performed using genuine Supabase Auth (supabase.auth.signInWithPassword).
