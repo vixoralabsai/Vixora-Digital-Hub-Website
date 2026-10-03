@@ -1265,9 +1265,9 @@ portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Res
       type: 'recovery'
     });
 
-    if (vErr || !vData.user) {
+    if (vErr || !vData?.user) {
       return res.status(400).json({
-        error: vErr?.message || 'Invalid or expired 6-digit verification code. Please check your email or request a new code.',
+        error: 'Your 6-digit verification code has expired or is invalid. Please check your email or request a new code below.',
         code: 'INVALID_OTP'
       });
     }
@@ -1278,7 +1278,7 @@ portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Res
 
     if (uErr) {
       return res.status(400).json({
-        error: uErr.message || 'Failed to update password with Supabase.',
+        error: uErr.message || 'Unable to update password. Please ensure it is at least 6 characters long.',
         code: 'PASSWORD_UPDATE_FAILED'
       });
     }
@@ -1289,8 +1289,8 @@ portalRouter.post('/auth/reset-password-with-otp', async (req: Request, res: Res
     });
   } catch (err: any) {
     console.error('Error in /api/auth/reset-password-with-otp:', err);
-    return res.status(500).json({
-      error: 'An internal server error occurred while updating your password.',
+    return res.status(400).json({
+      error: 'Unable to update password with this verification code. Please request a fresh code below.',
       code: 'RESET_FAILED'
     });
   }

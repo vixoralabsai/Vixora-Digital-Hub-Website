@@ -453,9 +453,14 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
           })
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.success) {
-          setRecoveryErrorMessage(data.error || 'Failed to update password. Check your verification code and try again.');
+          const rawErr = data.error || '';
+          if (rawErr.toLowerCase().includes('expired') || rawErr.toLowerCase().includes('invalid')) {
+            setRecoveryErrorMessage('Your 6-digit verification code has expired or is invalid. Please request a fresh code below.');
+          } else {
+            setRecoveryErrorMessage(rawErr || 'Failed to update password. Please check your verification code and try again.');
+          }
           return;
         }
 
