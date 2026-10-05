@@ -10,6 +10,7 @@
 
 import { supabase } from './supabaseClient';
 import { TrainingPlanId } from '../data/trainingPlans';
+import { TrainingPlanId } from '../data/trainingPlans';
 
 export interface PaystackConfig {
   configured: boolean;
@@ -299,6 +300,7 @@ export async function initializePaystackPayment(
     // Only forward safe, non-financial fields
     const payload = {
       courseId: params.courseId,
+      planId: params.planId,
       planId: params.planId,
       studentName: params.studentName,
       email: params.email,
