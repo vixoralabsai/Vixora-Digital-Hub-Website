@@ -680,6 +680,7 @@ export async function processPaymentFulfillment(
           id: crypto.randomUUID(),
           student_id: studentId,
           course_id: dbCourseId,
+          plan_id: trainingPlan?.id || existingPayment?.plan_id || null,
           status: 'enrolled',
           cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
           progress_percent: 0,
@@ -692,7 +693,11 @@ export async function processPaymentFulfillment(
         // If enrollment already exists, ensure status is 'enrolled' without resetting progress
         const { error: updateEnrollmentErr } = await supabase
           .from('enrollments')
-          .update({ status: 'enrolled', updated_at: new Date().toISOString() })
+          .update({
+            status: 'enrolled',
+            ...(trainingPlan?.id ? { plan_id: trainingPlan.id } : {}),
+            updated_at: new Date().toISOString()
+          })
           .eq('student_id', studentId)
           .eq('course_id', dbCourseId);
         if (updateEnrollmentErr) throw updateEnrollmentErr;
@@ -755,13 +760,13 @@ export async function processPaymentFulfillment(
   if (!isFulfilled) {
     return {
       verified: false,
-      error: `Tuition payment of ₦${canonicalCourse.nairaAmount.toLocaleString()} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
+      error: `Tuition payment of ₦${(trainingPlan?.priceNGN || canonicalCourse.nairaAmount).toLocaleString()} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
       code: 'ENROLLMENT_FAILED',
       status: 500,
       payment: {
         reference,
         status: 'success',
-        amount: canonicalCourse.nairaAmount,
+        amount: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
         currency: 'NGN',
         channel,
         paidAt,
