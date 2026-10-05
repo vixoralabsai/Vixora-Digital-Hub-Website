@@ -19,6 +19,34 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
   course,
   onEnroll
 }) => {
+  const [seatCounts, setSeatCounts] = React.useState<Record<TrainingPlanId, number | null>>({
+    group: null,
+    'small-group': null,
+    private: null
+  });
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const loadSeats = async () => {
+      try {
+        const response = await fetch(`/api/academy/cohort/availability?courseId=${encodeURIComponent(course.id)}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled && data?.seats) {
+          setSeatCounts(data.seats);
+        }
+      } catch {
+        // Availability is supplementary UI; checkout remains server-authoritative.
+      }
+    };
+
+    loadSeats();
+    return () => {
+      cancelled = true;
+    };
+  }, [course.id]);
+
   return (
     <section
       id="pricing"
@@ -89,11 +117,15 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
                 </p>
 
                 <div className="mt-5 p-3 rounded-xl bg-[#F8F9FE] border border-[#1A1D4F]/15 text-xs font-bold">
-                  {plan.capacity === 1
-                    ? '1 learner per private slot'
-                    : plan.capacity <= 5
-                      ? `Maximum ${plan.capacity} learners`
-                      : `Up to ${plan.capacity} learners per cohort`}
+                  {seatCounts[planId] !== null
+                    ? seatCounts[planId] === 0
+                      ? 'Currently full — join the waitlist'
+                      : `${seatCounts[planId]} spot${seatCounts[planId] === 1 ? '' : 's'} remaining`
+                    : plan.capacity === 1
+                      ? '1 learner per private slot'
+                      : plan.capacity <= 5
+                        ? `Maximum ${plan.capacity} learners`
+                        : `Up to ${plan.capacity} learners per cohort`}
                 </div>
 
                 <div className="mt-5 space-y-2.5 flex-1">
