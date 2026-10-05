@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient.js';
+import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { TrainingPlanId } from '../../src/data/trainingPlans.js';
 
 export interface AcademyCohort {
@@ -32,6 +32,9 @@ function mapCohort(row: any): AcademyCohort {
 }
 
 export async function getOpenCohort(courseId: string): Promise<AcademyCohort | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error('Academy database is not configured.');
+
   const { data, error } = await supabase
     .from('academy_cohorts')
     .select('*')
@@ -46,6 +49,9 @@ export async function getOpenCohort(courseId: string): Promise<AcademyCohort | n
 }
 
 export async function getSeatsRemaining(cohortId: string, planId: TrainingPlanId): Promise<number> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error('Academy database is not configured.');
+
   const { data, error } = await supabase.rpc('academy_cohort_plan_seats_remaining', {
     p_cohort_id: cohortId,
     p_plan_id: planId
