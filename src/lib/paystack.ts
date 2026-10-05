@@ -10,7 +10,6 @@
 
 import { supabase } from './supabaseClient';
 import { TrainingPlanId } from '../data/trainingPlans';
-import { TrainingPlanId } from '../data/trainingPlans';
 
 export interface PaystackConfig {
   configured: boolean;
