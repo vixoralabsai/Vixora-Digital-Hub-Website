@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { portalRouter, isPlainObject } from './server/studentPortalServer.js';
 import { paystackRouter } from './server/paystackServer.js';
+import academyCohortRouter from './server/academy/cohortRoutes.js';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 
 // Mount Student & Certificate Portal APIs with Rate Limiting
 app.use('/api', portalRouter);
+app.use('/api/academy/cohort', academyCohortRouter);
 
 // Mount Paystack Payment Gateway API (supported on both /api/payments/paystack, /api/paystack, and stripped serverless paths)
 app.use('/api/payments/paystack', paystackRouter);
