@@ -67,46 +67,14 @@ import {
 } from '../components/course/CourseSections';
 import { getCourseTools } from '../components/course/CourseToolsData';
 import { StickerLabel, TactileButton } from '../components/course/CourseVisualDecorations';
+import { TrainingPlanId } from '../data/trainingPlans';
 
 interface CourseLandingPageProps {
   course: AcademyCourse;
   onBackToAcademy: () => void;
-  onEnroll: (course: AcademyCourse) => void;
+  onEnroll: (course: AcademyCourse, planId?: TrainingPlanId) => void;
   onSelectCourse?: (course: AcademyCourse) => void;
   onNavigateHome: () => void;
-}
-
-// ---------------------------------------------------------------------------
-// HELPER: Dynamic Course Pricing Context
-// ---------------------------------------------------------------------------
-function parseCoursePricing(tuitionStr: string) {
-  if (tuitionStr.includes('₦')) {
-    const num = parseInt(tuitionStr.replace(/[^0-9]/g, ''), 10) || 60000;
-    const standardNum = num <= 35000 ? 35000 : Math.round((num * 1.25) / 5000) * 5000;
-    const savings = standardNum - num;
-    return {
-      early: tuitionStr,
-      standard: `₦${standardNum.toLocaleString()}`,
-      savings: `Save ₦${savings.toLocaleString()}`,
-      currency: '₦'
-    };
-  } else if (tuitionStr.includes('$')) {
-    const num = parseInt(tuitionStr.replace(/[^0-9]/g, ''), 10) || 1200;
-    const standardNum = Math.round((num * 1.25) / 50) * 50;
-    const savings = standardNum - num;
-    return {
-      early: tuitionStr,
-      standard: `$${standardNum.toLocaleString()}`,
-      savings: `Save $${savings.toLocaleString()}`,
-      currency: '$'
-    };
-  }
-  return {
-    early: tuitionStr,
-    standard: tuitionStr,
-    savings: 'Special Early Rate',
-    currency: ''
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -1461,7 +1429,6 @@ export function CourseLandingPage({
   };
 
   // Derived contextual data for the selected course
-  const pricing = parseCoursePricing(course.tuition);
   const problem = getCourseProblemData(course);
   const transformationPhases = getCourseTransformationPhases(course);
   const audiencePersonas = getCourseAudiencePersonas(course);
@@ -1584,8 +1551,7 @@ export function CourseLandingPage({
       {/* 12. TRANSPARENT PRICING & COHORT TUITION CARD */}
       <CoursePricingSection
         course={course}
-        onEnroll={() => onEnroll(course)}
-        pricing={pricing}
+        onEnroll={(planId: TrainingPlanId) => onEnroll(course, planId)}
       />
 
       {/* 13. FREQUENTLY ASKED QUESTIONS */}

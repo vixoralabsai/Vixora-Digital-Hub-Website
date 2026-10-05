@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
-import { findCanonicalCourse, type CanonicalCourse } from './payments/courseCatalog.js';
+import { findCanonicalCourse, findCanonicalTrainingPlan, type CanonicalCourse } from './payments/courseCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
 
 export const paystackRouter = Router();
@@ -157,6 +157,7 @@ export interface PaymentRecord {
   id: string; // transaction reference
   student_id: string | null;
   course_id: string;
+  plan_id: string | null;
   amount: number; // in Naira (e.g. 60000.00)
   amount_kobo: number; // in kobo (e.g. 6000000)
   currency: 'NGN';
@@ -491,14 +492,21 @@ export async function processPaymentFulfillment(
     };
   }
 
-  // Verify Amount matches canonical course price exactly in kobo
-  const expectedKobo = canonicalCourse.koboAmount;
+  // Verify Amount against the selected training tier when present.
+  // Older transactions without plan_id remain backward compatible.
+  const planId =
+    existingPayment?.plan_id ||
+    paystackData.metadata?.planId ||
+    paystackData.metadata?.plan_id ||
+    null;
+  const trainingPlan = findCanonicalTrainingPlan(planId);
+  const expectedKobo = trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount;
   const actualKobo = Math.round(Number(paystackData.amount));
 
   if (actualKobo !== expectedKobo) {
     return {
       verified: false,
-      error: `Amount mismatch: Expected ${expectedKobo} kobo (₦${canonicalCourse.nairaAmount}), received ${actualKobo} kobo.`,
+      error: `Amount mismatch: Expected ${expectedKobo} kobo (₦${(expectedKobo / 100).toLocaleString()}), received ${actualKobo} kobo.`,
       code: 'AMOUNT_MISMATCH',
       status: 400
     };
@@ -672,6 +680,7 @@ export async function processPaymentFulfillment(
           id: crypto.randomUUID(),
           student_id: studentId,
           course_id: dbCourseId,
+          plan_id: trainingPlan?.id || existingPayment?.plan_id || null,
           status: 'enrolled',
           cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
           progress_percent: 0,
@@ -684,7 +693,11 @@ export async function processPaymentFulfillment(
         // If enrollment already exists, ensure status is 'enrolled' without resetting progress
         const { error: updateEnrollmentErr } = await supabase
           .from('enrollments')
-          .update({ status: 'enrolled', updated_at: new Date().toISOString() })
+          .update({
+            status: 'enrolled',
+            ...(trainingPlan?.id ? { plan_id: trainingPlan.id } : {}),
+            updated_at: new Date().toISOString()
+          })
           .eq('student_id', studentId)
           .eq('course_id', dbCourseId);
         if (updateEnrollmentErr) throw updateEnrollmentErr;
@@ -713,8 +726,9 @@ export async function processPaymentFulfillment(
     id: reference,
     student_id: studentId,
     course_id: dbCourseId,
-    amount: canonicalCourse.nairaAmount,
-    amount_kobo: canonicalCourse.koboAmount,
+    plan_id: trainingPlan?.id || existingPayment?.plan_id || null,
+    amount: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
+    amount_kobo: trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount,
     currency: 'NGN',
     channel,
     status: 'success', // Genuinely successful at Paystack
@@ -746,13 +760,13 @@ export async function processPaymentFulfillment(
   if (!isFulfilled) {
     return {
       verified: false,
-      error: `Tuition payment of ₦${canonicalCourse.nairaAmount.toLocaleString()} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
+      error: `Tuition payment of ₦${(trainingPlan?.priceNGN || canonicalCourse.nairaAmount).toLocaleString()} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
       code: 'ENROLLMENT_FAILED',
       status: 500,
       payment: {
         reference,
         status: 'success',
-        amount: canonicalCourse.nairaAmount,
+        amount: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
         currency: 'NGN',
         channel,
         paidAt,
@@ -896,7 +910,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const { courseId, email, studentName, phone, callbackUrl } = req.body;
+    const { courseId, planId = 'group', email, studentName, phone, callbackUrl } = req.body;
 
     if (!courseId || typeof courseId !== 'string') {
       return res.status(400).json({
@@ -936,11 +950,22 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // 5. Check Server Paystack Configuration
+    // 5. Resolve the authoritative training tier and amount server-side.
+    const trainingPlan = findCanonicalTrainingPlan(planId);
+    if (!trainingPlan) {
+      return res.status(400).json({
+        error: `Invalid training plan "${planId}". Choose one of the available Vixora Academy training tiers.`,
+        code: 'INVALID_TRAINING_PLAN'
+      });
+    }
+
+    // 6. Check Server Paystack Configuration
     const secretKey = getPaystackSecretKey();
 
     console.log('[Server Paystack Init Diagnostic: Request]', {
       courseId,
+      planId: trainingPlan.id,
+      trainingPlan: trainingPlan.name,
       hasEmail: Boolean(email),
       hasPhone: Boolean(phone),
       hasSecretKey: Boolean(secretKey),
@@ -959,10 +984,10 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // 6. Optional Authenticated User
+    // 7. Optional Authenticated User
     const authUser = await extractOptionalAuthUser(req);
 
-    // 7. Generate Secure Unique Transaction Reference
+    // 8. Generate Secure Unique Transaction Reference
     const reference = `VIX-PS-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     // Determine secure callback URL
@@ -978,13 +1003,14 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
     }
 
-    // 8. Pre-create durable pending payment record in database
+    // 9. Pre-create durable pending payment record in database
     const initialPaymentRecord: PaymentRecord = {
       id: reference,
       student_id: null,
       course_id: resolvedCourseId,
-      amount: canonicalCourse.nairaAmount,
-      amount_kobo: canonicalCourse.koboAmount,
+      plan_id: trainingPlan.id,
+      amount: trainingPlan.priceNGN,
+      amount_kobo: trainingPlan.priceNGN * 100,
       currency: 'NGN',
       channel: null,
       status: 'pending',
@@ -1011,10 +1037,10 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     // Always track in fallback store
     fallbackPaymentsStore.set(reference, initialPaymentRecord);
 
-    // 9. Initialize External Paystack Transaction
+    // 10. Initialize External Paystack Transaction
     const paystackPayload = {
       email: cleanEmail,
-      amount: canonicalCourse.koboAmount,
+      amount: trainingPlan.priceNGN * 100,
       currency: 'NGN',
       reference,
       callback_url: finalCallbackUrl,
@@ -1025,14 +1051,18 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         phone: cleanPhone,
         courseId: canonicalCourse.id,
         courseTitle: canonicalCourse.title,
+        planId: trainingPlan.id,
+        planName: trainingPlan.name,
+        amountNaira: trainingPlan.priceNGN,
         authUserId: authUser?.id || null,
-        amountNaira: canonicalCourse.nairaAmount
       }
     };
 
     console.log('[Server Paystack Init Diagnostic: Calling Paystack API]', {
       reference,
-      amountKobo: canonicalCourse.koboAmount,
+      amountKobo: trainingPlan.priceNGN * 100,
+      planId: trainingPlan.id,
+      planName: trainingPlan.name,
       currency: 'NGN',
       callbackHost: new URL(finalCallbackUrl).hostname
     });
@@ -1071,9 +1101,10 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       reference,
       authorizationUrl: data.data.authorization_url,
       accessCode: data.data.access_code,
-      amountNaira: canonicalCourse.nairaAmount,
-      amountKobo: canonicalCourse.koboAmount,
+      amountNaira: trainingPlan.priceNGN,
+      amountKobo: trainingPlan.priceNGN * 100,
       currency: 'NGN',
+      planId: trainingPlan.id,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title
     });

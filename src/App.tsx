@@ -40,6 +40,7 @@ import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
 import { ThemeProvider } from './context/ThemeContext';
 import { getPostBySlug } from './data/categoriesData';
+import { TrainingPlanId } from './data/trainingPlans';
 
 export type PageType =
   | 'home'
@@ -279,6 +280,7 @@ function AppContent() {
   const [driveWorkspaceOpen, setDriveWorkspaceOpen] = useState(false);
   const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [courseForEnrollment, setCourseForEnrollment] = useState<AcademyCourse | null>(null);
+  const [enrollmentPlanId, setEnrollmentPlanId] = useState<TrainingPlanId>('group');
 
   // Sync course when route changes
   useEffect(() => {
@@ -300,6 +302,7 @@ function AppContent() {
         const targetCourse = ACADEMY_COURSES.find(c => c.slug === activeSlug || c.id === activeSlug);
         if (targetCourse) {
           setCourseForEnrollment(targetCourse);
+          setEnrollmentPlanId('group');
           setEnrollmentModalOpen(true);
         }
       }
@@ -444,15 +447,17 @@ function AppContent() {
     }
     setSelectedCourse(course);
     setCourseForEnrollment(course);
+    setEnrollmentPlanId('group');
     setEnrollmentModalOpen(true);
     handleNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`);
   }, [handleNavigate]);
 
-  const handleEnrollInCourse = useCallback((course: AcademyCourse) => {
+  const handleEnrollInCourse = useCallback((course: AcademyCourse, planId: TrainingPlanId = 'group') => {
     if (course.slug) {
       dismissedSlugsRef.current.delete(course.slug);
     }
     setCourseForEnrollment(course);
+    setEnrollmentPlanId(planId);
     setEnrollmentModalOpen(true);
   }, []);
 
@@ -654,6 +659,7 @@ function AppContent() {
       <CourseEnrollmentModal
         isOpen={enrollmentModalOpen}
         course={courseForEnrollment}
+        initialPlanId={enrollmentPlanId}
         onClose={handleCloseEnrollmentModal}
         onGoToPortal={() => handleNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
       />
