@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
 import { findCanonicalCourse, findCanonicalTrainingPlan, type CanonicalCourse } from './payments/courseCatalog.js';
+import { getOpenCohort, getSeatsRemaining } from './academy/cohortCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
 
 export const paystackRouter = Router();
@@ -959,6 +960,25 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
+    // Resolve the current open cohort and verify tier capacity before payment.
+    const cohort = await getOpenCohort(courseId);
+    if (!cohort) {
+      return res.status(409).json({
+        error: 'There is no open cohort available for this course right now.',
+        code: 'NO_OPEN_COHORT'
+      });
+    }
+
+    const seatsRemaining = await getSeatsRemaining(cohort.id, trainingPlan.id);
+    if (seatsRemaining <= 0) {
+      return res.status(409).json({
+        error: `${trainingPlan.name} is currently full for this cohort.`,
+        code: 'TRAINING_PLAN_FULL',
+        cohortId: cohort.id,
+        planId: trainingPlan.id
+      });
+    }
+
     // 6. Check Server Paystack Configuration
     const secretKey = getPaystackSecretKey();
 
@@ -1009,6 +1029,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       student_id: null,
       course_id: resolvedCourseId,
       plan_id: trainingPlan.id,
+      cohort_id: cohort.id,
       amount: trainingPlan.priceNGN,
       amount_kobo: trainingPlan.priceNGN * 100,
       currency: 'NGN',
@@ -1053,6 +1074,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         courseTitle: canonicalCourse.title,
         planId: trainingPlan.id,
         planName: trainingPlan.name,
+        cohortId: cohort.id,
+        cohortName: cohort.name,
         amountNaira: trainingPlan.priceNGN,
         authUserId: authUser?.id || null,
       }
@@ -1063,6 +1086,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       amountKobo: trainingPlan.priceNGN * 100,
       planId: trainingPlan.id,
       planName: trainingPlan.name,
+      cohortId: cohort.id,
+      cohortName: cohort.name,
       currency: 'NGN',
       callbackHost: new URL(finalCallbackUrl).hostname
     });
