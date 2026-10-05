@@ -47,6 +47,7 @@ import {
 } from '../services/clientProjectService';
 import { ClientProject } from '../types';
 import { BRAND_CONFIG } from '../data/brandConfig';
+import { AcademyCohortAdminPanel } from '../components/admin/AcademyCohortAdminPanel';
 
 interface AdminDashboardPageProps {
   onNavigateHome: () => void;
@@ -62,7 +63,7 @@ export function AdminDashboardPage({
   onNavigateToEnterpriseDashboard
 }: AdminDashboardPageProps) {
   const [session, setSession] = useState<AdminSession | null>(() => getAdminSession());
-  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'credentials' | 'outbox' | 'students' | 'system'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'credentials' | 'outbox' | 'students' | 'cohorts' | 'system'>('overview');
 
   // Overview data from API
   const [overviewData, setOverviewData] = useState<AdminOverviewResponse | null>(null);
@@ -317,6 +318,7 @@ export function AdminDashboardPage({
               { id: 'credentials', label: 'Certificate Directorate', icon: Award, badge: overviewData?.metrics.totalCertificates },
               { id: 'outbox', label: 'Email Outbox & Resend', icon: Send, badge: overviewData?.recentEmailLogs.length },
               { id: 'students', label: 'Academy Students', icon: Users, badge: overviewData?.metrics.totalStudents },
+              { id: 'cohorts', label: 'Academy Cohorts', icon: Calendar },
               { id: 'system', label: 'System & Security', icon: Server }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -1025,6 +1027,10 @@ export function AdminDashboardPage({
         {/* =========================================================================
             TAB 6: SYSTEM & SECURITY
             ========================================================================= */}
+        {activeTab === 'cohorts' && (
+          <AcademyCohortAdminPanel />
+        )}
+
         {activeTab === 'system' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-6">
