@@ -1,5 +1,6 @@
 import { ACADEMY_COURSES } from '../../src/data/vixoraContent.js';
 import { getCoursePrices, type CoursePrices } from '../../src/data/coursePricing.js';
+import { getTrainingPlan, TRAINING_PLANS, type TrainingPlan, type TrainingPlanId } from '../../src/data/trainingPlans.js';
 
 export interface CanonicalCourse {
   id: string;
@@ -91,3 +92,19 @@ export function getAllCanonicalCourses(): CanonicalCourse[] {
   }
   return Array.from(unique.values());
 }
+
+
+/**
+ * Returns the authoritative Academy training tier.
+ * The browser may request a plan, but the server always resolves the
+ * commercial amount from this catalog.
+ */
+export function findCanonicalTrainingPlan(planIdentifier?: string | null): TrainingPlan | null {
+  return getTrainingPlan(planIdentifier);
+}
+
+export function getAllCanonicalTrainingPlans(): TrainingPlan[] {
+  return Object.values(TRAINING_PLANS);
+}
+
+export type { TrainingPlanId };
