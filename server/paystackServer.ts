@@ -501,6 +501,14 @@ export async function processPaymentFulfillment(
     paystackData.metadata?.plan_id ||
     null;
   const trainingPlan = findCanonicalTrainingPlan(planId);
+  if (planId && !trainingPlan) {
+    return {
+      verified: false,
+      error: 'Cannot fulfill payment: invalid Vixora training tier.',
+      code: 'INVALID_TRAINING_PLAN',
+      status: 400
+    };
+  }
   const expectedKobo = trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount;
   const actualKobo = Math.round(Number(paystackData.amount));
 
@@ -546,6 +554,14 @@ export async function processPaymentFulfillment(
   const channel = paystackData.channel || 'card';
   const paystackTxId = String(paystackData.id || '');
   let authUserId = paystackData.metadata?.authUserId || null;
+
+  // Lock the cohort assignment used at checkout.
+  // This prevents a paid learner from being fulfilled against a different cohort.
+  const paymentCohortId =
+    existingPayment?.cohort_id ||
+    paystackData.metadata?.cohortId ||
+    paystackData.metadata?.cohort_id ||
+    null;
 
   // 4. Student Creation / Matching & Enrollment
   // FIX 2: Enrollment failure must not be silent. Do not report fulfillment success if student/enrollment fails.
@@ -682,6 +698,7 @@ export async function processPaymentFulfillment(
           student_id: studentId,
           course_id: dbCourseId,
           plan_id: trainingPlan?.id || existingPayment?.plan_id || null,
+          cohort_id: paymentCohortId,
           status: 'enrolled',
           cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
           progress_percent: 0,
@@ -697,6 +714,7 @@ export async function processPaymentFulfillment(
           .update({
             status: 'enrolled',
             ...(trainingPlan?.id ? { plan_id: trainingPlan.id } : {}),
+            ...(paymentCohortId ? { cohort_id: paymentCohortId } : {}),
             updated_at: new Date().toISOString()
           })
           .eq('student_id', studentId)
