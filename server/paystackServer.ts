@@ -1102,8 +1102,9 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       authorizationUrl: data.data.authorization_url,
       accessCode: data.data.access_code,
       amountNaira: trainingPlan.priceNGN,
-      amountKobo: canonicalCourse.koboAmount,
+      amountKobo: trainingPlan.priceNGN * 100,
       currency: 'NGN',
+      planId: trainingPlan.id,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title
     });
