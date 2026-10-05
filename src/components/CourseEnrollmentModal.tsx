@@ -29,10 +29,12 @@ import {
 } from '../lib/paystack';
 import { supabase } from '../lib/supabaseClient';
 import { StickerLabel, TactileButton } from './course/CourseVisualDecorations';
+import { TRAINING_PLANS, TrainingPlanId, formatTrainingPlanPrice } from '../data/trainingPlans';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;
   course: AcademyCourse | null;
+  initialPlanId?: TrainingPlanId;
   onClose: () => void;
   onGoToPortal?: () => void;
 }
@@ -40,6 +42,7 @@ interface CourseEnrollmentModalProps {
 export function CourseEnrollmentModal({
   isOpen,
   course,
+  initialPlanId = 'group',
   onClose,
   onGoToPortal
 }: CourseEnrollmentModalProps) {
@@ -47,6 +50,7 @@ export function CourseEnrollmentModal({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedPlanId, setSelectedPlanId] = useState<TrainingPlanId>(initialPlanId);
 
   // Payment preference state
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
@@ -63,6 +67,8 @@ export function CourseEnrollmentModal({
   // Pre-fill profile information if student is logged into Supabase
   useEffect(() => {
     if (!isOpen) return;
+
+    setSelectedPlanId(initialPlanId);
 
     if (supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
@@ -81,7 +87,7 @@ export function CourseEnrollmentModal({
         // Guest mode fallback
       });
     }
-  }, [isOpen]);
+  }, [isOpen, initialPlanId]);
 
   if (!isOpen || !course) return null;
 
@@ -93,6 +99,7 @@ export function CourseEnrollmentModal({
     setFullName('');
     setEmail('');
     setPhone('');
+    setSelectedPlanId(initialPlanId);
     setFundingType('self');
     setSelfPaymentMethod('paystack');
     setShowReceipt(false);
@@ -133,6 +140,7 @@ export function CourseEnrollmentModal({
 
         const initRes = await initializePaystackPayment({
           courseId: course.id,
+          planId: selectedPlanId,
           studentName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
@@ -228,7 +236,7 @@ export function CourseEnrollmentModal({
               <Calendar className="w-3.5 h-3.5" /> Next Cohort: {course.nextCohortDate}
             </span>
             <span>&bull;</span>
-            <span className="text-[#10B981] font-black">{course.tuition} Tuition</span>
+            <span className="text-[#10B981] font-black">{formatTrainingPlanPrice(selectedPlanId)} Tuition</span>
             <span>&bull;</span>
             <span className="text-[#FF8A65]">{course.seatsRemaining} Seats Remaining</span>
           </div>
@@ -288,7 +296,7 @@ export function CourseEnrollmentModal({
               {fundingType === 'self' && selfPaymentMethod === 'bank_transfer' ? (
                 <BankPaymentDetailsCard
                   courseTitle={course.title}
-                  tuitionAmount={course.tuition}
+                  tuitionAmount={formatTrainingPlanPrice(selectedPlanId)}
                   onPayOnline={() => {
                     setIsApplicationSubmitted(false);
                     setSelfPaymentMethod('paystack');
@@ -394,6 +402,52 @@ export function CourseEnrollmentModal({
                 />
               </div>
 
+              {/* Training Tier Selection */}
+              <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase text-[#1A1D4F]">
+                    Choose Training Tier
+                  </label>
+                  <span className="text-[11px] font-bold text-[#1A1D4F]/55">
+                    You can change this before payment
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {(Object.keys(TRAINING_PLANS) as TrainingPlanId[]).map((planId) => {
+                    const plan = TRAINING_PLANS[planId];
+                    const active = selectedPlanId === planId;
+
+                    return (
+                      <button
+                        key={planId}
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => setSelectedPlanId(planId)}
+                        className={`text-left p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                          active
+                            ? 'bg-[#EEF2FF] border-[#5B5FED] shadow-retro-sm'
+                            : 'bg-white border-[#1A1D4F]/25 hover:border-[#1A1D4F]'
+                        } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-black text-[#1A1D4F]">{plan.shortName}</span>
+                          {plan.badge && (
+                            <span className="text-[9px] font-black uppercase text-[#5B5FED]">{plan.badge}</span>
+                          )}
+                        </div>
+                        <div className="mt-1 text-lg font-display font-black text-[#1A1D4F]">
+                          {formatTrainingPlanPrice(planId)}
+                        </div>
+                        <div className="mt-1 text-[10px] leading-tight text-[#1A1D4F]/65">
+                          {plan.supportLevel}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Tuition & Payment Preference Selection */}
               <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
                 <div className="flex items-center justify-between">
@@ -401,7 +455,7 @@ export function CourseEnrollmentModal({
                     Payment Preference
                   </label>
                   <span className="text-xs font-mono text-[#10B981] font-black bg-[#D1F2D9] px-2 py-0.5 rounded border border-[#10B981]">
-                    Tuition: {course.tuition}
+                    Tuition: {formatTrainingPlanPrice(selectedPlanId)}
                   </span>
                 </div>
 
