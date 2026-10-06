@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx tests/paystack.test.ts && tsx tests/paystackFrontend.test.ts && tsx tests/authFocused.test.ts && tsx tests/aiAdvisor.test.ts"
+    "test": "tsx tests/courseAwarePricing.test.ts && tsx tests/paystack.test.ts && tsx tests/paystackFrontend.test.ts && tsx tests/authFocused.test.ts && tsx tests/aiAdvisor.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
