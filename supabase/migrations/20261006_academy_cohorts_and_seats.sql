@@ -92,6 +92,11 @@ BEGIN
     WHERE table_schema = 'public'
       AND table_name = 'enrollments'
       AND column_name = 'student_id'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'enrollments'
+      AND column_name = 'status'
   ) THEN
     CREATE UNIQUE INDEX IF NOT EXISTS idx_enrollments_student_active_cohort
       ON enrollments(student_id, cohort_id)
