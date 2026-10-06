@@ -29,6 +29,7 @@ import {
 } from '../lib/paystack';
 import { supabase } from '../lib/supabaseClient';
 import { StickerLabel, TactileButton } from './course/CourseVisualDecorations';
+import { getCoursePricingMode, getCourseTrainingPlans, getTrainingPlan, type TrainingPlan } from '../data/trainingPlans';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ export function CourseEnrollmentModal({
   // Payment preference state
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
   const [selfPaymentMethod, setSelfPaymentMethod] = useState<'paystack' | 'bank_transfer'>('paystack');
+  const [selectedPlanId, setSelectedPlanId] = useState<TrainingPlan['id']>('small-group');
 
   // UI state
   const { startLoading, stopLoading } = useLoading();
@@ -95,6 +97,7 @@ export function CourseEnrollmentModal({
     setPhone('');
     setFundingType('self');
     setSelfPaymentMethod('paystack');
+    setSelectedPlanId('small-group');
     setShowReceipt(false);
     setVerifiedPayment(null);
     onClose();
@@ -118,6 +121,14 @@ export function CourseEnrollmentModal({
       return;
     }
 
+    const pricingMode = getCoursePricingMode(course.id);
+    const selectedPlan = pricingMode === 'tiered' ? getTrainingPlan(selectedPlanId) : null;
+
+    if (pricingMode === 'tiered' && !selectedPlan) {
+      setErrorMessage('Please select a valid training plan before continuing.');
+      return;
+    }
+
     // Path 1: Self-Funded via Paystack Instant Online Checkout
     if (fundingType === 'self' && selfPaymentMethod === 'paystack') {
       setIsSubmitting(true);
@@ -133,6 +144,7 @@ export function CourseEnrollmentModal({
 
         const initRes = await initializePaystackPayment({
           courseId: course.id,
+          planId: selectedPlan?.id,
           studentName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
@@ -394,6 +406,38 @@ export function CourseEnrollmentModal({
                 />
               </div>
 
+              {/* Course-specific training plan selection */}
+              {getCoursePricingMode(course.id) === 'tiered' && (
+                <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-xs font-black uppercase text-[#1A1D4F]">Choose Training Plan</label>
+                    <span className="text-[11px] font-bold text-[#5B5FED]">Your plan controls the checkout price</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {getCourseTrainingPlans(course.id).map((plan) => (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => setSelectedPlanId(plan.id)}
+                        className={"text-left p-3 rounded-xl border-2 transition-all " + (selectedPlanId === plan.id ? 'bg-[#EEF2FF] border-[#5B5FED] shadow-retro-sm' : 'bg-white border-[#1A1D4F]/25 hover:border-[#1A1D4F]') + (isSubmitting ? ' opacity-60 cursor-not-allowed' : ' cursor-pointer')}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-black text-[#1A1D4F]">{plan.name}</span>
+                              {plan.badge && <span className="text-[9px] font-black uppercase bg-[#FFC107] px-1.5 py-0.5 rounded border border-[#1A1D4F]">{plan.badge}</span>}
+                            </div>
+                            <p className="text-[11px] text-[#1A1D4F]/70 mt-0.5">{plan.description}</p>
+                          </div>
+                          <span className="shrink-0 text-base font-black text-[#10B981]">₦{plan.priceNGN.toLocaleString()}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Tuition & Payment Preference Selection */}
               <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
                 <div className="flex items-center justify-between">
@@ -401,7 +445,7 @@ export function CourseEnrollmentModal({
                     Payment Preference
                   </label>
                   <span className="text-xs font-mono text-[#10B981] font-black bg-[#D1F2D9] px-2 py-0.5 rounded border border-[#10B981]">
-                    Tuition: {course.tuition}
+                    Tuition: {selectedPlan ? `₦${selectedPlan.priceNGN.toLocaleString()}` : course.tuition}
                   </span>
                 </div>
 
@@ -495,7 +539,7 @@ export function CourseEnrollmentModal({
                           <span className="flex items-center gap-1.5">
                             <ShieldCheck className="w-4 h-4 text-[#10B981]" /> Paystack Multi-Channel Gateway
                           </span>
-                          <span className="text-[#10B981] font-black">{course.tuition}</span>
+                          <span className="text-[#10B981] font-black">{selectedPlan ? `₦${selectedPlan.priceNGN.toLocaleString()}` : course.tuition}</span>
                         </div>
                         <p className="text-[11px] text-[#1A1D4F]/75 font-sans">
                           Supports Debit/Credit Cards, Bank Transfer, USSD, Apple Pay &amp; Mobile Money.
