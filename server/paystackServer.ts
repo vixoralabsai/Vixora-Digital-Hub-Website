@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
-import { findCanonicalCourse, type CanonicalCourse } from './payments/courseCatalog.js';
+import { findCanonicalCourse, resolveCanonicalCoursePrice, type CanonicalCourse } from './payments/courseCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
 
 export const paystackRouter = Router();
@@ -157,6 +157,7 @@ export interface PaymentRecord {
   id: string; // transaction reference
   student_id: string | null;
   course_id: string;
+  plan_id: string | null;
   amount: number; // in Naira (e.g. 60000.00)
   amount_kobo: number; // in kobo (e.g. 6000000)
   currency: 'NGN';
@@ -481,8 +482,8 @@ export async function processPaymentFulfillment(
     paystackData.metadata?.courseId ||
     paystackData.metadata?.course_id;
 
-  const canonicalCourse = findCanonicalCourse(courseId);
-  if (!canonicalCourse) {
+  const baseCanonicalCourse = findCanonicalCourse(courseId);
+  if (!baseCanonicalCourse) {
     return {
       verified: false,
       error: 'Cannot fulfill payment: Unrecognized or invalid course ID.',
@@ -491,7 +492,20 @@ export async function processPaymentFulfillment(
     };
   }
 
-  // Verify Amount matches canonical course price exactly in kobo
+  const planId = existingPayment?.plan_id || paystackData.metadata?.planId || null;
+  const canonicalCourse = resolveCanonicalCoursePrice(baseCanonicalCourse, planId);
+  if (!canonicalCourse) {
+    return {
+      verified: false,
+      error: baseCanonicalCourse.pricingMode === 'tiered'
+        ? 'Cannot fulfill payment: the transaction has no valid training plan.'
+        : 'Cannot fulfill payment: a training plan was supplied for a standalone course.',
+      code: 'INVALID_TRAINING_PLAN',
+      status: 400
+    };
+  }
+
+  // Verify Amount matches the resolved course/plan price exactly in kobo
   const expectedKobo = canonicalCourse.koboAmount;
   const actualKobo = Math.round(Number(paystackData.amount));
 
@@ -677,6 +691,7 @@ export async function processPaymentFulfillment(
           progress_percent: 0,
           completed_modules: 0,
           total_modules: canonicalCourse.totalModules,
+          plan_id: existingPayment.plan_id || null,
           enrolled_at: new Date().toISOString()
         });
         if (insertEnrollmentErr) throw insertEnrollmentErr;
@@ -684,7 +699,7 @@ export async function processPaymentFulfillment(
         // If enrollment already exists, ensure status is 'enrolled' without resetting progress
         const { error: updateEnrollmentErr } = await supabase
           .from('enrollments')
-          .update({ status: 'enrolled', updated_at: new Date().toISOString() })
+          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, updated_at: new Date().toISOString() })
           .eq('student_id', studentId)
           .eq('course_id', dbCourseId);
         if (updateEnrollmentErr) throw updateEnrollmentErr;
@@ -849,6 +864,7 @@ export async function processPaymentFulfillment(
       studentEmail: customerEmail,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
+      planId: resolvedCourse.selectedPlanId || null,
       emailDispatchedAt: finalEmailDispatchedAt
     }
   };
@@ -896,7 +912,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const { courseId, email, studentName, phone, callbackUrl } = req.body;
+    const { courseId, planId, email, studentName, phone, callbackUrl } = req.body;
 
     if (!courseId || typeof courseId !== 'string') {
       return res.status(400).json({
@@ -933,6 +949,18 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       return res.status(400).json({
         error: `Invalid courseId "${courseId}". Course is not available in the Vixora Academy catalog.`,
         code: 'INVALID_COURSE_ID'
+      });
+    }
+
+    // 5. Resolve the authoritative price for this course.
+    // Tiered courses require an explicit plan; standalone courses reject plan selection.
+    const resolvedCourse = resolveCanonicalCoursePrice(canonicalCourse, planId);
+    if (!resolvedCourse) {
+      return res.status(400).json({
+        error: canonicalCourse.pricingMode === 'tiered'
+          ? 'A valid training plan is required for this course.'
+          : 'This course uses standalone pricing and does not accept a training plan.',
+        code: canonicalCourse.pricingMode === 'tiered' ? 'TRAINING_PLAN_REQUIRED' : 'TRAINING_PLAN_NOT_ALLOWED'
       });
     }
 
@@ -983,8 +1011,9 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       id: reference,
       student_id: null,
       course_id: resolvedCourseId,
-      amount: canonicalCourse.nairaAmount,
-      amount_kobo: canonicalCourse.koboAmount,
+      plan_id: resolvedCourse.selectedPlanId || null,
+      amount: resolvedCourse.nairaAmount,
+      amount_kobo: resolvedCourse.koboAmount,
       currency: 'NGN',
       channel: null,
       status: 'pending',
@@ -1014,7 +1043,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     // 9. Initialize External Paystack Transaction
     const paystackPayload = {
       email: cleanEmail,
-      amount: canonicalCourse.koboAmount,
+      amount: resolvedCourse.koboAmount,
       currency: 'NGN',
       reference,
       callback_url: finalCallbackUrl,
@@ -1025,6 +1054,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         phone: cleanPhone,
         courseId: canonicalCourse.id,
         courseTitle: canonicalCourse.title,
+        planId: resolvedCourse.selectedPlanId || null,
+        trainingPlan: resolvedCourse.selectedPlanId || null,
         authUserId: authUser?.id || null,
         amountNaira: canonicalCourse.nairaAmount
       }
@@ -1071,8 +1102,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       reference,
       authorizationUrl: data.data.authorization_url,
       accessCode: data.data.access_code,
-      amountNaira: canonicalCourse.nairaAmount,
-      amountKobo: canonicalCourse.koboAmount,
+      amountNaira: resolvedCourse.nairaAmount,
+      amountKobo: resolvedCourse.koboAmount,
       currency: 'NGN',
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title
