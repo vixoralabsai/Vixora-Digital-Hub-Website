@@ -120,6 +120,7 @@ export interface CourseFaq {
 
 export interface AcademyCourse {
   id: string;
+  pricingMode?: 'standalone' | 'tiered';
   slug: string;
   title: string;
   subtitle: string;
@@ -1131,6 +1132,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
   },
   {
     id: "course-ai-automation-digital-business-systems",
+    pricingMode: "tiered",
     slug: "ai-automation-digital-business-systems",
     title: "AI Automation & Digital Business Systems",
     subtitle: "This isn't the \"learn the basics\" course. This is where you build real automations, real client systems, and a real freelance or business income — with direct mentorship the whole way.",
@@ -1141,8 +1143,8 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     duration: "12 Weeks",
     commitment: "5-6 hrs/week (Implementation Labs + Mentorship)",
     nextCohortDate: "October 9, 2026",
-    tuition: "₦60,000",
-    tuitionNote: "Early bird rate: ₦60,000 (Standard: ₦65,000 — regular value ₦100,000 – ₦150,000+). Includes direct mentorship, client acquisition training & real client projects.",
+    tuition: "From ₦45,000",
+    tuitionNote: "Training plans: Group ₦45,000 • Small Group ₦60,000 • Private 1-on-1 ₦100,000. Choose your training plan at checkout. (Standard: ₦65,000 — regular value ₦100,000 – ₦150,000+). Includes direct mentorship, client acquisition training & real client projects.",
     seatsRemaining: 8,
     targetAudience: "Professionals, Business Owners, Agency Founders, Freelancers, Consultants, and Digital Skills Graduates ready to build & monetize AI systems.",
     description: "Vixora Academy's advanced, implementation-focused program for people ready to go beyond tools and start building. You'll learn to design, build, and deploy AI-powered automations and solutions — the kind organizations and clients actually pay for — with hands-on mentorship, real business projects, and direct support.",

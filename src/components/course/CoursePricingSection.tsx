@@ -4,6 +4,7 @@ import { AcademyCourse } from '../../data/vixoraContent';
 import { getWhatsAppUrl } from '../../data/brandConfig';
 import { BankPaymentDetailsCard } from '../BankPaymentDetailsCard';
 import { StickerLabel, TactileButton } from './CourseVisualDecorations';
+import { getCoursePricingMode, getCourseTrainingPlans } from '../../data/trainingPlans';
 
 interface CoursePricingSectionProps {
   course: AcademyCourse;
@@ -67,18 +68,41 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
             </span>
           </div>
 
+          {getCoursePricingMode(course.id) === 'tiered' && (
+            <div className="py-5 border-b-2 border-[#1A1D4F]/10 space-y-3">
+              <div>
+                <div className="text-xs font-black uppercase tracking-wider text-[#1A1D4F]/60">Choose Your Training Experience</div>
+                <p className="text-xs text-[#1A1D4F]/65 mt-1">Select your preferred support level when you enroll.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {getCourseTrainingPlans(course.id).map((plan) => (
+                  <div key={plan.id} className="border-2 border-[#1A1D4F] rounded-2xl p-4 bg-[#FFFDF9] relative">
+                    {plan.badge && <span className="absolute -top-2 right-2 text-[9px] font-black uppercase bg-[#FFC107] px-2 py-0.5 rounded border border-[#1A1D4F]">{plan.badge}</span>}
+                    <div className="text-xs font-black text-[#1A1D4F]">{plan.name}</div>
+                    <div className="text-2xl font-black text-[#5B5FED] mt-1">₦{plan.priceNGN.toLocaleString()}</div>
+                    <div className="text-[11px] text-[#1A1D4F]/65 mt-1">{plan.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Pricing Header */}
           <div className="py-6 space-y-2">
             <div className="flex items-baseline gap-3">
               <span className="font-display font-black text-4xl sm:text-5xl text-[#1A1D4F] tracking-tight">
-                {pricing.early}
+                {getCoursePricingMode(course.id) === 'tiered' ? 'From ₦45,000' : pricing.early}
               </span>
-              <span className="text-lg sm:text-xl text-[#1A1D4F]/40 line-through font-bold">
-                {pricing.standard}
-              </span>
-              <span className="px-2 py-0.5 text-xs font-black bg-[#D1F2D9] text-[#10B981] border border-[#10B981] rounded-md">
-                {pricing.savings}
-              </span>
+              {getCoursePricingMode(course.id) !== 'tiered' && (
+                <>
+                  <span className="text-lg sm:text-xl text-[#1A1D4F]/40 line-through font-bold">
+                    {pricing.standard}
+                  </span>
+                  <span className="px-2 py-0.5 text-xs font-black bg-[#D1F2D9] text-[#10B981] border border-[#10B981] rounded-md">
+                    {pricing.savings}
+                  </span>
+                </>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-[#1A1D4F]/70 font-medium">
               {course.tuitionNote || 'One-time investment covering entire cohort, live labs, and lifetime alumni community access.'}
