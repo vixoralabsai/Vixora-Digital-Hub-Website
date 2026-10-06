@@ -1,5 +1,6 @@
 import { ACADEMY_COURSES } from '../../src/data/vixoraContent.js';
 import { getCoursePrices, type CoursePrices } from '../../src/data/coursePricing.js';
+import { getCoursePricingMode, getCourseTrainingPlan, getCourseTrainingPlans, type CoursePricingMode, type TrainingPlan } from '../../src/data/trainingPlans.js';
 
 export interface CanonicalCourse {
   id: string;
@@ -14,6 +15,9 @@ export interface CanonicalCourse {
   totalModules: number;
   nextCohortDate: string;
   tuitionDisplay: string;
+  pricingMode: CoursePricingMode;
+  trainingPlans: TrainingPlan[];
+  selectedPlanId?: TrainingPlan['id'];
 }
 
 /**
@@ -59,7 +63,9 @@ for (const course of ACADEMY_COURSES) {
     currency: 'NGN',
     totalModules: course.weeklySyllabus?.length || course.curriculum?.length || 12,
     nextCohortDate: course.nextCohortDate || 'October 9, 2026',
-    tuitionDisplay: course.tuition
+    tuitionDisplay: course.tuition,
+    pricingMode: getCoursePricingMode(course.id),
+    trainingPlans: getCourseTrainingPlans(course.id)
   };
 
   // Index by full ID (e.g. 'course-data-analysis-cohort')
@@ -90,4 +96,31 @@ export function getAllCanonicalCourses(): CanonicalCourse[] {
     unique.set(course.id, course);
   }
   return Array.from(unique.values());
+}
+
+
+/**
+ * Resolves the server-authoritative NGN amount for a course checkout.
+ * Tiered courses must provide an enabled training plan; standalone courses
+ * ignore plan selection and use their configured course price.
+ */
+export function resolveCanonicalCoursePrice(
+  course: CanonicalCourse,
+  planId?: string | null
+): CanonicalCourse | null {
+  if (course.pricingMode === 'standalone') {
+    if (planId) return null;
+    return course;
+  }
+
+  const plan = getCourseTrainingPlan(course.id, planId);
+  if (!plan) return null;
+
+  return {
+    ...course,
+    nairaAmount: plan.priceNGN,
+    koboAmount: plan.priceNGN * 100,
+    selectedPlanId: plan.id,
+    tuitionDisplay: plan.name
+  };
 }
