@@ -91,14 +91,18 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
           <div className="py-6 space-y-2">
             <div className="flex items-baseline gap-3">
               <span className="font-display font-black text-4xl sm:text-5xl text-[#1A1D4F] tracking-tight">
-                {pricing.early}
+                {getCoursePricingMode(course.id) === 'tiered' ? 'From ₦45,000' : pricing.early}
               </span>
-              <span className="text-lg sm:text-xl text-[#1A1D4F]/40 line-through font-bold">
-                {pricing.standard}
-              </span>
-              <span className="px-2 py-0.5 text-xs font-black bg-[#D1F2D9] text-[#10B981] border border-[#10B981] rounded-md">
-                {pricing.savings}
-              </span>
+              {getCoursePricingMode(course.id) !== 'tiered' && (
+                <>
+                  <span className="text-lg sm:text-xl text-[#1A1D4F]/40 line-through font-bold">
+                    {pricing.standard}
+                  </span>
+                  <span className="px-2 py-0.5 text-xs font-black bg-[#D1F2D9] text-[#10B981] border border-[#10B981] rounded-md">
+                    {pricing.savings}
+                  </span>
+                </>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-[#1A1D4F]/70 font-medium">
               {course.tuitionNote || 'One-time investment covering entire cohort, live labs, and lifetime alumni community access.'}
