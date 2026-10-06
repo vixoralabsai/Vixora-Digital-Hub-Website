@@ -262,6 +262,7 @@ export interface FulfillmentResult {
     courseId: string;
     courseTitle: string;
     emailDispatchedAt?: string | null;
+    planId?: string | null;
   };
   error?: string;
   code?: string;
@@ -864,7 +865,7 @@ export async function processPaymentFulfillment(
       studentEmail: customerEmail,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
-      planId: resolvedCourse.selectedPlanId || null,
+      planId: canonicalCourse.selectedPlanId || null,
       emailDispatchedAt: finalEmailDispatchedAt
     }
   };
@@ -1057,13 +1058,13 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         planId: resolvedCourse.selectedPlanId || null,
         trainingPlan: resolvedCourse.selectedPlanId || null,
         authUserId: authUser?.id || null,
-        amountNaira: canonicalCourse.nairaAmount
+        amountNaira: resolvedCourse.nairaAmount
       }
     };
 
     console.log('[Server Paystack Init Diagnostic: Calling Paystack API]', {
       reference,
-      amountKobo: canonicalCourse.koboAmount,
+      amountKobo: resolvedCourse.koboAmount,
       currency: 'NGN',
       callbackHost: new URL(finalCallbackUrl).hostname
     });
