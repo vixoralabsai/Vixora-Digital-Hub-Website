@@ -2129,6 +2129,35 @@ portalRouter.get("/student/rate-limit-status", (req, res) => {
     isLimited: status.isLimited
   });
 });
+portalRouter.post("/student/record-login-attempt", (req, res) => {
+  const ip = getClientIp(req);
+  const email = req.body?.email?.toLowerCase().trim() || "default";
+  const key = `${ip}:${email}`;
+  const rlCheck = loginRateLimiter.check(key);
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      allowed: false,
+      limit: rlCheck.limit,
+      remaining: 0,
+      resetInSeconds: rlCheck.resetInSeconds,
+      error: `Too many login attempts. Please wait ${rlCheck.resetInSeconds} seconds before trying again.`,
+      code: "RATE_LIMIT_EXCEEDED"
+    });
+  }
+  return res.json({
+    allowed: true,
+    limit: rlCheck.limit,
+    remaining: rlCheck.remaining,
+    resetInSeconds: rlCheck.resetInSeconds
+  });
+});
+portalRouter.post("/student/reset-rate-limit", (req, res) => {
+  const ip = getClientIp(req);
+  const email = req.body?.email?.toLowerCase().trim() || "default";
+  const key = `${ip}:${email}`;
+  loginRateLimiter.reset(key);
+  return res.json({ success: true, remaining: 5 });
+});
 function sanitizeUrl(rawUrl2) {
   if (!rawUrl2) return "";
   return rawUrl2.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
@@ -2409,7 +2438,18 @@ portalRouter.post("/auth/student-login", async (req, res) => {
   if (!email || !password || typeof email !== "string" || typeof password !== "string") {
     return res.status(400).json({ error: "Email and password are required.", code: "MISSING_FIELDS" });
   }
+  const ip = getClientIp(req);
   const cleanEmail = email.toLowerCase().trim();
+  const key = `${ip}:${cleanEmail}`;
+  const rlCheck = loginRateLimiter.check(key);
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: `Too many login attempts. Please wait ${rlCheck.resetInSeconds} seconds before trying again.`,
+      code: "RATE_LIMIT_EXCEEDED",
+      remaining: 0,
+      resetInSeconds: rlCheck.resetInSeconds
+    });
+  }
   const rawSbUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://xenjfszsppwqadgwzpxl.supabase.co";
   const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4";
   const anonSb = createClient2(sanitizeUrl(rawSbUrl), rawSbAnon);
@@ -2421,9 +2461,12 @@ portalRouter.post("/auth/student-login", async (req, res) => {
     if (error || !data.session) {
       return res.status(401).json({
         error: error?.message || "Login failed. Invalid student credentials.",
-        code: "INVALID_CREDENTIALS"
+        code: "INVALID_CREDENTIALS",
+        remaining: rlCheck.remaining,
+        resetInSeconds: rlCheck.resetInSeconds
       });
     }
+    loginRateLimiter.reset(key);
     return res.json({
       success: true,
       session: {

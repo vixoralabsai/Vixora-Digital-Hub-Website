@@ -1000,6 +1000,41 @@ portalRouter.get('/student/rate-limit-status', (req: Request, res: Response) => 
   });
 });
 
+// Record a student login attempt (increments rate limit counter)
+portalRouter.post('/student/record-login-attempt', (req: Request, res: Response) => {
+  const ip = getClientIp(req);
+  const email = (req.body?.email as string)?.toLowerCase().trim() || 'default';
+  const key = `${ip}:${email}`;
+  const rlCheck = loginRateLimiter.check(key);
+
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      allowed: false,
+      limit: rlCheck.limit,
+      remaining: 0,
+      resetInSeconds: rlCheck.resetInSeconds,
+      error: `Too many login attempts. Please wait ${rlCheck.resetInSeconds} seconds before trying again.`,
+      code: 'RATE_LIMIT_EXCEEDED'
+    });
+  }
+
+  return res.json({
+    allowed: true,
+    limit: rlCheck.limit,
+    remaining: rlCheck.remaining,
+    resetInSeconds: rlCheck.resetInSeconds
+  });
+});
+
+// Reset student login rate limiter on successful authentication
+portalRouter.post('/student/reset-rate-limit', (req: Request, res: Response) => {
+  const ip = getClientIp(req);
+  const email = (req.body?.email as string)?.toLowerCase().trim() || 'default';
+  const key = `${ip}:${email}`;
+  loginRateLimiter.reset(key);
+  return res.json({ success: true, remaining: 5 });
+});
+
 // Helper to sanitize Supabase URL for client instance
 function sanitizeUrl(rawUrl?: string): string {
   if (!rawUrl) return '';
@@ -1366,7 +1401,21 @@ portalRouter.post('/auth/student-login', async (req: Request, res: Response) => 
     return res.status(400).json({ error: 'Email and password are required.', code: 'MISSING_FIELDS' });
   }
 
+  const ip = getClientIp(req);
   const cleanEmail = email.toLowerCase().trim();
+  const key = `${ip}:${cleanEmail}`;
+
+  // Enforce rate limiting
+  const rlCheck = loginRateLimiter.check(key);
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: `Too many login attempts. Please wait ${rlCheck.resetInSeconds} seconds before trying again.`,
+      code: 'RATE_LIMIT_EXCEEDED',
+      remaining: 0,
+      resetInSeconds: rlCheck.resetInSeconds
+    });
+  }
+
   const rawSbUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://xenjfszsppwqadgwzpxl.supabase.co';
   const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4';
   const anonSb = createClient(sanitizeUrl(rawSbUrl), rawSbAnon);
@@ -1380,9 +1429,14 @@ portalRouter.post('/auth/student-login', async (req: Request, res: Response) => 
     if (error || !data.session) {
       return res.status(401).json({
         error: error?.message || 'Login failed. Invalid student credentials.',
-        code: 'INVALID_CREDENTIALS'
+        code: 'INVALID_CREDENTIALS',
+        remaining: rlCheck.remaining,
+        resetInSeconds: rlCheck.resetInSeconds
       });
     }
+
+    // Reset rate limiter on successful login
+    loginRateLimiter.reset(key);
 
     return res.json({
       success: true,

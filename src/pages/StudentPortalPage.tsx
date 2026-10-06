@@ -290,6 +290,29 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     setLoginError(null);
 
     try {
+      // Step 0: Check & record login attempt against rate limiter
+      try {
+        const rlRes = await fetch('/api/student/record-login-attempt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: targetEmail })
+        });
+        const rlData = await rlRes.json();
+        if (rlData.remaining !== undefined) {
+          setRemainingAttempts(rlData.remaining);
+        }
+        if (!rlData.allowed || rlRes.status === 429) {
+          const cooldown = rlData.resetInSeconds || 900;
+          setRateLimitCooldown(cooldown);
+          setRemainingAttempts(0);
+          setLoginError(`Adaptive security active: Maximum login attempts reached (5/5). Please wait ${cooldown}s before trying again.`);
+          setLoginLoading(false);
+          return;
+        }
+      } catch {
+        // Proceed if network probe fails
+      }
+
       let accessToken: string | null = null;
 
       // Step 1: Direct client-side Supabase authentication if available
@@ -304,6 +327,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
           } else if (authError) {
             if (authError.message?.toLowerCase().includes('invalid login credentials')) {
               setLoginError('Invalid student email or password. Please verify your credentials or reset your password.');
+              setLoginLoading(false);
               return;
             }
           }
@@ -321,7 +345,18 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
         });
         const loginData = await loginRes.json().catch(() => ({}));
         if (!loginRes.ok || !loginData.session?.access_token) {
-          setLoginError(loginData.error || 'Login failed. Invalid student credentials.');
+          if (loginData.remaining !== undefined) {
+            setRemainingAttempts(loginData.remaining);
+          }
+          if (loginRes.status === 429 || loginData.code === 'RATE_LIMIT_EXCEEDED') {
+            const cooldown = loginData.resetInSeconds || 900;
+            setRateLimitCooldown(cooldown);
+            setRemainingAttempts(0);
+            setLoginError(`Adaptive security active: Maximum login attempts reached (5/5). Please wait ${cooldown}s before trying again.`);
+          } else {
+            setLoginError(loginData.error || 'Login failed. Invalid student credentials.');
+          }
+          setLoginLoading(false);
           return;
         }
         accessToken = loginData.session.access_token;
@@ -338,10 +373,17 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
 
       if (!res.ok) {
         setLoginError(data.error || 'Failed to retrieve your student profile.');
+        setLoginLoading(false);
         return;
       }
 
-      // Step 3: Establish authenticated UI state
+      // Step 3: Establish authenticated UI state and reset rate limiter
+      fetch('/api/student/reset-rate-limit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail })
+      }).catch(() => {});
+
       setIsLoggedIn(true);
       setCurrentStudent(data.student);
       const certs = data.certificates || [];
