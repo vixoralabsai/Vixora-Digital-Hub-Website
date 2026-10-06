@@ -1109,7 +1109,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       amountKobo: resolvedCourse.koboAmount,
       currency: 'NGN',
       courseId: canonicalCourse.id,
-      courseTitle: canonicalCourse.title
+      courseTitle: canonicalCourse.title,
+      planId: resolvedCourse.selectedPlanId || null
     });
   } catch (err: any) {
     console.error('[Paystack Initialize Exception]:', err);
