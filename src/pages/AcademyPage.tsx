@@ -137,15 +137,15 @@ export function AcademyPage({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">
             {tracks.map((track) => (
               <button
                 key={track}
                 onClick={() => setSelectedTrack(track)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedTrack === track
-                    ? 'bg-[#480878] text-white shadow-md shadow-[#480878]/20'
-                    : 'bg-white text-[#5F6078] border border-[#E5E5F0] hover:border-[#9030F8]/40 hover:text-[#480878]'
+                    ? 'bg-white text-[#000048] shadow-sm border border-slate-200/60'
+                    : 'text-slate-600 hover:text-[#000048] hover:bg-slate-200/50'
                 }`}
               >
                 {track}
@@ -158,70 +158,87 @@ export function AcademyPage({
           {filteredCourses.map((course) => (
             <div
               key={course.id}
-              className="bg-white rounded-3xl border border-[#E5E5F0] hover:border-[#9030F8]/50 transition-all duration-300 flex flex-col justify-between overflow-hidden group shadow-lg hover:-translate-y-1"
+              className="relative bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,72,0.03)] hover:shadow-[0_20px_40px_rgba(72,8,120,0.12)] transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1.5"
             >
-              <div className="p-6 sm:p-7 space-y-5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-[#480878]/5 text-[#480878] border border-[#480878]/15">
+              {/* Hairline glowing gradient top border on hover (21st.dev signature) */}
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#480878] via-[#7000F8] to-[#10B981] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+              <div className="p-6 sm:p-7 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#480878] bg-[#480878]/5 px-2.5 py-1 rounded-md border border-[#480878]/15">
                     {course.badge}
                   </span>
-                  <span className="text-[11px] font-mono text-emerald-600 font-bold">
+                  <div className="text-sm font-black font-mono tracking-tight text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200/60">
                     {course.tuition}
-                  </span>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <h3
                     onClick={() => onSelectCourse(course)}
-                    className="text-lg font-bold text-[#000048] group-hover:text-[#480878] transition-colors cursor-pointer leading-snug"
+                    className="text-lg font-bold text-[#000048] group-hover:text-[#7000F8] transition-colors cursor-pointer leading-snug tracking-tight"
                   >
                     {course.title}
                   </h3>
-                  <p className="text-xs text-[#5F6078] line-clamp-3 leading-relaxed">
+                  <p className="text-xs text-[#5F6078] line-clamp-2 leading-relaxed">
                     {course.description}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E5E5F0] text-xs font-mono text-[#000048]">
-                  <div className="flex items-center gap-1.5 text-[#5F6078]">
-                    <Clock className="w-3.5 h-3.5 text-[#9030F8]" />
-                    <span>{course.duration}</span>
+                <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50/90 border border-slate-100 text-xs font-mono">
+                  <div className="flex items-center gap-2 text-[#5F6078]">
+                    <div className="p-1 rounded-md bg-purple-100/60 text-[#7000F8] shrink-0">
+                      <Clock className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Duration</span>
+                      <span className="truncate font-semibold text-[#000048]">{course.duration}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#5F6078]">
-                    <Calendar className="w-3.5 h-3.5 text-[#9030F8]" />
-                    <span className="truncate">{course.nextCohortDate}</span>
+                  <div className="flex items-center gap-2 text-[#5F6078]">
+                    <div className="p-1 rounded-md bg-purple-100/60 text-[#7000F8] shrink-0">
+                      <Calendar className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Next Cohort</span>
+                      <span className="truncate font-semibold text-[#000048]">{course.nextCohortDate}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-2">
-                  <div className="text-[11px] font-mono font-semibold uppercase text-[#480878]">
-                    Key Modules:
+                <div className="space-y-2 pt-1">
+                  <div className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#7000F8]" />
+                    Key Curriculum Modules:
                   </div>
                   <ul className="space-y-1.5">
                     {course.curriculum.slice(0, 3).map((curr, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-xs text-[#5F6078]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#9030F8] shrink-0 mt-0.5" />
-                        <span className="line-clamp-1">{curr}</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span className="line-clamp-1 text-slate-700">{curr}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
 
-              <div className="p-6 pt-0 space-y-2">
+              <div className="p-6 pt-0 space-y-3">
                 <button
                   onClick={() => onSelectCourse(course)}
-                  className="w-full py-3 rounded-xl text-xs font-bold bg-[#480878] hover:bg-[#7000F8] text-white border border-[#480878] hover:border-[#7000F8] transition-all flex items-center justify-center gap-1.5 cursor-pointer group"
+                  className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-[#000048] hover:bg-[#480878] text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md cursor-pointer group/btn"
                 >
                   <span>Explore Course Landing Page</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                 </button>
 
                 <div className="flex items-center justify-between text-[11px] px-1 font-mono text-[#5F6078]">
-                  <span className="text-amber-700">{course.seatsRemaining} seats left</span>
+                  <span className="inline-flex items-center gap-1.5 text-amber-700 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    {course.seatsRemaining} seats left
+                  </span>
                   <button
                     onClick={() => onEnrollCourse(course)}
-                    className="text-[#480878] hover:text-[#7000F8] underline cursor-pointer"
+                    className="text-[#480878] hover:text-[#7000F8] font-bold hover:underline cursor-pointer"
                   >
                     Quick Enroll &rarr;
                   </button>

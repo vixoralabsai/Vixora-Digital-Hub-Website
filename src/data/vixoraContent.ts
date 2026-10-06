@@ -659,7 +659,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     slug: "ai-image-short-videos-creation",
     title: "AI Image & Short Videos Creation",
     subtitle: "Master prompt engineering, photorealistic AI image generation, viral short video editing, voice cloning, and content monetization in a practical 4-week sprint.",
-    badge: "⚡ Fast-Track Pilot • ₦1,000",
+    badge: "⚡ Fast-Track Sprint • ₦10,000",
     level: "Beginner",
     status: "active",
     track: "Design & Marketing",
@@ -667,8 +667,8 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     duration: "4 Weeks",
     commitment: "3-4 hrs/week (Flexible Bite-Sized Sessions & Live Labs)",
     nextCohortDate: "October 9, 2026",
-    tuition: "₦1,000",
-    tuitionNote: "Special pilot gateway test price: ₦1,000 (Standard: ₦25,000). Instant enrollment access.",
+    tuition: "₦10,000",
+    tuitionNote: "Special fast-track price: ₦10,000 (Standard: ₦25,000). Instant enrollment access.",
     seatsRemaining: 25,
     targetAudience: "Content Creators, Small Business Owners, Social Media Managers, Marketers, Freelancers, and Complete Beginners.",
     description: "Learn how to use state-of-the-art AI tools to create photorealistic images, stylized graphics, viral short-form video scripts, synthetic voiceovers, and captivating personal or faceless videos. From Midjourney, Flux, and Ideogram to CapCut, ElevenLabs, and Runway, you'll build an automated creative content engine from your laptop or smartphone.",
@@ -678,7 +678,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
       "Produce viral TikTok, Instagram Reels, and YouTube Shorts from text prompts in minutes",
       "Master AI voice cloning, automated captioning, dynamic b-roll, and sound design",
       "Build high-converting faceless theme pages and client video marketing campaigns",
-      "Special ₦1,000 pilot tuition with instant automated gateway verification & enrollment",
+      "Special ₦10,000 tuition with instant automated gateway verification & enrollment",
       "Official Vixora Digital Hub Certificate of Completion upon graduation"
     ],
     outcomes: [
@@ -780,8 +780,8 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
         a: "None at all. We start from absolute zero, guiding you through prompt formulation, tool setup, and step-by-step video assembly."
       },
       {
-        q: "Why is the price ₦1,000?",
-        a: "This is a special fast-track pilot rate enabling prospective students and community members to experience Vixora Academy's live hands-on teaching and verify our automated payment gateway."
+        q: "Why is the price ₦10,000?",
+        a: "This is a special fast-track price enabling prospective students and creators to experience Vixora Academy's live hands-on teaching and practical creative toolchains."
       },
       {
         q: "Will I receive a verified certificate upon completion?",

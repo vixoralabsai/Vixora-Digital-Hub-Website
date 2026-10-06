@@ -1351,6 +1351,58 @@ portalRouter.post('/auth/reset-password-with-token', async (req: Request, res: R
   }
 });
 
+/**
+ * Genuine Supabase Auth Proxy Login for Students
+ * Allows students to authenticate securely via server proxy if client-side Supabase SDK
+ * is blocked or unconfigured on external hosting platforms.
+ */
+portalRouter.post('/auth/student-login', async (req: Request, res: Response) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: 'Request body must be a valid JSON object.', code: 'INVALID_BODY' });
+  }
+
+  const { email, password } = req.body;
+  if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Email and password are required.', code: 'MISSING_FIELDS' });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+  const rawSbUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://xenjfszsppwqadgwzpxl.supabase.co';
+  const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4';
+  const anonSb = createClient(sanitizeUrl(rawSbUrl), rawSbAnon);
+
+  try {
+    const { data, error } = await anonSb.auth.signInWithPassword({
+      email: cleanEmail,
+      password: String(password)
+    });
+
+    if (error || !data.session) {
+      return res.status(401).json({
+        error: error?.message || 'Login failed. Invalid student credentials.',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    return res.json({
+      success: true,
+      session: {
+        access_token: data.session.access_token,
+        token_type: data.session.token_type,
+        expires_at: data.session.expires_at,
+        expires_in: data.session.expires_in
+      },
+      user: data.user
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/student-login:', err);
+    return res.status(500).json({
+      error: 'Authentication service temporarily unavailable. Please retry shortly.',
+      code: 'AUTH_ERROR'
+    });
+  }
+});
+
 // Student Email Login Deprecation & Hardening
 // Direct password-less login and mock vix_st token generation are completely retired.
 // Authentication MUST be performed using genuine Supabase Auth (supabase.auth.signInWithPassword).

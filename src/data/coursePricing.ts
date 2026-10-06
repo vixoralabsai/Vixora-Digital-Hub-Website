@@ -28,8 +28,8 @@ export interface CoursePricing {
  */
 export const COURSE_PRICING: Record<string, CoursePrices> = {
   'course-ai-image-short-videos-creation': {
-    NGN: 1000,
-    USD: 1,
+    NGN: 10000,
+    USD: 10,
   },
   'course-data-analysis-cohort': {
     NGN: 60000,

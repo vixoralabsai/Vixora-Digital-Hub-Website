@@ -17,7 +17,7 @@ const supabaseUrl = sanitizeSupabaseUrl(rawUrl as string);
 
 const supabaseAnonKey = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
   (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) ||
-  '').trim();
+  'sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4').trim();
 
 export const supabase: SupabaseClient | null = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)

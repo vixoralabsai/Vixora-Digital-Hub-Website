@@ -290,23 +290,42 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
     setLoginError(null);
 
     try {
-      if (!supabase) {
-        setLoginError('Supabase client is not available in this environment.');
-        return;
+      let accessToken: string | null = null;
+
+      // Step 1: Direct client-side Supabase authentication if available
+      if (supabase) {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email: targetEmail,
+            password: passwordInput
+          });
+          if (!authError && authData.session?.access_token) {
+            accessToken = authData.session.access_token;
+          } else if (authError) {
+            if (authError.message?.toLowerCase().includes('invalid login credentials')) {
+              setLoginError('Invalid student email or password. Please verify your credentials or reset your password.');
+              return;
+            }
+          }
+        } catch {
+          // Proceed to server proxy fallback
+        }
       }
 
-      // Step 1: Real Supabase Auth verification
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: targetEmail,
-        password: passwordInput
-      });
-
-      if (authError || !authData.session) {
-        setLoginError(authError?.message || 'Login failed. Invalid student credentials.');
-        return;
+      // Step 1b: Server proxy fallback if client-side SDK is unavailable or blocked
+      if (!accessToken) {
+        const loginRes = await fetch('/api/auth/student-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: targetEmail, password: passwordInput })
+        });
+        const loginData = await loginRes.json().catch(() => ({}));
+        if (!loginRes.ok || !loginData.session?.access_token) {
+          setLoginError(loginData.error || 'Login failed. Invalid student credentials.');
+          return;
+        }
+        accessToken = loginData.session.access_token;
       }
-
-      const accessToken = authData.session.access_token;
 
       // Step 2: Query protected student profile with verified Supabase JWT
       const res = await fetch('/api/student/profile', {

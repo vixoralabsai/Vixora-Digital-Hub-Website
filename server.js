@@ -354,127 +354,6 @@ academy.vixoradigitalhub.com
 vixoradigitalhub.com
 `;
 }
-function generatePasswordResetEmailHtml(params) {
-  const isStudent = params.portal === "student";
-  const roleTitle = isStudent ? "Academy Student Account" : "Enterprise Administrator Account";
-  const accentGradient = isStudent ? "linear-gradient(135deg, #000048 0%, #480878 55%, #7000F8 100%)" : "linear-gradient(135deg, #0e0724 0%, #3b0764 55%, #6b21a8 100%)";
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Password Recovery \u2014 Vixora Digital Hub</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #F7F7FC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000048;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F7F7FC; padding: 40px 16px;">
-    <tr>
-      <td align="center">
-        <!-- Main Email Container -->
-        <table role="presentation" width="100%" style="max-width: 600px; background-color: #FFFFFF; border-radius: 20px; border: 1px solid #E5E5F0; box-shadow: 0 10px 35px rgba(0, 0, 72, 0.08); overflow: hidden;">
-          
-          <!-- Top Header Brand Ribbon -->
-          <tr>
-            <td style="background: ${accentGradient}; padding: 32px 30px; text-align: center;">
-              <table role="presentation" align="center" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td align="center" style="padding-bottom: 10px;">
-                    <div style="background-color: #FFFFFF; padding: 10px 20px; border-radius: 14px; display: inline-block; box-shadow: 0 6px 20px rgba(0,0,0,0.2);">
-                      <img src="https://academy.vixoradigitalhub.com/images/vixora-academy-logo.jpg" alt="Vixora Digital Hub" style="height: 52px; width: auto; max-width: 220px; display: block; border-radius: 6px;" />
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center">
-                    <div style="color: #FFFFFF; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; margin-top: 6px;">VIXORA DIGITAL HUB</div>
-                    <div style="color: #E0C7FF; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px;">
-                      Supabase Cryptographic Auth Service
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Content Area -->
-          <tr>
-            <td style="padding: 36px 32px 28px 32px;">
-              <h2 style="margin: 0 0 12px 0; font-size: 22px; font-weight: 800; color: #000048; text-align: center;">
-                Password Recovery Request
-              </h2>
-              <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #4B5563;">
-                Hello <strong>${params.recipientName}</strong>,
-              </p>
-              <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #4B5563;">
-                We received a verified request to reset the password for your <strong>${roleTitle}</strong> registered with <strong>${params.email}</strong>.
-              </p>
-
-              <!-- Reset Button -->
-              <div style="text-align: center; margin: 28px 0;">
-                <a href="${params.actionLink}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #7000F8 0%, #480878 100%); color: #FFFFFF; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 36px; border-radius: 12px; box-shadow: 0 6px 20px rgba(112, 0, 248, 0.35); letter-spacing: 0.3px;">
-                  Set New Password &rarr;
-                </a>
-              </div>
-
-              ${params.otpCode ? `
-              <!-- 6-Digit OTP Code -->
-              <div style="margin: 24px 0; padding: 18px; background-color: #F8F5FF; border: 1px dashed #B87CF8; border-radius: 14px; text-align: center;">
-                <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #7000F8; text-transform: uppercase; letter-spacing: 1px;">
-                  Or Enter This 6-Digit Verification Code in Your Browser:
-                </p>
-                <div style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 800; color: #000048; letter-spacing: 6px;">
-                  ${params.otpCode}
-                </div>
-                <p style="margin: 8px 0 0 0; font-size: 11px; color: #6B7280;">
-                  Enter this code on the portal recovery screen to update your password immediately.
-                </p>
-              </div>
-              ` : ""}
-
-              <!-- Security Notice -->
-              <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #E5E5F0;">
-                <p style="margin: 0 0 8px 0; font-size: 12px; line-height: 1.5; color: #6B7280;">
-                  <strong>Security Note:</strong> This reset link and verification code expire in <strong>60 minutes</strong>. If you did not request this password reset, no action is required and your existing password remains safe.
-                </p>
-                <p style="margin: 0; font-size: 11px; line-height: 1.5; color: #9CA3AF; word-break: break-all;">
-                  Direct link: <a href="${params.actionLink}" style="color: #7000F8; text-decoration: underline;">${params.actionLink}</a>
-                </p>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #F7F7FC; padding: 20px 32px; text-align: center; border-top: 1px solid #E5E5F0;">
-              <p style="margin: 0; font-size: 12px; color: #6B7280;">
-                &copy; ${(/* @__PURE__ */ new Date()).getFullYear()} Vixora Digital Hub. Learn. Apply. Earn. All rights reserved.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-}
-function generatePasswordResetEmailText(params) {
-  return `VIXORA DIGITAL HUB \u2014 PASSWORD RESET
-
-Hello ${params.recipientName},
-
-We received a request to reset the password for your ${params.portal === "admin" ? "Administrator" : "Student"} account (${params.email}).
-
-Click this secure link to set your new password:
-${params.actionLink}
-
-${params.otpCode ? `Or use this 6-digit verification code: ${params.otpCode}
-` : ""}
-This link and code expire in 60 minutes. If you did not make this request, please disregard this email.
-
-\u2014 Vixora Security Directorate
-vixoradigitalhub.com
-`;
-}
 
 // server/emailService.ts
 import nodemailer from "nodemailer";
@@ -655,6 +534,659 @@ async function dispatchGenericEmail(params) {
     text: params.text || params.subject,
     certificateId: "admin-dispatch"
   });
+}
+
+// src/data/brandConfig.ts
+var BRAND_CONFIG = {
+  name: "Vixora Digital Hub",
+  tagline: "Software \u2022 AI \u2022 Automation",
+  domain: "https://www.vixoradigitalhub.com",
+  cleanDomain: "vixoradigitalhub.com",
+  academyDomain: "https://academy.vixoradigitalhub.com",
+  cleanAcademyDomain: "academy.vixoradigitalhub.com",
+  adminDomain: "https://admin.vixoradigitalhub.com",
+  cleanAdminDomain: "admin.vixoradigitalhub.com",
+  email: "vixoralabsai@gmail.com",
+  secondaryEmail: "hello@vixoradigitalhub.com",
+  phone: "+1 (279) 257-4850",
+  whatsapp: {
+    usAndGlobal: {
+      id: "us",
+      label: "US & Foreign Inbounds",
+      region: "United States, Americas, Europe & Global",
+      displayNumber: "+1 (279) 257-4850",
+      fullInternationalNumber: "+12792574850",
+      cleanDigits: "12792574850",
+      flagEmoji: "\u{1F1FA}\u{1F1F8} \u{1F310}",
+      isPrimary: true
+    },
+    nigeria: {
+      id: "ng",
+      label: "Nigeria Inbounds",
+      region: "Nigeria & West Africa Region",
+      displayNumber: "08114542934",
+      fullInternationalNumber: "+2348114542934",
+      cleanDigits: "2348114542934",
+      flagEmoji: "\u{1F1F3}\u{1F1EC}",
+      isPrimary: false
+    },
+    defaultUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project."
+  },
+  whatsappNumber: "+1 (279) 257-4850",
+  whatsappUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
+  address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Innovation Center",
+  logo: {
+    imageUrl: "/images/vixora-digital-hub-logo.png",
+    secondaryImageUrl: "/images/vixora-digital-hub-logo.png",
+    mobileImageUrl: "/images/brand-logo-mobile.png",
+    darkImageUrl: "/images/vixora-digital-hub-logo.png",
+    altText: "Vixora Digital Hub Logo"
+  },
+  academyLogo: {
+    imageUrl: "https://i.imgur.com/mGAj2sK.png",
+    fallbackUrl: "/images/vixora-academy-logo.png",
+    altText: "Vixora Academy"
+  },
+  heroBackground: {
+    imageUrl: "/images/hero-background.png",
+    overlayOpacity: 0.65
+  }
+};
+function getWhatsAppUrl(channelOrMessage = "us", customMessage) {
+  let channel = "us";
+  let message = customMessage;
+  if (channelOrMessage === "ng" || channelOrMessage === "us") {
+    channel = channelOrMessage;
+  } else if (typeof channelOrMessage === "string" && channelOrMessage.length > 0) {
+    message = channelOrMessage;
+    channel = "us";
+  }
+  const selected = channel === "ng" ? BRAND_CONFIG.whatsapp.nigeria : BRAND_CONFIG.whatsapp.usAndGlobal;
+  const finalMessage = message || "Hello Vixora Digital Hub Team, I would like to discuss a project.";
+  return `https://wa.me/${selected.cleanDigits}?text=${encodeURIComponent(finalMessage)}`;
+}
+
+// server/emailTemplates.ts
+var LOGO_URL = "https://i.imgur.com/mGAj2sK.png";
+var ACADEMY_URL = "https://academy.vixoradigitalhub.com";
+var PORTAL_URL = "https://academy.vixoradigitalhub.com/pages/student-portal";
+function renderPreheader(text) {
+  if (!text) return "";
+  return `
+    <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
+      ${text}
+      &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+    </div>
+  `;
+}
+function renderEmailLayout(props) {
+  const {
+    previewText = "",
+    badgeText,
+    badgeVariant = "success",
+    title,
+    subtitle,
+    bodyContentHtml,
+    primaryCta,
+    secondaryCta,
+    footerNote
+  } = props;
+  const badgeStyles = {
+    success: "background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;",
+    info: "background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;",
+    warning: "background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24;",
+    purple: "background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;"
+  }[badgeVariant];
+  return `
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>${title}</title>
+  <style type="text/css">
+    body, table, td, p, a, li, blockquote {
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    img {
+      -ms-interpolation-mode: bicubic;
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+    }
+    @media only screen and (max-width: 620px) {
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0px !important;
+      }
+      .mobile-padding {
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+      }
+      .mobile-stack {
+        display: block !important;
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050212; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff;">
+  ${renderPreheader(previewText || title)}
+
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #050212;">
+    <tr>
+      <td align="center" style="padding: 30px 12px 40px 12px;">
+        
+        <!-- Main Email Container -->
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="max-width: 600px; background-color: #0b061d; border: 1px solid #2a1458; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);">
+          
+          <!-- Brand Header with Logo -->
+          <tr>
+            <td align="center" style="padding: 28px 24px 22px 24px; background: linear-gradient(180deg, #150933 0%, #0b061d 100%); border-bottom: 1px solid #25124d;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center">
+                    <a href="${ACADEMY_URL}" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="${LOGO_URL}" alt="Vixora Academy" width="180" style="width: 180px; max-width: 180px; display: block; border: 0;" />
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top: 8px;">
+                    <span style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #818cf8; font-weight: 700;">
+                      Vixora Academy &bull; Student Portal
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Body Section -->
+          <tr>
+            <td class="mobile-padding" style="padding: 32px 30px 24px 30px;">
+              
+              <!-- Badge (Optional) -->
+              ${badgeText ? `
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 18px;">
+                  <tr>
+                    <td style="padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; ${badgeStyles}">
+                      ${badgeText}
+                    </td>
+                  </tr>
+                </table>
+              ` : ""}
+
+              <!-- Title & Subtitle -->
+              <h1 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 800; color: #ffffff; line-height: 1.35; letter-spacing: -0.3px;">
+                ${title}
+              </h1>
+
+              ${subtitle ? `
+                <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #94a3b8;">
+                  ${subtitle}
+                </p>
+              ` : ""}
+
+              <!-- Dynamic Content Slot -->
+              ${bodyContentHtml}
+
+              <!-- Primary Call To Action Button -->
+              ${primaryCta ? `
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 26px 0 16px 0;">
+                  <tr>
+                    <td align="center">
+                      <a href="${primaryCta.url}" target="_blank" style="display: block; box-sizing: border-box; width: 100%; max-width: 480px; padding: 15px 24px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; text-align: center; letter-spacing: 0.2px; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);">
+                        ${primaryCta.label}
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              ` : ""}
+
+              <!-- Secondary Call To Action Button -->
+              ${secondaryCta ? `
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px;">
+                  <tr>
+                    <td align="center">
+                      <a href="${secondaryCta.url}" target="_blank" style="display: block; box-sizing: border-box; width: 100%; max-width: 480px; padding: 13px 22px; background-color: #150d36; border: 1px solid #3b1d7a; color: #c084fc; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 600; text-align: center;">
+                        ${secondaryCta.label}
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              ` : ""}
+
+            </td>
+          </tr>
+
+          <!-- Help & Support Strip -->
+          <tr>
+            <td class="mobile-padding" style="padding: 16px 30px; background-color: #0e0725; border-top: 1px solid #200f42; border-bottom: 1px solid #200f42;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center" style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                    \u{1F4A1} Need assistance? Contact our Admissions Desk directly at
+                    <a href="mailto:${BRAND_CONFIG.email}" style="color: #38bdf8; text-decoration: none; font-weight: 600;">${BRAND_CONFIG.email}</a>
+                    or reply directly to this email.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Branded Footer -->
+          <tr>
+            <td class="mobile-padding" align="center" style="padding: 24px 30px 28px 30px; background-color: #080416; text-align: center;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 700; color: #ffffff;">
+                Vixora Digital Hub &bull; Academy
+              </p>
+              <p style="margin: 0 0 14px 0; font-size: 11px; line-height: 1.6; color: #64748b;">
+                Software &bull; AI &bull; Automation &bull; Modern Tech Education<br />
+                ${BRAND_CONFIG.address}
+              </p>
+
+              <!-- Quick Links -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                  <td style="padding: 0 8px;">
+                    <a href="${ACADEMY_URL}" target="_blank" style="font-size: 11px; color: #818cf8; text-decoration: none;">Academy Courses</a>
+                  </td>
+                  <td style="color: #334155; font-size: 11px;">&bull;</td>
+                  <td style="padding: 0 8px;">
+                    <a href="${PORTAL_URL}" target="_blank" style="font-size: 11px; color: #818cf8; text-decoration: none;">Student Portal</a>
+                  </td>
+                  <td style="color: #334155; font-size: 11px;">&bull;</td>
+                  <td style="padding: 0 8px;">
+                    <a href="${BRAND_CONFIG.domain}" target="_blank" style="font-size: 11px; color: #818cf8; text-decoration: none;">Official Website</a>
+                  </td>
+                </tr>
+              </table>
+
+              ${footerNote ? `
+                <p style="margin: 14px 0 0 0; font-size: 11px; color: #475569; line-height: 1.4;">
+                  ${footerNote}
+                </p>
+              ` : ""}
+
+              <p style="margin: 14px 0 0 0; font-size: 11px; color: #475569;">
+                &copy; ${(/* @__PURE__ */ new Date()).getFullYear()} Vixora Digital Hub. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+function buildStudentOnboardingEmail(params) {
+  const {
+    customerName,
+    customerEmail,
+    courseTitle,
+    tuitionNaira,
+    reference,
+    nextCohortDate,
+    channel = "card",
+    studentCode,
+    generatedTempPassword,
+    directPasswordSetupLink,
+    whatsappUrl
+  } = params;
+  const subject = `\u{1F393} Student Account & Admission Confirmed: ${courseTitle} (\u20A6${tuitionNaira.toLocaleString()})`;
+  const portalUrl = PORTAL_URL;
+  const actionButtonUrl = directPasswordSetupLink || portalUrl;
+  const bodyContentHtml = `
+    <!-- Personalized Admission Notice -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #120930; border: 1px solid #3b1d7a; border-radius: 12px; margin-bottom: 22px;">
+      <tr>
+        <td style="padding: 20px;">
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+            Dear <strong style="color: #ffffff;">${customerName}</strong>,<br /><br />
+            Congratulations! Your tuition payment of <strong style="color: #34d399;">\u20A6${tuitionNaira.toLocaleString()} NGN</strong> has been verified. You are officially enrolled in <strong style="color: #a855f7;">${courseTitle}</strong>. Your student account is active and your seat in the upcoming cohort is secured.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Credentials Card Component -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #180d3d 0%, #100829 100%); border: 1px solid #6366f1; border-radius: 14px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);">
+      <tr>
+        <td style="padding: 22px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td colspan="2" style="padding-bottom: 14px; border-bottom: 1px solid #2a1854;">
+                <span style="font-size: 12px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1px;">
+                  \u{1F511} Your Student Portal Credentials
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 0 6px 0; color: #94a3b8; font-size: 13px;">Student Matric ID:</td>
+              <td align="right" style="padding: 12px 0 6px 0; color: #38bdf8; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 700; font-size: 14px;">
+                ${studentCode}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #94a3b8; font-size: 13px;">Login Email:</td>
+              <td align="right" style="padding: 6px 0; color: #ffffff; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 600; font-size: 13px;">
+                ${customerEmail}
+              </td>
+            </tr>
+            ${generatedTempPassword ? `
+            <tr>
+              <td style="padding: 6px 0 12px 0; color: #94a3b8; font-size: 13px;">Initial Password:</td>
+              <td align="right" style="padding: 6px 0 12px 0; color: #facc15; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 700; font-size: 14px;">
+                ${generatedTempPassword}
+              </td>
+            </tr>
+            ` : `
+            <tr>
+              <td style="padding: 6px 0 12px 0; color: #94a3b8; font-size: 13px;">Password Setup:</td>
+              <td align="right" style="padding: 6px 0 12px 0; color: #38bdf8; font-size: 13px;">
+                Click below to set your permanent password
+              </td>
+            </tr>
+            `}
+          </table>
+
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 14px; border-top: 1px solid #2a1854; padding-top: 14px;">
+            <tr>
+              <td align="center" style="font-size: 12px; color: #a5b4fc; line-height: 1.4;">
+                ${directPasswordSetupLink ? "\u26A1 <strong>Instant Access:</strong> Click the setup button below to pick your permanent password in one click without re-typing." : 'Log in anytime at <a href="' + portalUrl + '" style="color: #38bdf8; text-decoration: none;">' + portalUrl + "</a>."}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Transaction Receipt Card -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0e0725; border: 1px solid #25124d; border-radius: 12px; margin-bottom: 24px;">
+      <tr>
+        <td style="padding: 18px 20px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td colspan="2" style="padding-bottom: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; color: #64748b;">
+                Payment Receipt Details
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Payment Reference:</td>
+              <td align="right" style="padding: 4px 0; font-size: 12px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; color: #facc15; font-weight: 600;">
+                ${reference}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Tuition Paid:</td>
+              <td align="right" style="padding: 4px 0; font-size: 14px; color: #34d399; font-weight: 700;">
+                \u20A6${tuitionNaira.toLocaleString()} NGN
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Payment Channel:</td>
+              <td align="right" style="padding: 4px 0; font-size: 13px; color: #e2e8f0; text-transform: capitalize;">
+                ${channel || "Online Checkout"}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Cohort Launch Date:</td>
+              <td align="right" style="padding: 4px 0; font-size: 13px; color: #c084fc; font-weight: 600;">
+                ${nextCohortDate}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 3-Step Orientation Checklist -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
+      <tr>
+        <td style="padding-bottom: 12px;">
+          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8;">
+            \u{1F4CB} Your Next Steps to Get Started
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
+          <strong style="color: #ffffff;">1. Activate Your Portal:</strong> Click the button below to set your password and access your student dashboard.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
+          <strong style="color: #ffffff;">2. Review Curriculum &amp; Labs:</strong> Browse the weekly modules, practical lab assignments, and capstone briefs.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
+          <strong style="color: #ffffff;">3. Join WhatsApp Cohort:</strong> Connect with your instructors and fellow students in the private cohort room.
+        </td>
+      </tr>
+    </table>
+  `;
+  const html = renderEmailLayout({
+    previewText: `Welcome to ${courseTitle}! Your tuition is verified. Login and set your password here.`,
+    badgeText: "\u2713 Verified Payment & Official Admission",
+    badgeVariant: "success",
+    title: `Welcome to ${courseTitle}`,
+    subtitle: `Your official tuition payment receipt, student matriculation credentials, and portal access instructions.`,
+    bodyContentHtml,
+    primaryCta: {
+      label: directPasswordSetupLink ? "\u{1F680} Set Your Password & Access Student Portal" : "\u{1F680} Log In to Your Student Portal",
+      url: actionButtonUrl
+    },
+    secondaryCta: {
+      label: "\u{1F4AC} Join Admissions WhatsApp Cohort Group",
+      url: whatsappUrl
+    },
+    footerNote: "This is an official transactional message regarding your verified enrollment on Vixora Academy."
+  });
+  const text = `
+Welcome to Vixora Academy!
+Admission Confirmed for: ${courseTitle}
+
+Dear ${customerName},
+Your tuition payment of \u20A6${tuitionNaira.toLocaleString()} NGN has been verified.
+
+YOUR STUDENT CREDENTIALS:
+- Student ID / Code: ${studentCode}
+- Login Email: ${customerEmail}
+${generatedTempPassword ? `- Initial Password: ${generatedTempPassword}
+` : ""}
+SET YOUR PASSWORD & ACCESS YOUR PORTAL:
+${actionButtonUrl}
+
+PAYMENT RECEIPT:
+- Reference: ${reference}
+- Amount: \u20A6${tuitionNaira.toLocaleString()} NGN
+- Cohort Start: ${nextCohortDate}
+
+WHATSAPP ADMISSIONS GROUP:
+${whatsappUrl}
+
+Vixora Digital Hub
+${BRAND_CONFIG.email}
+  `.trim();
+  return { html, text, subject };
+}
+function buildPasswordResetEmail(params) {
+  const { studentName = "Student", email, otpCode, recoveryUrl } = params;
+  const subject = `\u{1F511} Password Reset & Security Verification Code: ${otpCode}`;
+  const bodyContentHtml = `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #120930; border: 1px solid #3b1d7a; border-radius: 12px; margin-bottom: 22px;">
+      <tr>
+        <td style="padding: 20px;">
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+            Hello <strong style="color: #ffffff;">${studentName}</strong>,<br /><br />
+            We received a request to access or reset the password for your Vixora Academy student account associated with <strong style="color: #38bdf8;">${email}</strong>.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- OTP Code Display Card -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #180d3d 0%, #100829 100%); border: 1px solid #6366f1; border-radius: 14px; margin-bottom: 24px; text-align: center;">
+      <tr>
+        <td style="padding: 24px;">
+          <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 1px;">
+            Your 6-Digit Verification Code
+          </p>
+          <div style="display: inline-block; padding: 10px 24px; background-color: #0b061d; border: 1px solid #4f46e5; border-radius: 10px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #facc15;">
+            ${otpCode}
+          </div>
+          <p style="margin: 14px 0 0 0; font-size: 12px; color: #94a3b8;">
+            This code is strictly confidential and expires in 15 minutes.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 14px;">
+      <tr>
+        <td style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+          You can either enter the 6-digit code above on the student portal login page, or click the direct button below to reset your password instantly.
+        </td>
+      </tr>
+    </table>
+  `;
+  const html = renderEmailLayout({
+    previewText: `Your Vixora Academy verification code is ${otpCode}. Valid for 15 minutes.`,
+    badgeText: "\u{1F512} Security & Access Verification",
+    badgeVariant: "warning",
+    title: "Reset Your Student Password",
+    subtitle: "Use your secure one-time code or click the direct link below to set a new password.",
+    bodyContentHtml,
+    primaryCta: {
+      label: "\u{1F511} Set New Password in One Click",
+      url: recoveryUrl
+    },
+    footerNote: "If you did not request this password reset, please ignore this email or notify admissions immediately."
+  });
+  const text = `
+Vixora Academy \u2014 Password Reset
+Verification Code: ${otpCode}
+
+Hello ${studentName},
+We received a request to reset the password for ${email}.
+Your verification code is: ${otpCode} (expires in 15 minutes).
+
+Or reset directly:
+${recoveryUrl}
+
+If you did not request this, please ignore this message.
+  `.trim();
+  return { html, text, subject };
+}
+function buildCertificateAwardEmail(params) {
+  const {
+    studentName,
+    courseTitle,
+    certificateId,
+    grade,
+    issuedDate,
+    verificationUrl
+  } = params;
+  const subject = `\u{1F393} Official Certificate of Completion: ${courseTitle} (${certificateId})`;
+  const bodyContentHtml = `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #120930; border: 1px solid #3b1d7a; border-radius: 12px; margin-bottom: 22px;">
+      <tr>
+        <td style="padding: 20px;">
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+            Congratulations <strong style="color: #ffffff;">${studentName}</strong>!<br /><br />
+            You have successfully completed all curriculum requirements, weekly practical labs, and the final capstone project for <strong style="color: #a855f7;">${courseTitle}</strong>.
+            Your official accredited certificate has been issued and entered into the public registry.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Certificate Credentials Card -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #180d3d 0%, #100829 100%); border: 1px solid #10b981; border-radius: 14px; margin-bottom: 24px;">
+      <tr>
+        <td style="padding: 22px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td colspan="2" style="padding-bottom: 12px; border-bottom: 1px solid #2a1854;">
+                <span style="font-size: 12px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 1px;">
+                  \u{1F3C6} Verifiable Academic Credential
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0 4px 0; color: #94a3b8; font-size: 13px;">Certificate ID:</td>
+              <td align="right" style="padding: 10px 0 4px 0; color: #facc15; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 700; font-size: 13px;">
+                ${certificateId}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; color: #94a3b8; font-size: 13px;">Academic Grade:</td>
+              <td align="right" style="padding: 4px 0; color: #34d399; font-weight: 700; font-size: 14px;">
+                ${grade}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0 8px 0; color: #94a3b8; font-size: 13px;">Issue Date:</td>
+              <td align="right" style="padding: 4px 0 8px 0; color: #ffffff; font-size: 13px;">
+                ${issuedDate}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 14px;">
+      <tr>
+        <td style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+          An official high-resolution, print-ready PDF certificate is attached to this email. You can also share the digital verification link on LinkedIn, your CV, and your portfolio.
+        </td>
+      </tr>
+    </table>
+  `;
+  const html = renderEmailLayout({
+    previewText: `Congratulations ${studentName}! Your official certificate for ${courseTitle} is ready.`,
+    badgeText: "\u2713 Verified Academic Credential Issued",
+    badgeVariant: "success",
+    title: "Certificate of Completion Awarded",
+    subtitle: "Your verified digital certificate has been issued and entered into the Vixora Academy registry.",
+    bodyContentHtml,
+    primaryCta: {
+      label: "\u{1F393} View & Verify Digital Certificate",
+      url: verificationUrl
+    },
+    footerNote: "This certificate is cryptographically recorded in the Vixora Digital Hub registry and can be verified by employers worldwide."
+  });
+  const text = `
+Vixora Academy \u2014 Certificate of Completion
+Course: ${courseTitle}
+Student: ${studentName}
+Certificate ID: ${certificateId}
+Grade: ${grade}
+Date: ${issuedDate}
+
+Verification URL:
+${verificationUrl}
+
+A high-resolution PDF certificate is attached to this email.
+Congratulations on your achievement!
+  `.trim();
+  return { html, text, subject };
 }
 
 // server/certificatePdfGenerator.ts
@@ -1354,13 +1886,15 @@ async function saveIssuedCertificate(cert, competencies) {
       cohort: "Cohort 2026-A",
       total_modules: cert.durationWeeks || 12
     });
-    let studentId = `STU-${Math.floor(1e3 + Math.random() * 9e3)}`;
+    let studentId = crypto.randomUUID();
+    const studentCode = `STU-${Math.floor(1e3 + Math.random() * 9e3)}`;
     const { data: existingStudent } = await supabase.from("students").select("id").ilike("email", cert.studentEmail).maybeSingle();
     if (existingStudent) {
       studentId = existingStudent.id;
     } else {
       await supabase.from("students").insert({
         id: studentId,
+        student_code: studentCode,
         name: cert.studentName,
         email: cert.studentEmail,
         enrolled_date: cert.issueDate,
@@ -1695,31 +2229,25 @@ portalRouter.post("/auth/forgot-password", async (req, res) => {
     if (linkErr || !linkData?.properties) {
       console.error("Supabase recovery link error:", linkErr);
       return res.status(500).json({
-        error: "Failed to generate cryptographic recovery credentials with Supabase.",
+        error: "Unable to generate a password reset link at this time. Please try again shortly or contact admissions support.",
         code: "RECOVERY_LINK_GENERATION_FAILED"
       });
     }
     const actionLink = linkData.properties.action_link;
     const emailOtp = linkData.properties.email_otp;
     const subject = isPortalAdmin ? `\u{1F510} Administrator Password Recovery \u2014 Vixora Digital Hub` : `\u{1F510} Reset Your Password \u2014 Vixora Academy`;
-    const htmlContent = generatePasswordResetEmailHtml({
+    const resetEmailData = buildPasswordResetEmail({
+      studentName: recipientName,
       email: cleanEmail,
-      recipientName,
-      actionLink,
-      otpCode: emailOtp,
-      portal: isPortalAdmin ? "admin" : "student"
+      otpCode: emailOtp || "",
+      recoveryUrl: actionLink
     });
-    const textContent = generatePasswordResetEmailText({
-      email: cleanEmail,
-      recipientName,
-      actionLink,
-      otpCode: emailOtp,
-      portal: isPortalAdmin ? "admin" : "student"
-    });
+    const htmlContent = resetEmailData.html;
+    const textContent = resetEmailData.text;
     const dispatchResult = await dispatchGenericEmail({
       to: cleanEmail,
       toName: recipientName,
-      subject,
+      subject: resetEmailData.subject,
       html: htmlContent,
       text: textContent
     });
@@ -1802,9 +2330,9 @@ portalRouter.post("/auth/reset-password-with-otp", async (req, res) => {
       token: cleanOtp,
       type: "recovery"
     });
-    if (vErr || !vData.user) {
+    if (vErr || !vData?.user) {
       return res.status(400).json({
-        error: vErr?.message || "Invalid or expired 6-digit verification code. Please check your email or request a new code.",
+        error: "Your 6-digit verification code has expired or is invalid. Please check your email or request a new code below.",
         code: "INVALID_OTP"
       });
     }
@@ -1813,7 +2341,7 @@ portalRouter.post("/auth/reset-password-with-otp", async (req, res) => {
     });
     if (uErr) {
       return res.status(400).json({
-        error: uErr.message || "Failed to update password with Supabase.",
+        error: uErr.message || "Unable to update password. Please ensure it is at least 6 characters long.",
         code: "PASSWORD_UPDATE_FAILED"
       });
     }
@@ -1823,9 +2351,94 @@ portalRouter.post("/auth/reset-password-with-otp", async (req, res) => {
     });
   } catch (err) {
     console.error("Error in /api/auth/reset-password-with-otp:", err);
-    return res.status(500).json({
-      error: "An internal server error occurred while updating your password.",
+    return res.status(400).json({
+      error: "Unable to update password with this verification code. Please request a fresh code below.",
       code: "RESET_FAILED"
+    });
+  }
+});
+portalRouter.post("/auth/reset-password-with-token", async (req, res) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: "Request body must be a valid JSON object.", code: "INVALID_BODY" });
+  }
+  const { accessToken, newPassword } = req.body;
+  if (!accessToken || typeof accessToken !== "string") {
+    return res.status(400).json({ error: "Valid session access token is required.", code: "TOKEN_REQUIRED" });
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 6 || newPassword.length > 200) {
+    return res.status(400).json({ error: "Password must be between 6 and 200 characters long.", code: "PASSWORD_INVALID_LENGTH" });
+  }
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return res.status(503).json({ error: "Authentication service is unavailable.", code: "AUTH_UNAVAILABLE" });
+  }
+  try {
+    const { data: userData, error: userErr } = await supabase.auth.getUser(accessToken);
+    if (userErr || !userData?.user) {
+      return res.status(401).json({
+        error: "Your password setup link or session has expired. Please request a new recovery link.",
+        code: "TOKEN_EXPIRED"
+      });
+    }
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(userData.user.id, {
+      password: String(newPassword)
+    });
+    if (updateErr) {
+      return res.status(400).json({
+        error: updateErr.message || "Unable to update password. Please ensure it is at least 6 characters.",
+        code: "UPDATE_FAILED"
+      });
+    }
+    return res.json({
+      success: true,
+      message: "Password successfully updated. You can now sign in with your new credentials."
+    });
+  } catch (err) {
+    console.error("Error in /api/auth/reset-password-with-token:", err);
+    return res.status(500).json({
+      error: "An internal error occurred while updating your password.",
+      code: "RESET_FAILED"
+    });
+  }
+});
+portalRouter.post("/auth/student-login", async (req, res) => {
+  if (!isPlainObject(req.body)) {
+    return res.status(400).json({ error: "Request body must be a valid JSON object.", code: "INVALID_BODY" });
+  }
+  const { email, password } = req.body;
+  if (!email || !password || typeof email !== "string" || typeof password !== "string") {
+    return res.status(400).json({ error: "Email and password are required.", code: "MISSING_FIELDS" });
+  }
+  const cleanEmail = email.toLowerCase().trim();
+  const rawSbUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://xenjfszsppwqadgwzpxl.supabase.co";
+  const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4";
+  const anonSb = createClient2(sanitizeUrl(rawSbUrl), rawSbAnon);
+  try {
+    const { data, error } = await anonSb.auth.signInWithPassword({
+      email: cleanEmail,
+      password: String(password)
+    });
+    if (error || !data.session) {
+      return res.status(401).json({
+        error: error?.message || "Login failed. Invalid student credentials.",
+        code: "INVALID_CREDENTIALS"
+      });
+    }
+    return res.json({
+      success: true,
+      session: {
+        access_token: data.session.access_token,
+        token_type: data.session.token_type,
+        expires_at: data.session.expires_at,
+        expires_in: data.session.expires_in
+      },
+      user: data.user
+    });
+  } catch (err) {
+    console.error("Error in /api/auth/student-login:", err);
+    return res.status(500).json({
+      error: "Authentication service temporarily unavailable. Please retry shortly.",
+      code: "AUTH_ERROR"
     });
   }
 });
@@ -2379,9 +2992,19 @@ async function executeCertificateEmailDispatch(cert, targetEmail) {
   } catch (pdfErr) {
     console.error("Failed generating certificate PDF buffer for email dispatch:", pdfErr);
   }
-  const emailHtml = generateCertificateEmailHtml(cert);
-  const emailText = generateCertificateEmailText(cert);
-  const emailSubject = `\u{1F393} Congratulations ${cert.studentName}! Your Vixora Academy Certificate is Ready`;
+  const verificationUrl = cert.verificationUrl || `https://academy.vixoradigitalhub.com/verify?code=${encodeURIComponent(cert.id)}`;
+  const certEmailData = buildCertificateAwardEmail({
+    studentName: cert.studentName,
+    studentEmail: targetEmail,
+    courseTitle: cert.courseTitle,
+    certificateId: cert.id,
+    grade: cert.grade || "Distinction",
+    issuedDate: cert.issueDate,
+    verificationUrl
+  });
+  const emailHtml = certEmailData.html;
+  const emailText = certEmailData.text;
+  const emailSubject = certEmailData.subject;
   const dispatchResult = await dispatchCertificateEmail({
     to: targetEmail,
     toName: cert.studentName,
@@ -2981,73 +3604,144 @@ portalRouter.get("/admin/students", requireAuthentication, requireAdmin, async (
 import { Router as Router2 } from "express";
 import crypto2 from "crypto";
 
-// src/data/brandConfig.ts
-var BRAND_CONFIG = {
-  name: "Vixora Digital Hub",
-  tagline: "Software \u2022 AI \u2022 Automation",
-  domain: "https://www.vixoradigitalhub.com",
-  cleanDomain: "vixoradigitalhub.com",
-  academyDomain: "https://academy.vixoradigitalhub.com",
-  cleanAcademyDomain: "academy.vixoradigitalhub.com",
-  adminDomain: "https://admin.vixoradigitalhub.com",
-  cleanAdminDomain: "admin.vixoradigitalhub.com",
-  email: "vixoralabsai@gmail.com",
-  secondaryEmail: "hello@vixoradigitalhub.com",
-  phone: "+1 (279) 257-4850",
-  whatsapp: {
-    usAndGlobal: {
-      id: "us",
-      label: "US & Foreign Inbounds",
-      region: "United States, Americas, Europe & Global",
-      displayNumber: "+1 (279) 257-4850",
-      fullInternationalNumber: "+12792574850",
-      cleanDigits: "12792574850",
-      flagEmoji: "\u{1F1FA}\u{1F1F8} \u{1F310}",
-      isPrimary: true
-    },
-    nigeria: {
-      id: "ng",
-      label: "Nigeria Inbounds",
-      region: "Nigeria & West Africa Region",
-      displayNumber: "08114542934",
-      fullInternationalNumber: "+2348114542934",
-      cleanDigits: "2348114542934",
-      flagEmoji: "\u{1F1F3}\u{1F1EC}",
-      isPrimary: false
-    },
-    defaultUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project."
-  },
-  whatsappNumber: "+1 (279) 257-4850",
-  whatsappUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project.",
-  address: "Vixora Digital Hub Headquarters, Silicon Corridor & Cloud Innovation Center",
-  logo: {
-    imageUrl: "/images/vixora-digital-hub-logo.png",
-    secondaryImageUrl: "/images/vixora-digital-hub-logo.png",
-    mobileImageUrl: "/images/vixora-digital-hub-logo.png",
-    darkImageUrl: "/images/vixora-digital-hub-logo.png",
-    altText: "Vixora Digital Hub Logo"
-  },
-  heroBackground: {
-    imageUrl: "/images/hero-background.png",
-    overlayOpacity: 0.65
-  }
-};
-function getWhatsAppUrl(channelOrMessage = "us", customMessage) {
-  let channel = "us";
-  let message = customMessage;
-  if (channelOrMessage === "ng" || channelOrMessage === "us") {
-    channel = channelOrMessage;
-  } else if (typeof channelOrMessage === "string" && channelOrMessage.length > 0) {
-    message = channelOrMessage;
-    channel = "us";
-  }
-  const selected = channel === "ng" ? BRAND_CONFIG.whatsapp.nigeria : BRAND_CONFIG.whatsapp.usAndGlobal;
-  const finalMessage = message || "Hello Vixora Digital Hub Team, I would like to discuss a project.";
-  return `https://wa.me/${selected.cleanDigits}?text=${encodeURIComponent(finalMessage)}`;
-}
-
 // src/data/vixoraContent.ts
 var ACADEMY_COURSES = [
+  {
+    id: "course-ai-image-short-videos-creation",
+    slug: "ai-image-short-videos-creation",
+    title: "AI Image & Short Videos Creation",
+    subtitle: "Master prompt engineering, photorealistic AI image generation, viral short video editing, voice cloning, and content monetization in a practical 4-week sprint.",
+    badge: "\u26A1 Fast-Track Sprint \u2022 \u20A610,000",
+    level: "Beginner",
+    status: "active",
+    track: "Design & Marketing",
+    format: "4-Week Practical Sprint (Online + Hands-On Labs)",
+    duration: "4 Weeks",
+    commitment: "3-4 hrs/week (Flexible Bite-Sized Sessions & Live Labs)",
+    nextCohortDate: "October 9, 2026",
+    tuition: "\u20A610,000",
+    tuitionNote: "Special fast-track price: \u20A610,000 (Standard: \u20A625,000). Instant enrollment access.",
+    seatsRemaining: 25,
+    targetAudience: "Content Creators, Small Business Owners, Social Media Managers, Marketers, Freelancers, and Complete Beginners.",
+    description: "Learn how to use state-of-the-art AI tools to create photorealistic images, stylized graphics, viral short-form video scripts, synthetic voiceovers, and captivating personal or faceless videos. From Midjourney, Flux, and Ideogram to CapCut, ElevenLabs, and Runway, you'll build an automated creative content engine from your laptop or smartphone.",
+    heroPitch: "You don't need expensive cameras, a studio, or complex video editing software. In 4 weeks, learn to generate stunning AI images, produce engaging short-form videos, and monetize content for brands and personal growth.",
+    highlights: [
+      "Generate photorealistic images, high-CTR thumbnails, and brand assets with AI prompts",
+      "Produce viral TikTok, Instagram Reels, and YouTube Shorts from text prompts in minutes",
+      "Master AI voice cloning, automated captioning, dynamic b-roll, and sound design",
+      "Build high-converting faceless theme pages and client video marketing campaigns",
+      "Special \u20A610,000 tuition with instant automated gateway verification & enrollment",
+      "Official Vixora Digital Hub Certificate of Completion upon graduation"
+    ],
+    outcomes: [
+      "Write precision prompts for photorealistic AI photography, product renders, and concept art",
+      "Automate short-form video generation using AI scriptwriting, voiceover, and b-roll pipelines",
+      "Edit engaging 9:16 vertical videos with CapCut, dynamic kinetic subtitles, and sound effects",
+      "Produce faceless content channels for affiliate marketing, digital products, and brand deals",
+      "Offer high-ticket AI content creation services to SMEs, e-commerce stores, and influencers"
+    ],
+    prerequisites: [
+      "A smartphone or laptop with internet connection",
+      "Zero prior graphic design, video editing, or AI knowledge required (taught from scratch)",
+      "Curiosity and willingness to practice hands-on creative prompts"
+    ],
+    curriculum: [
+      "Module 1 \u2014 Foundations of AI Image Generation & Prompt Engineering",
+      "Module 2 \u2014 Character Consistency, Styles & Product Visual Mockups",
+      "Module 3 \u2014 AI Scriptwriting, Voice Cloning & Audio Synthesis",
+      "Module 4 \u2014 Video Generation, Dynamic Editing & Viral Short Form Formats",
+      "Module 5 \u2014 Faceless Channel Workflows, Client Services & Monetization"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 01",
+        title: "AI Image Generation & Professional Prompt Crafting",
+        description: "Master modern diffusion models, prompt syntax, aspect ratios, lighting, camera angles, and stylization.",
+        topics: [
+          "Understanding modern AI image generators (Midjourney, Flux, Ideogram, Leonardo)",
+          "Prompt engineering formula: Subject + Medium + Style + Lighting + Camera Lens",
+          "Aspect ratios, negative prompts, resolution upscaling, and composition rules",
+          "Generating realistic human portraits, hyper-detailed photography, and digital art"
+        ],
+        handsOnLab: "Lab 01: Create a portfolio of 5 photorealistic commercial assets and 3 brand concept visuals using precision prompting."
+      },
+      {
+        week: "Week 02",
+        title: "Character Consistency, Styles & E-Commerce Mockups",
+        description: "Generate consistent characters across multiple scenes and professional product photography.",
+        topics: [
+          "Maintaining facial and clothing consistency across different poses and backgrounds",
+          "AI product photography: placing 3D products in luxury studio and lifestyle scenes",
+          "Text rendering inside images for posters, logos, and YouTube/Reels thumbnails",
+          "Fixing artifacts, inpainting, outpainting, and background replacement"
+        ],
+        handsOnLab: "Lab 02: Design a complete e-commerce visual lookbook with a consistent AI model and branded product mockups."
+      },
+      {
+        week: "Week 03",
+        title: "AI Scriptwriting, Voice Cloning & Audio Synthesis",
+        description: "Write viral hooks, generate human-like synthetic voiceovers, and produce clean audio.",
+        topics: [
+          "High-retention short-form video scripting using ChatGPT and Claude",
+          "The 3-second hook framework: Visual, auditory, and psychological curiosity loops",
+          "AI voice cloning, natural pacing, emotion modulation, and multilingual synthesis (ElevenLabs)",
+          "Audio mixing: background music selection, beat drops, and sound effects (SFX)"
+        ],
+        handsOnLab: "Lab 03: Script and record 3 viral voiceover tracks with cloned voices, sound design, and retention hooks."
+      },
+      {
+        week: "Week 04",
+        title: "Short-Form Video Production, Viral Hooks & Capstone",
+        description: "Assemble AI images, text-to-video clips, and voiceovers into high-performing vertical videos.",
+        topics: [
+          "Text-to-video and image-to-video AI tools (Runway, Pika, Kling, Luma Dream Machine)",
+          "Editing vertical videos (9:16) with CapCut: zoom-ins, transitions, overlays, and color grading",
+          "Auto-captions, kinetic typography, b-roll sequencing, and trending audio pairing",
+          "Publishing strategies, algorithmic triggers, and monetization via client retainers"
+        ],
+        handsOnLab: "Final Capstone: Produce and publish a complete 45-second viral AI video with custom generated visuals, synthetic voiceover, kinetic subtitles, and sound effects."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Viral Multi-Platform Short Video Campaign",
+        description: "A complete 9:16 short-form video campaign designed for TikTok, Reels, and Shorts featuring AI-generated scenes, synthetic voiceover, and kinetic typography.",
+        technologies: ["Midjourney / Flux", "ElevenLabs", "CapCut", "Runway Gen-2", "ChatGPT"]
+      },
+      {
+        title: "AI Brand Commercial Lookbook & Product Mockup Series",
+        description: "A high-fashion or commercial e-commerce advertising package with consistent AI models, customized product backdrops, and promotional banners.",
+        technologies: ["Ideogram", "Flux", "Photoshop AI", "Canva", "Inpainting Tools"]
+      }
+    ],
+    instructors: [
+      {
+        name: "David Adeleke",
+        role: "Lead AI Creative Producer & Media Director",
+        bio: "Digital media producer and generative AI practitioner specializing in viral short-form storytelling, brand advertising, and automated content engines.",
+        companyBackground: "Vixora Digital Hub"
+      }
+    ],
+    faqs: [
+      {
+        q: "Can I take this course using just my smartphone?",
+        a: "Yes! Most modern AI image tools, scriptwriters, and mobile editing apps like CapCut, Ideogram, and ElevenLabs run smoothly on iOS and Android as well as laptops."
+      },
+      {
+        q: "Do I need any previous graphic design or video editing experience?",
+        a: "None at all. We start from absolute zero, guiding you through prompt formulation, tool setup, and step-by-step video assembly."
+      },
+      {
+        q: "Why is the price \u20A610,000?",
+        a: "This is a special fast-track price enabling prospective students and creators to experience Vixora Academy's live hands-on teaching and practical creative toolchains."
+      },
+      {
+        q: "Will I receive a verified certificate upon completion?",
+        a: "Yes. Once you complete the weekly practical labs and submit your final short video capstone, you will be awarded an official Vixora Digital Hub Certificate of Completion with a digital verification QR code."
+      }
+    ],
+    certificateType: "Certificate of Completion in AI Creative Media & Video Production"
+  },
   {
     id: "course-data-analysis-cohort",
     slug: "data-analysis-cohort",
@@ -3059,7 +3753,7 @@ var ACADEMY_COURSES = [
     format: "16-Week Hybrid Cohort (Online & Physical)",
     duration: "16 Weeks",
     commitment: "5-6 hrs/week (Flexible Bite-Sized Sessions & Practical Labs)",
-    nextCohortDate: "November 9, 2026",
+    nextCohortDate: "October 9, 2026",
     tuition: "\u20A660,000",
     tuitionNote: "Early applicant price: \u20A660,000 (Standard: \u20A665,000). Limited seats, ends soon.",
     seatsRemaining: 10,
@@ -3242,7 +3936,7 @@ var ACADEMY_COURSES = [
     format: "12-Week Hybrid Cohort (Online + Practical Sessions)",
     duration: "12 Weeks",
     commitment: "4-5 hrs/week (Flexible Bite-Sized Sessions)",
-    nextCohortDate: "October 26, 2026",
+    nextCohortDate: "October 9, 2026",
     tuition: "\u20A630,000",
     tuitionNote: "Early applicant rate (Standard: \u20A635,000). Limited cohort seats available.",
     seatsRemaining: 14,
@@ -3398,7 +4092,7 @@ var ACADEMY_COURSES = [
     format: "12-Week Implementation & Mentorship-Led Cohort",
     duration: "12 Weeks",
     commitment: "5-6 hrs/week (Implementation Labs + Mentorship)",
-    nextCohortDate: "November 2, 2026",
+    nextCohortDate: "October 9, 2026",
     tuition: "\u20A660,000",
     tuitionNote: "Early bird rate: \u20A660,000 (Standard: \u20A665,000 \u2014 regular value \u20A6100,000 \u2013 \u20A6150,000+). Includes direct mentorship, client acquisition training & real client projects.",
     seatsRemaining: 8,
@@ -4606,6 +5300,10 @@ var COMPANY_CONTACT = {
 
 // src/data/coursePricing.ts
 var COURSE_PRICING = {
+  "course-ai-image-short-videos-creation": {
+    NGN: 1e4,
+    USD: 10
+  },
   "course-data-analysis-cohort": {
     NGN: 6e4,
     USD: 50
@@ -4680,7 +5378,7 @@ for (const course of ACADEMY_COURSES) {
     koboAmount: naira * 100,
     currency: "NGN",
     totalModules: course.weeklySyllabus?.length || course.curriculum?.length || 12,
-    nextCohortDate: course.nextCohortDate || "November 9, 2026",
+    nextCohortDate: course.nextCohortDate || "October 9, 2026",
     tuitionDisplay: course.tuition
   };
   canonicalCourseMap.set(course.id.toLowerCase().trim(), canonical);
@@ -4832,6 +5530,32 @@ async function extractOptionalAuthUser(req) {
     return null;
   }
 }
+async function ensureCourseRecordInDatabase(canonicalCourse, supabase) {
+  if (!supabase) return canonicalCourse.id;
+  try {
+    const { data: matchedCourse } = await supabase.from("courses").select("id").or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`).maybeSingle();
+    if (matchedCourse?.id) {
+      return matchedCourse.id;
+    }
+    const coursePayload = {
+      id: canonicalCourse.id,
+      slug: canonicalCourse.slug,
+      title: canonicalCourse.title,
+      badge: canonicalCourse.tuitionDisplay || `\u20A6${canonicalCourse.nairaAmount.toLocaleString()}`,
+      total_modules: canonicalCourse.totalModules || 4,
+      status: "active",
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    const { data: inserted, error: insertErr } = await supabase.from("courses").upsert(coursePayload, { onConflict: "id" }).select("id").maybeSingle();
+    if (!insertErr && inserted?.id) {
+      return inserted.id;
+    }
+  } catch (err) {
+    console.warn("[Auto-provision course record warning]:", err);
+  }
+  return canonicalCourse.id;
+}
 async function processPaymentFulfillment(reference, verifiedPaystackData) {
   if (!isValidTransactionReference(reference)) {
     return {
@@ -4846,7 +5570,10 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
   if (supabase) {
     try {
       const { data } = await supabase.from("payments").select("*").eq("id", reference).maybeSingle();
-      if (data) existingPayment = data;
+      if (data) {
+        existingPayment = data;
+        fallbackPaymentsStore.set(reference, data);
+      }
     } catch (dbErr) {
       console.warn("[Supabase payments query]:", dbErr);
     }
@@ -4854,7 +5581,8 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
   if (!existingPayment) {
     existingPayment = fallbackPaymentsStore.get(reference) || null;
   }
-  if (existingPayment && existingPayment.status === "success" && existingPayment.fulfillment_status === "fulfilled") {
+  if (existingPayment && existingPayment.status === "success" && existingPayment.fulfillment_status === "fulfilled" && !simulateEnrollmentFailureForTesting.has(reference)) {
+    fallbackPaymentsStore.set(reference, existingPayment);
     const canonical = findCanonicalCourse(existingPayment.course_id);
     return {
       verified: true,
@@ -4984,49 +5712,97 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
   const paidAt = paystackData.paid_at || (/* @__PURE__ */ new Date()).toISOString();
   const channel = paystackData.channel || "card";
   const paystackTxId = String(paystackData.id || "");
-  const authUserId = paystackData.metadata?.authUserId || null;
+  let authUserId = paystackData.metadata?.authUserId || null;
   let studentId = existingPayment?.student_id || null;
+  let studentCode = null;
+  let generatedTempPassword = null;
+  let directPasswordSetupLink = null;
   let fulfillmentError = null;
   let isFulfilled = false;
+  let dbCourseId = canonicalCourse.id;
   if (supabase) {
     try {
+      dbCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
       if (simulateEnrollmentFailureForTesting.has(reference)) {
         throw new Error("Simulated database failure during enrollment.");
       }
-      const studentQuery = supabase.from("students").select("id, email, auth_user_id").eq("email", customerEmail);
+      const studentQuery = supabase.from("students").select("id, email, auth_user_id, student_code").eq("email", customerEmail);
       const { data: matchedStudent, error: findStudentErr } = await studentQuery.maybeSingle();
       if (findStudentErr) throw findStudentErr;
+      let studentCode2 = matchedStudent?.student_code;
       if (matchedStudent) {
         studentId = matchedStudent.id;
-        if (authUserId && !matchedStudent.auth_user_id) {
-          await supabase.from("students").update({ auth_user_id: authUserId }).eq("id", studentId);
+        if (matchedStudent.auth_user_id) {
+          authUserId = matchedStudent.auth_user_id;
         }
       } else {
         const newStudentId = crypto2.randomUUID();
-        const studentCode = `STU-${Math.floor(1e3 + Math.random() * 9e3)}`;
+        studentCode2 = `STU-${Math.floor(1e3 + Math.random() * 9e3)}`;
         const { data: createdStudent, error: createStudentErr } = await supabase.from("students").insert({
           id: newStudentId,
           name: customerName,
           email: customerEmail,
           auth_user_id: authUserId,
-          student_code: studentCode,
+          student_code: studentCode2,
           enrolled_at: (/* @__PURE__ */ new Date()).toISOString(),
           role: "student"
-        }).select("id").maybeSingle();
+        }).select("id, student_code").maybeSingle();
         if (createStudentErr) throw createStudentErr;
         if (createdStudent) {
           studentId = createdStudent.id;
+          studentCode2 = createdStudent.student_code;
         } else {
           throw new Error("Student record could not be created in database.");
         }
       }
+      if (supabase.auth?.admin) {
+        try {
+          const portalBaseUrl = "https://academy.vixoradigitalhub.com/pages/student-portal";
+          let authUserExists = false;
+          try {
+            const { data: linkData, error: probeErr } = await supabase.auth.admin.generateLink({
+              type: "recovery",
+              email: customerEmail,
+              options: { redirectTo: portalBaseUrl }
+            });
+            if (linkData?.user && !probeErr) {
+              authUserExists = true;
+              authUserId = linkData.user.id;
+              directPasswordSetupLink = linkData.properties?.action_link || null;
+            }
+          } catch {
+            authUserExists = false;
+          }
+          if (!authUserExists) {
+            generatedTempPassword = `Vixora@${crypto2.randomBytes(3).toString("hex").toUpperCase()}!`;
+            const { data: newAuth } = await supabase.auth.admin.createUser({
+              email: customerEmail,
+              password: generatedTempPassword,
+              email_confirm: true,
+              user_metadata: {
+                name: customerName,
+                role: "student"
+              }
+            });
+            if (newAuth?.user) {
+              authUserId = newAuth.user.id;
+              const { data: linkData } = await supabase.auth.admin.generateLink({
+                type: "recovery",
+                email: customerEmail,
+                options: { redirectTo: portalBaseUrl }
+              });
+              directPasswordSetupLink = linkData?.properties?.action_link || null;
+            }
+          }
+          if (authUserId && studentId) {
+            await supabase.from("students").update({ auth_user_id: authUserId }).eq("id", studentId);
+          }
+        } catch (authProvisionErr) {
+          console.warn("[Student Auth Provisioning Warning]:", authProvisionErr);
+        }
+      }
       if (!studentId) {
         throw new Error("Valid student identifier unavailable for enrollment.");
-      }
-      let dbCourseId = canonicalCourse.id;
-      const { data: dbCourse } = await supabase.from("courses").select("id").or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`).maybeSingle();
-      if (dbCourse) {
-        dbCourseId = dbCourse.id;
       }
       const { data: existingEnrollment, error: findEnrollmentErr } = await supabase.from("enrollments").select("student_id, course_id, status, progress_percent").eq("student_id", studentId).eq("course_id", dbCourseId).maybeSingle();
       if (findEnrollmentErr) throw findEnrollmentErr;
@@ -5065,7 +5841,7 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
   const updatedPaymentRecord = {
     id: reference,
     student_id: studentId,
-    course_id: canonicalCourse.id,
+    course_id: dbCourseId,
     amount: canonicalCourse.nairaAmount,
     amount_kobo: canonicalCourse.koboAmount,
     currency: "NGN",
@@ -5079,7 +5855,7 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
     customer_name: customerName,
     customer_phone: customerPhone,
     paid_at: paidAt,
-    email_dispatched_at: existingPayment?.email_dispatched_at || null,
+    email_dispatched_at: isFulfilled ? existingPayment?.email_dispatched_at || null : null,
     raw_response: sanitizePaystackResponse(paystackData),
     created_at: existingPayment?.created_at || (/* @__PURE__ */ new Date()).toISOString(),
     updated_at: (/* @__PURE__ */ new Date()).toISOString()
@@ -5126,62 +5902,29 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
   let finalEmailDispatchedAt = existingPayment?.email_dispatched_at || null;
   if (!alreadyEmailed) {
     try {
-      const emailSubject = `\u{1F393} Payment Receipt & Admission Confirmed: ${canonicalCourse.title} (\u20A6${canonicalCourse.nairaAmount.toLocaleString()})`;
       const whatsappUrl = getWhatsAppUrl(
         "ng",
         `Hello Admissions! I just completed my tuition payment of \u20A6${canonicalCourse.nairaAmount.toLocaleString()} for ${canonicalCourse.title} via Paystack. Reference: ${reference}. My email is ${customerEmail}.`
       );
-      const emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0b061d; color: #ffffff; border-radius: 16px; border: 1px solid #3b1d7a;">
-          <div style="border-bottom: 1px solid #2a1458; padding-bottom: 16px; margin-bottom: 20px;">
-            <h2 style="color: #a855f7; margin: 0; font-size: 22px; font-weight: 800;">Vixora Academy</h2>
-            <p style="color: #94a3b8; font-size: 13px; margin: 4px 0 0 0;">Official Tuition Payment Receipt &amp; Admissions Confirmation</p>
-          </div>
-          <div style="background: #150d36; border: 1px solid #3b1d7a; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
-            <div style="display: inline-block; padding: 4px 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 9999px; color: #34d399; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
-              \u2713 Payment Verified via Paystack
-            </div>
-            <h3 style="color: #ffffff; margin: 0 0 8px 0; font-size: 18px;">Welcome to ${canonicalCourse.title}!</h3>
-            <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin: 0;">
-              Dear <strong>${customerName}</strong>, your tuition payment of <strong>\u20A6${canonicalCourse.nairaAmount.toLocaleString()}</strong> has been verified. Your seat in the upcoming cohort is officially reserved.
-            </p>
-          </div>
-          <div style="background: #0f0926; border: 1px solid #25124d; border-radius: 12px; padding: 16px; margin-bottom: 20px; font-size: 13px;">
-            <table style="width: 100%; border-collapse: collapse; color: #e2e8f0;">
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Transaction Reference:</td>
-                <td style="padding: 6px 0; font-family: monospace; font-weight: bold; text-align: right; color: #facc15;">${reference}</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Amount Paid:</td>
-                <td style="padding: 6px 0; font-weight: bold; text-align: right; color: #34d399;">\u20A6${canonicalCourse.nairaAmount.toLocaleString()} NGN</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Payment Channel:</td>
-                <td style="padding: 6px 0; text-align: right; text-transform: capitalize;">${channel}</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; color: #94a3b8;">Cohort Start:</td>
-                <td style="padding: 6px 0; text-align: right; color: #a855f7;">${canonicalCourse.nextCohortDate}</td>
-              </tr>
-            </table>
-          </div>
-          <div style="text-align: center; margin: 24px 0;">
-            <a href="${whatsappUrl}" style="display: inline-block; padding: 12px 24px; background: #10b981; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px;">
-              \u{1F4AC} Join Admissions WhatsApp Cohort Group
-            </a>
-          </div>
-          <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #2a1458; padding-top: 14px;">
-            <p style="margin: 0;">Vixora Digital Hub &bull; ${BRAND_CONFIG.email}</p>
-          </div>
-        </div>
-      `;
+      const emailPayload = buildStudentOnboardingEmail({
+        customerName,
+        customerEmail,
+        courseTitle: canonicalCourse.title,
+        tuitionNaira: canonicalCourse.nairaAmount,
+        reference,
+        nextCohortDate: canonicalCourse.nextCohortDate,
+        channel,
+        studentCode: studentCode || "STU-ACTIVE",
+        generatedTempPassword,
+        directPasswordSetupLink,
+        whatsappUrl
+      });
       const emailResult = await dispatchGenericEmail({
         to: customerEmail,
         toName: customerName,
-        subject: emailSubject,
-        html: emailHtml,
-        text: `Tuition Payment Receipt: ${canonicalCourse.title}. Reference: ${reference}. Amount: \u20A6${canonicalCourse.nairaAmount.toLocaleString()} NGN. Welcome to Vixora Academy!`
+        subject: emailPayload.subject,
+        html: emailPayload.html,
+        text: emailPayload.text
       });
       if (emailResult && (emailResult.delivered || emailResult.status === "delivered")) {
         finalEmailDispatchedAt = (/* @__PURE__ */ new Date()).toISOString();
@@ -5299,10 +6042,15 @@ paystackRouter.post("/initialize", async (req, res) => {
     const reference = `VIX-PS-${Date.now()}-${crypto2.randomBytes(4).toString("hex").toUpperCase()}`;
     const reqOrigin = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : "");
     const finalCallbackUrl = typeof callbackUrl === "string" && callbackUrl.startsWith("http") ? callbackUrl : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
+    const supabase = getSupabaseAdmin();
+    let resolvedCourseId = canonicalCourse.id;
+    if (supabase) {
+      resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+    }
     const initialPaymentRecord = {
       id: reference,
       student_id: null,
-      course_id: canonicalCourse.id,
+      course_id: resolvedCourseId,
       amount: canonicalCourse.nairaAmount,
       amount_kobo: canonicalCourse.koboAmount,
       currency: "NGN",
@@ -5320,7 +6068,6 @@ paystackRouter.post("/initialize", async (req, res) => {
       created_at: (/* @__PURE__ */ new Date()).toISOString(),
       updated_at: (/* @__PURE__ */ new Date()).toISOString()
     };
-    const supabase = getSupabaseAdmin();
     if (supabase) {
       try {
         await supabase.from("payments").insert(initialPaymentRecord);
@@ -5434,6 +6181,16 @@ paystackRouter.post("/verify", handleVerificationRequest);
 paystackRouter.get("/verify", handleVerificationRequest);
 paystackRouter.get("/verify/:reference", handleVerificationRequest);
 paystackRouter.post("/verify/:reference", handleVerificationRequest);
+paystackRouter.get("/webhook", (_req, res) => {
+  return res.json({
+    status: "active",
+    endpoint: "Paystack Webhook Listener",
+    service: "Vixora Academy Payment Gateway",
+    expectedMethod: "POST",
+    configured: isPaystackConfigured(),
+    message: "This endpoint is active and listening for automated webhook POST events from Paystack."
+  });
+});
 paystackRouter.post("/webhook", async (req, res) => {
   try {
     const secretKey = getPaystackSecretKey();

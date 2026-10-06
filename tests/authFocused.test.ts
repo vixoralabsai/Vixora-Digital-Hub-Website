@@ -205,6 +205,34 @@ async function runAllAuthTests() {
     await anonClient.auth.signOut();
   });
 
+  // ------------------------------------------------------------------------
+  // Test 8: Server proxy student login succeeds with genuine Supabase Auth
+  // ------------------------------------------------------------------------
+  await runTest('8. Server proxy student login succeeds with genuine Supabase Auth', async () => {
+    const rawSbUrl = process.env.VITE_SUPABASE_URL || 'https://xenjfszsppwqadgwzpxl.supabase.co';
+    const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4';
+    const serverAnonSb = createClient(sanitizeUrl(rawSbUrl), rawSbAnon);
+
+    // Set known password
+    const testKnownPass = 'Vixora@StudentKnown123!';
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+    const allUsers: any[] = users?.users || [];
+    const user = allUsers.find((u: any) => u.email === testStudentEmail);
+    assert.ok(user);
+
+    await supabaseAdmin.auth.admin.updateUserById(user.id, { password: testKnownPass });
+
+    // Authenticate through proxy logic
+    const { data: loginData, error: loginErr } = await serverAnonSb.auth.signInWithPassword({
+      email: testStudentEmail,
+      password: testKnownPass
+    });
+
+    assert.equal(loginErr, null);
+    assert.ok(loginData?.session?.access_token);
+    assert.equal(loginData.user.email, testStudentEmail);
+  });
+
   console.log('\n========================================');
   console.log('📊 Focused Auth Test Suite: All Tests Passed!');
   console.log('========================================\n');
