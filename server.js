@@ -2,7 +2,7 @@
 import express from "express";
 import path2 from "path";
 import dotenv from "dotenv";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI as GoogleGenAI2 } from "@google/genai";
 
 // server/studentPortalServer.ts
 import { Router } from "express";
@@ -3648,6 +3648,62 @@ import { Router as Router2 } from "express";
 import crypto2 from "crypto";
 
 // src/data/vixoraContent.ts
+var FEATURED_SERVICES = [
+  {
+    id: "software-dev",
+    title: "Software Development",
+    subtitle: "Custom Web & Cloud Platforms",
+    tagline: "Engineered for speed, security, and scale.",
+    description: "From complex enterprise dashboards to high-concurrency SaaS applications, we architect software tailored precisely to your operational requirements.",
+    features: ["Custom web apps with React & Next.js", "Resilient microservices in Python & FastAPI", "Enterprise database architecture & optimization", "Zero-downtime CI/CD deployment pipelines"],
+    icon: "Code2"
+  },
+  {
+    id: "ai-automation",
+    title: "AI & Automation",
+    subtitle: "Autonomous Agents & Workflow Systems",
+    tagline: "Replace repetitive busywork with intelligent automation.",
+    description: "We deploy custom AI agents, automated workflow pipelines with n8n, and conversational AI chatbots that supercharge team productivity.",
+    features: ["Autonomous AI agent swarms", "Omnichannel customer support chatbots", "Document OCR & automated parsing", "Cross-software n8n orchestration"],
+    icon: "Bot"
+  },
+  {
+    id: "branding-design",
+    title: "Branding & Design",
+    subtitle: "Brand Identity & UI/UX Systems",
+    tagline: "Design that commands premium positioning.",
+    description: "We create distinctive visual identities, precision design systems, and intuitive user experiences that turn first-time visitors into loyal customers.",
+    features: ["Comprehensive brand identity styleguides", "Full UI/UX wireframing & prototyping in Figma", "Design tokens & reusable component systems", "Pitch decks & marketing collateral"],
+    icon: "Palette"
+  },
+  {
+    id: "digital-marketing",
+    title: "Digital Marketing & Media Buying",
+    subtitle: "Paid Acquisition & Performance Growth",
+    tagline: "Turn ad spend into predictable revenue.",
+    description: "Data-driven media buying campaigns across Meta, Google, and TikTok backed by conversion tracking and high-frequency creative testing.",
+    features: ["Meta & Google Ads performance campaigns", "Conversion rate optimization (CRO)", "Multi-touch attribution reporting", "Audience segmentation & retargeting"],
+    icon: "Megaphone"
+  },
+  {
+    id: "media-production",
+    title: "AI Media & Video Production",
+    subtitle: "UGC Creatives & AI Generated Video Ads",
+    tagline: "High-volume viral video creative at scale.",
+    description: "We produce high-converting direct-response video ads, UGC creator content, and AI-narrated synthetic video reels for social dominance.",
+    features: ["Direct-response UGC video ads", "AI voiceover & synthetic spokesperson videos", "Batch ad creative iterations", "TikTok, Reels & YouTube Shorts formatting"],
+    icon: "Video"
+  },
+  {
+    id: "vixora-academy",
+    title: "Vixora Academy & Training",
+    subtitle: "Tech & AI Upskilling for Teams & Builders",
+    tagline: "Master the skills shaping the future.",
+    description: "Practical, project-based training programs in modern software engineering, AI automation, and product building for individuals and corporate teams.",
+    features: ["Full-Stack & AI Engineering Cohorts", "Corporate AI adoption masterclasses", "Hands-on project mentorship", "Official Vixora Certification"],
+    icon: "GraduationCap"
+  }
+];
 var ACADEMY_COURSES = [
   {
     id: "course-ai-image-short-videos-creation",
@@ -6271,6 +6327,292 @@ paystackRouter.post("/webhook", async (req, res) => {
   }
 });
 
+// server/aiAdvisorServer.ts
+import { Router as Router3 } from "express";
+import { GoogleGenAI } from "@google/genai";
+var aiAdvisorRouter = Router3();
+var SlidingWindowRateLimiter3 = class {
+  constructor(options) {
+    this.store = /* @__PURE__ */ new Map();
+    this.windowMs = options.windowMs;
+    this.max = options.max;
+    this.prefix = options.prefix;
+  }
+  check(key) {
+    const now = Date.now();
+    const fullKey = `${this.prefix}:${key}`;
+    const record = this.store.get(fullKey);
+    if (!record || now > record.resetTime) {
+      this.store.set(fullKey, {
+        count: 1,
+        resetTime: now + this.windowMs
+      });
+      return {
+        allowed: true,
+        remaining: this.max - 1,
+        resetInSeconds: Math.ceil(this.windowMs / 1e3),
+        limit: this.max
+      };
+    }
+    if (record.count >= this.max) {
+      const resetInSeconds2 = Math.max(1, Math.ceil((record.resetTime - now) / 1e3));
+      return {
+        allowed: false,
+        remaining: 0,
+        resetInSeconds: resetInSeconds2,
+        limit: this.max
+      };
+    }
+    record.count += 1;
+    const remaining = this.max - record.count;
+    const resetInSeconds = Math.max(1, Math.ceil((record.resetTime - now) / 1e3));
+    return {
+      allowed: true,
+      remaining,
+      resetInSeconds,
+      limit: this.max
+    };
+  }
+  peek(key) {
+    const now = Date.now();
+    const fullKey = `${this.prefix}:${key}`;
+    const record = this.store.get(fullKey);
+    if (!record || now > record.resetTime) {
+      return {
+        remaining: this.max,
+        resetInSeconds: Math.ceil(this.windowMs / 1e3),
+        limit: this.max,
+        isLimited: false
+      };
+    }
+    const remaining = Math.max(0, this.max - record.count);
+    const resetInSeconds = Math.max(1, Math.ceil((record.resetTime - now) / 1e3));
+    return {
+      remaining,
+      resetInSeconds,
+      limit: this.max,
+      isLimited: record.count >= this.max
+    };
+  }
+};
+var advisorRateLimiter = new SlidingWindowRateLimiter3({
+  windowMs: 10 * 60 * 1e3,
+  max: 12,
+  prefix: "ai_advisor"
+});
+function getClientIp3(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0].trim();
+  }
+  return req.socket.remoteAddress || "unknown-ip";
+}
+function isPlainObject3(val) {
+  return typeof val === "object" && val !== null && !Array.isArray(val);
+}
+function buildAuthoritativeKnowledgeBase() {
+  const servicesText = FEATURED_SERVICES.map((s) => {
+    return `- **${s.title}** (${s.subtitle}): ${s.description} Features: ${s.features.join(", ")}`;
+  }).join("\n");
+  const coursesText = ACADEMY_COURSES.map((c) => {
+    const approvedPrice = COURSE_PRICING[c.id]?.NGN ? `\u20A6${COURSE_PRICING[c.id].NGN.toLocaleString()}` : c.tuition;
+    return `- **${c.title}** (Slug: \`${c.slug}\`, ID: \`${c.id}\`)
+  \u2022 Tuition: ${approvedPrice}
+  \u2022 Duration: ${c.duration} (${c.format})
+  \u2022 Next Cohort: ${c.nextCohortDate}
+  \u2022 Level: ${c.level} | Track: ${c.track}
+  \u2022 Audience: ${c.targetAudience}
+  \u2022 Description: ${c.description}
+  \u2022 Core Skills: ${c.curriculum.slice(0, 4).join(", ")}`;
+  }).join("\n\n");
+  return `
+=== VIXORA DIGITAL HUB OFFICIAL KNOWLEDGE BASE ===
+
+COMPANY OVERVIEW:
+Vixora Digital Hub is an elite technology studio and executive education hub operating across two major divisions:
+1. Vixora Agency & Solutions: Bespoke software engineering, autonomous AI agent swarms, workflow orchestration (n8n), brand systems, and high-converting paid media acquisition.
+2. Vixora Academy: Implementation-first technical training cohorts teaching hands-on AI engineering, data analytics, automated business systems, and creative AI media.
+
+DIRECT CONTACT CHANNELS:
+- Email: ${COMPANY_CONTACT.email}
+- US & Global WhatsApp Inbound: +1 (279) 257-4850
+- Nigeria WhatsApp Inbound: +234 811 454 2934
+- Student & Certificate Portal: /pages/student-portal
+
+AGENCY SOLUTIONS & ENGINEERING PILLARS:
+${servicesText}
+
+ACADEMY COHORT PROGRAMS & PRICING:
+${coursesText}
+
+CRITICAL RULES:
+1. Always state the exact, approved tuition for courses (e.g. AI Image & Short Videos Creation is \u20A610,000, AI Automation & Digital Skills is \u20A630,000, Data Analysis Cohort is \u20A660,000). Never invent or guess prices.
+2. If a user asks about building a custom software/AI system, diagnose their business problem, propose a concrete technology architecture, and suggest booking a project consultation.
+3. If a user asks what course to study, assess their starting point, recommend the optimal Vixora Academy program, and highlight the start date and tuition.
+4. Keep answers concise, highly structured, professional, and directly actionable.
+`;
+}
+var aiClient = null;
+function getGemini() {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY || "";
+    aiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-vixora-advisor"
+        }
+      }
+    });
+  }
+  return aiClient;
+}
+aiAdvisorRouter.get("/advisor/status", (req, res) => {
+  const ip = getClientIp3(req);
+  const status = advisorRateLimiter.peek(ip);
+  res.json({
+    ready: Boolean(process.env.GEMINI_API_KEY),
+    limit: status.limit,
+    remaining: status.remaining,
+    resetInSeconds: status.resetInSeconds,
+    isLimited: status.isLimited
+  });
+});
+aiAdvisorRouter.post("/advisor", async (req, res) => {
+  if (!isPlainObject3(req.body)) {
+    return res.status(400).json({ error: "Request body must be a valid JSON object.", code: "INVALID_BODY" });
+  }
+  const { message, conversationHistory = [], track = "all" } = req.body;
+  if (!message || typeof message !== "string" || message.trim().length === 0) {
+    return res.status(400).json({ error: 'Field "message" is required.', code: "MISSING_MESSAGE" });
+  }
+  if (message.length > 2500) {
+    return res.status(400).json({ error: "Message cannot exceed 2500 characters.", code: "MESSAGE_TOO_LONG" });
+  }
+  const ip = getClientIp3(req);
+  const rlCheck = advisorRateLimiter.check(ip);
+  if (!rlCheck.allowed) {
+    return res.status(429).json({
+      error: `Too many advisor queries. Please wait ${rlCheck.resetInSeconds} seconds before asking again.`,
+      code: "RATE_LIMIT_EXCEEDED",
+      remaining: 0,
+      resetInSeconds: rlCheck.resetInSeconds
+    });
+  }
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(503).json({
+      error: "AI Advisor is currently unconfigured. Please contact support via WhatsApp or email.",
+      code: "GEMINI_UNCONFIGURED"
+    });
+  }
+  try {
+    const ai = getGemini();
+    const knowledgeBase = buildAuthoritativeKnowledgeBase();
+    const contents = [];
+    if (Array.isArray(conversationHistory)) {
+      for (const turn of conversationHistory.slice(-6)) {
+        if (turn && typeof turn.text === "string" && (turn.role === "user" || turn.role === "model")) {
+          contents.push({
+            role: turn.role,
+            parts: [{ text: turn.text }]
+          });
+        }
+      }
+    }
+    contents.push({
+      role: "user",
+      parts: [
+        {
+          text: `User Question: "${message.trim()}"
+
+Context Filter: User is inquiring about "${track}" track.
+
+Please answer authoritatively, concisely, and provide clear recommended next steps.`
+        }
+      ]
+    });
+    const systemInstruction = `You are the Vixora AI Business & Academy Advisor for Vixora Digital Hub.
+You are direct, articulate, deeply knowledgeable in modern AI engineering and software architecture, and laser-focused on practical outcomes.
+
+${knowledgeBase}
+
+OUTPUT SPECIFICATION:
+Respond with a JSON object strictly matching this schema:
+{
+  "reply": "Your markdown-formatted, clear response (use bolding, bullet points, concise paragraphs).",
+  "category": "academy" | "business" | "general",
+  "recommendedCourseSlug": "optional-course-slug-if-relevant",
+  "recommendedCourseTitle": "optional-course-title-if-relevant",
+  "suggestedActions": [
+    {
+      "label": "Button text (e.g. 'Explore Data Analysis Cohort' or 'Start Project Blueprint')",
+      "actionType": "navigate_course" | "enroll_course" | "start_project" | "whatsapp_consultation",
+      "target": "slug or phone or page"
+    }
+  ]
+}
+
+DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid JSON.`;
+    let response = null;
+    const candidateModels = ["gemini-3.8-flash", "gemini-3.1-flash-lite"];
+    let lastError = null;
+    for (const model of candidateModels) {
+      try {
+        response = await ai.models.generateContent({
+          model,
+          contents,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.2
+          }
+        });
+        if (response?.text) break;
+      } catch (mErr) {
+        lastError = mErr;
+        console.warn(`[AI Advisor Model Warning]: Model ${model} encountered an error:`, mErr?.message?.slice(0, 100));
+      }
+    }
+    if (!response || !response.text) {
+      throw lastError || new Error("All model candidates failed to respond.");
+    }
+    const rawText = response.text || "";
+    let parsedData = null;
+    try {
+      parsedData = JSON.parse(rawText);
+    } catch {
+      const cleaned = rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+      try {
+        parsedData = JSON.parse(cleaned);
+      } catch {
+        parsedData = {
+          reply: rawText,
+          category: "general",
+          suggestedActions: [
+            { label: "Book Project Consultation", actionType: "start_project", target: "consultation" }
+          ]
+        };
+      }
+    }
+    return res.json({
+      success: true,
+      data: parsedData,
+      quota: {
+        remaining: rlCheck.remaining,
+        resetInSeconds: rlCheck.resetInSeconds,
+        limit: rlCheck.limit
+      }
+    });
+  } catch (err) {
+    console.error("[AI Advisor Error]:", err);
+    return res.status(500).json({
+      error: "Failed to generate advisory recommendation. Please try again or reach out to our team directly.",
+      code: "ADVISOR_GENERATION_FAILED",
+      details: err?.message || String(err)
+    });
+  }
+});
+
 // server.ts
 dotenv.config();
 var app = express();
@@ -6293,15 +6635,17 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/api", portalRouter);
+app.use("/api/ai", aiAdvisorRouter);
+app.use("/api", aiAdvisorRouter);
 app.use("/api/payments/paystack", paystackRouter);
 app.use("/api/paystack", paystackRouter);
 app.use("/payments/paystack", paystackRouter);
 app.use("/paystack", paystackRouter);
-var aiClient = null;
-function getGemini() {
-  if (!aiClient) {
+var aiClient2 = null;
+function getGemini2() {
+  if (!aiClient2) {
     const apiKey = process.env.GEMINI_API_KEY || "";
-    aiClient = new GoogleGenAI({
+    aiClient2 = new GoogleGenAI2({
       apiKey,
       httpOptions: {
         headers: {
@@ -6310,7 +6654,7 @@ function getGemini() {
       }
     });
   }
-  return aiClient;
+  return aiClient2;
 }
 app.get("/api/health", (req, res) => {
   res.json({
@@ -6348,7 +6692,7 @@ app.post("/api/analyze-requirements", async (req, res) => {
         return res.status(400).json({ error: "customInstructions must be a string up to 5000 characters." });
       }
     }
-    const ai = getGemini();
+    const ai = getGemini2();
     const documentsContext = files.map((f, idx) => {
       return `=== DOCUMENT ${idx + 1}: ${f.name} (Type: ${f.mimeType || "unknown"}) ===
 ${f.extractedContent || f.snippet || "No text extracted."}
@@ -6457,7 +6801,7 @@ app.post("/api/ask-requirements", async (req, res) => {
         return res.status(400).json({ error: "prdContext must be a valid object or string." });
       }
     }
-    const ai = getGemini();
+    const ai = getGemini2();
     const prompt = `You are the lead AI Technical Architect for the Vixora Web Development project.
 Answer the following developer/stakeholder question accurately based on the compiled Vixora Project Requirements:
 

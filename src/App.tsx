@@ -16,6 +16,8 @@ import { Footer } from './components/Footer';
 import { StartProjectModal } from './components/StartProjectModal';
 import { DriveWorkspaceModal } from './components/DriveWorkspaceModal';
 import { CourseEnrollmentModal } from './components/CourseEnrollmentModal';
+import { AiAdvisorModal } from './components/AiAdvisorModal';
+import { FloatingAiAdvisorWidget } from './components/FloatingAiAdvisorWidget';
 import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
 import { ScrollProgressBar } from './components/ScrollProgressBar';
 import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
@@ -278,6 +280,7 @@ function AppContent() {
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [driveWorkspaceOpen, setDriveWorkspaceOpen] = useState(false);
   const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
+  const [aiAdvisorOpen, setAiAdvisorOpen] = useState(false);
   const [courseForEnrollment, setCourseForEnrollment] = useState<AcademyCourse | null>(null);
 
   // Sync course when route changes
@@ -483,6 +486,7 @@ function AppContent() {
           currentPath={route.path}
           onNavigate={handleNavigate}
           onOpenCorporateModal={() => setProjectModalOpen(true)}
+          onOpenAiAdvisor={() => setAiAdvisorOpen(true)}
         />
       ) : (
         <Navbar
@@ -491,6 +495,7 @@ function AppContent() {
           onNavigate={handleNavigate}
           onOpenProjectModal={() => setProjectModalOpen(true)}
           onOpenDriveWorkspace={() => setDriveWorkspaceOpen(true)}
+          onOpenAiAdvisor={() => setAiAdvisorOpen(true)}
         />
       )}
 
@@ -657,6 +662,18 @@ function AppContent() {
         onClose={handleCloseEnrollmentModal}
         onGoToPortal={() => handleNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
       />
+
+      {/* Vixora AI Business & Career Advisor Modal */}
+      <AiAdvisorModal
+        isOpen={aiAdvisorOpen}
+        onClose={() => setAiAdvisorOpen(false)}
+        onOpenProjectModal={() => setProjectModalOpen(true)}
+        onNavigateToCourse={(slug) => handleNavigate('academy-course', undefined, slug, `/academy/${slug}`)}
+        onEnrollCourse={handleEnrollInCourse}
+      />
+
+      {/* Floating AI Advisor Quick Launch Widget */}
+      <FloatingAiAdvisorWidget onOpen={() => setAiAdvisorOpen(true)} />
 
       {/* Persistent Floating WhatsApp Inbound Live Connect Widget */}
       <FloatingWhatsAppWidget />

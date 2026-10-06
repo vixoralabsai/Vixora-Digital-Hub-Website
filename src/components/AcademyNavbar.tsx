@@ -22,13 +22,15 @@ interface AcademyNavbarProps {
   currentPath?: string;
   onNavigate: (page: string, sectionId?: string, courseSlug?: string, customPath?: string) => void;
   onOpenCorporateModal?: () => void;
+  onOpenAiAdvisor?: () => void;
 }
 
 export function AcademyNavbar({
   currentPage,
   currentPath = '/pages/academy',
   onNavigate,
-  onOpenCorporateModal
+  onOpenCorporateModal,
+  onOpenAiAdvisor
 }: AcademyNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -173,6 +175,17 @@ export function AcademyNavbar({
               )}
             </div>
 
+            {/* AI Advisor Button */}
+            {onOpenAiAdvisor && (
+              <button
+                onClick={onOpenAiAdvisor}
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800 text-white border border-purple-400/30 shadow-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span>AI Advisor</span>
+              </button>
+            )}
+
             {/* Student Portal Link */}
             <button
               onClick={() => handleNavClick('student-portal', undefined, undefined, '/pages/student-portal')}
@@ -272,6 +285,22 @@ export function AcademyNavbar({
           </div>
 
           <div className="space-y-1 text-xs">
+            {onOpenAiAdvisor && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAiAdvisor();
+                }}
+                className="w-full p-2.5 rounded-xl text-left font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 flex items-center justify-between shadow-md mb-2"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span>✦ Ask AI Advisor (Match Courses)</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <button
               onClick={() => handleNavClick('academy', undefined, undefined, '/pages/academy')}
               className="w-full p-2.5 rounded-xl text-left font-bold text-white hover:bg-white/10 flex items-center justify-between"

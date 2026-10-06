@@ -31,6 +31,7 @@ import { getAllCategories } from '../data/categoriesData';
 interface NavbarProps {
   onOpenProjectModal: () => void;
   onOpenDriveWorkspace: () => void;
+  onOpenAiAdvisor?: () => void;
   currentPage: string;
   currentPath?: string;
   onNavigate: (page: string, sectionId?: string, courseSlug?: string, customPath?: string) => void;
@@ -39,6 +40,7 @@ interface NavbarProps {
 export function Navbar({
   onOpenProjectModal,
   onOpenDriveWorkspace,
+  onOpenAiAdvisor,
   currentPage,
   currentPath = '/',
   onNavigate,
@@ -472,6 +474,19 @@ export function Navbar({
               )}
             </button>
 
+            {/* AI Architecture & Career Advisor Quick CTA */}
+            {onOpenAiAdvisor && (
+              <button
+                id="nav-ai-advisor-btn"
+                onClick={onOpenAiAdvisor}
+                title="Vixora AI Architecture & Career Advisor"
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-900/60 to-indigo-950/60 hover:from-purple-800 hover:to-indigo-900 text-purple-200 hover:text-white border border-purple-500/40 shadow-xs transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span>AI Advisor</span>
+              </button>
+            )}
+
             {/* Student & Certificate Portal Quick CTA */}
             <button
               id="nav-student-portal-btn"
@@ -794,6 +809,19 @@ export function Navbar({
 
           {/* Direct CTA buttons in Mobile Menu */}
           <div className="pt-4 border-t border-purple-900/30 flex flex-col gap-2.5">
+            {onOpenAiAdvisor && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAiAdvisor();
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md shadow-purple-900/40 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                <span>✦ Ask AI Advisor (Solutions & Courses)</span>
+              </button>
+            )}
+
             {(currentPage === 'admin' || (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))) && (
               <button
                 onClick={() => handleNavClick('admin', undefined, undefined, '/admin')}
