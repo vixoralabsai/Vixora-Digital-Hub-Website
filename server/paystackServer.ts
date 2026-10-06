@@ -730,6 +730,7 @@ export async function processPaymentFulfillment(
     id: reference,
     student_id: studentId,
     course_id: dbCourseId,
+    plan_id: existingPayment?.plan_id || canonicalCourse.selectedPlanId || null,
     amount: canonicalCourse.nairaAmount,
     amount_kobo: canonicalCourse.koboAmount,
     currency: 'NGN',
