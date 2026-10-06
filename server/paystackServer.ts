@@ -157,7 +157,7 @@ export interface PaymentRecord {
   id: string; // transaction reference
   student_id: string | null;
   course_id: string;
-  plan_id: string | null;
+  plan_id?: string | null;
   amount: number; // in Naira (e.g. 60000.00)
   amount_kobo: number; // in kobo (e.g. 6000000)
   currency: 'NGN';
@@ -380,6 +380,7 @@ export async function processPaymentFulfillment(
         studentEmail: existingPayment.customer_email,
         courseId: existingPayment.course_id,
         courseTitle: canonical?.title || 'Vixora Academy Cohort',
+        planId: existingPayment.plan_id || null,
         emailDispatchedAt: existingPayment.email_dispatched_at
       }
     };
