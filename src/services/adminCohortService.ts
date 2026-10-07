@@ -29,6 +29,10 @@ export interface AdminCohort {
   availableSeats: number;
   tutorId: string | null;
   supervisorId: string | null;
+  tutor: CohortContact | null;
+  supervisor: CohortContact | null;
+  aiInsight: string | null;
+  aiInsightGeneratedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,6 +55,8 @@ export interface CohortSetupOption {
     title: string;
   };
 }
+
+export interface CohortContact { name: string; email: string; phone: string; role: string; }
 
 export interface AdminCohortOptions {
   trainingPlans: Array<{
@@ -102,8 +108,8 @@ export interface SaveAdminCohortInput {
   endDate?: string | null;
   status: AdminCohortStatus;
   capacity: number;
-  tutorId?: string | null;
-  supervisorId?: string | null;
+  tutor?: Partial<CohortContact>;
+  supervisor?: Partial<CohortContact>;
 }
 
 export async function createAdminCohort(input: SaveAdminCohortInput) {
@@ -118,4 +124,8 @@ export async function updateAdminCohort(id: string, input: Partial<SaveAdminCoho
     method: 'PATCH',
     body: JSON.stringify(input)
   });
+}
+
+export async function generateAdminCohortInsight(id: string) {
+  return adminRequest(`/api/admin/cohorts/${encodeURIComponent(id)}/insights`, { method: 'POST' });
 }
