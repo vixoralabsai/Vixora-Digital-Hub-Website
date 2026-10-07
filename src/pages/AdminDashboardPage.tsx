@@ -152,7 +152,7 @@ function AdminCohortsPanel() {
     }
   };
 
-  const statusLabel = (status: AdminCohortStatus) => status.replace('_', ' ').replace(/\\b\\w/g, (m) => m.toUpperCase());
+  const statusLabel = (status: AdminCohortStatus) => status.replace('_', ' ').replace(/\b\w/g, (m) => m.toUpperCase());
   const statusClass = (status: AdminCohortStatus) => {
     if (status === 'open') return 'text-emerald-300 bg-emerald-950/40 border-emerald-800/40';
     if (status === 'full') return 'text-amber-300 bg-amber-950/40 border-amber-800/40';
