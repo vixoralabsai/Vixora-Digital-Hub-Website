@@ -22,6 +22,7 @@ export interface PaystackConfig {
 export interface InitializePaymentParams {
   courseId: string;
   planId?: 'group' | 'small-group' | 'private';
+  cohortId?: string;
   studentName?: string;
   email: string;
   phone?: string;
@@ -39,6 +40,8 @@ export interface InitializePaymentResponse {
   courseId?: string;
   courseTitle?: string;
   planId?: 'group' | 'small-group' | 'private' | null;
+  cohortId?: string | null;
+  seatsRemaining?: number | null;
   publicKey?: string | null;
   error?: string;
   code?: string;
@@ -300,6 +303,7 @@ export async function initializePaystackPayment(
     const payload = {
       courseId: params.courseId,
       planId: params.planId,
+      cohortId: params.cohortId,
       studentName: params.studentName,
       email: params.email,
       phone: params.phone,
@@ -375,7 +379,9 @@ export async function initializePaystackPayment(
       currency: data.currency || 'NGN',
       courseId: data.courseId,
       courseTitle: data.courseTitle,
-      planId: data.planId || null
+      planId: data.planId || null,
+      cohortId: data.cohortId || null,
+      seatsRemaining: typeof data.seatsRemaining === 'number' ? data.seatsRemaining : null
     };
   } catch (err: any) {
     return {
