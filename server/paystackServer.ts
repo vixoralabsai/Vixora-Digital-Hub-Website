@@ -159,6 +159,8 @@ export interface PaymentRecord {
   student_id: string | null;
   course_id: string;
   plan_id?: string | null;
+  cohort_id?: string | null;
+  reservation_expires_at?: string | null;
   amount: number; // in Naira (e.g. 60000.00)
   amount_kobo: number; // in kobo (e.g. 6000000)
   currency: 'NGN';
@@ -443,6 +445,7 @@ export async function processPaymentFulfillment(
     const failedUpdate = {
       status: mappedStatus,
       raw_response: sanitizePaystackResponse(paystackData),
+      reservation_expires_at: null,
       updated_at: new Date().toISOString()
     };
 
@@ -749,6 +752,8 @@ export async function processPaymentFulfillment(
     student_id: studentId,
     course_id: dbCourseId,
     plan_id: existingPayment?.plan_id || canonicalCourse.selectedPlanId || null,
+    cohort_id: existingPayment?.cohort_id || null,
+    reservation_expires_at: null,
     amount: canonicalCourse.nairaAmount,
     amount_kobo: canonicalCourse.koboAmount,
     currency: 'NGN',
