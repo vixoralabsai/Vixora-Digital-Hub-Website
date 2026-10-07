@@ -14,6 +14,10 @@ export interface CohortSeatRecord {
   status: CohortStatus;
   capacity: number;
   enrolledCount: number;
+  name?: string;
+  code?: string;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 export interface CohortSelection {
@@ -72,7 +76,7 @@ export async function listBookableCohorts(
 
   const { data, error } = await supabase
     .from('cohorts')
-    .select('id,course_id,course_training_plan_id,status,capacity,enrollments(status)')
+    .select('id,course_id,course_training_plan_id,name,code,start_date,end_date,status,capacity,enrollments(status)')
     .eq('course_training_plan_id', courseTrainingPlanId)
     .in('status', ['open', 'full'])
     .order('start_date', { ascending: true });
