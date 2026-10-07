@@ -29,7 +29,7 @@ import {
 } from '../lib/paystack';
 import { supabase } from '../lib/supabaseClient';
 import { StickerLabel, TactileButton } from './course/CourseVisualDecorations';
-import { TRAINING_PLANS, TrainingPlanId, formatTrainingPlanPrice } from '../data/trainingPlans';
+import { TRAINING_PLANS, TrainingPlanId, formatTrainingPlanPrice, isTieredCourse } from '../data/trainingPlans';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;
@@ -51,6 +51,7 @@ export function CourseEnrollmentModal({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState<TrainingPlanId>(initialPlanId);
+  const tieredCourse = course ? isTieredCourse(course.id) : false;
 
   // Payment preference state
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
@@ -140,7 +141,7 @@ export function CourseEnrollmentModal({
 
         const initRes = await initializePaystackPayment({
           courseId: course.id,
-          planId: selectedPlanId,
+          ...(tieredCourse ? { planId: selectedPlanId } : {}),
           studentName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
@@ -236,7 +237,7 @@ export function CourseEnrollmentModal({
               <Calendar className="w-3.5 h-3.5" /> Next Cohort: {course.nextCohortDate}
             </span>
             <span>&bull;</span>
-            <span className="text-[#10B981] font-black">{formatTrainingPlanPrice(selectedPlanId)} Tuition</span>
+            <span className="text-[#10B981] font-black">{tieredCourse ? formatTrainingPlanPrice(selectedPlanId) : course.tuition} Tuition</span>
             <span>&bull;</span>
             <span className="text-[#FF8A65]">{course.seatsRemaining} Seats Remaining</span>
           </div>
@@ -296,7 +297,7 @@ export function CourseEnrollmentModal({
               {fundingType === 'self' && selfPaymentMethod === 'bank_transfer' ? (
                 <BankPaymentDetailsCard
                   courseTitle={course.title}
-                  tuitionAmount={formatTrainingPlanPrice(selectedPlanId)}
+                  tuitionAmount={tieredCourse ? formatTrainingPlanPrice(selectedPlanId) : course.tuition}
                   onPayOnline={() => {
                     setIsApplicationSubmitted(false);
                     setSelfPaymentMethod('paystack');
@@ -403,6 +404,7 @@ export function CourseEnrollmentModal({
               </div>
 
               {/* Training Tier Selection */}
+              {tieredCourse && (
               <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black uppercase text-[#1A1D4F]">
@@ -447,6 +449,7 @@ export function CourseEnrollmentModal({
                   })}
                 </div>
               </div>
+              )}
 
               {/* Tuition & Payment Preference Selection */}
               <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
@@ -455,7 +458,7 @@ export function CourseEnrollmentModal({
                     Payment Preference
                   </label>
                   <span className="text-xs font-mono text-[#10B981] font-black bg-[#D1F2D9] px-2 py-0.5 rounded border border-[#10B981]">
-                    Tuition: {formatTrainingPlanPrice(selectedPlanId)}
+                    Tuition: {tieredCourse ? formatTrainingPlanPrice(selectedPlanId) : course.tuition}
                   </span>
                 </div>
 
