@@ -48,7 +48,7 @@ export interface InitializePaymentResponse {
   help?: string;
 }
 
-export interface VerifiedPaymentData {
+\nexport interface AvailableCohort {\n  id: string;\n  name: string;\n  code?: string | null;\n  startDate?: string | null;\n  endDate?: string | null;\n  capacity: number;\n  enrolledCount: number;\n  seatsRemaining: number;\n}\n\nexport async function getAvailableCohorts(courseId: string, planId: string): Promise<{ success: boolean; cohorts: AvailableCohort[]; error?: string }> {\n  try {\n    const params = new URLSearchParams({ courseId, planId });\n    const res = await fetch(`/api/payments/paystack/cohorts?${params.toString()}`);\n    const parsed = await parseSafeResponseJson<{ success?: boolean; cohorts?: AvailableCohort[]; error?: string }>(res, 'Unable to load cohorts.');\n    if (!parsed.ok || !parsed.data?.success) {\n      return { success: false, cohorts: [], error: cleanErrorMessage(parsed.data?.error || parsed.error) || 'Unable to load available cohorts.' };\n    }\n    return { success: true, cohorts: Array.isArray(parsed.data.cohorts) ? parsed.data.cohorts : [] };\n  } catch (err: any) {\n    return { success: false, cohorts: [], error: cleanErrorMessage(err?.message) || 'Unable to load available cohorts.' };\n  }\n}\n\nexport interface VerifiedPaymentData {
   reference: string;
   status: string;
   amount: number;
