@@ -95,3 +95,58 @@ export async function listBookableCohorts(
     };
   });
 }
+
+export interface CohortReservation {
+  cohortId: string;
+  availableSeatsAfterReservation: number;
+}
+
+/**
+ * Atomically reserves one cohort seat and creates the pending payment record.
+ * The database function locks the cohort row so concurrent checkouts cannot
+ * reserve the same final seat.
+ */
+export async function reservePaymentCohort(
+  supabase: any,
+  input: {
+    paymentId: string;
+    courseId: string;
+    planId?: string | null;
+    cohortId: string;
+    amountKobo: number;
+    customerEmail: string;
+    customerName: string;
+    customerPhone?: string | null;
+    reservationExpiresAt: string;
+  }
+): Promise<CohortReservation> {
+  if (!supabase) {
+    throw new Error('SUPABASE_NOT_CONFIGURED');
+  }
+
+  const { data, error } = await supabase.rpc('reserve_payment_cohort', {
+    p_payment_id: input.paymentId,
+    p_course_id: input.courseId,
+    p_plan_id: input.planId || null,
+    p_cohort_id: input.cohortId,
+    p_amount_kobo: input.amountKobo,
+    p_customer_email: input.customerEmail,
+    p_customer_name: input.customerName,
+    p_customer_phone: input.customerPhone || null,
+    p_reservation_expires_at: input.reservationExpiresAt
+  });
+
+  if (error) {
+    throw new Error(error.message || 'COHORT_RESERVATION_FAILED');
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.cohort_id) {
+    throw new Error('COHORT_RESERVATION_FAILED');
+  }
+
+  return {
+    cohortId: String(row.cohort_id),
+    availableSeatsAfterReservation: Number(row.available_seats)
+  };
+}
