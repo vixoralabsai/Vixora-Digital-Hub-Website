@@ -300,7 +300,6 @@ export async function initializePaystackPayment(
     const payload = {
       courseId: params.courseId,
       planId: params.planId,
-      planId: params.planId,
       studentName: params.studentName,
       email: params.email,
       phone: params.phone,
