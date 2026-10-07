@@ -23,8 +23,8 @@ export interface CohortSelection {
 
 /**
  * Pure seat calculation used by checkout/admin flows.
- * Pending payments are intentionally not counted here until a durable reservation
- * mechanism is added; fulfilled/active enrollment is the source of truth.
+ * This helper is intentionally a fast candidate selector; the transactional
+ * database reservation is the final source of truth for checkout capacity.
  */
 export function getAvailableSeats(cohort: CohortSeatRecord): number {
   return Math.max(0, cohort.capacity - cohort.enrolledCount);
