@@ -281,7 +281,7 @@ Respond with a JSON object strictly matching this schema:
 DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid JSON.`;
 
     let response: any = null;
-    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
     let lastError: any = null;
 
     for (const model of candidateModels) {
@@ -298,7 +298,7 @@ DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid
         if (response?.text) break;
       } catch (mErr: any) {
         lastError = mErr;
-        console.warn(`[AI Advisor Model Warning]: Model ${model} encountered an error:`, mErr?.message?.slice(0, 100));
+        // Fail over silently to next candidate without polluting server error logs
       }
     }
 

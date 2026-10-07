@@ -6554,7 +6554,7 @@ Respond with a JSON object strictly matching this schema:
 
 DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid JSON.`;
     let response = null;
-    const candidateModels = ["gemini-3.8-flash", "gemini-3.1-flash-lite"];
+    const candidateModels = ["gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
     let lastError = null;
     for (const model of candidateModels) {
       try {
@@ -6570,7 +6570,6 @@ DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid
         if (response?.text) break;
       } catch (mErr) {
         lastError = mErr;
-        console.warn(`[AI Advisor Model Warning]: Model ${model} encountered an error:`, mErr?.message?.slice(0, 100));
       }
     }
     if (!response || !response.text) {
