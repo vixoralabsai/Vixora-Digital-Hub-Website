@@ -92,3 +92,13 @@ export function getTrainingPlan(planId?: string | null): TrainingPlan | null {
 export function formatTrainingPlanPrice(planId: TrainingPlanId): string {
   return `₦${TRAINING_PLANS[planId].priceNGN.toLocaleString()}`;
 }
+
+
+/** Courses that currently use the shared Group / Small Group / Private pricing model. */
+export const TIERED_COURSE_IDS = new Set<string>([
+  'course-ai-automation-digital-business-systems'
+]);
+
+export function isTieredCourse(courseId?: string | null): boolean {
+  return typeof courseId === 'string' && TIERED_COURSE_IDS.has(courseId.trim().toLowerCase());
+}
