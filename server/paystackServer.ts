@@ -942,7 +942,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const { courseId, planId, email, studentName, phone, callbackUrl } = req.body;
+    const { courseId, planId, cohortId, email, studentName, phone, callbackUrl } = req.body;
 
     if (!courseId || typeof courseId !== 'string') {
       return res.status(400).json({
@@ -1069,7 +1069,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         });
       }
 
-      const candidates = await listBookableCohorts(supabase, String(coursePlan.id));
+      const candidates = await listBookableCohorts(supabase, String(coursePlan.id));\n      const requestedCohortId = typeof cohortId === 'string' ? cohortId.trim() : '';\n      if (requestedCohortId && !candidates.some((candidate) => candidate.id === requestedCohortId)) {\n        return res.status(409).json({ error: 'The selected cohort is no longer available. Please choose another cohort.', code: 'COHORT_UNAVAILABLE' });\n      }\n      const orderedCandidates = requestedCohortId\n        ? candidates.filter((candidate) => candidate.id === requestedCohortId)\n        : candidates;
       if (!candidates.length) {
         return res.status(409).json({
           error: 'There are no open seats for this training plan right now.',
@@ -1079,7 +1079,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
       // Try candidates in deterministic order. The database RPC re-checks
       // capacity while holding the cohort row lock, so a race cannot overbook.
-      for (const candidate of candidates) {
+      for (const candidate of orderedCandidates) {
         try {
           const reservation = await reservePaymentCohort(supabase, {
             paymentId: reference,
