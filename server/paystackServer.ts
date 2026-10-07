@@ -988,7 +988,16 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const cohort = tiered ? await getOpenCohort(courseId) : null;
+    let cohort = null;
+    try {
+      cohort = tiered ? await getOpenCohort(courseId) : null;
+    } catch (cohortErr: any) {
+      console.error('[Paystack Initialize Cohort Lookup Error]:', cohortErr);
+      return res.status(503).json({
+        error: 'Academy cohort data is not available right now. Please contact admissions or try again shortly.',
+        code: 'COHORT_LOOKUP_FAILED'
+      });
+    }
     if (tiered && !cohort) {
       return res.status(409).json({
         error: 'There is no open cohort available for this course right now.',
@@ -996,9 +1005,18 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const seatsRemaining = tiered && cohort && trainingPlan
-      ? await getSeatsRemaining(cohort.id, trainingPlan.id)
-      : null;
+    let seatsRemaining: number | null = null;
+    if (tiered && cohort && trainingPlan) {
+      try {
+        seatsRemaining = await getSeatsRemaining(cohort.id, trainingPlan.id);
+      } catch (seatErr: any) {
+        console.error('[Paystack Initialize Seat Lookup Error]:', seatErr);
+        return res.status(503).json({
+          error: 'Cohort seat availability is not available right now. Please try again shortly.',
+          code: 'SEAT_LOOKUP_FAILED'
+        });
+      }
+    }
     if (tiered && seatsRemaining !== null && seatsRemaining <= 0) {
       return res.status(409).json({
         error: `${trainingPlan!.name} is currently full for this cohort.`,
@@ -1128,7 +1146,18 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       body: JSON.stringify(paystackPayload)
     });
 
-    const data: any = await response.json();
+    const responseText = await response.text();
+    let data: any = null;
+    try {
+      data = responseText ? JSON.parse(responseText) : null;
+    } catch (parseErr) {
+      console.error('[Paystack Initialize Response Parse Error]:', parseErr);
+      return res.status(502).json({
+        error: 'Paystack returned an unexpected response. Please try again shortly.',
+        code: 'PAYSTACK_INVALID_RESPONSE',
+        reference
+      });
+    }
 
     console.log('[Server Paystack Init Diagnostic: Paystack Response]', {
       status: response.status,
@@ -1162,9 +1191,19 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error('[Paystack Initialize Exception]:', err);
+    const message = err instanceof Error ? err.message : String(err || '');
+    const lowerMessage = message.toLowerCase();
+
+    if (lowerMessage.includes('paystack') || lowerMessage.includes('fetch failed') || lowerMessage.includes('econn') || lowerMessage.includes('enotfound')) {
+      return res.status(502).json({
+        error: 'Unable to reach Paystack right now. Please try again shortly.',
+        code: 'PAYSTACK_CONNECTION_FAILED'
+      });
+    }
+
     return res.status(500).json({
-      error: 'An internal error occurred while initializing payment.',
-      code: 'SERVER_ERROR'
+      error: 'Payment initialization encountered a server configuration or database error. Please try again shortly.',
+      code: 'SERVER_CONFIGURATION_ERROR'
     });
   }
 });
