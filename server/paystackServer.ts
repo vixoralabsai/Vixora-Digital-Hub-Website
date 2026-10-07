@@ -696,7 +696,7 @@ export async function processPaymentFulfillment(
 
       const { data: existingEnrollment, error: findEnrollmentErr } = await supabase
         .from('enrollments')
-        .select('student_id, course_id, status, progress_percent')
+        .select('student_id, course_id, cohort_id, status, progress_percent')
         .eq('student_id', studentId)
         .eq('course_id', dbCourseId)
         .maybeSingle();
@@ -722,7 +722,7 @@ export async function processPaymentFulfillment(
         // If enrollment already exists, ensure status is 'enrolled' without resetting progress
         const { error: updateEnrollmentErr } = await supabase
           .from('enrollments')
-          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, cohort_id: paymentCohortId, updated_at: new Date().toISOString() })
+          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, cohort_id: existingEnrollment.cohort_id || paymentCohortId, updated_at: new Date().toISOString() })
           .eq('student_id', studentId)
           .eq('course_id', dbCourseId);
         if (updateEnrollmentErr) throw updateEnrollmentErr;
