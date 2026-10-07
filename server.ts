@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 import { portalRouter, isPlainObject } from './server/studentPortalServer.js';
 import { paystackRouter } from './server/paystackServer.js';
 import { aiAdvisorRouter } from './server/aiAdvisorServer.js';
+import { adminCohortRouter } from './server/adminCohortRoutes.js';
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ app.use((req, res, next) => {
 
 // Mount Student & Certificate Portal APIs with Rate Limiting
 app.use('/api', portalRouter);
+
+// Mount protected Academy cohort administration API
+app.use('/api/admin', adminCohortRouter);
 
 // Mount Vixora AI Advisor API
 app.use('/api/ai', aiAdvisorRouter);
