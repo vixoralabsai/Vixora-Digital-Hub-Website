@@ -166,6 +166,46 @@ function AdminCohortsPanel() {
     return 'text-purple-300 bg-purple-950/40 border-purple-800/40';
   };
 
+  const cohortRows = cohorts.map((c) => (
+    <tr key={c.id} className="hover:bg-purple-950/20">
+      <td className="py-4 px-4">
+        <div className="font-bold text-white">{c.name}</div>
+        <div className="text-[10px] text-neutral-500 mt-1">{c.code}</div>
+      </td>
+      <td className="py-4 px-4">
+        <div className="text-white">{c.courseTitle}</div>
+        <div className="text-purple-300 text-[10px] mt-1">
+          {c.trainingPlanName} · ₦{c.planPriceNgn.toLocaleString()}
+        </div>
+      </td>
+      <td className="py-4 px-4">
+        <div>{c.startDate}</div>
+        <div className="text-neutral-500 text-[10px]">{c.endDate || 'No end date'}</div>
+      </td>
+      <td className="py-4 px-4">
+        <span className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-semibold ${statusClass(c.status)}`}>
+          {statusLabel(c.status)}
+        </span>
+      </td>
+      <td className="py-4 px-4">
+        <div className="font-bold text-white">
+          {c.availableSeats} <span className="text-neutral-500 font-normal">available</span>
+        </div>
+        <div className="text-[10px] text-neutral-500">
+          {c.enrolledCount} enrolled · {c.pendingReservations} reserved
+        </div>
+      </td>
+      <td className="py-4 px-4 text-right">
+        <button
+          onClick={() => openEdit(c)}
+          className="px-2.5 py-1.5 rounded-lg bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-800/40"
+        >
+          Edit
+        </button>
+      </td>
+    </tr>
+  ));
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-3xl bg-[#0B051D] border border-purple-900/40">
@@ -203,7 +243,12 @@ function AdminCohortsPanel() {
           <table className="w-full text-left text-xs font-mono min-w-[1000px]">
             <thead className="bg-neutral-950/80 text-neutral-400 uppercase tracking-wider border-b border-purple-900/30 text-[10px]">
               <tr>
-                <th className="py-3.5 px-4">Cohort</th><th className="py-3.5 px-4">Course / Plan</th><th className="py-3.5 px-4">Dates</th><th className="py-3.5 px-4">Status</th><th className="py-3.5 px-4">Seats</th><th className="py-3.5 px-4 text-right">Action</th>
+                <th className="py-3.5 px-4">Cohort</th>
+                <th className="py-3.5 px-4">Course / Plan</th>
+                <th className="py-3.5 px-4">Dates</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4">Seats</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-purple-900/20 text-neutral-300">
@@ -214,7 +259,6 @@ function AdminCohortsPanel() {
                   </td>
                 </tr>
               )}
-
               {!loading && cohorts.length === 0 && (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-neutral-500">
@@ -222,48 +266,7 @@ function AdminCohortsPanel() {
                   </td>
                 </tr>
               )}
-
-              {!loading && cohorts.length > 0 && cohorts.map((c) => (
-                <tr key={c.id} className="hover:bg-purple-950/20">
-                  <td className="py-4 px-4">
-                    <div className="font-bold text-white">{c.name}</div>
-                    <div className="text-[10px] text-neutral-500 mt-1">{c.code}</div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="text-white">{c.courseTitle}</div>
-                    <div className="text-purple-300 text-[10px] mt-1">
-                      {c.trainingPlanName} · ₦{c.planPriceNgn.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div>{c.startDate}</div>
-                    <div className="text-neutral-500 text-[10px]">
-                      {c.endDate || 'No end date'}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-semibold ${statusClass(c.status)}`}>
-                      {statusLabel(c.status)}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="font-bold text-white">
-                      {c.availableSeats} <span className="text-neutral-500 font-normal">available</span>
-                    </div>
-                    <div className="text-[10px] text-neutral-500">
-                      {c.enrolledCount} enrolled · {c.pendingReservations} reserved
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    <button
-                      onClick={() => openEdit(c)}
-                      className="px-2.5 py-1.5 rounded-lg bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-800/40"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {!loading && cohorts.length > 0 && cohortRows}
             </tbody>
           </table>
         </div>
