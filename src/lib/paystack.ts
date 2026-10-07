@@ -22,7 +22,7 @@ export interface PaystackConfig {
 
 export interface InitializePaymentParams {
   courseId: string;
-  planId: TrainingPlanId;
+  planId?: TrainingPlanId;
   studentName?: string;
   email: string;
   phone?: string;
