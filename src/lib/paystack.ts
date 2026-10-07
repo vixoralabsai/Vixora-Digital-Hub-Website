@@ -48,7 +48,33 @@ export interface InitializePaymentResponse {
   help?: string;
 }
 
-\nexport interface AvailableCohort {\n  id: string;\n  name: string;\n  code?: string | null;\n  startDate?: string | null;\n  endDate?: string | null;\n  capacity: number;\n  enrolledCount: number;\n  seatsRemaining: number;\n}\n\nexport async function getAvailableCohorts(courseId: string, planId: string): Promise<{ success: boolean; cohorts: AvailableCohort[]; error?: string }> {\n  try {\n    const params = new URLSearchParams({ courseId, planId });\n    const res = await fetch(`/api/payments/paystack/cohorts?${params.toString()}`);\n    const parsed = await parseSafeResponseJson<{ success?: boolean; cohorts?: AvailableCohort[]; error?: string }>(res, 'Unable to load cohorts.');\n    if (!parsed.ok || !parsed.data?.success) {\n      return { success: false, cohorts: [], error: cleanErrorMessage(parsed.data?.error || parsed.error) || 'Unable to load available cohorts.' };\n    }\n    return { success: true, cohorts: Array.isArray(parsed.data.cohorts) ? parsed.data.cohorts : [] };\n  } catch (err: any) {\n    return { success: false, cohorts: [], error: cleanErrorMessage(err?.message) || 'Unable to load available cohorts.' };\n  }\n}\n\nexport interface VerifiedPaymentData {
+
+export interface AvailableCohort {
+  id: string;
+  name: string;
+  code?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  capacity: number;
+  enrolledCount: number;
+  seatsRemaining: number;
+}
+
+export async function getAvailableCohorts(courseId: string, planId: string): Promise<{ success: boolean; cohorts: AvailableCohort[]; error?: string }> {
+  try {
+    const params = new URLSearchParams({ courseId, planId });
+    const res = await fetch(`/api/payments/paystack/cohorts?${params.toString()}`);
+    const parsed = await parseSafeResponseJson<{ success?: boolean; cohorts?: AvailableCohort[]; error?: string }>(res, 'Unable to load cohorts.');
+    if (!parsed.ok || !parsed.data?.success) {
+      return { success: false, cohorts: [], error: cleanErrorMessage(parsed.data?.error || parsed.error) || 'Unable to load available cohorts.' };
+    }
+    return { success: true, cohorts: Array.isArray(parsed.data.cohorts) ? parsed.data.cohorts : [] };
+  } catch (err: any) {
+    return { success: false, cohorts: [], error: cleanErrorMessage(err?.message) || 'Unable to load available cohorts.' };
+  }
+}
+
+export interface VerifiedPaymentData {
   reference: string;
   status: string;
   amount: number;
@@ -62,6 +88,8 @@ export interface InitializePaymentResponse {
   emailDispatchedAt?: string | null;
   gatewayResponse?: string;
   last4?: string | null;
+  planId?: 'group' | 'small-group' | 'private' | null;
+  cohortId?: string | null;
 }
 
 export interface VerifyPaymentResponse {
