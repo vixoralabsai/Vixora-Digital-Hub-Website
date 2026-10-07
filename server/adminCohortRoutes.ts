@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { GoogleGenAI } from '@google/genai';
 import { requireAuthentication } from './auth/authMiddleware.js';
 import { requireAdmin } from './auth/requireAdmin.js';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
@@ -88,6 +89,10 @@ adminCohortRouter.get('/cohorts', async (_req: Request, res: Response) => {
         capacity,
         tutor_id,
         supervisor_id,
+        tutor_contact,
+        supervisor_contact,
+        ai_insight,
+        ai_insight_generated_at,
         created_at,
         updated_at,
         course_training_plans (
@@ -140,6 +145,10 @@ adminCohortRouter.get('/cohorts', async (_req: Request, res: Response) => {
         availableSeats: Math.max(0, Number(cohort.capacity) - usage.enrolledCount - usage.pendingReservations),
         tutorId: cohort.tutor_id,
         supervisorId: cohort.supervisor_id,
+        tutor: cohort.tutor_contact || null,
+        supervisor: cohort.supervisor_contact || null,
+        aiInsight: cohort.ai_insight || null,
+        aiInsightGeneratedAt: cohort.ai_insight_generated_at || null,
         createdAt: cohort.created_at,
         updatedAt: cohort.updated_at
       };
@@ -211,8 +220,10 @@ adminCohortRouter.post('/cohorts', async (req: Request, res: Response) => {
 
   try {
     const plan = await validatePlanAndCourse(supabase, courseTrainingPlanId);
-    const requestedTutorId = cleanText(req.body?.tutorId, 80) || null;
-    const requestedSupervisorId = cleanText(req.body?.supervisorId, 80) || null;
+    const requestedTutorId = null;
+    const requestedSupervisorId = null;
+    const tutor = { name: cleanText(req.body?.tutor?.name, 120), email: cleanText(req.body?.tutor?.email, 160), phone: cleanText(req.body?.tutor?.phone, 40), role: cleanText(req.body?.tutor?.role, 80) || 'Tutor' };
+    const supervisor = { name: cleanText(req.body?.supervisor?.name, 120), email: cleanText(req.body?.supervisor?.email, 160), phone: cleanText(req.body?.supervisor?.phone, 40), role: cleanText(req.body?.supervisor?.role, 80) || 'Supervisor' };
 
     const { data, error } = await supabase
       .from('cohorts')
@@ -226,7 +237,9 @@ adminCohortRouter.post('/cohorts', async (req: Request, res: Response) => {
         status,
         capacity,
         tutor_id: requestedTutorId,
-        supervisor_id: requestedSupervisorId
+        supervisor_id: requestedSupervisorId,
+        tutor_contact: tutor,
+        supervisor_contact: supervisor
       })
       .select('id')
       .single();
@@ -300,8 +313,8 @@ adminCohortRouter.patch('/cohorts/:id', async (req: Request, res: Response) => {
       }
       updates.status = status;
     }
-    if (req.body?.tutorId !== undefined) updates.tutor_id = cleanText(req.body.tutorId, 80) || null;
-    if (req.body?.supervisorId !== undefined) updates.supervisor_id = cleanText(req.body.supervisorId, 80) || null;
+    if (req.body?.tutor !== undefined) updates.tutor_contact = { name: cleanText(req.body.tutor?.name, 120), email: cleanText(req.body.tutor?.email, 160), phone: cleanText(req.body.tutor?.phone, 40), role: cleanText(req.body.tutor?.role, 80) || 'Tutor' };
+    if (req.body?.supervisor !== undefined) updates.supervisor_contact = { name: cleanText(req.body.supervisor?.name, 120), email: cleanText(req.body.supervisor?.email, 160), phone: cleanText(req.body.supervisor?.phone, 40), role: cleanText(req.body.supervisor?.role, 80) || 'Supervisor' };
 
     updates.updated_at = new Date().toISOString();
 
@@ -314,6 +327,45 @@ adminCohortRouter.patch('/cohorts/:id', async (req: Request, res: Response) => {
     return res.json({ success: true });
   } catch (error: any) {
     return res.status(400).json({ error: error.message || 'Failed to update cohort.', code: 'COHORT_UPDATE_FAILED' });
+  }
+});
+
+
+adminCohortRouter.post('/cohorts/:id/insights', async (req: Request, res: Response) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.status(503).json({ error: 'Cohort database service is unavailable.', code: 'DATABASE_UNAVAILABLE' });
+  if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'AI insights are not configured.', code: 'GEMINI_UNCONFIGURED' });
+
+  try {
+    const id = cleanText(req.params.id, 80);
+    const { data: cohort, error } = await supabase.from('cohorts')
+      .select('id,name,code,status,capacity,start_date,end_date,tutor_contact,supervisor_contact')
+      .eq('id', id).maybeSingle();
+    if (error || !cohort) return res.status(404).json({ error: 'Cohort not found.', code: 'COHORT_NOT_FOUND' });
+
+    const usage = await getCohortUsage(supabase, id);
+    const availableSeats = Math.max(0, Number(cohort.capacity) - usage.enrolledCount - usage.pendingReservations);
+    const snapshot = {
+      cohort: { name: cohort.name, code: cohort.code, status: cohort.status, capacity: cohort.capacity, startDate: cohort.start_date, endDate: cohort.end_date },
+      enrollment: { enrolled: usage.enrolledCount, pendingReservations: usage.pendingReservations, availableSeats },
+      staffing: { tutor: cohort.tutor_contact || null, supervisor: cohort.supervisor_contact || null }
+    };
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-lite',
+      contents: [{ role: 'user', parts: [{ text: 'Review this Vixora Academy cohort snapshot and return 3-5 concise, practical admin insights. Focus on enrollment momentum, seat pressure, readiness, and one recommended action. Do not discuss attendance or invent missing data. Snapshot: ' + JSON.stringify(snapshot) }] }],
+      config: { temperature: 0.2 }
+    });
+    const insight = (response.text || '').trim();
+    if (!insight) return res.status(502).json({ error: 'AI did not return an insight.', code: 'AI_EMPTY' });
+
+    const generatedAt = new Date().toISOString();
+    await supabase.from('cohorts').update({ ai_insight: insight, ai_insight_generated_at: generatedAt, updated_at: generatedAt }).eq('id', id);
+    return res.json({ success: true, insight, generatedAt, snapshot });
+  } catch (error: any) {
+    console.error('[Admin Cohort AI] insight:', error);
+    return res.status(500).json({ error: 'Failed to generate cohort insight.', code: 'AI_INSIGHT_FAILED' });
   }
 });
 
