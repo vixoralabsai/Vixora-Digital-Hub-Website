@@ -23,6 +23,7 @@ import { BankPaymentDetailsCard } from './BankPaymentDetailsCard';
 import { PaymentReceiptModal } from './PaymentReceiptModal';
 import {
   initializePaystackPayment,
+  getAvailableCohorts,
   launchPaystackCheckout,
   cleanErrorMessage,
   VerifiedPaymentData
@@ -30,6 +31,7 @@ import {
 import { supabase } from '../lib/supabaseClient';
 import { StickerLabel, TactileButton } from './course/CourseVisualDecorations';
 import { getCoursePricingMode, getCourseTrainingPlans, getTrainingPlan, type TrainingPlan } from '../data/trainingPlans';
+import type { AvailableCohort } from '../lib/paystack';
 
 interface CourseEnrollmentModalProps {
   isOpen: boolean;
@@ -53,6 +55,9 @@ export function CourseEnrollmentModal({
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
   const [selfPaymentMethod, setSelfPaymentMethod] = useState<'paystack' | 'bank_transfer'>('paystack');
   const [selectedPlanId, setSelectedPlanId] = useState<TrainingPlan['id']>('small-group');
+  const [availableCohorts, setAvailableCohorts] = useState<AvailableCohort[]>([]);
+  const [selectedCohortId, setSelectedCohortId] = useState<string>('');
+  const [isLoadingCohorts, setIsLoadingCohorts] = useState(false);
 
   // UI state
   const { startLoading, stopLoading } = useLoading();
@@ -85,6 +90,7 @@ export function CourseEnrollmentModal({
     }
   }, [isOpen]);
 
+\n  useEffect(() => {\n    if (!isOpen || !course || getCoursePricingMode(course.id) !== 'tiered') return;\n    let cancelled = false;\n    setIsLoadingCohorts(true);\n    setAvailableCohorts([]);\n    setSelectedCohortId('');\n    getAvailableCohorts(course.id, selectedPlanId)\n      .then((result) => {\n        if (cancelled) return;\n        if (result.success) {\n          setAvailableCohorts(result.cohorts);\n          if (result.cohorts.length === 1) setSelectedCohortId(result.cohorts[0].id);\n        } else {\n          setErrorMessage(result.error || 'Unable to load available cohorts.');\n        }\n      })\n      .finally(() => { if (!cancelled) setIsLoadingCohorts(false); });\n    return () => { cancelled = true; };\n  }, [isOpen, course?.id, selectedPlanId]);\n
   if (!isOpen || !course) return null;
 
   const handleResetAndClose = () => {
@@ -98,6 +104,8 @@ export function CourseEnrollmentModal({
     setFundingType('self');
     setSelfPaymentMethod('paystack');
     setSelectedPlanId('small-group');
+    setAvailableCohorts([]);
+    setSelectedCohortId('');
     setShowReceipt(false);
     setVerifiedPayment(null);
     onClose();
@@ -145,6 +153,7 @@ export function CourseEnrollmentModal({
         const initRes = await initializePaystackPayment({
           courseId: course.id,
           planId: selectedPlan?.id,
+          cohortId: pricingMode === 'tiered' ? selectedCohortId : undefined,
           studentName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
@@ -438,6 +447,7 @@ export function CourseEnrollmentModal({
                 </div>
               )}
 
+\n              {getCoursePricingMode(course.id) === 'tiered' && (\n                <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">\n                  <div className="flex items-center justify-between gap-3">\n                    <label className="text-xs font-black uppercase text-[#1A1D4F]">Choose Cohort</label>\n                    <span className="text-[11px] font-bold text-[#5B5FED]">Secure your start date</span>\n                  </div>\n                  {isLoadingCohorts ? (\n                    <div className="p-3 rounded-xl bg-[#F8F9FE] border-2 border-[#1A1D4F]/15 text-xs font-bold text-[#1A1D4F]/70">Loading available cohorts...</div>\n                  ) : availableCohorts.length ? (\n                    <div className="grid grid-cols-1 gap-2.5">\n                      {availableCohorts.map((cohort) => (\n                        <button key={cohort.id} type="button" disabled={isSubmitting || cohort.seatsRemaining < 1} onClick={() => setSelectedCohortId(cohort.id)} className={"text-left p-3 rounded-xl border-2 transition-all " + (selectedCohortId === cohort.id ? 'bg-[#EEF2FF] border-[#5B5FED] shadow-retro-sm' : 'bg-white border-[#1A1D4F]/25 hover:border-[#1A1D4F]')}>\n                          <div className="flex items-center justify-between gap-3">\n                            <div>\n                              <div className="text-sm font-black text-[#1A1D4F]">{cohort.name}{cohort.code ? ` • ${cohort.code}` : ''}</div>\n                              <div className="text-[11px] text-[#1A1D4F]/70 mt-0.5">\n                                {cohort.startDate ? new Date(cohort.startDate).toLocaleDateString() : 'Start date TBA'}\n                                {cohort.endDate ? ` – ${new Date(cohort.endDate).toLocaleDateString()}` : ''}\n                              </div>\n                            </div>\n                            <span className="shrink-0 text-xs font-black text-[#10B981]">{cohort.seatsRemaining} seat{cohort.seatsRemaining === 1 ? '' : 's'} left</span>\n                          </div>\n                        </button>\n                      ))}\n                    </div>\n                  ) : (\n                    <div className="p-3 rounded-xl bg-amber-50 border-2 border-[#FFC107] text-xs font-bold text-[#1A1D4F]">No open cohorts are currently available for this plan.</div>\n                  )}\n                </div>\n              )}\n
               {/* Tuition & Payment Preference Selection */}
               <div className="space-y-2.5 pt-2 border-t-2 border-[#1A1D4F]/10">
                 <div className="flex items-center justify-between">
