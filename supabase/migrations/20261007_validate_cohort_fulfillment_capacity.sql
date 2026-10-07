@@ -57,3 +57,4 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION validate_payment_cohort_capacity(TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION validate_payment_cohort_capacity(TEXT, UUID) TO service_role;
