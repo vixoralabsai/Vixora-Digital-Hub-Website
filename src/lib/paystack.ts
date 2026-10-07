@@ -276,7 +276,7 @@ export async function getPaystackConfig(): Promise<PaystackConfig> {
 
 /**
  * Initialize payment on backend.
- * Only courseId and customer identity are sent.
+ * Only course, plan/cohort selection, and customer identity are sent; financial values remain server-authoritative.
  * Browser NEVER supplies amount or reference.
  */
 export async function initializePaystackPayment(
