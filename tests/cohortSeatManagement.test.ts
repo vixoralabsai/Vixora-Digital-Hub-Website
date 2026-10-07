@@ -42,4 +42,12 @@ if (none !== null) {
   throw new Error('Expected null when no bookable cohort exists.');
 }
 
+if (isCohortBookable({ ...open, status: 'closed' as const })) {
+  throw new Error('Closed cohort must not be bookable.');
+}
+
+if (getAvailableSeats({ ...open, enrolledCount: 9, capacity: 5 }) !== 0) {
+  throw new Error('Available seats must never be negative.');
+}
+
 console.log('✓ cohort seat management tests passed');
