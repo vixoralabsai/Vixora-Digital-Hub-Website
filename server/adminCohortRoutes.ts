@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { requireAuthentication } from './auth/authMiddleware.js';
 import { requireAdmin } from './auth/requireAdmin.js';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
-import { CohortStatus } from './payments/cohortService.js';
+import type { CohortStatus } from './payments/cohortService.js';
 
 export const adminCohortRouter = Router();
 
@@ -67,7 +67,7 @@ async function getCohortUsage(supabase: any, cohortId: string) {
   };
 }
 
-adminCohortRouter.get('/cohorts', async (req: Request, res: Response) => {
+adminCohortRouter.get('/cohorts', async (_req: Request, res: Response) => {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
     return res.status(503).json({ error: 'Cohort database service is unavailable.', code: 'DATABASE_UNAVAILABLE' });
