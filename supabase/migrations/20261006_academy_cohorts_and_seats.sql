@@ -42,6 +42,10 @@ CREATE TABLE IF NOT EXISTS cohorts (
   capacity INTEGER NOT NULL CHECK (capacity > 0),
   tutor_id UUID,
   supervisor_id UUID,
+  tutor_contact JSONB NOT NULL DEFAULT '{}'::jsonb,
+  supervisor_contact JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ai_insight TEXT,
+  ai_insight_generated_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CHECK (end_date IS NULL OR end_date >= start_date)
