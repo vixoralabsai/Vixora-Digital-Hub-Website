@@ -1069,7 +1069,14 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         });
       }
 
-      const candidates = await listBookableCohorts(supabase, String(coursePlan.id));\n      const requestedCohortId = typeof cohortId === 'string' ? cohortId.trim() : '';\n      if (requestedCohortId && !candidates.some((candidate) => candidate.id === requestedCohortId)) {\n        return res.status(409).json({ error: 'The selected cohort is no longer available. Please choose another cohort.', code: 'COHORT_UNAVAILABLE' });\n      }\n      const orderedCandidates = requestedCohortId\n        ? candidates.filter((candidate) => candidate.id === requestedCohortId)\n        : candidates;
+      const candidates = await listBookableCohorts(supabase, String(coursePlan.id));
+      const requestedCohortId = typeof cohortId === 'string' ? cohortId.trim() : '';
+      if (requestedCohortId && !candidates.some((candidate) => candidate.id === requestedCohortId)) {
+        return res.status(409).json({ error: 'The selected cohort is no longer available. Please choose another cohort.', code: 'COHORT_UNAVAILABLE' });
+      }
+      const orderedCandidates = requestedCohortId
+        ? candidates.filter((candidate) => candidate.id === requestedCohortId)
+        : candidates;
       if (!candidates.length) {
         return res.status(409).json({
           error: 'There are no open seats for this training plan right now.',
