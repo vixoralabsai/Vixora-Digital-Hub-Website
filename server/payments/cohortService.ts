@@ -150,3 +150,23 @@ export async function reservePaymentCohort(
     availableSeatsAfterReservation: Number(row.available_seats)
   };
 }
+
+
+export async function validatePaymentCohortCapacity(
+  supabase: any,
+  paymentId: string,
+  cohortId: string
+): Promise<boolean> {
+  if (!supabase) throw new Error('SUPABASE_NOT_CONFIGURED');
+
+  const { data, error } = await supabase.rpc('validate_payment_cohort_capacity', {
+    p_payment_id: paymentId,
+    p_cohort_id: cohortId
+  });
+
+  if (error) {
+    throw new Error(error.message || 'COHORT_CAPACITY_VALIDATION_FAILED');
+  }
+
+  return data === true;
+}
