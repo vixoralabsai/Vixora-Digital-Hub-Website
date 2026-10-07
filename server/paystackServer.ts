@@ -920,6 +920,9 @@ paystackRouter.get('/config', (_req: Request, res: Response) => {
 // POST /initialize
 // ==============================================================================
 paystackRouter.post('/initialize', async (req: Request, res: Response) => {
+  let reservationReference: string | null = null;
+  let reservationSupabase: any = null;
+
   try {
     // 1. Safe Client IP
     const clientIp = getClientIp(req);
@@ -1019,6 +1022,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     // 7. Generate Secure Unique Transaction Reference
     const reference = `VIX-PS-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    reservationReference = reference;
 
     // Determine secure callback URL
     const reqOrigin = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : '');
@@ -1028,6 +1032,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
 
     const supabase = getSupabaseAdmin();
+    reservationSupabase = supabase;
     let resolvedCourseId = canonicalCourse.id;
     if (supabase) {
       resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
@@ -1186,6 +1191,17 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     });
 
     if (!response.ok || !data.status || !data.data) {
+      if (supabase && selectedCohortId) {
+        try {
+          await supabase
+            .from('payments')
+            .update({ status: 'failed', reservation_expires_at: null, updated_at: new Date().toISOString() })
+            .eq('id', reference);
+        } catch (cleanupErr) {
+          console.warn('[Cohort reservation cleanup warning]:', cleanupErr);
+        }
+      }
+
       return res.status(response.status >= 400 && response.status < 500 ? 400 : 502).json({
         error: data.message || 'Failed to initialize Paystack transaction.',
         code: 'PAYSTACK_INIT_FAILED',
@@ -1209,6 +1225,17 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       seatsRemaining: reservedSeatsRemaining
     });
   } catch (err: any) {
+    if (reservationSupabase && reservationReference) {
+      try {
+        await reservationSupabase
+          .from('payments')
+          .update({ status: 'failed', reservation_expires_at: null, updated_at: new Date().toISOString() })
+          .eq('id', reservationReference)
+          .eq('status', 'pending');
+      } catch (cleanupErr) {
+        console.warn('[Cohort reservation cleanup warning]:', cleanupErr);
+      }
+    }
     console.error('[Paystack Initialize Exception]:', err);
     return res.status(500).json({
       error: 'An internal error occurred while initializing payment.',
