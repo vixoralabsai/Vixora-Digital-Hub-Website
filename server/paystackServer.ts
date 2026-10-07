@@ -1014,7 +1014,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     console.log('[Server Paystack Init Diagnostic: Request]', {
       courseId,
       planId: trainingPlan?.id || null,
-      trainingPlan: trainingPlan.name,
+      trainingPlan: trainingPlan?.name || null,
       hasEmail: Boolean(email),
       hasPhone: Boolean(phone),
       hasSecretKey: Boolean(secretKey),
@@ -1110,9 +1110,9 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     console.log('[Server Paystack Init Diagnostic: Calling Paystack API]', {
       reference,
-      amountKobo: trainingPlan.priceNGN * 100,
-      planId: trainingPlan.id,
-      planName: trainingPlan.name,
+      amountKobo: (trainingPlan?.priceNGN || canonicalCourse.nairaAmount) * 100,
+      planId: trainingPlan?.id || null,
+      planName: trainingPlan?.name || null,
       cohortId: cohort?.id || null,
       cohortName: cohort?.name || null,
       currency: 'NGN',
@@ -1156,7 +1156,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       amountNaira: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
       amountKobo: trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount,
       currency: 'NGN',
-      planId: trainingPlan.id,
+      planId: trainingPlan?.id || null,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title
     });
