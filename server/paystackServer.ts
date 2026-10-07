@@ -5,7 +5,7 @@ import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
 import { findCanonicalCourse, resolveCanonicalCoursePrice, type CanonicalCourse } from './payments/courseCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
-import { listBookableCohorts, reservePaymentCohort } from './payments/cohortService.js';
+import { listBookableCohorts, reservePaymentCohort, validatePaymentCohortCapacity } from './payments/cohortService.js';
 
 export const paystackRouter = Router();
 
@@ -669,6 +669,22 @@ export async function processPaymentFulfillment(
         }
       }
 
+      // Step C: Validate the reserved cohort seat while keeping the payment
+      // pending. The pending reservation remains visible to concurrent checkouts
+      // until the enrollment is actually written.
+      const paymentCohortId = existingPayment?.cohort_id || null;
+      if (paymentCohortId) {
+        try {
+          await validatePaymentCohortCapacity(supabase, reference, String(paymentCohortId));
+        } catch (cohortErr: any) {
+          const message = String(cohortErr?.message || '');
+          if (message.includes('COHORT_FULL')) {
+            throw new Error('Cohort is full before enrollment could be completed.');
+          }
+          throw cohortErr;
+        }
+      }
+
       // Step C: Idempotent Enrollment Fulfillment
       // Preserve existing cohort, progress, modules, and certificate_id
       if (!studentId) {
@@ -695,6 +711,7 @@ export async function processPaymentFulfillment(
           completed_modules: 0,
           total_modules: canonicalCourse.totalModules,
           plan_id: existingPayment.plan_id || null,
+          cohort_id: paymentCohortId,
           enrolled_at: new Date().toISOString()
         });
         if (insertEnrollmentErr) throw insertEnrollmentErr;
@@ -702,7 +719,7 @@ export async function processPaymentFulfillment(
         // If enrollment already exists, ensure status is 'enrolled' without resetting progress
         const { error: updateEnrollmentErr } = await supabase
           .from('enrollments')
-          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, updated_at: new Date().toISOString() })
+          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, cohort_id: paymentCohortId, updated_at: new Date().toISOString() })
           .eq('student_id', studentId)
           .eq('course_id', dbCourseId);
         if (updateEnrollmentErr) throw updateEnrollmentErr;
@@ -869,6 +886,7 @@ export async function processPaymentFulfillment(
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
       planId: canonicalCourse.selectedPlanId || null,
+      cohortId: existingPayment?.cohort_id || null,
       emailDispatchedAt: finalEmailDispatchedAt
     }
   };
