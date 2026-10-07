@@ -164,14 +164,24 @@ body {
   animation: bounceSoft 3s ease-in-out infinite;
 }
 
-input, select, textarea {
+input:not([class*="bg-"]):not([style*="background"]):not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *),
+select:not([class*="bg-"]):not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *),
+textarea:not([class*="bg-"]):not([style*="background"]):not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *) {
   background: var(--vixora-white);
   border-color: var(--vixora-border);
   color: var(--vixora-navy);
 }
 input::placeholder, textarea::placeholder { color: var(--vixora-muted); }
 
-/* High contrast text rules on dark navy/purple backgrounds and cards */
+/* High contrast text rules on dark navy/purple backgrounds, modals, and cards */
+.modal-dark,
+[role="dialog"].modal-dark,
+[data-theme="dark"],
+.bg-\[\#070A1E\],
+.bg-\[\#0B0F2A\],
+.bg-\[\#090D24\],
+.bg-\[\#0E1333\],
+.bg-\[\#0D1230\],
 .bg-\[\#0F1535\],
 .bg-\[\#1A1D4F\],
 .bg-\[\#000048\],
@@ -182,6 +192,7 @@ input::placeholder, textarea::placeholder { color: var(--vixora-muted); }
 .bg-\[\#1E113E\],
 .bg-\[\#0F0724\],
 .bg-\[\#0C061F\],
+.bg-\[\#07031C\],
 .bg-\[\#070314\] {
   color: #F1F5F9;
 }

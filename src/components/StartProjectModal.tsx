@@ -148,14 +148,18 @@ export function StartProjectModal({ isOpen, onClose, onNavigateToDashboard }: St
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="consultation-modal-title"
+      data-theme="dark"
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200 modal-dark"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
     >
-      <div className="bg-[#0C061F] border border-purple-900/40 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-neutral-100 overflow-hidden">
+      <div className="bg-[#0C061F] border border-purple-900/40 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-neutral-100 overflow-hidden modal-dark">
         {/* Glow ambient background inside modal */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/10 blur-[90px] pointer-events-none -z-10" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-600/10 blur-[90px] pointer-events-none -z-10" />

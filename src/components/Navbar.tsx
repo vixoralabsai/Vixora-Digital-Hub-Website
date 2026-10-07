@@ -480,10 +480,10 @@ export function Navbar({
                 id="nav-ai-advisor-btn"
                 onClick={onOpenAiAdvisor}
                 title="Vixora AI Architecture & Career Advisor"
-                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-900/60 to-indigo-950/60 hover:from-purple-800 hover:to-indigo-900 text-purple-200 hover:text-white border border-purple-500/40 shadow-xs transition-all cursor-pointer"
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-[#480878] to-[#7000F8] hover:from-[#5B0898] hover:to-[#8515FF] text-white border border-purple-400/50 shadow-sm transition-all cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                <span>AI Advisor</span>
+                <span>✦ AI Advisor</span>
               </button>
             )}
 

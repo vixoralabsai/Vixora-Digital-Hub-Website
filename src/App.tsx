@@ -473,9 +473,10 @@ function AppContent() {
   const isAcademyView = isAcademyLightBg;
 
   return (
-    <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
-      isAcademyLightBg ? 'bg-[#F7F7FC] text-[#000048]' : 'bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white'
-    }`}>
+    <>
+      <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
+        isAcademyLightBg ? 'bg-[#F7F7FC] text-[#000048]' : 'bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white'
+      }`}>
       {/* Viewport Top Scroll Progress Indicator for Long-Form Pages */}
       <ScrollProgressBar currentPage={route.page} />
 
@@ -641,6 +642,7 @@ function AppContent() {
           onOpenProjectModal={() => setProjectModalOpen(true)}
         />
       )}
+      </div>
 
       {/* Interactive Consultation / Project Scoping Modal */}
       <StartProjectModal
@@ -677,7 +679,7 @@ function AppContent() {
 
       {/* Persistent Floating WhatsApp Inbound Live Connect Widget */}
       <FloatingWhatsAppWidget />
-    </div>
+    </>
   );
 }
 

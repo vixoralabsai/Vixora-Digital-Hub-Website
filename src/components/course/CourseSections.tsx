@@ -40,7 +40,7 @@ export const ToolsMarqueeSection: React.FC<{ tools: CourseTool[] }> = ({ tools }
               Tools & Platforms You Will Master
             </h3>
           </div>
-          <p className="text-xs sm:text-sm text-[#1A1D4F]/70 max-w-md">
+          <p className="text-xs sm:text-sm text-slate-700 max-w-md font-medium">
             No toy simulators. You will gain hands-on muscle memory with the exact platforms industry teams run on daily.
           </p>
         </div>
@@ -55,7 +55,7 @@ export const ToolsMarqueeSection: React.FC<{ tools: CourseTool[] }> = ({ tools }
                 {tool.glyph}
               </div>
               <div className="text-xs font-black text-[#1A1D4F] truncate">{tool.name}</div>
-              <div className="text-[10px] font-semibold text-[#1A1D4F]/60 truncate mt-0.5">
+              <div className="text-[10px] font-bold text-slate-600 truncate mt-0.5">
                 {tool.category}
               </div>
             </div>
@@ -89,7 +89,7 @@ export const CourseProblemSection: React.FC<{
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             {problem.headline}
           </h2>
-          <p className="text-base text-[#1A1D4F]/80 leading-relaxed">
+          <p className="text-base text-slate-800 leading-relaxed font-medium">
             {problem.sub}
           </p>
         </div>
@@ -108,7 +108,7 @@ export const CourseProblemSection: React.FC<{
                 </span>
               </div>
               <h3 className="text-lg font-black text-[#1A1D4F]">{pt.title}</h3>
-              <p className="text-xs sm:text-sm text-[#1A1D4F]/75 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
                 {pt.desc}
               </p>
             </div>
@@ -186,7 +186,7 @@ export const CourseRoadmapSection: React.FC<{
                 <h3 className="text-base sm:text-lg font-black text-[#1A1D4F]">
                   {ph.title}
                 </h3>
-                <p className="text-xs text-[#1A1D4F]/75 leading-relaxed">
+                <p className="text-xs text-slate-700 leading-relaxed font-medium">
                   {ph.focus || ph.description}
                 </p>
               </div>
@@ -226,7 +226,7 @@ export const CourseProjectsSection: React.FC<{
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             What You Will Actually Build.
           </h2>
-          <p className="text-base text-[#1A1D4F]/80">
+          <p className="text-base text-slate-800 font-medium">
             No toy exercises or artificial tutorials. You will engineer production deliverables designed to command client retainers and pass technical interviews.
           </p>
         </div>

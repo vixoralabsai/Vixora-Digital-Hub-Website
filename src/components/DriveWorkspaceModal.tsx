@@ -274,8 +274,13 @@ export function DriveWorkspaceModal({ isOpen, onClose }: DriveWorkspaceModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-4">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      data-theme="dark"
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto modal-dark"
+    >
+      <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-4 modal-dark">
         {/* Modal Top Bar */}
         <div className="px-6 py-4 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">

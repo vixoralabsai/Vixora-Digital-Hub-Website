@@ -71,7 +71,7 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
                 <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={1}>
                   {course.track}
                 </StickerLabel>
-                <span className="hidden sm:inline-block text-xs font-bold text-[#1A1D4F]/70 px-2 py-0.5 border border-[#1A1D4F]/20 rounded-md bg-white">
+                <span className="hidden sm:inline-block text-xs font-bold text-slate-700 px-2.5 py-1 border border-slate-300 rounded-md bg-white">
                   {course.level}
                 </span>
               </div>
@@ -89,7 +89,7 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
               </div>
 
               {/* Subtitle / Value Pitch */}
-              <p className="text-base sm:text-lg text-[#1A1D4F]/85 leading-relaxed font-normal max-w-2xl">
+              <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-normal max-w-2xl">
                 {course.heroPitch || course.description}
               </p>
 
@@ -117,7 +117,7 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
               </div>
 
               {/* Trust & Proof Strip */}
-              <div className="pt-4 border-t-2 border-[#1A1D4F]/10 flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-[#1A1D4F]/80">
+              <div className="pt-4 border-t-2 border-[#1A1D4F]/10 flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-slate-700 font-semibold">
                 <div className="flex items-center gap-1">
                   <div className="flex text-[#FFC107]">
                     {[...Array(5)].map((_, i) => (

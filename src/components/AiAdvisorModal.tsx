@@ -206,46 +206,50 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-[99990] flex items-center justify-center p-3 sm:p-5 bg-[#000028]/80 backdrop-blur-md animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ai-advisor-title"
+      data-theme="dark"
+      className="fixed inset-0 z-[99990] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 modal-dark"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-2xl h-[90vh] max-h-[720px] bg-[#070A1E] border border-white/15 rounded-3xl shadow-[0_24px_64px_rgba(0,0,72,0.6)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl h-[90vh] max-h-[720px] bg-[#070A1E] text-white border border-purple-500/30 rounded-3xl shadow-[0_24px_64px_rgba(0,0,72,0.9)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 modal-dark"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Glowing Top Hairline */}
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#480878] via-[#7000F8] to-[#10B981]" />
+        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#7000F8] via-[#9030F8] to-[#10B981]" />
 
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-[#0B0F2A]/90 backdrop-blur-md">
+        <div className="p-4 sm:p-5 border-b border-white/15 flex items-center justify-between shrink-0 bg-[#0B0F2A] backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7000F8] to-[#480878] text-white flex items-center justify-center shadow-md shadow-purple-900/30">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7000F8] to-[#480878] text-white flex items-center justify-center shadow-lg shadow-purple-900/50 border border-purple-400/30">
               <Sparkles className="w-5 h-5 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-black text-white tracking-tight">
+                <h3 id="ai-advisor-title" className="text-sm sm:text-base font-black text-white tracking-tight">
                   Vixora AI Advisor
                 </h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                  Online
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold">
+                  ● Active
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400">
-                Digital Architect & Tech Career Matcher
+              <p className="text-xs text-purple-200 font-medium">
+                Digital Architecture & Tech Career Matcher
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {remainingQuota !== null && (
-              <span className="hidden sm:inline-block text-[11px] font-mono text-purple-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+              <span className="hidden sm:inline-block text-xs font-mono font-bold text-purple-200 bg-white/10 border border-white/15 px-2.5 py-1 rounded-lg">
                 {remainingQuota} queries left
               </span>
             )}
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               aria-label="Close Advisor"
             >
               <X className="w-5 h-5" />
@@ -254,69 +258,69 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
         </div>
 
         {/* Track Filter Segmented Control */}
-        <div className="px-4 py-2.5 bg-[#090D24] border-b border-white/5 flex items-center justify-between gap-2 overflow-x-auto shrink-0">
-          <span className="text-[11px] font-mono uppercase text-neutral-400 tracking-wider shrink-0 font-semibold">
+        <div className="px-4 py-2.5 bg-[#090D24] border-b border-white/10 flex items-center justify-between gap-2 overflow-x-auto shrink-0">
+          <span className="text-xs font-mono uppercase text-purple-200 tracking-wider shrink-0 font-bold">
             Advisory Focus:
           </span>
-          <div className="inline-flex p-1 bg-white/5 rounded-xl border border-white/10 gap-1">
+          <div className="inline-flex p-1 bg-white/10 rounded-xl border border-white/15 gap-1">
             <button
               onClick={() => setSelectedTrack('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 selectedTrack === 'all'
-                  ? 'bg-[#7000F8] text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-[#7000F8] text-white shadow-md'
+                  : 'text-purple-200 hover:text-white hover:bg-white/10'
               }`}
             >
               All Topics
             </button>
             <button
               onClick={() => setSelectedTrack('business')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 selectedTrack === 'business'
-                  ? 'bg-[#7000F8] text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-[#7000F8] text-white shadow-md'
+                  : 'text-purple-200 hover:text-white hover:bg-white/10'
               }`}
             >
-              <Building2 className="w-3 h-3" />
+              <Building2 className="w-3.5 h-3.5" />
               <span>Business & AI</span>
             </button>
             <button
               onClick={() => setSelectedTrack('academy')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 selectedTrack === 'academy'
-                  ? 'bg-[#7000F8] text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-[#7000F8] text-white shadow-md'
+                  : 'text-purple-200 hover:text-white hover:bg-white/10'
               }`}
             >
-              <GraduationCap className="w-3 h-3" />
+              <GraduationCap className="w-3.5 h-3.5" />
               <span>Academy Cohorts</span>
             </button>
           </div>
         </div>
 
         {/* Messages Stream Container */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#070A1E]">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col justify-center items-center text-center max-w-md mx-auto space-y-6 py-6">
-              <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-purple-300 shadow-xl">
-                <Bot className="w-8 h-8 text-[#7000F8]" />
+              <div className="w-16 h-16 rounded-3xl bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-xl">
+                <Bot className="w-8 h-8 text-purple-300" />
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-lg font-bold text-white tracking-tight">
+                <h4 className="text-xl font-black text-white tracking-tight">
                   How can Vixora help you today?
                 </h4>
-                <p className="text-xs text-neutral-300 leading-relaxed">
-                  Ask anything about architecting custom AI software, building automated WhatsApp & CRM workflows, or finding the right high-income course.
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
+                  Ask anything about architecting custom AI software, building automated WhatsApp workflows, or selecting the highest-income academy track.
                 </p>
               </div>
 
               {/* Starter Prompts */}
-              <div className="w-full space-y-2 text-left">
-                <div className="text-[10px] font-mono uppercase text-purple-300/80 font-bold px-1">
-                  Suggested Prompts:
+              <div className="w-full space-y-2.5 text-left">
+                <div className="text-xs font-mono uppercase text-purple-300 font-bold px-1">
+                  Suggested Questions:
                 </div>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-2.5">
                   {STARTER_PROMPTS.map((prompt, idx) => {
                     const Icon = prompt.icon;
                     return (
@@ -326,17 +330,17 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
                           setSelectedTrack(prompt.track);
                           handleSendMessage(prompt.label);
                         }}
-                        className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 text-left transition-all flex items-center justify-between group cursor-pointer"
+                        className="p-3.5 rounded-2xl bg-[#0F1535] hover:bg-[#161F4D] border border-purple-500/30 hover:border-purple-400/70 text-left transition-all flex items-center justify-between group cursor-pointer shadow-md"
                       >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-purple-900/40 text-purple-300 shrink-0">
-                            <Icon className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-purple-600/30 text-purple-200 shrink-0 border border-purple-500/40">
+                            <Icon className="w-4 h-4" />
                           </div>
-                          <span className="text-xs text-neutral-200 group-hover:text-white font-medium">
+                          <span className="text-xs sm:text-sm text-white font-bold">
                             {prompt.label}
                           </span>
                         </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                        <ArrowRight className="w-4 h-4 text-purple-300 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
                       </button>
                     );
                   })}
@@ -351,45 +355,60 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
                   className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'model' && (
-                    <div className="w-8 h-8 rounded-xl bg-purple-900/50 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-xl bg-purple-900/60 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0 mt-1 shadow-sm">
                       <Sparkles className="w-4 h-4 text-amber-300" />
                     </div>
                   )}
 
                   <div
-                    className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed space-y-3 ${
+                    className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed space-y-3 ${
                       msg.role === 'user'
-                        ? 'bg-gradient-to-r from-[#480878] to-[#7000F8] text-white shadow-md'
-                        : 'bg-white/5 border border-white/10 text-neutral-200 backdrop-blur-md'
+                        ? 'bg-gradient-to-r from-[#5B0898] to-[#7000F8] text-white shadow-lg border border-purple-400/50'
+                        : 'bg-[#0E1333] border border-purple-500/30 text-slate-100 shadow-xl'
                     }`}
                   >
-                    <div className="prose prose-invert prose-xs max-w-none text-neutral-200 font-sans leading-relaxed">
-                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    <div className="font-sans leading-relaxed text-slate-100">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ children }) => <h1 className="text-base font-black text-white mt-3 mb-1.5">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-sm font-black text-white mt-3 mb-1.5">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-xs font-bold text-purple-200 mt-2.5 mb-1 tracking-wide">{children}</h3>,
+                          p: ({ children }) => <p className="text-xs sm:text-sm text-slate-100 leading-relaxed mb-2 last:mb-0 font-normal">{children}</p>,
+                          strong: ({ children }) => <strong className="font-black text-white">{children}</strong>,
+                          ul: ({ children }) => <ul className="space-y-1.5 my-2 pl-4 list-disc text-slate-200 text-xs sm:text-sm">{children}</ul>,
+                          ol: ({ children }) => <ol className="space-y-1.5 my-2 pl-4 list-decimal text-slate-200 text-xs sm:text-sm">{children}</ol>,
+                          li: ({ children }) => <li className="text-slate-200 leading-relaxed">{children}</li>,
+                          code: ({ children }) => <code className="bg-[#1C1238] border border-purple-400/50 text-purple-200 px-1.5 py-0.5 rounded font-mono text-[11px] font-semibold">{children}</code>,
+                          blockquote: ({ children }) => <blockquote className="border-l-2 border-purple-400 pl-3 italic text-purple-200 my-2">{children}</blockquote>
+                        }}
+                      >
+                        {msg.text}
+                      </ReactMarkdown>
                     </div>
 
                     {/* Interactive Suggested Action Buttons */}
                     {msg.suggestedActions && msg.suggestedActions.length > 0 && (
-                      <div className="pt-2 border-t border-white/10 flex flex-wrap gap-2">
+                      <div className="pt-3 border-t border-white/15 flex flex-wrap gap-2">
                         {msg.suggestedActions.map((action, aIdx) => (
                           <button
                             key={aIdx}
                             onClick={() => handleActionClick(action)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[#7000F8]/30 hover:bg-[#7000F8] text-white border border-[#7000F8]/60 transition-all cursor-pointer shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white border border-purple-400/50 transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
                           >
                             <span>{action.label}</span>
-                            <ArrowRight className="w-3 h-3" />
+                            <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
                           </button>
                         ))}
                       </div>
                     )}
 
-                    <div className="text-[10px] text-neutral-400 text-right font-mono">
+                    <div className="text-[10px] text-purple-200 text-right font-mono font-semibold pt-1">
                       {msg.timestamp}
                     </div>
                   </div>
 
                   {msg.role === 'user' && (
-                    <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-xl bg-purple-600 border border-purple-400 flex items-center justify-center text-white shrink-0 mt-1 shadow-sm">
                       <User className="w-4 h-4" />
                     </div>
                   )}
@@ -399,12 +418,12 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
               {/* Streaming / Typing Indicator */}
               {isLoading && (
                 <div className="flex gap-3 justify-start items-center">
-                  <div className="w-8 h-8 rounded-xl bg-purple-900/50 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-purple-900/60 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0">
                     <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-xs text-neutral-300 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
-                    <span className="font-mono text-[11px] text-purple-200">
+                  <div className="p-3.5 rounded-2xl bg-[#0E1333] border border-purple-500/30 text-xs sm:text-sm text-slate-200 flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-ping" />
+                    <span className="font-mono text-xs text-purple-200 font-semibold">
                       Vixora AI is architecting recommendation...
                     </span>
                   </div>
@@ -413,13 +432,13 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
 
               {/* Error Callout */}
               {errorMessage && (
-                <div className="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2.5">
+                <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/60 text-xs sm:text-sm text-rose-100 flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="font-semibold">{errorMessage}</p>
                     <button
                       onClick={() => handleSendMessage()}
-                      className="text-[11px] underline text-rose-300 hover:text-white cursor-pointer font-mono"
+                      className="text-xs underline text-rose-300 hover:text-white cursor-pointer font-mono font-bold"
                     >
                       Retry request
                     </button>
@@ -433,7 +452,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
         </div>
 
         {/* Input Bar */}
-        <div className="p-3 sm:p-4 bg-[#090D24] border-t border-white/10 shrink-0">
+        <div className="p-3 sm:p-4 bg-[#090D24] border-t border-white/15 shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -449,23 +468,24 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
               placeholder="Ask about a custom software build or tech course..."
               disabled={isLoading}
               maxLength={2000}
-              className="flex-1 bg-white/5 border border-white/15 focus:border-[#7000F8] focus:ring-1 focus:ring-[#7000F8] rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder-neutral-500 outline-none transition-all disabled:opacity-50"
+              style={{ color: '#FFFFFF', backgroundColor: '#0F1535' }}
+              className="flex-1 bg-[#0F1535] text-white border border-purple-500/40 focus:border-purple-300 focus:ring-1 focus:ring-purple-300 rounded-2xl px-4 py-3 text-xs sm:text-sm placeholder:text-slate-400 outline-none transition-all disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!inputMessage.trim() || isLoading}
-              className="p-3 rounded-2xl bg-[#7000F8] hover:bg-[#5B00D0] disabled:bg-white/10 disabled:text-neutral-600 text-white transition-all shadow-md shadow-purple-900/30 cursor-pointer disabled:cursor-not-allowed shrink-0"
+              className="p-3 rounded-2xl bg-gradient-to-r from-[#7000F8] to-[#9030F8] hover:opacity-95 disabled:bg-white/10 disabled:text-neutral-500 text-white transition-all shadow-md shadow-purple-900/40 cursor-pointer disabled:cursor-not-allowed shrink-0"
               aria-label="Send message"
             >
               {isLoading ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <RefreshCw className="w-4 h-4 animate-spin text-white" />
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 text-white" />
               )}
             </button>
           </form>
 
-          <div className="flex items-center justify-between text-[10px] text-neutral-400 px-2 pt-2 font-mono">
+          <div className="flex items-center justify-between text-xs text-slate-300 px-2 pt-2 font-mono">
             <span>Powered by Gemini 3.8 Intelligence</span>
             <span>Esc to close</span>
           </div>

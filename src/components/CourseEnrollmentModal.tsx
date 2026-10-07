@@ -190,7 +190,12 @@ export function CourseEnrollmentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="course-enrollment-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-[#0F1535]/80 backdrop-blur-sm transition-opacity"
@@ -219,7 +224,7 @@ export function CourseEnrollmentModal({
             </span>
           </div>
 
-          <h2 className="font-display font-black text-2xl sm:text-3xl text-[#1A1D4F] tracking-tight">
+          <h2 id="course-enrollment-title" className="font-display font-black text-2xl sm:text-3xl text-[#1A1D4F] tracking-tight">
             Enroll in {course.title}
           </h2>
 

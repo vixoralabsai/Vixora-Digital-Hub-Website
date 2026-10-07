@@ -179,10 +179,10 @@ export function AcademyNavbar({
             {onOpenAiAdvisor && (
               <button
                 onClick={onOpenAiAdvisor}
-                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800 text-white border border-purple-400/30 shadow-xs"
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer bg-gradient-to-r from-[#480878] to-[#7000F8] hover:from-[#5B0898] hover:to-[#8515FF] text-white border border-purple-400/50 shadow-sm"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                <span>AI Advisor</span>
+                <span>✦ AI Advisor</span>
               </button>
             )}
 

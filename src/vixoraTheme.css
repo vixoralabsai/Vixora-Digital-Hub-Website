@@ -1,6 +1,6 @@
 /* VIXORA DIGITAL HUB — GLOBAL COLOR & ACCESSIBILITY CONTRAST SYSTEM
- * Enforces strict WCAG AA contrast, consistent brand palette tokens,
- * and reliable light/dark contrast boundaries across all views.
+ * Enforces strict WCAG AA contrast (minimum 4.5:1, up to 14:1), consistent brand palette tokens,
+ * and reliable light/dark contrast boundaries across all views, modals, inputs, and components.
  */
 
 :root {
@@ -18,12 +18,22 @@
 
 /* ==========================================================================
    1. GLOBAL RULE: DARK BACKGROUNDS → LIGHT READABLE FOREGROUND TEXT
-   Whenever a dark background is used, foreground text must be LIGHT (#FFFFFF
-   or light neutral tones) and clearly readable.
-   DO NOT place dark navy, black, or similarly dark text on dark backgrounds.
+   Whenever a dark background, section, card, banner, or modal is used:
+   - Headings are pure white (#FFFFFF)
+   - Body text is crisp light neutral (#F8FAFC / #E2E8F0)
+   - Subtext and metadata are readable light slate (#CBD5E1 / #94A3B8)
+   - Brand accents are vibrant light violet/purple (#E2D4FD / #C7A0FF)
    ========================================================================== */
 
 /* Dark Containers, Sections, Cards, Banners, and Modals */
+.modal-dark,
+[role="dialog"].modal-dark,
+[data-theme="dark"],
+.bg-\[\#070A1E\],
+.bg-\[\#0B0F2A\],
+.bg-\[\#090D24\],
+.bg-\[\#0E1333\],
+.bg-\[\#0D1230\],
 .bg-\[\#0F1535\],
 .bg-\[\#1A1D4F\],
 .bg-\[\#000048\],
@@ -32,6 +42,7 @@
 .bg-\[\#08082F\],
 .bg-\[\#05020F\],
 .bg-\[\#070314\],
+.bg-\[\#07031C\],
 .bg-\[\#0B051D\],
 .bg-\[\#0B0520\],
 .bg-\[\#0C061F\],
@@ -39,6 +50,9 @@
 .bg-\[\#0D0621\],
 .bg-\[\#1E113E\],
 .bg-\[\#0F0724\],
+.bg-\[\#150B33\],
+.bg-\[\#0E0728\],
+.bg-\[\#161F4D\],
 .bg-neutral-900,
 .bg-neutral-950,
 .bg-purple-950,
@@ -49,43 +63,52 @@
 [class*="from-[#1A1D4F]"],
 [class*="from-[#480878]"],
 [class*="from-[#1E113E]"],
-[class*="bg-gradient-to-r from-[#000048]"],
-[class*="bg-gradient-to-r from-[#0F1535]"],
+[class*="from-[#0C061F]"],
 #hero,
 #footer,
-footer,
-.modal-dark,
-[role="dialog"] [class*="bg-neutral-900"],
-[role="dialog"] [class*="bg-neutral-950"],
-[role="dialog"] [class*="bg-[#0C061F]"] {
+footer {
   color: #F8FAFC;
 }
 
 /* Headings on dark backgrounds must be pure white */
-.bg-\[\#0F1535\] h1, .bg-\[\#0F1535\] h2, .bg-\[\#0F1535\] h3, .bg-\[\#0F1535\] h4, .bg-\[\#0F1535\] h5, .bg-\[\#0F1535\] h6,
-.bg-\[\#1A1D4F\] h1, .bg-\[\#1A1D4F\] h2, .bg-\[\#1A1D4F\] h3, .bg-\[\#1A1D4F\] h4, .bg-\[\#1A1D4F\] h5, .bg-\[\#1A1D4F\] h6,
-.bg-\[\#000048\] h1, .bg-\[\#000048\] h2, .bg-\[\#000048\] h3, .bg-\[\#000048\] h4, .bg-\[\#000048\] h5, .bg-\[\#000048\] h6,
-.bg-\[\#070314\] h1, .bg-\[\#070314\] h2, .bg-\[\#070314\] h3, .bg-\[\#070314\] h4, .bg-\[\#070314\] h5, .bg-\[\#070314\] h6,
-.bg-\[\#0C061F\] h1, .bg-\[\#0C061F\] h2, .bg-\[\#0C061F\] h3, .bg-\[\#0C061F\] h4, .bg-\[\#0C061F\] h5, .bg-\[\#0C061F\] h6,
-.bg-\[\#0D0621\] h1, .bg-\[\#0D0621\] h2, .bg-\[\#0D0621\] h3, .bg-\[\#0D0621\] h4, .bg-\[\#0D0621\] h5, .bg-\[\#0D0621\] h6,
-.bg-\[\#1E113E\] h1, .bg-\[\#1E113E\] h2, .bg-\[\#1E113E\] h3, .bg-\[\#1E113E\] h4, .bg-\[\#1E113E\] h5, .bg-\[\#1E113E\] h6,
-.bg-neutral-900 h1, .bg-neutral-900 h2, .bg-neutral-900 h3, .bg-neutral-900 h4, .bg-neutral-900 h5, .bg-neutral-900 h6,
-.bg-neutral-950 h1, .bg-neutral-950 h2, .bg-neutral-950 h3, .bg-neutral-950 h4, .bg-neutral-950 h5, .bg-neutral-950 h6,
-[class*="from-[#000048]"] h1, [class*="from-[#000048]"] h2, [class*="from-[#000048]"] h3, [class*="from-[#000048]"] h4, [class*="from-[#000048]"] h5, [class*="from-[#000048]"] h6,
-[class*="from-[#0F1535]"] h1, [class*="from-[#0F1535]"] h2, [class*="from-[#0F1535]"] h3, [class*="from-[#0F1535]"] h4, [class*="from-[#0F1535]"] h5, [class*="from-[#0F1535]"] h6,
-[class*="from-[#480878]"] h1, [class*="from-[#480878]"] h2, [class*="from-[#480878]"] h3, [class*="from-[#480878]"] h4, [class*="from-[#480878]"] h5, [class*="from-[#480878]"] h6,
+.modal-dark h1, .modal-dark h2, .modal-dark h3, .modal-dark h4, .modal-dark h5, .modal-dark h6,
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4,
+[role="dialog"] h1, [role="dialog"] h2, [role="dialog"] h3, [role="dialog"] h4,
+.bg-\[\#070A1E\] h1, .bg-\[\#070A1E\] h2, .bg-\[\#070A1E\] h3, .bg-\[\#070A1E\] h4,
+.bg-\[\#0B0F2A\] h1, .bg-\[\#0B0F2A\] h2, .bg-\[\#0B0F2A\] h3, .bg-\[\#0B0F2A\] h4,
+.bg-\[\#090D24\] h1, .bg-\[\#090D24\] h2, .bg-\[\#090D24\] h3, .bg-\[\#090D24\] h4,
+.bg-\[\#0E1333\] h1, .bg-\[\#0E1333\] h2, .bg-\[\#0E1333\] h3, .bg-\[\#0E1333\] h4,
+.bg-\[\#0D1230\] h1, .bg-\[\#0D1230\] h2, .bg-\[\#0D1230\] h3, .bg-\[\#0D1230\] h4,
+.bg-\[\#0F1535\] h1, .bg-\[\#0F1535\] h2, .bg-\[\#0F1535\] h3, .bg-\[\#0F1535\] h4,
+.bg-\[\#1A1D4F\] h1, .bg-\[\#1A1D4F\] h2, .bg-\[\#1A1D4F\] h3, .bg-\[\#1A1D4F\] h4,
+.bg-\[\#000048\] h1, .bg-\[\#000048\] h2, .bg-\[\#000048\] h3, .bg-\[\#000048\] h4,
+.bg-\[\#070314\] h1, .bg-\[\#070314\] h2, .bg-\[\#070314\] h3, .bg-\[\#070314\] h4,
+.bg-\[\#07031C\] h1, .bg-\[\#07031C\] h2, .bg-\[\#07031C\] h3, .bg-\[\#07031C\] h4,
+.bg-\[\#0C061F\] h1, .bg-\[\#0C061F\] h2, .bg-\[\#0C061F\] h3, .bg-\[\#0C061F\] h4,
+.bg-\[\#0D0621\] h1, .bg-\[\#0D0621\] h2, .bg-\[\#0D0621\] h3, .bg-\[\#0D0621\] h4,
+.bg-\[\#1E113E\] h1, .bg-\[\#1E113E\] h2, .bg-\[\#1E113E\] h3, .bg-\[\#1E113E\] h4,
+.bg-neutral-900 h1, .bg-neutral-900 h2, .bg-neutral-900 h3, .bg-neutral-900 h4,
+.bg-neutral-950 h1, .bg-neutral-950 h2, .bg-neutral-950 h3, .bg-neutral-950 h4,
+[class*="from-[#000048]"] h1, [class*="from-[#000048]"] h2, [class*="from-[#000048]"] h3,
+[class*="from-[#0F1535]"] h1, [class*="from-[#0F1535]"] h2, [class*="from-[#0F1535]"] h3,
+[class*="from-[#480878]"] h1, [class*="from-[#480878]"] h2, [class*="from-[#480878]"] h3,
 #hero h1, #hero h2, #hero h3,
 #footer h1, #footer h2, #footer h3, #footer h4,
-footer h1, footer h2, footer h3, footer h4,
-[role="dialog"] [class*="bg-neutral-900"] h2,
-[role="dialog"] [class*="bg-neutral-900"] h3,
-[role="dialog"] [class*="bg-[#0C061F]"] h2,
-[role="dialog"] [class*="bg-[#0C061F]"] h3 {
+footer h1, footer h2, footer h3, footer h4 {
   color: #FFFFFF !important;
 }
 
-/* Subtext, descriptions, and labels on dark backgrounds */
+/* Paragraphs & descriptions on dark surfaces */
+.modal-dark p,
+[data-theme="dark"] p,
+[role="dialog"] p,
+.bg-\[\#070A1E\] p,
+.bg-\[\#0B0F2A\] p,
+.bg-\[\#090D24\] p,
+.bg-\[\#0E1333\] p,
+.bg-\[\#0D1230\] p,
 .bg-\[\#070314\] p,
+.bg-\[\#07031C\] p,
 .bg-\[\#0F1535\] p,
 .bg-\[\#1A1D4F\] p,
 .bg-\[\#000048\] p,
@@ -103,8 +126,17 @@ footer p {
   color: #CBD5E1;
 }
 
-/* Explicitly preserve light text tokens on dark canvases */
+/* Explicitly preserve light text tokens on dark surfaces */
+.modal-dark [class~="text-white"],
+[data-theme="dark"] [class~="text-white"],
+[role="dialog"] [class~="text-white"],
+.bg-\[\#070A1E\] [class~="text-white"],
+.bg-\[\#0B0F2A\] [class~="text-white"],
+.bg-\[\#090D24\] [class~="text-white"],
+.bg-\[\#0E1333\] [class~="text-white"],
+.bg-\[\#0D1230\] [class~="text-white"],
 .bg-\[\#070314\] [class~="text-white"],
+.bg-\[\#07031C\] [class~="text-white"],
 .bg-\[\#0F1535\] [class~="text-white"],
 .bg-\[\#1A1D4F\] [class~="text-white"],
 .bg-\[\#000048\] [class~="text-white"],
@@ -118,13 +150,21 @@ footer p {
 [class*="from-[#480878]"] [class~="text-white"],
 #hero [class~="text-white"],
 #footer [class~="text-white"],
-footer [class~="text-white"],
-[role="dialog"] [class~="text-white"] {
+footer [class~="text-white"] {
   color: #FFFFFF !important;
 }
 
-/* Secondary neutral tokens on dark backgrounds */
+/* Secondary neutral tokens on dark surfaces */
+.modal-dark [class~="text-neutral-300"],
+[data-theme="dark"] [class~="text-neutral-300"],
+[role="dialog"] [class~="text-neutral-300"],
+.bg-\[\#070A1E\] [class~="text-neutral-300"],
+.bg-\[\#0B0F2A\] [class~="text-neutral-300"],
+.bg-\[\#090D24\] [class~="text-neutral-300"],
+.bg-\[\#0E1333\] [class~="text-neutral-300"],
+.bg-\[\#0D1230\] [class~="text-neutral-300"],
 .bg-\[\#070314\] [class~="text-neutral-300"],
+.bg-\[\#07031C\] [class~="text-neutral-300"],
 .bg-\[\#0F1535\] [class~="text-neutral-300"],
 .bg-\[\#000048\] [class~="text-neutral-300"],
 .bg-\[\#0C061F\] [class~="text-neutral-300"],
@@ -132,10 +172,19 @@ footer [class~="text-white"],
 .bg-neutral-900 [class~="text-neutral-300"],
 .bg-neutral-950 [class~="text-neutral-300"],
 #hero [class~="text-neutral-300"] {
-  color: #CBD5E1 !important;
+  color: #E2E8F0 !important;
 }
 
+.modal-dark [class~="text-neutral-400"],
+[data-theme="dark"] [class~="text-neutral-400"],
+[role="dialog"] [class~="text-neutral-400"],
+.bg-\[\#070A1E\] [class~="text-neutral-400"],
+.bg-\[\#0B0F2A\] [class~="text-neutral-400"],
+.bg-\[\#090D24\] [class~="text-neutral-400"],
+.bg-\[\#0E1333\] [class~="text-neutral-400"],
+.bg-\[\#0D1230\] [class~="text-neutral-400"],
 .bg-\[\#070314\] [class~="text-neutral-400"],
+.bg-\[\#07031C\] [class~="text-neutral-400"],
 .bg-\[\#0F1535\] [class~="text-neutral-400"],
 .bg-\[\#000048\] [class~="text-neutral-400"],
 .bg-\[\#0C061F\] [class~="text-neutral-400"],
@@ -146,7 +195,15 @@ footer [class~="text-white"],
   color: #94A3B8 !important;
 }
 
-/* Light purple and blue accents on dark backgrounds */
+/* Light purple accents on dark backgrounds */
+.modal-dark [class~="text-purple-200"],
+[data-theme="dark"] [class~="text-purple-200"],
+[role="dialog"] [class~="text-purple-200"],
+.bg-\[\#070A1E\] [class~="text-purple-200"],
+.bg-\[\#0B0F2A\] [class~="text-purple-200"],
+.bg-\[\#090D24\] [class~="text-purple-200"],
+.bg-\[\#0E1333\] [class~="text-purple-200"],
+.bg-\[\#0D1230\] [class~="text-purple-200"],
 .bg-\[\#070314\] [class~="text-purple-200"],
 .bg-\[\#000048\] [class~="text-purple-200"],
 .bg-\[\#0F1535\] [class~="text-purple-200"],
@@ -155,6 +212,14 @@ footer [class~="text-white"],
   color: #E2D4FD !important;
 }
 
+.modal-dark [class~="text-purple-300"],
+[data-theme="dark"] [class~="text-purple-300"],
+[role="dialog"] [class~="text-purple-300"],
+.bg-\[\#070A1E\] [class~="text-purple-300"],
+.bg-\[\#0B0F2A\] [class~="text-purple-300"],
+.bg-\[\#090D24\] [class~="text-purple-300"],
+.bg-\[\#0E1333\] [class~="text-purple-300"],
+.bg-\[\#0D1230\] [class~="text-purple-300"],
 .bg-\[\#070314\] [class~="text-purple-300"],
 .bg-\[\#000048\] [class~="text-purple-300"],
 .bg-\[\#0F1535\] [class~="text-purple-300"],
@@ -167,38 +232,39 @@ footer [class~="text-white"],
    2. BUTTONS AUDIT — SYSTEM-WIDE CONTRAST RULES
    ========================================================================== */
 
-/* (A) Buttons with Dark Navy / Purple / Dark Neutral / Gradient Backgrounds:
+/* (A) Buttons with Dark Navy / Purple / Emerald / Accent Backgrounds:
    Button text MUST be light/white, with strong visual contrast.
    Icons inside buttons MUST match the light text color. */
 button[class*="bg-[#480878]"],
 button[class*="bg-[#5B5FED]"],
 button[class*="bg-[#7000F8]"],
 button[class*="bg-[#9030F8]"],
+button[class*="bg-[#5B0898]"],
 button[class*="bg-[#0F1535]"],
 button[class*="bg-[#000048]"],
-button[class*="bg-purple-600"],
-button[class*="bg-purple-700"],
-button[class*="bg-purple-800"],
-button[class*="bg-purple-900"],
-button[class*="bg-purple-950"],
-button[class*="bg-indigo-600"],
-button[class*="bg-indigo-700"],
-button[class*="bg-neutral-900"],
-button[class*="bg-neutral-950"],
-button[class*="bg-slate-900"],
-button[class*="bg-slate-950"],
+button[class*="bg-[#10B981]"],
+button[class*="bg-[#FF8A65]"],
+button[class*="bg-purple-"],
+button[class*="bg-indigo-"],
+button[class*="bg-emerald-"],
+button[class*="bg-neutral-9"],
+button[class*="bg-slate-9"],
 button[class*="from-[#480878]"],
 button[class*="from-[#000048]"],
 button[class*="from-[#0F1535]"],
-button[class*="from-purple-600"],
-button[class*="from-indigo-600"],
+button[class*="from-purple-"],
+button[class*="from-indigo-"],
 a[class*="bg-[#480878]"],
 a[class*="bg-[#5B5FED]"],
 a[class*="bg-[#7000F8]"],
+a[class*="bg-[#9030F8]"],
+a[class*="bg-[#5B0898]"],
 a[class*="bg-[#0F1535]"],
 a[class*="bg-[#000048]"],
-a[class*="bg-purple-600"],
-a[class*="bg-purple-700"],
+a[class*="bg-[#10B981]"],
+a[class*="bg-[#FF8A65]"],
+a[class*="bg-purple-"],
+a[class*="bg-indigo-"],
 a[class*="from-[#480878]"],
 a[class*="from-[#000048]"],
 a[class*="from-[#0F1535]"] {
@@ -209,49 +275,52 @@ button[class*="bg-[#480878]"] *,
 button[class*="bg-[#5B5FED]"] *,
 button[class*="bg-[#7000F8]"] *,
 button[class*="bg-[#9030F8]"] *,
+button[class*="bg-[#5B0898]"] *,
 button[class*="bg-[#0F1535]"] *,
 button[class*="bg-[#000048]"] *,
-button[class*="bg-purple-600"] *,
-button[class*="bg-purple-700"] *,
-button[class*="bg-purple-800"] *,
-button[class*="bg-purple-900"] *,
-button[class*="bg-purple-950"] *,
+button[class*="bg-[#10B981]"] *,
+button[class*="bg-[#FF8A65]"] *,
+button[class*="bg-purple-"] *,
+button[class*="bg-indigo-"] *,
+button[class*="bg-emerald-"] *,
 button[class*="from-[#480878]"] *,
 button[class*="from-[#000048]"] *,
 button[class*="from-[#0F1535]"] *,
-button[class*="from-purple-600"] *,
-button[class*="from-indigo-600"] *,
+button[class*="from-purple-"] *,
+button[class*="from-indigo-"] *,
 a[class*="bg-[#480878]"] *,
 a[class*="bg-[#5B5FED]"] *,
 a[class*="bg-[#7000F8]"] *,
+a[class*="bg-[#9030F8]"] *,
+a[class*="bg-[#5B0898]"] *,
 a[class*="bg-[#0F1535]"] *,
 a[class*="bg-[#000048]"] *,
+a[class*="bg-[#10B981]"] *,
+a[class*="bg-[#FF8A65]"] *,
 a[class*="from-[#480878]"] *,
 a[class*="from-[#000048]"] *,
 a[class*="from-[#0F1535]"] * {
   color: #FFFFFF !important;
 }
 
-/* Icons inside dark buttons must be white */
 button[class*="bg-[#480878]"] svg,
 button[class*="bg-[#5B5FED]"] svg,
 button[class*="bg-[#7000F8]"] svg,
 button[class*="bg-[#9030F8]"] svg,
+button[class*="bg-[#5B0898]"] svg,
 button[class*="bg-[#0F1535]"] svg,
 button[class*="bg-[#000048]"] svg,
-button[class*="bg-purple-600"] svg,
-button[class*="bg-purple-700"] svg,
-button[class*="bg-purple-800"] svg,
-button[class*="bg-purple-900"] svg,
-button[class*="bg-purple-950"] svg,
+button[class*="bg-[#10B981]"] svg,
+button[class*="bg-[#FF8A65]"] svg,
+button[class*="bg-purple-"] svg,
+button[class*="bg-indigo-"] svg,
 button[class*="from-[#480878]"] svg,
 button[class*="from-[#000048]"] svg,
 button[class*="from-[#0F1535]"] svg,
-button[class*="from-purple-600"] svg,
-button[class*="from-indigo-600"] svg,
 a[class*="bg-[#480878]"] svg,
 a[class*="bg-[#5B5FED]"] svg,
 a[class*="bg-[#7000F8]"] svg,
+a[class*="bg-[#9030F8]"] svg,
 a[class*="bg-[#0F1535]"] svg,
 a[class*="bg-[#000048]"] svg,
 a[class*="from-[#480878]"] svg,
@@ -261,9 +330,8 @@ a[class*="from-[#0F1535]"] svg {
   stroke: #FFFFFF !important;
 }
 
-/* (B) Buttons with Accent Yellow / Gold (#FFD700 / #FFC107 / amber / yellow) Backgrounds:
-   Button text MUST be sufficiently dark (such as dark navy #0F1535 or black #020617)
-   to guarantee readability. DO NOT use white text on yellow/gold buttons. */
+/* (B) Buttons & Badges with Accent Yellow / Gold Backgrounds:
+   Text MUST be dark navy (#0F1535) for WCAG AA readability. */
 button[class*="bg-amber-400"],
 button[class*="bg-amber-500"],
 button[class*="bg-yellow-400"],
@@ -308,7 +376,6 @@ a[class*="bg-[#FFC107]"] * {
   font-weight: 700 !important;
 }
 
-/* Icons inside yellow/gold buttons must be dark navy */
 button[class*="bg-amber-400"] svg,
 button[class*="bg-amber-500"] svg,
 button[class*="bg-yellow-400"] svg,
@@ -326,7 +393,7 @@ a[class*="bg-[#FFC107]"] svg {
 }
 
 /* (C) Buttons with Light / White Backgrounds:
-   Text must be dark navy (#0F1535) or primary purple (#5B5FED) */
+   Text is dark navy (#0F1535) */
 button[class*="bg-white"],
 button[class*="bg-[#FFFFFF]"],
 button[class*="bg-neutral-100"],
@@ -338,121 +405,53 @@ a[class*="bg-[#FFFFFF]"] {
 
 /* ==========================================================================
    3. LIGHT SECTIONS — TYPOGRAPHY & CONTRAST
-   For light/white sections or cards:
-   - headings: dark navy (#0F1535 / #000048)
-   - body text: dark readable text (dark gray / slate)
-   - secondary text: muted dark/gray text that meets WCAG AA contrast (>= 4.5:1)
-   - DO NOT use light gray or white text on light backgrounds
+   Scoped strictly so that dark modals, dark cards, and dark banners are NOT affected.
    ========================================================================== */
 
-/* Headings in light sections */
-.bg-white h1, .bg-white h2, .bg-white h3, .bg-white h4, .bg-white h5, .bg-white h6,
-.bg-\[\#F7F7FC\] h1, .bg-\[\#F7F7FC\] h2, .bg-\[\#F7F7FC\] h3, .bg-\[\#F7F7FC\] h4, .bg-\[\#F7F7FC\] h5, .bg-\[\#F7F7FC\] h6,
-.bg-\[\#FFFFFF\] h1, .bg-\[\#FFFFFF\] h2, .bg-\[\#FFFFFF\] h3, .bg-\[\#FFFFFF\] h4, .bg-\[\#FFFFFF\] h5, .bg-\[\#FFFFFF\] h6,
-.vixora-page h1, .vixora-page h2, .vixora-page h3, .vixora-page h4, .vixora-page h5, .vixora-page h6 {
+/* Headings in light sections (only when not inside a dark container) */
+.bg-white h1:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-white h2:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-white h3:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-white h4:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#F7F7FC\] h1:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#F7F7FC\] h2:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#F7F7FC\] h3:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#F7F7FC\] h4:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#FFFFFF\] h1:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#FFFFFF\] h2:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#FFFFFF\] h3:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#FFFFFF\] h4:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.vixora-page h1, .vixora-page h2, .vixora-page h3, .vixora-page h4 {
   color: #0F1535;
 }
 
-/* Body text in light sections */
-.bg-white p,
-.bg-\[\#F7F7FC\] p,
-.bg-\[\#FFFFFF\] p,
+/* Body text in light sections (only when not inside a dark container) */
+.bg-white p:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#F7F7FC\] p:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
+.bg-\[\#FFFFFF\] p:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"], [class*="bg-neutral-9"], [class*="bg-slate-9"], [class*="bg-purple-9"], [class*="bg-[#480878]"], [class*="bg-[#1A1D4F]"], [class*="from-"]) *),
 .vixora-page p {
   color: #334155;
 }
 
-/*
- * Strong light-surface contrast guard.
- * Explicit white text on a light surface is corrected unless that text is
- * itself or a descendant of a dark/gradient surface where white is intentional.
- */
-.bg-white [class~="text-white"]:not(:is(
-  [class*="bg-[#0"], [class*="bg-[#0"] *,
-  [class*="bg-[#1"], [class*="bg-[#1"] *,
-  [class*="bg-[#2"], [class*="bg-[#2"] *,
-  [class*="bg-purple-"], [class*="bg-purple-"] *,
-  [class*="bg-indigo-"], [class*="bg-indigo-"] *,
-  [class*="bg-blue-"], [class*="bg-blue-"] *,
-  [class*="bg-neutral-8"], [class*="bg-neutral-8"] *,
-  [class*="bg-neutral-9"], [class*="bg-neutral-9"] *,
-  [class*="bg-slate-8"], [class*="bg-slate-8"] *,
-  [class*="bg-slate-9"], [class*="bg-slate-9"] *,
-  [class*="from-"], [class*="from-"] *,
-  [class*="via-"], [class*="via-"] *,
-  [class*="to-"], [class*="to-"] *
-)) {
-  color: #0F1535 !important;
-}
-
-.bg-\[\#F7F7FC\] [class~="text-white"]:not(:is(
-  [class*="bg-[#0"], [class*="bg-[#0"] *,
-  [class*="bg-[#1"], [class*="bg-[#1"] *,
-  [class*="bg-[#2"], [class*="bg-[#2"] *,
-  [class*="bg-purple-"], [class*="bg-purple-"] *,
-  [class*="bg-indigo-"], [class*="bg-indigo-"] *,
-  [class*="bg-blue-"], [class*="bg-blue-"] *,
-  [class*="bg-neutral-8"], [class*="bg-neutral-8"] *,
-  [class*="bg-neutral-9"], [class*="bg-neutral-9"] *,
-  [class*="bg-slate-8"], [class*="bg-slate-8"] *,
-  [class*="bg-slate-9"], [class*="bg-slate-9"] *,
-  [class*="from-"], [class*="from-"] *,
-  [class*="via-"], [class*="via-"] *,
-  [class*="to-"], [class*="to-"] *
-)) {
-  color: #0F1535 !important;
-}
-
-.bg-\[\#FFFFFF\] [class~="text-white"]:not(:is(
-  [class*="bg-[#0"], [class*="bg-[#0"] *,
-  [class*="bg-[#1"], [class*="bg-[#1"] *,
-  [class*="bg-[#2"], [class*="bg-[#2"] *,
-  [class*="bg-purple-"], [class*="bg-purple-"] *,
-  [class*="bg-indigo-"], [class*="bg-indigo-"] *,
-  [class*="bg-blue-"], [class*="bg-blue-"] *,
-  [class*="bg-neutral-8"], [class*="bg-neutral-8"] *,
-  [class*="bg-neutral-9"], [class*="bg-neutral-9"] *,
-  [class*="bg-slate-8"], [class*="bg-slate-8"] *,
-  [class*="bg-slate-9"], [class*="bg-slate-9"] *,
-  [class*="from-"], [class*="from-"] *,
-  [class*="via-"], [class*="via-"] *,
-  [class*="to-"], [class*="to-"] *
-)) {
-  color: #0F1535 !important;
-}
-
-/* Prevent accidental white text on light backgrounds */
-.bg-white > span[class~="text-white"],
-.bg-white > p[class~="text-white"],
-.bg-\[\#F7F7FC\] > span[class~="text-white"],
-.bg-\[\#F7F7FC\] > p[class~="text-white"],
-.bg-\[\#FFFFFF\] > span[class~="text-white"],
-.bg-\[\#FFFFFF\] > p[class~="text-white"] {
-  color: #0F1535 !important;
-}
-
 /* Secondary / muted text in light sections */
-.text-neutral-500,
-.text-neutral-400 {
+.bg-white .text-neutral-500,
+.bg-white .text-neutral-400,
+.bg-\[\#F7F7FC\] .text-neutral-500:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"]) *),
+.bg-\[\#F7F7FC\] .text-neutral-400:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"], [class*="bg-[#0"]) *) {
   color: #5F6078;
-}
-
-/* Brand links */
-a:not([class*="bg-"]):hover {
-  transition: color 0.2s ease-in-out;
 }
 
 /* ==========================================================================
    4. FORM LABELS & INPUTS CONTRAST
-   Form inputs: borders clearly visible, text typed by user easily readable
    ========================================================================== */
 
 /* Form inputs on light sections */
-.bg-white input:not([type="checkbox"]):not([type="radio"]),
-.bg-white select,
-.bg-white textarea,
-.bg-\[\#F7F7FC\] input:not([type="checkbox"]):not([type="radio"]),
-.bg-\[\#F7F7FC\] select,
-.bg-\[\#F7F7FC\] textarea {
+.bg-white input:not([type="checkbox"]):not([type="radio"]):not([class*="bg-[#0"]):not([class*="bg-neutral-"]):not([class*="bg-slate-"]),
+.bg-white select:not([class*="bg-[#0"]):not([class*="bg-neutral-"]),
+.bg-white textarea:not([class*="bg-[#0"]):not([class*="bg-neutral-"]),
+.bg-\[\#F7F7FC\] input:not([type="checkbox"]):not([type="radio"]):not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *):not([class*="bg-[#0"]):not([class*="bg-neutral-"]):not([class*="bg-slate-"]),
+.bg-\[\#F7F7FC\] select:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *):not([class*="bg-[#0"]):not([class*="bg-neutral-"]),
+.bg-\[\#F7F7FC\] textarea:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *):not([class*="bg-[#0"]):not([class*="bg-neutral-"]) {
   background-color: #FFFFFF;
   border-color: #CBD5E1;
   color: #0F1535 !important;
@@ -465,48 +464,78 @@ a:not([class*="bg-"]):hover {
   color: #94A3B8;
 }
 
-/* Form inputs in dark modals / sections */
-.modal-dark input,
+/* Form inputs in ALL dark modals, dialogs, and dark sections */
+.modal-dark input:not([type="checkbox"]):not([type="radio"]),
 .modal-dark select,
 .modal-dark textarea,
 [role="dialog"] input:not([type="checkbox"]):not([type="radio"]),
 [role="dialog"] select,
 [role="dialog"] textarea,
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+.bg-\[\#070A1E\] input:not([type="checkbox"]):not([type="radio"]),
+.bg-\[\#070A1E\] textarea,
+.bg-\[\#090D24\] input:not([type="checkbox"]):not([type="radio"]),
+.bg-\[\#090D24\] textarea,
 .bg-\[\#0C061F\] input:not([type="checkbox"]):not([type="radio"]),
 .bg-\[\#0C061F\] select,
 .bg-\[\#0C061F\] textarea,
 .bg-neutral-900 input:not([type="checkbox"]):not([type="radio"]),
 .bg-neutral-900 select,
-.bg-neutral-900 textarea {
-  background-color: rgba(7, 10, 30, 0.85);
-  border-color: rgba(91, 95, 237, 0.45);
+.bg-neutral-900 textarea,
+.bg-neutral-950 input:not([type="checkbox"]):not([type="radio"]),
+.bg-neutral-950 select,
+.bg-neutral-950 textarea,
+input[class*="bg-[#0F1535]"],
+input[class*="bg-[#070A1E]"],
+input[class*="bg-neutral-950"],
+textarea[class*="bg-[#0F1535]"],
+textarea[class*="bg-neutral-950"] {
+  background-color: #0F1535 !important;
+  border-color: rgba(147, 51, 234, 0.4) !important;
   color: #FFFFFF !important;
 }
 
+.modal-dark input::placeholder,
+.modal-dark textarea::placeholder,
 [role="dialog"] input::placeholder,
 [role="dialog"] textarea::placeholder,
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder,
+.bg-\[\#070A1E\] input::placeholder,
+.bg-\[\#070A1E\] textarea::placeholder,
+.bg-\[\#090D24\] input::placeholder,
+.bg-\[\#090D24\] textarea::placeholder,
 .bg-\[\#0C061F\] input::placeholder,
-.bg-\[\#0C061F\] textarea::placeholder {
-  color: #94A3B8;
+.bg-\[\#0C061F\] textarea::placeholder,
+input[class*="bg-[#0F1535]"]::placeholder,
+textarea[class*="bg-[#0F1535]"]::placeholder {
+  color: #94A3B8 !important;
 }
 
 /* Form labels */
-.bg-white label,
-.bg-\[\#F7F7FC\] label,
+.bg-white label:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *),
+.bg-\[\#F7F7FC\] label:not(:is(.modal-dark, [role="dialog"], [data-theme="dark"]) *),
 .vixora-page label {
   color: #0F1535;
   font-weight: 600;
 }
 
+.modal-dark label,
 [role="dialog"] label,
+[data-theme="dark"] label,
+.bg-\[\#070A1E\] label,
+.bg-\[\#090D24\] label,
 .bg-\[\#0C061F\] label,
-.bg-neutral-900 label {
+.bg-neutral-900 label,
+.bg-neutral-950 label {
   color: #E2E8F0 !important;
   font-weight: 600;
 }
 
 /* ==========================================================================
-   5. NAVIGATION & FOOTER CONTRAST ENHANCEMENTS
+   5. NAVIGATION & FOOTER CONTRAST
    ========================================================================== */
 
 /* Navbar Dropdowns */
@@ -528,6 +557,15 @@ a:not([class*="bg-"]):hover {
 
 .nav-dropdown-container [class~="hover:bg-purple-950/60"]:hover {
   background-color: #F7F7FC !important;
+}
+
+/* Academy Navbar Dropdown (dark background #07031C) must keep pristine white text */
+.bg-\[\#07031C\],
+.bg-\[\#07031C\] * {
+  color: inherit;
+}
+.bg-\[\#07031C\] [class~="text-white"] {
+  color: #FFFFFF !important;
 }
 
 /* Footers */
@@ -554,4 +592,3 @@ footer h1, footer h2, footer h3, footer h4 {
 button[aria-label="Toggle Theme"] {
   display: none !important;
 }
-
