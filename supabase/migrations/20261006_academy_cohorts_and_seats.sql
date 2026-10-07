@@ -66,6 +66,13 @@ CREATE INDEX IF NOT EXISTS idx_cohorts_plan_status
 CREATE INDEX IF NOT EXISTS idx_cohorts_start_date
   ON cohorts(start_date);
 
+-- Safe upgrade path when the cohorts table already exists.
+ALTER TABLE cohorts
+  ADD COLUMN IF NOT EXISTS tutor_contact JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS supervisor_contact JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS ai_insight TEXT,
+  ADD COLUMN IF NOT EXISTS ai_insight_generated_at TIMESTAMPTZ;
+
 -- Historical references: a payment/enrollment must remain tied to the cohort
 -- selected/reserved at checkout. These are nullable for legacy records.
 ALTER TABLE payments
