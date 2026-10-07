@@ -55,7 +55,9 @@ import {
   fetchAdminCohorts,
   fetchAdminCohortOptions,
   createAdminCohort,
-  updateAdminCohort
+  updateAdminCohort,
+  generateAdminCohortInsight,
+  CohortContact
 } from '../services/adminCohortService';
 
 
@@ -75,8 +77,8 @@ function AdminCohortsPanel() {
     endDate: '',
     status: 'draft',
     capacity: 0,
-    tutorId: '',
-    supervisorId: ''
+    tutor: { name: '', email: '', phone: '', role: 'Tutor' },
+    supervisor: { name: '', email: '', phone: '', role: 'Supervisor' }
   });
 
   const load = async () => {
@@ -105,8 +107,8 @@ function AdminCohortsPanel() {
       endDate: '',
       status: 'draft',
       capacity: options?.courseTrainingPlans.find(p => p.enabled)?.capacity || 0,
-      tutorId: '',
-      supervisorId: ''
+      tutor: { name: '', email: '', phone: '', role: 'Tutor' },
+      supervisor: { name: '', email: '', phone: '', role: 'Supervisor' }
     });
     setShowForm(true);
     setError('');
@@ -122,11 +124,15 @@ function AdminCohortsPanel() {
       endDate: cohort.endDate || '',
       status: cohort.status,
       capacity: cohort.capacity,
-      tutorId: cohort.tutorId || '',
-      supervisorId: cohort.supervisorId || ''
+      tutor: cohort.tutor || { name: '', email: '', phone: '', role: 'Tutor' },
+      supervisor: cohort.supervisor || { name: '', email: '', phone: '', role: 'Supervisor' }
     });
     setShowForm(true);
     setError('');
+  };
+
+  const updateContact = (key: 'tutor' | 'supervisor', field: keyof CohortContact, value: string) => {
+    setForm(prev => ({ ...prev, [key]: { ...(prev[key] || {}), [field]: value } }));
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -245,9 +251,41 @@ function AdminCohortsPanel() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <label className="text-xs text-neutral-400">Status<select value={form.status} onChange={e => setForm({...form,status:e.target.value as AdminCohortStatus})} className="mt-1.5 w-full rounded-xl bg-neutral-950 border border-purple-900/40 px-3 py-2.5 text-sm text-white outline-none">{(['draft','open','closed','in_progress','completed','cancelled'] as AdminCohortStatus[]).map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}</select></label>
-                <label className="text-xs text-neutral-400">Tutor ID<input value={form.tutorId || ''} onChange={e => setForm({...form,tutorId:e.target.value})} placeholder="Optional UUID" className="mt-1.5 w-full rounded-xl bg-neutral-950 border border-purple-900/40 px-3 py-2.5 text-sm text-white outline-none" /></label>
-                <label className="text-xs text-neutral-400">Supervisor ID<input value={form.supervisorId || ''} onChange={e => setForm({...form,supervisorId:e.target.value})} placeholder="Optional UUID" className="mt-1.5 w-full rounded-xl bg-neutral-950 border border-purple-900/40 px-3 py-2.5 text-sm text-white outline-none" /></label>
+                <label className="text-xs text-neutral-400">Tutor Name<input value={form.tutor?.name || ''} onChange={e => updateContact('tutor','name',e.target.value)} placeholder="Tutor name" className="mt-1.5 w-full rounded-xl bg-neutral-950 border border-purple-900/40 px-3 py-2.5 text-sm text-white outline-none" /></label>
+                <label className="text-xs text-neutral-400">Supervisor Name<input value={form.supervisor?.name || ''} onChange={e => updateContact('supervisor','name',e.target.value)} placeholder="Supervisor name" className="mt-1.5 w-full rounded-xl bg-neutral-950 border border-purple-900/40 px-3 py-2.5 text-sm text-white outline-none" /></label>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(['tutor','supervisor'] as const).map(role => (
+                  <div key={role} className="p-3 rounded-xl border border-purple-900/30 bg-neutral-950/50 space-y-2">
+                    <div className="text-xs font-semibold text-purple-300">{role === 'tutor' ? 'Tutor details' : 'Supervisor details'}</div>
+                    <input value={form[role]?.email || ''} onChange={e => updateContact(role,'email',e.target.value)} placeholder="Email" className="w-full rounded-lg bg-neutral-950 border border-purple-900/40 px-3 py-2 text-xs text-white" />
+                    <input value={form[role]?.phone || ''} onChange={e => updateContact(role,'phone',e.target.value)} placeholder="Phone (optional)" className="w-full rounded-lg bg-neutral-950 border border-purple-900/40 px-3 py-2 text-xs text-white" />
+                  </div>
+                ))}
+              </div>
+              {editing?.aiInsight && (
+                <div className="p-4 rounded-2xl border border-purple-900/40 bg-purple-950/20">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="text-xs font-semibold text-purple-200">AI Cohort Insight</div>
+                    <button type="button" disabled={saving} onClick={async () => {
+                      setSaving(true); setError('');
+                      try { await generateAdminCohortInsight(editing.id); await load(); }
+                      catch (err: any) { setError(err.message || 'Failed to generate insight.'); }
+                      finally { setSaving(false); }
+                    }} className="px-2.5 py-1.5 rounded-lg bg-purple-600 text-white text-[10px] font-semibold">Refresh insight</button>
+                  </div>
+                  <p className="text-xs text-neutral-300 whitespace-pre-line">{editing.aiInsight}</p>
+                </div>
+              )}
+              {editing && !editing.aiInsight && (
+                <button type="button" disabled={saving} onClick={async () => {
+                  setSaving(true); setError('');
+                  try { await generateAdminCohortInsight(editing.id); await load(); }
+                  catch (err: any) { setError(err.message || 'Failed to generate insight.'); }
+                  finally { setSaving(false); }
+                }} className="w-full px-3 py-2.5 rounded-xl border border-purple-800/40 bg-purple-950/30 text-purple-200 text-xs font-semibold">Generate AI Cohort Insight</button>
+              )}
+              {!editing && <p className="text-[11px] text-neutral-500">Save the cohort first, then generate its AI insight from the edit view.</p>}
               <div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl bg-neutral-900 border border-purple-900/40 text-neutral-300 text-sm">Cancel</button><button disabled={saving} className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold">{saving ? 'Saving...' : editing ? 'Save Changes' : 'Create Cohort'}</button></div>
             </form>
           </div>
