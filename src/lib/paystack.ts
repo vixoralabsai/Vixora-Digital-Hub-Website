@@ -22,6 +22,7 @@ export interface PaystackConfig {
 export interface InitializePaymentParams {
   courseId: string;
   planId?: 'group' | 'small-group' | 'private';
+  cohortId?: string;
   studentName?: string;
   email: string;
   phone?: string;
@@ -39,10 +40,38 @@ export interface InitializePaymentResponse {
   courseId?: string;
   courseTitle?: string;
   planId?: 'group' | 'small-group' | 'private' | null;
+  cohortId?: string | null;
+  seatsRemaining?: number | null;
   publicKey?: string | null;
   error?: string;
   code?: string;
   help?: string;
+}
+
+
+export interface AvailableCohort {
+  id: string;
+  name: string;
+  code?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  capacity: number;
+  enrolledCount: number;
+  seatsRemaining: number;
+}
+
+export async function getAvailableCohorts(courseId: string, planId: string): Promise<{ success: boolean; cohorts: AvailableCohort[]; error?: string }> {
+  try {
+    const params = new URLSearchParams({ courseId, planId });
+    const res = await fetch(`/api/payments/paystack/cohorts?${params.toString()}`);
+    const parsed = await parseSafeResponseJson<{ success?: boolean; cohorts?: AvailableCohort[]; error?: string }>(res, 'Unable to load cohorts.');
+    if (!parsed.ok || !parsed.data?.success) {
+      return { success: false, cohorts: [], error: cleanErrorMessage(parsed.data?.error || parsed.error) || 'Unable to load available cohorts.' };
+    }
+    return { success: true, cohorts: Array.isArray(parsed.data.cohorts) ? parsed.data.cohorts : [] };
+  } catch (err: any) {
+    return { success: false, cohorts: [], error: cleanErrorMessage(err?.message) || 'Unable to load available cohorts.' };
+  }
 }
 
 export interface VerifiedPaymentData {
@@ -59,6 +88,8 @@ export interface VerifiedPaymentData {
   emailDispatchedAt?: string | null;
   gatewayResponse?: string;
   last4?: string | null;
+  planId?: 'group' | 'small-group' | 'private' | null;
+  cohortId?: string | null;
 }
 
 export interface VerifyPaymentResponse {
@@ -273,7 +304,7 @@ export async function getPaystackConfig(): Promise<PaystackConfig> {
 
 /**
  * Initialize payment on backend.
- * Only courseId and customer identity are sent.
+ * Only course, plan/cohort selection, and customer identity are sent; financial values remain server-authoritative.
  * Browser NEVER supplies amount or reference.
  */
 export async function initializePaystackPayment(
@@ -300,6 +331,7 @@ export async function initializePaystackPayment(
     const payload = {
       courseId: params.courseId,
       planId: params.planId,
+      cohortId: params.cohortId,
       studentName: params.studentName,
       email: params.email,
       phone: params.phone,
@@ -375,7 +407,9 @@ export async function initializePaystackPayment(
       currency: data.currency || 'NGN',
       courseId: data.courseId,
       courseTitle: data.courseTitle,
-      planId: data.planId || null
+      planId: data.planId || null,
+      cohortId: data.cohortId || null,
+      seatsRemaining: typeof data.seatsRemaining === 'number' ? data.seatsRemaining : null
     };
   } catch (err: any) {
     return {

@@ -5,6 +5,7 @@ import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
 import { findCanonicalCourse, resolveCanonicalCoursePrice, type CanonicalCourse } from './payments/courseCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
+import { listBookableCohorts, reservePaymentCohort, validatePaymentCohortCapacity } from './payments/cohortService.js';
 
 export const paystackRouter = Router();
 
@@ -158,6 +159,8 @@ export interface PaymentRecord {
   student_id: string | null;
   course_id: string;
   plan_id?: string | null;
+  cohort_id?: string | null;
+  reservation_expires_at?: string | null;
   amount: number; // in Naira (e.g. 60000.00)
   amount_kobo: number; // in kobo (e.g. 6000000)
   currency: 'NGN';
@@ -442,6 +445,7 @@ export async function processPaymentFulfillment(
     const failedUpdate = {
       status: mappedStatus,
       raw_response: sanitizePaystackResponse(paystackData),
+      reservation_expires_at: null,
       updated_at: new Date().toISOString()
     };
 
@@ -668,6 +672,22 @@ export async function processPaymentFulfillment(
         }
       }
 
+      // Step C: Validate the reserved cohort seat while keeping the payment
+      // pending. The pending reservation remains visible to concurrent checkouts
+      // until the enrollment is actually written.
+      const paymentCohortId = existingPayment?.cohort_id || null;
+      if (paymentCohortId) {
+        try {
+          await validatePaymentCohortCapacity(supabase, reference, String(paymentCohortId));
+        } catch (cohortErr: any) {
+          const message = String(cohortErr?.message || '');
+          if (message.includes('COHORT_FULL')) {
+            throw new Error('Cohort is full before enrollment could be completed.');
+          }
+          throw cohortErr;
+        }
+      }
+
       // Step C: Idempotent Enrollment Fulfillment
       // Preserve existing cohort, progress, modules, and certificate_id
       if (!studentId) {
@@ -676,7 +696,7 @@ export async function processPaymentFulfillment(
 
       const { data: existingEnrollment, error: findEnrollmentErr } = await supabase
         .from('enrollments')
-        .select('student_id, course_id, status, progress_percent')
+        .select('student_id, course_id, cohort_id, status, progress_percent')
         .eq('student_id', studentId)
         .eq('course_id', dbCourseId)
         .maybeSingle();
@@ -694,6 +714,7 @@ export async function processPaymentFulfillment(
           completed_modules: 0,
           total_modules: canonicalCourse.totalModules,
           plan_id: existingPayment.plan_id || null,
+          cohort_id: paymentCohortId,
           enrolled_at: new Date().toISOString()
         });
         if (insertEnrollmentErr) throw insertEnrollmentErr;
@@ -701,7 +722,7 @@ export async function processPaymentFulfillment(
         // If enrollment already exists, ensure status is 'enrolled' without resetting progress
         const { error: updateEnrollmentErr } = await supabase
           .from('enrollments')
-          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, updated_at: new Date().toISOString() })
+          .update({ status: 'enrolled', plan_id: existingPayment.plan_id || null, cohort_id: existingEnrollment.cohort_id || paymentCohortId, updated_at: new Date().toISOString() })
           .eq('student_id', studentId)
           .eq('course_id', dbCourseId);
         if (updateEnrollmentErr) throw updateEnrollmentErr;
@@ -731,6 +752,8 @@ export async function processPaymentFulfillment(
     student_id: studentId,
     course_id: dbCourseId,
     plan_id: existingPayment?.plan_id || canonicalCourse.selectedPlanId || null,
+    cohort_id: existingPayment?.cohort_id || null,
+    reservation_expires_at: null,
     amount: canonicalCourse.nairaAmount,
     amount_kobo: canonicalCourse.koboAmount,
     currency: 'NGN',
@@ -868,6 +891,7 @@ export async function processPaymentFulfillment(
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
       planId: canonicalCourse.selectedPlanId || null,
+      cohortId: existingPayment?.cohort_id || null,
       emailDispatchedAt: finalEmailDispatchedAt
     }
   };
@@ -896,6 +920,9 @@ paystackRouter.get('/config', (_req: Request, res: Response) => {
 // POST /initialize
 // ==============================================================================
 paystackRouter.post('/initialize', async (req: Request, res: Response) => {
+  let reservationReference: string | null = null;
+  let reservationSupabase: any = null;
+
   try {
     // 1. Safe Client IP
     const clientIp = getClientIp(req);
@@ -915,7 +942,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const { courseId, planId, email, studentName, phone, callbackUrl } = req.body;
+    const { courseId, planId, cohortId, email, studentName, phone, callbackUrl } = req.body;
 
     if (!courseId || typeof courseId !== 'string') {
       return res.status(400).json({
@@ -995,6 +1022,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     // 7. Generate Secure Unique Transaction Reference
     const reference = `VIX-PS-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    reservationReference = reference;
 
     // Determine secure callback URL
     const reqOrigin = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : '');
@@ -1004,44 +1032,121 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
 
     const supabase = getSupabaseAdmin();
+    reservationSupabase = supabase;
     let resolvedCourseId = canonicalCourse.id;
     if (supabase) {
       resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
     }
 
-    // 8. Pre-create durable pending payment record in database
-    const initialPaymentRecord: PaymentRecord = {
-      id: reference,
-      student_id: null,
-      course_id: resolvedCourseId,
-      plan_id: resolvedCourse.selectedPlanId || null,
-      amount: resolvedCourse.nairaAmount,
-      amount_kobo: resolvedCourse.koboAmount,
-      currency: 'NGN',
-      channel: null,
-      status: 'pending',
-      fulfillment_status: 'pending',
-      fulfillment_error: null,
-      email_dispatched_at: null,
-      paystack_transaction_id: null,
-      customer_email: cleanEmail,
-      customer_name: cleanStudentName,
-      customer_phone: cleanPhone || null,
-      paid_at: null,
-      raw_response: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    // 8. Reserve the cohort seat transactionally before contacting Paystack.
+    // Tiered courses must be attached to an open cohort; standalone courses keep
+    // their existing checkout flow until cohort scheduling is explicitly enabled.
+    let selectedCohortId: string | null = null;
+    let reservedSeatsRemaining: number | null = null;
+    const reservationExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
-    if (supabase) {
-      try {
-        await supabase.from('payments').insert(initialPaymentRecord);
-      } catch (insertErr) {
-        console.warn('[Supabase initial payment record insert]:', insertErr);
+    if (resolvedCourse.pricingMode === 'tiered') {
+      if (!supabase) {
+        return res.status(503).json({
+          error: 'Cohort scheduling is temporarily unavailable. Please try again shortly.',
+          code: 'COHORT_SERVICE_UNAVAILABLE'
+        });
       }
+
+      const trainingPlanId = resolvedCourse.selectedPlanId;
+      const { data: coursePlan, error: coursePlanError } = await supabase
+        .from('course_training_plans')
+        .select('id')
+        .eq('course_id', resolvedCourse.id)
+        .eq('training_plan_id', trainingPlanId)
+        .eq('enabled', true)
+        .maybeSingle();
+
+      if (coursePlanError || !coursePlan?.id) {
+        return res.status(409).json({
+          error: 'The selected training plan is not currently available for enrollment.',
+          code: 'TRAINING_PLAN_UNAVAILABLE'
+        });
+      }
+
+      const candidates = await listBookableCohorts(supabase, String(coursePlan.id));
+      const requestedCohortId = typeof cohortId === 'string' ? cohortId.trim() : '';
+      if (requestedCohortId && !candidates.some((candidate) => candidate.id === requestedCohortId)) {
+        return res.status(409).json({ error: 'The selected cohort is no longer available. Please choose another cohort.', code: 'COHORT_UNAVAILABLE' });
+      }
+      const orderedCandidates = requestedCohortId
+        ? candidates.filter((candidate) => candidate.id === requestedCohortId)
+        : candidates;
+      if (!candidates.length) {
+        return res.status(409).json({
+          error: 'There are no open seats for this training plan right now.',
+          code: 'NO_OPEN_COHORT'
+        });
+      }
+
+      // Try candidates in deterministic order. The database RPC re-checks
+      // capacity while holding the cohort row lock, so a race cannot overbook.
+      for (const candidate of orderedCandidates) {
+        try {
+          const reservation = await reservePaymentCohort(supabase, {
+            paymentId: reference,
+            courseId: resolvedCourseId,
+            planId: resolvedCourse.selectedPlanId,
+            cohortId: candidate.id,
+            amountKobo: resolvedCourse.koboAmount,
+            customerEmail: cleanEmail,
+            customerName: cleanStudentName,
+            customerPhone: cleanPhone || null,
+            reservationExpiresAt
+          });
+          selectedCohortId = reservation.cohortId;
+          reservedSeatsRemaining = reservation.availableSeatsAfterReservation;
+          break;
+        } catch (reservationErr: any) {
+          if (String(reservationErr?.message || '').includes('COHORT_FULL')) continue;
+          throw reservationErr;
+        }
+      }
+
+      if (!selectedCohortId) {
+        return res.status(409).json({
+          error: 'That cohort filled while checkout was being prepared. Please try again.',
+          code: 'COHORT_FULL'
+        });
+      }
+    } else {
+      const initialPaymentRecord: PaymentRecord = {
+        id: reference,
+        student_id: null,
+        course_id: resolvedCourseId,
+        plan_id: resolvedCourse.selectedPlanId || null,
+        amount: resolvedCourse.nairaAmount,
+        amount_kobo: resolvedCourse.koboAmount,
+        currency: 'NGN',
+        channel: null,
+        status: 'pending',
+        fulfillment_status: 'pending',
+        fulfillment_error: null,
+        email_dispatched_at: null,
+        paystack_transaction_id: null,
+        customer_email: cleanEmail,
+        customer_name: cleanStudentName,
+        customer_phone: cleanPhone || null,
+        paid_at: null,
+        raw_response: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      if (supabase) {
+        try {
+          await supabase.from('payments').insert(initialPaymentRecord);
+        } catch (insertErr) {
+          console.warn('[Supabase initial payment record insert]:', insertErr);
+        }
+      }
+      fallbackPaymentsStore.set(reference, initialPaymentRecord);
     }
-    // Always track in fallback store
-    fallbackPaymentsStore.set(reference, initialPaymentRecord);
 
     // 9. Initialize External Paystack Transaction
     const paystackPayload = {
@@ -1060,7 +1165,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         planId: resolvedCourse.selectedPlanId || null,
         trainingPlan: resolvedCourse.selectedPlanId || null,
         authUserId: authUser?.id || null,
-        amountNaira: resolvedCourse.nairaAmount
+        amountNaira: resolvedCourse.nairaAmount,
+        cohortId: selectedCohortId
       }
     };
 
@@ -1092,6 +1198,17 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     });
 
     if (!response.ok || !data.status || !data.data) {
+      if (supabase && selectedCohortId) {
+        try {
+          await supabase
+            .from('payments')
+            .update({ status: 'failed', reservation_expires_at: null, updated_at: new Date().toISOString() })
+            .eq('id', reference);
+        } catch (cleanupErr) {
+          console.warn('[Cohort reservation cleanup warning]:', cleanupErr);
+        }
+      }
+
       return res.status(response.status >= 400 && response.status < 500 ? 400 : 502).json({
         error: data.message || 'Failed to initialize Paystack transaction.',
         code: 'PAYSTACK_INIT_FAILED',
@@ -1110,9 +1227,22 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       currency: 'NGN',
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
-      planId: resolvedCourse.selectedPlanId || null
+      planId: resolvedCourse.selectedPlanId || null,
+      cohortId: selectedCohortId,
+      seatsRemaining: reservedSeatsRemaining
     });
   } catch (err: any) {
+    if (reservationSupabase && reservationReference) {
+      try {
+        await reservationSupabase
+          .from('payments')
+          .update({ status: 'failed', reservation_expires_at: null, updated_at: new Date().toISOString() })
+          .eq('id', reservationReference)
+          .eq('status', 'pending');
+      } catch (cleanupErr) {
+        console.warn('[Cohort reservation cleanup warning]:', cleanupErr);
+      }
+    }
     console.error('[Paystack Initialize Exception]:', err);
     return res.status(500).json({
       error: 'An internal error occurred while initializing payment.',
