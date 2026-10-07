@@ -207,19 +207,63 @@ function AdminCohortsPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-purple-900/20 text-neutral-300">
-              {loading ? <tr><td colSpan={6} className="py-12 text-center text-neutral-400">Loading cohort registry...</td> :
-                cohorts.length === 0 ? <tr><td colSpan={6} className="py-12 text-center text-neutral-500">No cohorts have been created yet.</td> :
-                cohorts.map(c => (
-                  <tr key={c.id} className="hover:bg-purple-950/20">
-                    <td className="py-4 px-4"><div className="font-bold text-white">{c.name}</div><div className="text-[10px] text-neutral-500 mt-1">{c.code}</div></td>
-                    <td className="py-4 px-4"><div className="text-white">{c.courseTitle}</div><div className="text-purple-300 text-[10px] mt-1">{c.trainingPlanName} · ₦{c.planPriceNgn.toLocaleString()}</div></td>
-                    <td className="py-4 px-4"><div>{c.startDate}</div><div className="text-neutral-500 text-[10px]">{c.endDate || 'No end date'}</div></td>
-                    <td className="py-4 px-4"><span className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-semibold ${statusClass(c.status)}`}>{statusLabel(c.status)}</span></td>
-                    <td className="py-4 px-4"><div className="font-bold text-white">{c.availableSeats} <span className="text-neutral-500 font-normal">available</span></div><div className="text-[10px] text-neutral-500">{c.enrolledCount} enrolled · {c.pendingReservations} reserved</div></td>
-                    <td className="py-4 px-4 text-right"><button onClick={() => openEdit(c)} className="px-2.5 py-1.5 rounded-lg bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-800/40">Edit</button></td>
-                  </tr>
-                ))
-              }
+              {loading && (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-neutral-400">
+                    Loading cohort registry...
+                  </td>
+                </tr>
+              )}
+
+              {!loading && cohorts.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-neutral-500">
+                    No cohorts have been created yet.
+                  </td>
+                </tr>
+              )}
+
+              {!loading && cohorts.length > 0 && cohorts.map((c) => (
+                <tr key={c.id} className="hover:bg-purple-950/20">
+                  <td className="py-4 px-4">
+                    <div className="font-bold text-white">{c.name}</div>
+                    <div className="text-[10px] text-neutral-500 mt-1">{c.code}</div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="text-white">{c.courseTitle}</div>
+                    <div className="text-purple-300 text-[10px] mt-1">
+                      {c.trainingPlanName} · ₦{c.planPriceNgn.toLocaleString()}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div>{c.startDate}</div>
+                    <div className="text-neutral-500 text-[10px]">
+                      {c.endDate || 'No end date'}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-semibold ${statusClass(c.status)}`}>
+                      {statusLabel(c.status)}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="font-bold text-white">
+                      {c.availableSeats} <span className="text-neutral-500 font-normal">available</span>
+                    </div>
+                    <div className="text-[10px] text-neutral-500">
+                      {c.enrolledCount} enrolled · {c.pendingReservations} reserved
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-right">
+                    <button
+                      onClick={() => openEdit(c)}
+                      className="px-2.5 py-1.5 rounded-lg bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-800/40"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
