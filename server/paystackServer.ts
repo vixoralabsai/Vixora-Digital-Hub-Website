@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
 import { findCanonicalCourse, findCanonicalTrainingPlan, type CanonicalCourse } from './payments/courseCatalog.js';
+import { isTieredCourse } from '../src/data/trainingPlans.js';
 import { getOpenCohort, getSeatsRemaining } from './academy/cohortCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
 
@@ -159,6 +160,7 @@ export interface PaymentRecord {
   student_id: string | null;
   course_id: string;
   plan_id: string | null;
+  cohort_id: string | null;
   amount: number; // in Naira (e.g. 60000.00)
   amount_kobo: number; // in kobo (e.g. 6000000)
   currency: 'NGN';
@@ -746,6 +748,7 @@ export async function processPaymentFulfillment(
     student_id: studentId,
     course_id: dbCourseId,
     plan_id: trainingPlan?.id || existingPayment?.plan_id || null,
+    cohort_id: paymentCohortId || existingPayment?.cohort_id || null,
     amount: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
     amount_kobo: trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount,
     currency: 'NGN',
@@ -929,7 +932,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const { courseId, planId = 'group', email, studentName, phone, callbackUrl } = req.body;
+    const { courseId, planId, email, studentName, phone, callbackUrl } = req.body;
 
     if (!courseId || typeof courseId !== 'string') {
       return res.status(400).json({
@@ -969,31 +972,39 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // 5. Resolve the authoritative training tier and amount server-side.
-    const trainingPlan = findCanonicalTrainingPlan(planId);
-    if (!trainingPlan) {
+    // 5. Resolve pricing from the course's commercial mode.
+    const tiered = isTieredCourse(canonicalCourse.id);
+    const trainingPlan = tiered ? findCanonicalTrainingPlan(planId) : null;
+    if (tiered && !trainingPlan) {
       return res.status(400).json({
-        error: `Invalid training plan "${planId}". Choose one of the available Vixora Academy training tiers.`,
+        error: 'A valid training tier is required for this course.',
         code: 'INVALID_TRAINING_PLAN'
       });
     }
+    if (!tiered && planId) {
+      return res.status(400).json({
+        error: 'This course uses its standalone course price and does not accept a training tier.',
+        code: 'PLAN_NOT_SUPPORTED'
+      });
+    }
 
-    // Resolve the current open cohort and verify tier capacity before payment.
-    const cohort = await getOpenCohort(courseId);
-    if (!cohort) {
+    const cohort = tiered ? await getOpenCohort(courseId) : null;
+    if (tiered && !cohort) {
       return res.status(409).json({
         error: 'There is no open cohort available for this course right now.',
         code: 'NO_OPEN_COHORT'
       });
     }
 
-    const seatsRemaining = await getSeatsRemaining(cohort.id, trainingPlan.id);
-    if (seatsRemaining <= 0) {
+    const seatsRemaining = tiered && cohort && trainingPlan
+      ? await getSeatsRemaining(cohort.id, trainingPlan.id)
+      : null;
+    if (tiered && seatsRemaining !== null && seatsRemaining <= 0) {
       return res.status(409).json({
-        error: `${trainingPlan.name} is currently full for this cohort.`,
+        error: `${trainingPlan!.name} is currently full for this cohort.`,
         code: 'TRAINING_PLAN_FULL',
-        cohortId: cohort.id,
-        planId: trainingPlan.id
+        cohortId: cohort!.id,
+        planId: trainingPlan!.id
       });
     }
 
@@ -1002,7 +1013,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     console.log('[Server Paystack Init Diagnostic: Request]', {
       courseId,
-      planId: trainingPlan.id,
+      planId: trainingPlan?.id || null,
       trainingPlan: trainingPlan.name,
       hasEmail: Boolean(email),
       hasPhone: Boolean(phone),
@@ -1046,10 +1057,10 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       id: reference,
       student_id: null,
       course_id: resolvedCourseId,
-      plan_id: trainingPlan.id,
-      cohort_id: cohort.id,
-      amount: trainingPlan.priceNGN,
-      amount_kobo: trainingPlan.priceNGN * 100,
+      plan_id: trainingPlan?.id || null,
+      cohort_id: cohort?.id || null,
+      amount: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
+      amount_kobo: trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount,
       currency: 'NGN',
       channel: null,
       status: 'pending',
@@ -1079,7 +1090,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     // 10. Initialize External Paystack Transaction
     const paystackPayload = {
       email: cleanEmail,
-      amount: trainingPlan.priceNGN * 100,
+      amount: (trainingPlan?.priceNGN || canonicalCourse.nairaAmount) * 100,
       currency: 'NGN',
       reference,
       callback_url: finalCallbackUrl,
@@ -1090,11 +1101,9 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         phone: cleanPhone,
         courseId: canonicalCourse.id,
         courseTitle: canonicalCourse.title,
-        planId: trainingPlan.id,
-        planName: trainingPlan.name,
-        cohortId: cohort.id,
-        cohortName: cohort.name,
-        amountNaira: trainingPlan.priceNGN,
+        ...(trainingPlan ? { planId: trainingPlan.id, planName: trainingPlan.name } : {}),
+        ...(cohort ? { cohortId: cohort.id, cohortName: cohort.name } : {}),
+        amountNaira: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
         authUserId: authUser?.id || null,
       }
     };
@@ -1104,8 +1113,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       amountKobo: trainingPlan.priceNGN * 100,
       planId: trainingPlan.id,
       planName: trainingPlan.name,
-      cohortId: cohort.id,
-      cohortName: cohort.name,
+      cohortId: cohort?.id || null,
+      cohortName: cohort?.name || null,
       currency: 'NGN',
       callbackHost: new URL(finalCallbackUrl).hostname
     });
@@ -1144,8 +1153,8 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       reference,
       authorizationUrl: data.data.authorization_url,
       accessCode: data.data.access_code,
-      amountNaira: trainingPlan.priceNGN,
-      amountKobo: trainingPlan.priceNGN * 100,
+      amountNaira: trainingPlan?.priceNGN || canonicalCourse.nairaAmount,
+      amountKobo: trainingPlan ? trainingPlan.priceNGN * 100 : canonicalCourse.koboAmount,
       currency: 'NGN',
       planId: trainingPlan.id,
       courseId: canonicalCourse.id,
