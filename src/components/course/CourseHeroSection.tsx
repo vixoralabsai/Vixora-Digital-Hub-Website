@@ -27,12 +27,9 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
       <div className="bg-[#FFF6EC] border-b-2 border-[#1A1D4F] py-2.5 px-4 text-[#1A1D4F] overflow-hidden select-none">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-bold">
           <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF8A65] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF8A65]"></span>
-            </span>
+            <span className="inline-block h-2 w-2 rounded-full bg-[#FF8A65]"></span>
             <span className="uppercase tracking-wider">
-              🔥 Limited Cohort Seats · Next Cohort Starts {course.nextCohortDate} · Early Bird Pricing Ending
+              Limited Cohort Seats · Next Cohort Starts {course.nextCohortDate} · Verified Enrollment Window
             </span>
           </div>
 
@@ -65,10 +62,10 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
             <div className="lg:col-span-7 space-y-6 text-left">
               {/* Eyebrow Stickers */}
               <div className="flex flex-wrap items-center gap-2.5">
-                <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={-2}>
-                  ✦ 100% Practical Accelerator
+                <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
+                  100% Practical Accelerator
                 </StickerLabel>
-                <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={1}>
+                <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
                   {course.track}
                 </StickerLabel>
                 <span className="hidden sm:inline-block text-xs font-bold text-slate-700 px-2.5 py-1 border border-slate-300 rounded-md bg-white">

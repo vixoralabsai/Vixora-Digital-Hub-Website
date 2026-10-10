@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { 
-  Sparkles, 
   X, 
   Send, 
   ArrowRight, 
@@ -12,7 +11,9 @@ import {
   MessageSquare, 
   CheckCircle2, 
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  Terminal
 } from 'lucide-react';
 import { ACADEMY_COURSES, AcademyCourse } from '../data/vixoraContent';
 
@@ -51,7 +52,7 @@ const STARTER_PROMPTS = [
     track: 'business' as const
   },
   {
-    icon: Sparkles,
+    icon: Terminal,
     label: 'Tell me about the ₦10,000 AI Content Creation sprint.',
     track: 'academy' as const
   },
@@ -224,19 +225,19 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
         <div className="p-4 sm:p-5 border-b border-white/15 flex items-center justify-between shrink-0 bg-[#0B0F2A] backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7000F8] to-[#480878] text-white flex items-center justify-center shadow-lg shadow-purple-900/50 border border-purple-400/30">
-              <Sparkles className="w-5 h-5 text-amber-300" />
+              <Bot className="w-5 h-5 text-purple-200" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 id="ai-advisor-title" className="text-sm sm:text-base font-black text-white tracking-tight">
-                  Vixora AI Advisor
+                  Vixora Advisory Engine
                 </h3>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold">
                   ● Active
                 </span>
               </div>
               <p className="text-xs text-purple-200 font-medium">
-                Digital Architecture & Tech Career Matcher
+                Systems Architecture &amp; Course Track Selector
               </p>
             </div>
           </div>
@@ -356,7 +357,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
                 >
                   {msg.role === 'model' && (
                     <div className="w-8 h-8 rounded-xl bg-purple-900/60 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0 mt-1 shadow-sm">
-                      <Sparkles className="w-4 h-4 text-amber-300" />
+                      <Bot className="w-4 h-4 text-purple-300" />
                     </div>
                   )}
 
@@ -419,12 +420,12 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({
               {isLoading && (
                 <div className="flex gap-3 justify-start items-center">
                   <div className="w-8 h-8 rounded-xl bg-purple-900/60 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0">
-                    <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-purple-300 animate-spin" />
                   </div>
                   <div className="p-3.5 rounded-2xl bg-[#0E1333] border border-purple-500/30 text-xs sm:text-sm text-slate-200 flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-ping" />
+                    <span className="w-2 h-2 rounded-full bg-purple-400" />
                     <span className="font-mono text-xs text-purple-200 font-semibold">
-                      Vixora AI is architecting recommendation...
+                      Architecting recommendation...
                     </span>
                   </div>
                 </div>

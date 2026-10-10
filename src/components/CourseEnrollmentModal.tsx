@@ -15,7 +15,9 @@ import {
   AlertCircle,
   Phone,
   Mail,
-  User
+  User,
+  Globe,
+  PhoneCall
 } from 'lucide-react';
 import { AcademyCourse } from '../data/vixoraContent';
 import { getWhatsAppUrl } from '../data/brandConfig';
@@ -216,8 +218,8 @@ export function CourseEnrollmentModal({
           </button>
 
           <div className="flex items-center gap-2 mb-2.5">
-            <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={-1}>
-              ✦ Admissions Portal
+            <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
+              Admissions Portal
             </StickerLabel>
             <span className="text-xs font-black px-2 py-0.5 rounded border border-[#1A1D4F] bg-[#FFF6EC] text-[#FF8A65]">
               {course.badge}
@@ -314,7 +316,7 @@ export function CourseEnrollmentModal({
                       rel="noopener noreferrer"
                       className="px-4 py-3 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] text-xs font-bold inline-flex items-center justify-center gap-2 shadow-retro-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
                     >
-                      <span>🇺🇸 Global Admissions Desk</span>
+                      <span className="inline-flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-[#5B5FED]" /> Global Admissions Desk</span>
                       <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
                     </a>
                     <a
@@ -326,7 +328,7 @@ export function CourseEnrollmentModal({
                       rel="noopener noreferrer"
                       className="px-4 py-3 rounded-xl bg-white border-2 border-[#1A1D4F] text-[#1A1D4F] text-xs font-bold inline-flex items-center justify-center gap-2 shadow-retro-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
                     >
-                      <span>🇳🇬 Nigeria (08114542934)</span>
+                      <span className="inline-flex items-center gap-1.5"><PhoneCall className="w-3.5 h-3.5 text-emerald-600" /> Nigeria Desk (08114542934)</span>
                       <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
                     </a>
                   </div>

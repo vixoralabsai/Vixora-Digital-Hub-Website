@@ -69,8 +69,8 @@ export const CourseCurriculumSection: React.FC<CourseCurriculumSectionProps> = (
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
-          <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={-1}>
-            ✦ Week-By-Week Blueprint
+          <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
+            Week-By-Week Syllabus Blueprint
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             Curriculum Engineered for Mastery.

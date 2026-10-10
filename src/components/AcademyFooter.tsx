@@ -35,7 +35,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
             >
               <div className="p-2 bg-white rounded-2xl shadow-lg border border-purple-100 flex items-center justify-center">
                 <img
-                  src={BRAND_CONFIG.academyLogo?.imageUrl || "https://i.imgur.com/mGAj2sK.png"}
+                  src={BRAND_CONFIG.academyLogo?.imageUrl || "/images/vixora-academy-logo.png"}
                   alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.png'; }}
                   className="h-10 w-auto max-w-[200px] object-contain rounded-xl"
@@ -43,8 +43,8 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
               </div>
             </button>
 
-            <p className="text-xs sm:text-sm text-purple-100 leading-relaxed max-w-sm">
-              The premier technical institution under the Academic Directorate of Dean <strong className="text-white">Sarumi Hammad</strong>, offering rigorous cohort training in Autonomous AI Systems, Data Analytics, and Digital Freelancing.
+            <p className="text-xs sm:text-sm text-purple-100 leading-relaxed max-w-sm" style={{ color: '#E9D5FF' }}>
+              The premier technical institution under the Academic Directorate of Dean <strong className="text-white font-bold" style={{ color: '#FFFFFF' }}>Sarumi Hammad</strong>, offering rigorous cohort training in Autonomous AI Systems, Data Analytics, and Digital Freelancing.
             </p>
 
             <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-1.5 text-xs">

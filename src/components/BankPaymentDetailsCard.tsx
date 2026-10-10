@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, Building2, CreditCard, ShieldCheck, Zap } from 'lucide-react';
+import { Copy, Check, Building2, CreditCard, ShieldCheck, Zap, Info } from 'lucide-react';
 import { BANK_PAYMENT_DETAILS } from '../data/vixoraContent';
 
 interface BankPaymentDetailsCardProps {
@@ -95,7 +95,7 @@ export function BankPaymentDetailsCard({
       </div>
 
       <div className="p-3 rounded-xl bg-neutral-950/60 border border-purple-900/40 text-xs text-slate-200 flex items-start gap-2">
-        <span className="text-amber-400 font-bold text-sm leading-none mt-0.5">📌</span>
+        <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
         <span>
           After making payment ({tuitionAmount}{courseTitle ? ` for ${courseTitle}` : ''}), send your transaction receipt/screenshot to our WhatsApp Admissions Desk for instant enrolment receipt and cohort onboarding.
         </span>

@@ -74,7 +74,7 @@ export const BRAND_CONFIG: BrandConfig = {
       displayNumber: "+1 (279) 257-4850",
       fullInternationalNumber: "+12792574850",
       cleanDigits: "12792574850",
-      flagEmoji: "🇺🇸 🌐",
+      flagEmoji: "US",
       isPrimary: true
     },
     nigeria: {
@@ -84,7 +84,7 @@ export const BRAND_CONFIG: BrandConfig = {
       displayNumber: "08114542934",
       fullInternationalNumber: "+2348114542934",
       cleanDigits: "2348114542934",
-      flagEmoji: "🇳🇬",
+      flagEmoji: "NG",
       isPrimary: false
     },
     defaultUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project."
@@ -100,7 +100,7 @@ export const BRAND_CONFIG: BrandConfig = {
     altText: "Vixora Digital Hub Logo"
   },
   academyLogo: {
-    imageUrl: "https://i.imgur.com/mGAj2sK.png",
+    imageUrl: "/images/vixora-academy-logo.png",
     fallbackUrl: "/images/vixora-academy-logo.png",
     altText: "Vixora Academy"
   },

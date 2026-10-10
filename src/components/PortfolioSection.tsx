@@ -7,7 +7,8 @@ import {
   Target,
   BarChart3,
   Layers,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 import { PORTFOLIO_PROJECTS, PortfolioProject } from '../data/vixoraContent';
 
@@ -173,9 +174,10 @@ export function PortfolioSection({ onOpenProjectModal }: PortfolioSectionProps) 
               </div>
               <button
                 onClick={() => setActiveProjectModal(null)}
-                className="p-1.5 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white"
+                className="p-1.5 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                aria-label="Close project modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

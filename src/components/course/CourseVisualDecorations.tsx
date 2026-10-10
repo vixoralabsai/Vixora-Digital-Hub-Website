@@ -32,8 +32,7 @@ export const StickerLabel = ({
   className?: string;
 }) => (
   <span
-    style={{ transform: `rotate(${rotate}deg)` }}
-    className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black tracking-wider uppercase border-2 border-[#1A1D4F] shadow-retro-sm rounded-lg ${color} ${textColor} select-none transition-transform hover:rotate-0 ${className}`}
+    className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold tracking-wider uppercase border border-[#1A1D4F]/80 rounded-md ${color} ${textColor} select-none ${className}`}
   >
     {children}
   </span>

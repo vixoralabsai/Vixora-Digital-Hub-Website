@@ -11,7 +11,8 @@ import {
   AlertTriangle,
   RefreshCw,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquare
 } from 'lucide-react';
 import {
   verifyPaystackPayment,
@@ -238,8 +239,9 @@ export function PaymentCallbackPage({
                   rel="noopener noreferrer"
                   className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
                 >
-                  <span>💬 Join Admissions WhatsApp Cohort Desk</span>
-                  <ExternalLink className="w-4 h-4" />
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Join Admissions WhatsApp Cohort Desk</span>
+                  <ExternalLink className="w-4 h-4 ml-auto" />
                 </a>
 
                 <div className="grid grid-cols-2 gap-3">

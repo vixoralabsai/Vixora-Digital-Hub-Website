@@ -9,8 +9,8 @@ export function TestimonialsSection() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-[#480878] bg-[#480878]/5 border border-[#480878]/15 mb-3">
             <span>CLIENT PERSPECTIVES</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight">What Leaders Say About Vixora</h2>
-          <p className="mt-2 text-sm sm:text-base text-[#5F6078]">Real feedback from healthcare executives, retail operators, and investment leaders we partner with.</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>What Leaders Say About Vixora</h2>
+          <p className="mt-2 text-sm sm:text-base text-[#5F6078]" style={{ color: '#475569' }}>Real feedback from healthcare executives, retail operators, and investment leaders we partner with.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

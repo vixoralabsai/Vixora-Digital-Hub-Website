@@ -393,7 +393,7 @@ export function generateCertificateEmailHtml(cert: Certificate): string {
                 Official Credential Issued
               </div>
               <h1 style="color: #000048; font-size: 26px; font-weight: 800; line-height: 1.3; margin: 0 0 14px 0;">
-                Congratulations, ${cert.studentName}! 🎓
+                Congratulations, ${cert.studentName}!
               </h1>
               <p style="color: #5F6078; font-size: 15px; line-height: 1.65; margin: 0 0 20px 0;">
                 The Academic Directorate of <strong>Vixora Academy</strong> under the leadership of Dean <strong>Sarumi Hammad</strong> is pleased to confirm that you have successfully fulfilled all curriculum requirements, practical examinations, and the production capstone for:
@@ -428,7 +428,7 @@ export function generateCertificateEmailHtml(cert: Certificate): string {
                 </tr>
                 <tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #5F6078;">Verification Status:</td>
-                  <td align="right" style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #059669;">✓ Verified & Active</td>
+                  <td align="right" style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #059669;">Verified &amp; Active</td>
                 </tr>
               </table>
             </td>

@@ -129,10 +129,10 @@ export function AcademyPage({
             <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-[#480878]">
               <BookOpen className="w-3.5 h-3.5" /> Course Catalog & Individual Landing Pages
             </div>
-            <h2 className="text-3xl font-extrabold text-[#000048] tracking-tight">
+            <h2 className="text-3xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>
               Select a Program Track
             </h2>
-            <p className="text-sm text-[#5F6078] max-w-2xl">
+            <p className="text-sm text-[#5F6078] max-w-2xl" style={{ color: '#475569' }}>
               Each course features a dedicated landing page with weekly syllabus breakdowns, hands-on production labs, capstone previews, and verified certifications.
             </p>
           </div>
@@ -304,10 +304,10 @@ export function AcademyPage({
             <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-[#480878]">
               <Building className="w-4 h-4" /> Enterprise Workforce Transformation
             </div>
-            <h2 className="text-3xl font-extrabold text-[#000048] tracking-tight">
+            <h2 className="text-3xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>
               Custom Corporate Training & In-House Cohorts
             </h2>
-            <p className="text-sm text-[#5F6078] leading-relaxed">
+            <p className="text-sm text-[#5F6078] leading-relaxed" style={{ color: '#475569' }}>
               We design and deliver bespoke corporate training programs for technology companies, enterprises, and government agencies seeking to upskill entire teams in modern autonomous toolchains.
             </p>
           </div>

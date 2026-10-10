@@ -64,16 +64,21 @@ export function WhatsAppContactButton({
 
       {/* Popover Menu with Dual Regional Lines */}
       {isOpen && (
-        <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-80 sm:w-88 rounded-2xl bg-[#0C061F] border border-emerald-500/30 shadow-2xl shadow-emerald-950/80 p-3 z-50 animate-in fade-in zoom-in-95 duration-150 text-neutral-100">
+        <div 
+          role="dialog"
+          aria-label="Select WhatsApp Line"
+          data-theme="dark"
+          className="modal-dark absolute right-0 sm:left-0 sm:right-auto mt-2 w-80 sm:w-88 rounded-2xl bg-[#0C061F] border border-emerald-500/30 shadow-2xl shadow-emerald-950/80 p-3 z-50 animate-in fade-in zoom-in-95 duration-150 text-neutral-100"
+        >
           <div className="px-3 py-2 border-b border-purple-900/30 mb-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
                 Select Inbound WhatsApp Line
               </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Agents Online" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400" title="Agents Online" />
             </div>
-            <p className="text-[11px] text-neutral-400 mt-0.5">
+            <p className="text-[11px] text-slate-300 mt-0.5">
               Direct connection to Vixora Technology Strategists
             </p>
           </div>
@@ -89,17 +94,16 @@ export function WhatsAppContactButton({
             >
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">🇺🇸 🌐</span>
                   <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
-                    US & Foreign Inbounds
+                    US &amp; Foreign Inbounds
                   </span>
                 </div>
-                <div className="text-[11px] font-mono text-emerald-400 font-semibold pl-6">
+                <div className="text-[11px] font-mono text-emerald-400 font-semibold">
                   {BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber}
                 </div>
                 {showDetails && (
-                  <div className="text-[10px] text-neutral-400 pl-6">
-                    Americas, Europe, Asia & Global Clients
+                  <div className="text-[10px] text-neutral-400">
+                    Americas, Europe, Asia &amp; Global Clients
                   </div>
                 )}
               </div>
@@ -116,20 +120,19 @@ export function WhatsAppContactButton({
             >
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">🇳🇬</span>
                   <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
                     Nigeria Inbounds
                   </span>
                 </div>
-                <div className="text-[11px] font-mono text-emerald-400 font-semibold pl-6">
+                <div className="text-[11px] font-mono text-emerald-400 font-semibold">
                   {BRAND_CONFIG.whatsapp.nigeria.displayNumber}
                   <span className="text-[10px] text-neutral-500 font-normal ml-1">
                     ({BRAND_CONFIG.whatsapp.nigeria.fullInternationalNumber})
                   </span>
                 </div>
                 {showDetails && (
-                  <div className="text-[10px] text-neutral-400 pl-6">
-                    Local Nigeria & West Africa Regional Inquiries
+                  <div className="text-[10px] text-neutral-400">
+                    Local Nigeria &amp; West Africa Regional Inquiries
                   </div>
                 )}
               </div>

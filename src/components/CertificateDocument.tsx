@@ -81,7 +81,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
 
   // Plain-text and direct email URLs
   const emailText = generateCertificateEmailText(certificate);
-  const emailSubject = `🎓 Congratulations ${certificate.studentName}! Your Vixora Academy Certificate is Ready`;
+  const emailSubject = `Official Verification: ${certificate.studentName} - Vixora Academy Certificate of Completion`;
   const directGmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
     targetRecipientEmail || certificate.studentEmail
   )}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailText)}`;
@@ -99,7 +99,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
       const res = await onSendEmail(certificate.id, emailToUse);
       if (res.success) {
         if (res.delivery?.deliveredToInternet) {
-          setEmailStatus(`✅ Live email delivered via SMTP to ${emailToUse}`);
+          setEmailStatus(`Live email delivered via SMTP to ${emailToUse}`);
           setServerDeliveryResult({
             deliveredToInternet: true,
             provider: res.delivery.provider,
@@ -107,7 +107,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
             messageId: res.delivery.messageId
           });
         } else {
-          setEmailStatus(`⚡ Email rendered & logged in Outbox. Click "Open in Gmail" for 1-click delivery.`);
+          setEmailStatus(`Email rendered and logged in Outbox. Click "Open in Gmail" for 1-click delivery.`);
           setServerDeliveryResult({
             deliveredToInternet: false,
             provider: 'simulated',

@@ -18,11 +18,11 @@ export function CallToAction({ onOpenProjectModal }: CallToActionProps) {
             <span>Ready to Scale Your Digital Infrastructure?</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-[#000048] tracking-tight leading-tight max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-[#000048] tracking-tight leading-tight max-w-3xl mx-auto" style={{ color: '#000048' }}>
             Let’s Build Your Next Competitive Advantage
           </h2>
 
-          <p className="text-base sm:text-lg text-[#5F6078] max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-[#5F6078] max-w-2xl mx-auto" style={{ color: '#475569' }}>
             Whether you need software, AI automation, high-converting media, or practical training, Vixora is ready to help you build, improve, and grow.
           </p>
 

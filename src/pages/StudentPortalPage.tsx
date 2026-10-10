@@ -1452,10 +1452,17 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                             <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-purple-100 text-[#480878]">
                               {course.badge}
                             </span>
-                            <span className={`text-xs font-bold ${
+                            <span className={`text-xs font-bold inline-flex items-center gap-1 ${
                               course.status === 'completed' ? 'text-emerald-700' : 'text-amber-700'
                             }`}>
-                              {course.status === 'completed' ? '✓ Completed' : 'In Progress'}
+                              {course.status === 'completed' ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  <span>Completed</span>
+                                </>
+                              ) : (
+                                'In Progress'
+                              )}
                             </span>
                           </div>
 

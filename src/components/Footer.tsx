@@ -73,7 +73,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
                   <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-white group-hover:text-emerald-300 flex items-center gap-1.5">
-                      <span>🇺🇸 🌐</span> US & Global Inbounds
+                      US &amp; Global Inbounds
                     </span>
                     <span className="text-[11px] font-mono text-emerald-400">
                       {BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber}
@@ -91,7 +91,7 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
                   <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-white group-hover:text-emerald-300 flex items-center gap-1.5">
-                      <span>🇳🇬</span> Nigeria Inbounds
+                      Nigeria Inbounds
                     </span>
                     <span className="text-[11px] font-mono text-emerald-400">
                       {BRAND_CONFIG.whatsapp.nigeria.displayNumber}

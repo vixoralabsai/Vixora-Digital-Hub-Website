@@ -71,7 +71,7 @@ export function Hero({
       id="hero"
       className="relative min-h-[88vh] sm:min-h-[92vh] pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
     >
-      {/* 🌌 High-Fidelity Custom Background Image Canvas */}
+      {/* High-Fidelity Custom Background Image Canvas */}
       {currentBgSrc && !bgLoadError && (
         <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none">
           <img

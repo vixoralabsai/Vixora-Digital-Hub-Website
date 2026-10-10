@@ -130,17 +130,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Organizations are sitting on vast reserves of operational and customer data. Yet they face an acute shortage of practitioners who can clean features, build predictive algorithms, and deploy reliable machine learning models to solve business problems.',
       points: [
         {
-          icon: '📈',
+          icon: '01',
           title: 'Beyond Static Reporting',
           desc: 'Descriptive spreadsheets only tell you what already happened. Machine learning equips you to forecast customer churn, model financial risks, and predict demands.'
         },
         {
-          icon: '🧠',
+          icon: '02',
           title: 'Practical Code vs. Theoretical Math',
           desc: 'Most tutorials get lost in academic proofs without showing you how to clean messy data, engineer features, evaluate models, and deploy Scikit-Learn pipelines.'
         },
         {
-          icon: '🚀',
+          icon: '03',
           title: 'Portfolio-Ready Proof',
           desc: 'Employers and clients hire for demonstrable code. You need real projects—from exploratory data analysis to deployed prediction APIs—to stand out immediately.'
         }
@@ -157,17 +157,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Businesses collect gigabytes of transaction records, lead forms, and operational metrics daily. They desperately need professionals who can extract actionable clarity using SQL, Power BI, and structured analysis.',
       points: [
         {
-          icon: '📊',
+          icon: '01',
           title: 'Data Without Direction',
           desc: 'Raw spreadsheets confuse leadership. Organizations need skilled analysts who can connect data sources, identify leaks, and communicate answers visually.'
         },
         {
-          icon: '💼',
+          icon: '02',
           title: 'High-Demand Global Skills',
           desc: 'Excel is only step one. Employers pay premium salaries for talent proficient in relational SQL queries, interactive Power BI dashboards, and business acumen.'
         },
         {
-          icon: '🎯',
+          icon: '03',
           title: 'Structured, Zero-Fluff Roadmap',
           desc: 'Random internet videos leave knowledge gaps. A structured curriculum ensures you learn the exact tools and commercial workflows hiring managers test.'
         }
@@ -184,17 +184,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Companies are rushing to integrate AI into their products, but traditional software patterns break when handling stochastic outputs, latency bottlenecks, agent loops, and vector database retrieval.',
       points: [
         {
-          icon: '🛠️',
+          icon: '01',
           title: 'Beyond Fragile Prompt Wrappers',
           desc: 'Toy wrappers fail in production. Real applications demand robust eval pipelines, semantic caching, fallback loops, and token budgeting.'
         },
         {
-          icon: '⚡',
+          icon: '02',
           title: 'Vector Databases, RAG & Agents',
           desc: 'Engineering autonomous agents with tool-calling capabilities and hybrid vector retrieval commands top-tier international compensation.'
         },
         {
-          icon: '🌍',
+          icon: '03',
           title: 'High-Demand Remote Engineering',
           desc: 'Global tech startups are aggressively hunting for full-stack developers who can architect and deploy complete AI-native applications.'
         }
@@ -211,17 +211,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Corporate leaders are overwhelmed with vendor pitches, pilot experiments that stall in development, and employee prompt confusion. Sustained competitive advantage requires strategic AI governance.',
       points: [
         {
-          icon: '📉',
+          icon: '01',
           title: 'Wasted Pilot Budgets',
           desc: 'Over 70% of enterprise AI trials fail to yield measurable ROI due to poor data readiness and misaligned commercial KPIs.'
         },
         {
-          icon: '🛡️',
+          icon: '02',
           title: 'Security & Compliance Blindspots',
           desc: 'Data leaks, IP exposure, and regulatory penalties threaten companies that adopt AI tools without clear enterprise governance policies.'
         },
         {
-          icon: '🏆',
+          icon: '03',
           title: 'Disproportionate Operating Leverage',
           desc: 'Organizations that thoughtfully weave autonomous agents into core business operations achieve 3x to 5x operational leverage over peers.'
         }
@@ -238,17 +238,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Modern businesses juggle dozens of specialized software platforms—CRMs, ERPs, accounting systems, and support queues. Relying on costly per-task Zapier plans or manual copy-pasting leads to broken syncs and ballooning software budgets.',
       points: [
         {
-          icon: '🔄',
+          icon: '01',
           title: 'Self-Hosted n8n vs. Metered SaaS',
           desc: 'Run millions of workflow executions without per-task fees by deploying unmetered, self-hosted n8n infrastructure with Docker and SSL.'
         },
         {
-          icon: '🐍',
+          icon: '02',
           title: 'Custom Python Nodes & Complex Logic',
           desc: 'Surpass low-code limitations by integrating custom Python scripts, SQL database connectors, and resilient error recovery loops.'
         },
         {
-          icon: '🔒',
+          icon: '03',
           title: 'Enterprise Security Behind Firewalls',
           desc: 'Keep proprietary company data, webhooks, and customer records securely within your own cloud infrastructure instead of third-party clouds.'
         }
@@ -265,17 +265,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Traditional form-and-button web design cannot handle streaming text, variable model latency, confidence scores, agent feedback loops, or infinite canvas workspaces. Top tech companies pay top rates for product designers who understand AI interaction design.',
       points: [
         {
-          icon: '🎨',
+          icon: '01',
           title: 'Designing for Latency & Streaming',
           desc: 'Design token streaming feedback, loading states, and graceful error handling when models hallucinate or lag.'
         },
         {
-          icon: '📐',
+          icon: '02',
           title: 'Scalable Obsidian Design Systems',
           desc: 'Build dark-mode design tokens, modular component libraries, and Figma variables tailored for complex AI dashboards.'
         },
         {
-          icon: '⚡',
+          icon: '03',
           title: 'Interactive Canvas & Agent Visualizers',
           desc: 'Prototype multi-turn agent conversations, tool-calling badges, and spatial canvas workflows that delight users.'
         }
@@ -292,17 +292,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'Paid social algorithms on Meta and TikTok demand dozens of fresh creative hooks every week. Traditional video shoots take weeks and thousands of dollars, suffocating return on ad spend before scaling.',
       points: [
         {
-          icon: '🎬',
+          icon: '01',
           title: 'High-Converting UGC Video at Scale',
           desc: 'Produce realistic synthetic avatars, custom voiceovers, and dynamic video edits using Midjourney, Runway, and ElevenLabs.'
         },
         {
-          icon: '🎯',
+          icon: '02',
           title: 'Algorithmic Hook Testing',
           desc: 'Test 50+ video hooks and visual angles simultaneously to discover winning customer acquisition creatives.'
         },
         {
-          icon: '📈',
+          icon: '03',
           title: 'Media Buying & Scaling Past $50k/mo',
           desc: 'Combine creative volume with structured campaign bidding, audience scaling, and ROAS optimization.'
         }
@@ -319,17 +319,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
       sub: 'There is a massive distinction between someone who plays with prompt generators and someone who builds autonomous business infrastructure that saves 15+ hours every single week.',
       points: [
         {
-          icon: '📜',
+          icon: '01',
           title: 'Prompting Is a Low Ceiling',
           desc: 'Typing casual ChatGPT prompts is a commodity. Clients do not pay monthly retainers for simple text prompts they can generate themselves.'
         },
         {
-          icon: '⚡',
+          icon: '02',
           title: 'Systems Command Recurring Retainers',
           desc: 'Businesses happily pay ₦200,000+ to $2,500/month for automated CRM lead triage, invoice generation, customer routing, and multi-app syncs.'
         },
         {
-          icon: '💼',
+          icon: '03',
           title: 'Invoices vs. Resumes',
           desc: 'While average job seekers wait on endless resume queues, system builders package custom automation solutions directly for eager business owners.'
         }
@@ -346,17 +346,17 @@ function getCourseProblemData(course: AcademyCourse): CourseProblemData {
     sub: 'Across every sector, professionals and creators using AI tools are completing tasks in minutes that used to take entire days. Getting started does not require coding—just the right step-by-step guidance.',
     points: [
       {
-        icon: '💼',
+        icon: '01',
         title: 'Stand Out on Every Application',
         desc: 'Adding practical AI workflows, automated research, and media production to your CV immediately differentiates you from outdated candidates.'
       },
       {
-        icon: '⚡',
+        icon: '02',
         title: 'Fast Freelance Services',
         desc: 'Simple automated lead funnels, custom chatbots, and automated summaries that take 30 minutes to set up can be offered as valuable client services.'
       },
       {
-        icon: '🎨',
+        icon: '03',
         title: 'Produce 10x Faster',
         desc: 'Master prompt engineering, generative graphics, and visual automation tools to amplify your individual output without burnout.'
       }
@@ -877,29 +877,29 @@ function getCourseValueStack(course: AcademyCourse): ValueStackItem[] {
 
   return [
     {
-      title: `✅ ${course.duration} Structured Curriculum`,
+      title: `${course.duration} Structured Curriculum`,
       desc: `Step-by-step masterclasses spanning ${course.weeklySyllabus.length} modules, specifically designed for ${course.title} with zero fluff and maximum real-world execution.`
     },
     {
-      title: `✅ Industry Capstone: ${capstoneName}`,
+      title: `Industry Capstone: ${capstoneName}`,
       desc: course.capstoneProjects.length > 1
         ? `Build and defend verifiable deliverables including "${capstoneName}" and "${course.capstoneProjects[1]?.title}" to anchor your professional portfolio.`
         : `Build and defend "${capstoneName}" with direct mentor feedback to prove commercial competence.`
     },
     {
-      title: `✅ Official ${course.certificateType}`,
+      title: `Official ${course.certificateType}`,
       desc: `Verifiable ${course.certificateType} credential signed by Dean Sarumi Hammad upon graduation to showcase on your LinkedIn profile and CV.`
     },
     {
-      title: `✅ Direct Mentor Office Hours & Review`,
+      title: `Direct Mentor Office Hours & Review`,
       desc: `Interactive feedback, practical lab troubleshooting, and dedicated Q&A sessions throughout the cohort so you never get stuck.`
     },
     {
-      title: `✅ ${highlights[1] || 'Hands-On Domain Mastery'}`,
+      title: `${highlights[1] || 'Hands-On Domain Mastery'}`,
       desc: highlights[2] || `Direct hands-on training with industry-standard tooling, real datasets, and production frameworks.`
     },
     {
-      title: `✅ ${course.format} Access & Network`,
+      title: `${course.format} Access & Network`,
       desc: `Live interactive sessions, recorded replays in your student portal, complete project resources, and our active builder network.`
     }
   ];
@@ -1596,8 +1596,8 @@ export function CourseLandingPage({
         <section className="bg-[#FFFDF9] border-b-2 border-[#1A1D4F] py-20 text-left">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto space-y-2 mb-12">
-              <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={-1}>
-                ✦ Learning Pathways
+              <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
+                Learning Pathways
               </StickerLabel>
               <h2 className="font-display font-black text-2xl sm:text-3xl text-[#1A1D4F]">
                 Complementary & Advanced Tracks

@@ -51,8 +51,8 @@ export function SolutionsSection({ onOpenProjectModal }: SolutionsSectionProps) 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold text-[#480878] bg-[#480878]/5 border border-[#480878]/15 uppercase tracking-widest"><span>WHAT WE DO</span></div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight">Complete Digital Solutions</h2>
-          <p className="text-sm sm:text-base text-[#5F6078] font-normal max-w-2xl mx-auto">End-to-end digital services and AI-powered solutions designed to transform your business.</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>Complete Digital Solutions</h2>
+          <p className="text-sm sm:text-base text-[#5F6078] font-normal max-w-2xl mx-auto" style={{ color: '#475569' }}>End-to-end digital services and AI-powered solutions designed to transform your business.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">

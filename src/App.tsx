@@ -474,8 +474,8 @@ function AppContent() {
 
   return (
     <>
-      <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
-        isAcademyLightBg ? 'bg-[#F7F7FC] text-[#000048]' : 'bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white'
+      <div className={`min-h-screen font-sans antialiased transition-colors duration-200 selection:bg-[#480878] selection:text-white ${
+        isAcademyLightBg ? 'text-[#000048]' : 'text-neutral-100'
       }`}>
       {/* Viewport Top Scroll Progress Indicator for Long-Form Pages */}
       <ScrollProgressBar currentPage={route.page} />

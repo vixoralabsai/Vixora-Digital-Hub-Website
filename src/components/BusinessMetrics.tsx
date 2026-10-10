@@ -27,10 +27,10 @@ export function BusinessMetrics() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-[#480878] bg-[#480878]/5 border border-[#480878]/15 mb-3">
             <span>OUR TRACK RECORD</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>
             Proven Scale in Numbers
           </h2>
-          <p className="mt-2 text-sm sm:text-base text-[#5F6078]">
+          <p className="mt-2 text-sm sm:text-base text-[#5F6078]" style={{ color: '#475569' }}>
             A snapshot of the businesses, projects, and industries Vixora has served.
           </p>
         </div>

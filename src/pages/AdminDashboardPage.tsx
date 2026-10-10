@@ -81,7 +81,7 @@ export function AdminDashboardPage({
   // Test Email Modal state
   const [isTestEmailModalOpen, setIsTestEmailModalOpen] = useState(false);
   const [testEmailTo, setTestEmailTo] = useState('vixoralabsai@gmail.com');
-  const [testEmailSubject, setTestEmailSubject] = useState('🎓 Vixora Digital Hub Admin Live Diagnostic Test');
+  const [testEmailSubject, setTestEmailSubject] = useState('Vixora Digital Hub Admin Live Diagnostic Test');
   const [testEmailMessage, setTestEmailMessage] = useState(
     'This is an official real-time diagnostic test from Vixora Digital Hub Command Center to verify the Resend API and SMTP deliverability pipeline.'
   );

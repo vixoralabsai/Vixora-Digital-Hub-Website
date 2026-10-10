@@ -9,7 +9,9 @@ import {
   Sparkles,
   ArrowRight,
   ExternalLink,
-  LayoutDashboard
+  LayoutDashboard,
+  Globe,
+  PhoneCall
 } from 'lucide-react';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
 import { createProjectFromConsultation, setClientAuthSession } from '../services/clientProjectService';
@@ -245,7 +247,7 @@ export function StartProjectModal({ isOpen, onClose, onNavigateToDashboard }: St
                   rel="noreferrer"
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition-all text-center"
                 >
-                  <span>🇺🇸 🌐 US / Global</span>
+                  <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-white" /> US & Global</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
 
@@ -255,7 +257,7 @@ export function StartProjectModal({ isOpen, onClose, onNavigateToDashboard }: St
                   rel="noreferrer"
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition-all text-center"
                 >
-                  <span>🇳🇬 Nigeria (08114542934)</span>
+                  <span className="flex items-center gap-1.5"><PhoneCall className="w-3.5 h-3.5 text-white" /> Nigeria Desk (08114542934)</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -458,7 +460,7 @@ export function StartProjectModal({ isOpen, onClose, onNavigateToDashboard }: St
                       >
                         <div>
                           <div className="font-semibold text-white flex items-center gap-1.5">
-                            <span>🇺🇸 🌐</span> US & Global
+                            <Globe className="w-3.5 h-3.5 text-emerald-400" /> US & Global
                           </div>
                           <div className="text-[10px] font-mono text-emerald-400">
                             {BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber}
@@ -475,7 +477,7 @@ export function StartProjectModal({ isOpen, onClose, onNavigateToDashboard }: St
                       >
                         <div>
                           <div className="font-semibold text-white flex items-center gap-1.5">
-                            <span>🇳🇬</span> Nigeria
+                            <PhoneCall className="w-3.5 h-3.5 text-emerald-400" /> Nigeria Desk
                           </div>
                           <div className="text-[10px] font-mono text-emerald-400">
                             {BRAND_CONFIG.whatsapp.nigeria.displayNumber}

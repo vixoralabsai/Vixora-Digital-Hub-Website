@@ -480,10 +480,10 @@ export function Navbar({
                 id="nav-ai-advisor-btn"
                 onClick={onOpenAiAdvisor}
                 title="Vixora AI Architecture & Career Advisor"
-                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-[#480878] to-[#7000F8] hover:from-[#5B0898] hover:to-[#8515FF] text-white border border-purple-400/50 shadow-sm transition-all cursor-pointer"
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#1E113F] hover:bg-[#2A1854] text-purple-200 border border-purple-500/40 shadow-sm transition-all cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                <span>✦ AI Advisor</span>
+                <Bot className="w-3.5 h-3.5 text-purple-300" />
+                <span>AI Advisor</span>
               </button>
             )}
 
@@ -815,10 +815,10 @@ export function Navbar({
                   setMobileMenuOpen(false);
                   onOpenAiAdvisor();
                 }}
-                className="w-full py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md shadow-purple-900/40 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#1E113F] text-purple-200 border border-purple-500/40 shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                <span>✦ Ask AI Advisor (Solutions & Courses)</span>
+                <Bot className="w-4 h-4 text-purple-300" />
+                <span>Advisory Engine (Solutions &amp; Courses)</span>
               </button>
             )}
 

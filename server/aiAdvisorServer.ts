@@ -162,12 +162,25 @@ CRITICAL RULES:
 // 3. AI Client Setup
 // ============================================================================
 
+export function getGeminiApiKey(): string {
+  const rawKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GOOGLE_GENAI_API_KEY ||
+    process.env.GEMINI_KEY ||
+    '';
+  // Strip optional wrapping quotes or whitespace if accidentally pasted in Vercel
+  return rawKey.trim().replace(/^["']|["']$/g, '');
+}
+
+let cachedApiKey = '';
 let aiClient: GoogleGenAI | null = null;
 function getGemini(): GoogleGenAI {
-  if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY || '';
+  const currentKey = getGeminiApiKey();
+  if (!aiClient || cachedApiKey !== currentKey) {
+    cachedApiKey = currentKey;
     aiClient = new GoogleGenAI({
-      apiKey,
+      apiKey: currentKey,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-vixora-advisor'
@@ -186,8 +199,9 @@ function getGemini(): GoogleGenAI {
 aiAdvisorRouter.get('/advisor/status', (req: Request, res: Response) => {
   const ip = getClientIp(req);
   const status = advisorRateLimiter.peek(ip);
+  const apiKey = getGeminiApiKey();
   res.json({
-    ready: Boolean(process.env.GEMINI_API_KEY),
+    ready: Boolean(apiKey),
     limit: status.limit,
     remaining: status.remaining,
     resetInSeconds: status.resetInSeconds,
@@ -223,9 +237,10 @@ aiAdvisorRouter.post('/advisor', async (req: Request, res: Response) => {
     });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
     return res.status(503).json({
-      error: 'AI Advisor is currently unconfigured. Please contact support via WhatsApp or email.',
+      error: 'GEMINI_API_KEY is not configured in environment variables. Please add GEMINI_API_KEY to your Vercel Project Settings and redeploy.',
       code: 'GEMINI_UNCONFIGURED'
     });
   }
@@ -281,7 +296,13 @@ Respond with a JSON object strictly matching this schema:
 DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid JSON.`;
 
     let response: any = null;
-    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+    const candidateModels = [
+      'gemini-2.5-flash',
+      'gemini-3.8-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-2.0-flash',
+      'gemini-flash-latest'
+    ];
     let lastError: any = null;
 
     for (const model of candidateModels) {

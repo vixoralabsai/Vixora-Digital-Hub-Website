@@ -253,7 +253,7 @@ export function ClientDashboardPage({
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'overview'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -265,7 +265,7 @@ export function ClientDashboardPage({
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'deadlines'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Calendar className="w-4 h-4" />
@@ -280,7 +280,7 @@ export function ClientDashboardPage({
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'files'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Folder className="w-4 h-4" />
@@ -295,7 +295,7 @@ export function ClientDashboardPage({
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'activity'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Activity className="w-4 h-4" />
@@ -307,7 +307,7 @@ export function ClientDashboardPage({
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'credentials'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Award className="w-4 h-4 text-amber-400" />

@@ -26,8 +26,13 @@ export function FilePreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      data-theme="dark"
+      className="modal-dark fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200"
+    >
+      <div className="modal-dark bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/50">
           <div className="flex items-center gap-3 overflow-hidden">

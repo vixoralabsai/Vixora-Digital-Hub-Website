@@ -31,11 +31,11 @@ export function FloatingWhatsAppWidget() {
         >
           <div className="relative">
             <MessageSquare className="w-5 h-5 fill-white text-white" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-300 border-2 border-emerald-700 animate-pulse" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-300 border-2 border-emerald-700" />
           </div>
           <div className="hidden sm:flex flex-col text-left">
             <span className="text-xs font-bold leading-none">Chat on WhatsApp</span>
-            <span className="text-[10px] text-emerald-100 font-mono leading-tight mt-0.5">US & Nigeria Lines</span>
+            <span className="text-[10px] text-emerald-100 font-mono leading-tight mt-0.5">US &amp; Nigeria Lines</span>
           </div>
         </button>
       )}
@@ -92,7 +92,7 @@ export function FloatingWhatsAppWidget() {
                 }`}
               >
                 <span className="flex items-center gap-1 text-[11px]">
-                  <span>🇺🇸 🌐</span> US & Foreign
+                  US &amp; Foreign
                 </span>
                 <span className="text-[10px] font-mono opacity-90">
                   {BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber}
@@ -109,7 +109,7 @@ export function FloatingWhatsAppWidget() {
                 }`}
               >
                 <span className="flex items-center gap-1 text-[11px]">
-                  <span>🇳🇬</span> Nigeria
+                  Nigeria Desk
                 </span>
                 <span className="text-[10px] font-mono opacity-90">
                   {BRAND_CONFIG.whatsapp.nigeria.displayNumber}
@@ -123,7 +123,7 @@ export function FloatingWhatsAppWidget() {
             {/* Greeting card */}
             <div className="p-3 rounded-2xl bg-neutral-900/90 border border-purple-900/30 space-y-1.5 text-neutral-300">
               <p className="text-xs leading-relaxed">
-                👋 Welcome! Tap a quick topic below or type your message to jump straight into a live WhatsApp chat on{' '}
+                Connect directly with our advisory desk. Tap a topic below or type your inquiry to jump straight into a live WhatsApp chat on{' '}
                 <strong className="text-emerald-400 font-mono">
                   {selectedChannel === 'us'
                     ? BRAND_CONFIG.whatsapp.usAndGlobal.displayNumber
@@ -135,7 +135,7 @@ export function FloatingWhatsAppWidget() {
             {/* Quick Topic Chips */}
             <div className="space-y-1.5">
               <span className="text-[11px] font-mono font-semibold text-neutral-400 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-purple-400" /> Quick Starters:
+                Quick Inquiries:
               </span>
               <div className="space-y-1.5">
                 {quickPrompts.map((prompt, idx) => (

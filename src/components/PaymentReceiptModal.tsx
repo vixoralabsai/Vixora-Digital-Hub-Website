@@ -11,7 +11,8 @@ import {
   CreditCard,
   Building2,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquare
 } from 'lucide-react';
 import { VerifiedPaymentData } from '../lib/paystack';
 import { getWhatsAppUrl, BRAND_CONFIG } from '../data/brandConfig';
@@ -49,7 +50,12 @@ export function PaymentReceiptModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      data-theme="dark"
+      className="modal-dark fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
@@ -57,7 +63,7 @@ export function PaymentReceiptModal({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-xl bg-neutral-900 border border-emerald-500/50 rounded-3xl shadow-2xl shadow-emerald-950/40 overflow-hidden z-10 my-8">
+      <div className="modal-dark relative w-full max-w-xl bg-neutral-900 border border-emerald-500/50 rounded-3xl shadow-2xl shadow-emerald-950/40 overflow-hidden z-10 my-8">
         {/* Header Ribbon */}
         <div className="bg-gradient-to-r from-emerald-950/80 via-neutral-900 to-purple-950/80 p-6 sm:p-8 border-b border-emerald-900/40 relative">
           <button
@@ -157,8 +163,9 @@ export function PaymentReceiptModal({
               rel="noopener noreferrer"
               className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
             >
-              <span>💬 Fast-Track Admissions &amp; Cohort WhatsApp</span>
-              <ExternalLink className="w-4 h-4" />
+              <MessageSquare className="w-4 h-4" />
+              <span>Fast-Track Admissions &amp; Cohort WhatsApp</span>
+              <ExternalLink className="w-4 h-4 ml-auto" />
             </a>
 
             <div className="grid grid-cols-2 gap-3">

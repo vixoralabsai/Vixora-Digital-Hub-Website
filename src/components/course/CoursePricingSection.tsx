@@ -43,8 +43,8 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
         
         {/* Section Header */}
         <div className="space-y-3 mb-12">
-          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={-2}>
-            ✦ Transparent Cohort Tuition
+          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
+            Cohort Tuition &amp; Enrollment
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight">
             Invest in Career-Defining Mastery.
@@ -60,7 +60,7 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
           {/* Top Cohort Urgency Pill */}
           <div className="flex flex-wrap items-center justify-between gap-2 pb-5 border-b-2 border-[#1A1D4F]/10">
             <span className="text-xs font-black uppercase text-[#5B5FED] tracking-wider">
-              ✦ Next Cohort: {course.nextCohortDate}
+              Next Cohort: {course.nextCohortDate}
             </span>
             <span className="px-2.5 py-0.5 text-xs font-black bg-[#FFF6EC] border border-[#FF8A65] text-[#FF8A65] rounded-full">
               Only {course.seatsRemaining} spots available

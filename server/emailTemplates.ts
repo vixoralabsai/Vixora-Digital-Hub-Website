@@ -12,7 +12,7 @@
 import { BRAND_CONFIG } from '../src/data/brandConfig.js';
 
 // Canonical URLs
-const LOGO_URL = 'https://i.imgur.com/mGAj2sK.png';
+const LOGO_URL = 'https://academy.vixoradigitalhub.com/images/vixora-academy-logo.png';
 const ACADEMY_URL = 'https://academy.vixoradigitalhub.com';
 const PORTAL_URL = 'https://academy.vixoradigitalhub.com/pages/student-portal';
 

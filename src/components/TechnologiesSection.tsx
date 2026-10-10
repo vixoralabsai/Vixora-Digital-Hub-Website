@@ -5,7 +5,6 @@ import {
   Globe,
   Atom,
   Database,
-  Sparkles,
   Box,
   Cloud,
   Bot,
@@ -41,7 +40,7 @@ export function TechnologiesSection() {
       case 'PostgreSQL':
         return <Database className="w-5 h-5 text-blue-400" />;
       case 'Supabase':
-        return <Sparkles className="w-5 h-5 text-emerald-400" />;
+        return <Database className="w-5 h-5 text-emerald-400" />;
       case 'Docker':
         return <Box className="w-5 h-5 text-blue-500" />;
       case 'AWS':

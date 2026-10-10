@@ -34,10 +34,10 @@ export const ToolsMarqueeSection: React.FC<{ tools: CourseTool[] }> = ({ tools }
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="space-y-1">
             <span className="text-xs font-black uppercase tracking-wider text-[#FF8A65]">
-              ✦ Production Stack & Tooling
+              Production Stack &amp; Tooling
             </span>
             <h3 className="font-display font-black text-xl sm:text-2xl text-[#1A1D4F]">
-              Tools & Platforms You Will Master
+              Tools &amp; Platforms You Will Master
             </h3>
           </div>
           <p className="text-xs sm:text-sm text-slate-700 max-w-md font-medium">
@@ -51,7 +51,10 @@ export const ToolsMarqueeSection: React.FC<{ tools: CourseTool[] }> = ({ tools }
               key={idx}
               className="p-3 bg-white border-2 border-[#1A1D4F] shadow-retro-sm rounded-xl hover:-translate-y-1 hover:shadow-retro transition-all cursor-default text-center group"
             >
-              <div className="text-2xl mb-1.5 transform group-hover:scale-110 transition-transform">
+              <div 
+                className="w-10 h-10 mx-auto rounded-lg mb-2 flex items-center justify-center font-mono font-bold text-xs border border-[#1A1D4F]/20"
+                style={{ backgroundColor: `${tool.color}18`, color: tool.color }}
+              >
                 {tool.glyph}
               </div>
               <div className="text-xs font-black text-[#1A1D4F] truncate">{tool.name}</div>
@@ -83,8 +86,8 @@ export const CourseProblemSection: React.FC<{
     <section id="problem" className="bg-[#FFFDF9] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#FF8A65]" textColor="text-white" rotate={1}>
-            ✦ The Market Reality
+          <StickerLabel color="bg-[#FF8A65]" textColor="text-white" rotate={0}>
+            Market Context &amp; Reality
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             {problem.headline}
@@ -102,7 +105,9 @@ export const CourseProblemSection: React.FC<{
               className="bg-white border-2 border-[#1A1D4F] shadow-retro rounded-2xl p-6 sm:p-7 space-y-3 relative hover:-translate-y-1 transition-transform"
             >
               <div className="flex items-center justify-between">
-                <span className="text-3xl">{pt.icon}</span>
+                <div className="w-10 h-10 rounded-xl bg-[#5B5FED]/10 border border-[#5B5FED]/30 flex items-center justify-center text-[#5B5FED] font-mono font-bold text-sm">
+                  0{idx + 1}
+                </div>
                 <span className="font-mono text-xs font-black px-2 py-0.5 bg-[#FFF6EC] border border-[#1A1D4F] rounded text-[#1A1D4F]">
                   0{idx + 1}
                 </span>
@@ -152,8 +157,8 @@ export const CourseRoadmapSection: React.FC<{
     <section id="transformation" className="bg-[#F8F9FE] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={-1}>
-            ✦ The Transformation
+          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
+            Curriculum Roadmap
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             The Mastery Progression.
@@ -179,8 +184,9 @@ export const CourseRoadmapSection: React.FC<{
                   </span>
                 </div>
                 {ph.duration && (
-                  <div className="text-[11px] font-bold text-[#5B5FED] bg-[#EEF2FF] px-2 py-0.5 rounded border border-[#5B5FED]/20 w-fit">
-                    ⏱ {ph.duration}
+                  <div className="text-[11px] font-bold text-[#5B5FED] bg-[#EEF2FF] px-2 py-0.5 rounded border border-[#5B5FED]/20 w-fit inline-flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-[#5B5FED]" />
+                    <span>{ph.duration}</span>
                   </div>
                 )}
                 <h3 className="text-base sm:text-lg font-black text-[#1A1D4F]">
@@ -220,8 +226,8 @@ export const CourseProjectsSection: React.FC<{
     <section id="projects" className="bg-[#FFF6EC] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#10B981]" textColor="text-white" rotate={1}>
-            ✦ Portfolio Proof
+          <StickerLabel color="bg-[#10B981]" textColor="text-white" rotate={0}>
+            Portfolio Proof &amp; Capstones
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             What You Will Actually Build.
@@ -286,28 +292,28 @@ export const CoursePedagogySection: React.FC = () => {
       step: '01',
       title: 'Live Interactive Masterclasses',
       desc: 'No passive video lectures. Join active weekly sessions with industry engineers where you ask questions, see live debugging, and follow step-by-step.',
-      icon: '🎙️',
+      code: 'LAB-01',
       color: 'bg-[#FFC107]'
     },
     {
       step: '02',
       title: 'Hands-On Production Code Labs',
       desc: 'Build on messy, realistic business datasets and real-world architectures rather than toy textbook problems. Every module produces working code.',
-      icon: '💻',
+      code: 'LAB-02',
       color: 'bg-[#5B5FED]'
     },
     {
       step: '03',
       title: '1-on-1 Code Reviews & Feedback',
       desc: 'Receive direct, line-by-line feedback on your repositories and assignments from experienced mentors who help you write clean, commercial code.',
-      icon: '🔍',
+      code: 'REV-03',
       color: 'bg-[#FF8A65]'
     },
     {
       step: '04',
       title: 'Capstone Defense & Career Launch',
       desc: 'Defend your capstone before industry evaluators, receive your verified credential, and join our private alumni referral network.',
-      icon: '🚀',
+      code: 'CAP-04',
       color: 'bg-[#10B981]'
     }
   ];
@@ -316,11 +322,11 @@ export const CoursePedagogySection: React.FC = () => {
     <section className="bg-[#FFFDF9] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={-1}>
-            ✦ The Vixora Experience
+          <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
+            Cohort Execution Framework
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
-            Engineered for Speed, Retention & Proof.
+            Engineered for Speed, Retention &amp; Proof.
           </h2>
           <p className="text-base text-[#1A1D4F]/80">
             How our cohort-based pedagogy outperforms random online courses and self-paced video playlists.
@@ -334,7 +340,9 @@ export const CoursePedagogySection: React.FC = () => {
               className="bg-white border-2 border-[#1A1D4F] shadow-retro rounded-2xl p-6 space-y-3 relative hover:-translate-y-1 transition-transform"
             >
               <div className="flex items-center justify-between">
-                <span className="text-3xl">{pil.icon}</span>
+                <div className="w-10 h-10 rounded-xl bg-[#5B5FED]/10 border border-[#5B5FED]/30 flex items-center justify-center text-[#5B5FED] font-mono font-bold text-xs">
+                  {pil.code}
+                </div>
                 <span className="font-mono text-xs font-black px-2 py-0.5 bg-[#FFF6EC] border border-[#1A1D4F] rounded">
                   STEP {pil.step}
                 </span>
@@ -362,8 +370,8 @@ export const CourseAudienceSection: React.FC<{
     <section id="audience" className="bg-[#F8F9FE] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#FF8A65]" textColor="text-white" rotate={1}>
-            ✦ Audience & Fit
+          <StickerLabel color="bg-[#FF8A65]" textColor="text-white" rotate={0}>
+            Target Audience &amp; Fit
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             Is This Cohort Right for You?
@@ -399,7 +407,7 @@ export const CourseAudienceSection: React.FC<{
           <div className="lg:col-span-5">
             <div className="bg-[#FFF6EC] border-2 border-[#1A1D4F] shadow-retro rounded-2xl p-6 sm:p-7 space-y-4">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🛡️</span>
+                <ShieldCheck className="w-6 h-6 text-[#5B5FED]" />
                 <div>
                   <h3 className="text-base font-black text-[#1A1D4F]">
                     What You DO NOT Need
@@ -412,7 +420,7 @@ export const CourseAudienceSection: React.FC<{
                 {notNeeded.map((item, idx) => (
                   <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm font-bold text-[#1A1D4F]">
                     <div className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
-                      ✓
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </div>
                     <span>{item}</span>
                   </div>
@@ -450,7 +458,7 @@ export const CourseSpecsMatrixSection: React.FC<{ course: AcademyCourse }> = ({ 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto space-y-2 mb-10">
           <span className="text-xs font-black uppercase tracking-wider text-[#5B5FED]">
-            ✦ Fast Facts & Details
+            Program Specifications
           </span>
           <h3 className="font-display font-black text-2xl sm:text-3xl text-[#1A1D4F]">
             Course Specifications at a Glance
@@ -499,8 +507,8 @@ export const CourseTestimonialsSection: React.FC<{
     <section id="reviews" className="bg-[#FFFDF9] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={1}>
-            ✦ Student Proof & Outcomes
+          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
+            Alumni Reviews &amp; Outcomes
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             Real Stories from Real Alumni.
@@ -568,8 +576,8 @@ export const CourseFaqSection: React.FC<{ faqs: CourseFaq[] }> = ({ faqs }) => {
     <section id="faq" className="bg-[#F8F9FE] border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-left">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
-          <StickerLabel color="bg-[#FF8A65]" textColor="text-white" rotate={-1}>
-            ✦ Clear Answers
+          <StickerLabel color="bg-[#FF8A65]" textColor="text-white" rotate={0}>
+            Frequently Asked Questions
           </StickerLabel>
           <h2 className="font-display font-black text-3xl sm:text-4xl text-[#1A1D4F] tracking-tight">
             Frequently Asked Questions
@@ -620,8 +628,8 @@ export const CourseFinalCtaSection: React.FC<{
   return (
     <section className="bg-[#5B5FED] text-white border-b-2 border-[#1A1D4F] py-20 lg:py-24 text-center relative overflow-hidden select-none">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-        <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={-2}>
-          ✦ Cohort Starting {course.nextCohortDate}
+        <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
+          Cohort Starting {course.nextCohortDate}
         </StickerLabel>
 
         <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight">
@@ -654,8 +662,9 @@ export const CourseFinalCtaSection: React.FC<{
           </a>
         </div>
 
-        <div className="pt-4 text-xs font-semibold text-white/80">
-          ✓ Paystack Instant Checkout · Verifiable Certificate · 100% Practical
+        <div className="pt-4 text-xs font-semibold text-white/80 inline-flex items-center gap-1.5 justify-center">
+          <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[3]" />
+          <span>Paystack Instant Checkout · Verifiable Certificate · 100% Practical</span>
         </div>
       </div>
     </section>

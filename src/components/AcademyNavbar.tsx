@@ -12,7 +12,7 @@ import {
   MessageSquare,
   Globe,
   User,
-  Sparkles
+  Bot
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../data/brandConfig';
 import { ACADEMY_COURSES } from '../data/vixoraContent';
@@ -62,7 +62,7 @@ export function AcademyNavbar({
       <div className="bg-[#000028] border-b border-purple-900/40 py-1.5 px-4 text-[11px] text-purple-200">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
             <span className="font-mono font-bold text-white tracking-wide">{BRAND_CONFIG.cleanAcademyDomain}</span>
             <span className="text-purple-300/80 hidden sm:inline">• Official Academic Directorate Portal</span>
           </div>
@@ -88,7 +88,7 @@ export function AcademyNavbar({
             >
               <div className="p-1.5 bg-white rounded-xl shadow-md border border-purple-100 flex items-center justify-center shrink-0">
                 <img
-                  src={BRAND_CONFIG.academyLogo?.imageUrl || "https://i.imgur.com/mGAj2sK.png"}
+                  src={BRAND_CONFIG.academyLogo?.imageUrl || "/images/vixora-academy-logo.png"}
                   alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.png'; }}
                   className="h-9 w-auto max-w-[170px] sm:max-w-[210px] object-contain rounded-lg"
@@ -105,7 +105,7 @@ export function AcademyNavbar({
                   <span>Dean: <strong className="text-white">Sarumi Hammad</strong></span>
                   <span>•</span>
                   <span className="text-emerald-300 flex items-center gap-1 font-mono text-[10px]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     {BRAND_CONFIG.cleanAcademyDomain}
                   </span>
                 </div>
@@ -179,10 +179,10 @@ export function AcademyNavbar({
             {onOpenAiAdvisor && (
               <button
                 onClick={onOpenAiAdvisor}
-                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer bg-gradient-to-r from-[#480878] to-[#7000F8] hover:from-[#5B0898] hover:to-[#8515FF] text-white border border-purple-400/50 shadow-sm"
+                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer bg-[#1E113F] hover:bg-[#2A1854] text-purple-200 border border-purple-500/40 shadow-sm"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                <span>✦ AI Advisor</span>
+                <Bot className="w-3.5 h-3.5 text-purple-300" />
+                <span>AI Advisor</span>
               </button>
             )}
 
@@ -255,7 +255,7 @@ export function AcademyNavbar({
               }}
               className="px-4 py-2 rounded-xl text-xs font-bold text-[#000048] bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-md flex items-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#000048]" />
+              <GraduationCap className="w-3.5 h-3.5 text-[#000048]" />
               <span>Enroll in Cohort</span>
             </button>
 
@@ -291,11 +291,11 @@ export function AcademyNavbar({
                   setMobileMenuOpen(false);
                   onOpenAiAdvisor();
                 }}
-                className="w-full p-2.5 rounded-xl text-left font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 flex items-center justify-between shadow-md mb-2"
+                className="w-full p-2.5 rounded-xl text-left font-bold text-white bg-[#1E113F] border border-purple-500/40 flex items-center justify-between shadow-md mb-2"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                  <span>✦ Ask AI Advisor (Match Courses)</span>
+                  <Bot className="w-4 h-4 text-purple-300" />
+                  <span>Course Advisory (Match Programs)</span>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>

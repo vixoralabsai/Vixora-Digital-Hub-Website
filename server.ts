@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { portalRouter, isPlainObject } from './server/studentPortalServer.js';
 import { paystackRouter } from './server/paystackServer.js';
-import { aiAdvisorRouter } from './server/aiAdvisorServer.js';
+import { aiAdvisorRouter, getGeminiApiKey } from './server/aiAdvisorServer.js';
 
 dotenv.config();
 
@@ -46,12 +46,14 @@ app.use('/payments/paystack', paystackRouter);
 app.use('/paystack', paystackRouter);
 
 // Lazy initialization of Gemini client
+let cachedApiKey = '';
 let aiClient: GoogleGenAI | null = null;
 function getGemini(): GoogleGenAI {
-  if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY || '';
+  const currentKey = getGeminiApiKey();
+  if (!aiClient || cachedApiKey !== currentKey) {
+    cachedApiKey = currentKey;
     aiClient = new GoogleGenAI({
-      apiKey,
+      apiKey: currentKey,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
@@ -64,9 +66,10 @@ function getGemini(): GoogleGenAI {
 
 // API Routes
 app.get('/api/health', (req, res) => {
+  const apiKey = getGeminiApiKey();
   res.json({
     status: 'ok',
-    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    hasGeminiKey: Boolean(apiKey),
     timestamp: new Date().toISOString()
   });
 });
