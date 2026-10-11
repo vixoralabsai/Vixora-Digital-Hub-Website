@@ -590,29 +590,29 @@ export const BUSINESS_METRICS: MetricItem[] = [
 export const TESTIMONIALS: Testimonial[] = [
   {
     id: "test-1",
-    quote: "Vixora completely transformed our clinic operations. Their team delivered a custom patient portal in 6 weeks that our doctors and patients love using every day. The attention to detail was exceptional.",
-    author: "Dr. Marcus Vance",
-    role: "Chief Medical Officer",
-    company: "Apex Healthcare Systems",
-    industry: "Healthcare",
+    quote: "Vixora completely transformed our brand and customer operations. Their team delivered a seamless digital platform in record time that our clients love using every day. The attention to detail and execution speed was exceptional.",
+    author: "Tree of Mona",
+    role: "Founder & Creative Director",
+    company: "Subletraces",
+    industry: "Brand & Fashion",
     rating: 5
   },
   {
     id: "test-2",
-    quote: "The AI customer support bot built by Vixora handles over 80% of our daily WhatsApp inquiries instantly. We were able to scale our customer base by 3x without hiring additional support staff.",
-    author: "Elena Rostova",
-    role: "VP of Operations",
-    company: "Novus Retail Group",
-    industry: "E-Commerce",
+    quote: "The automated ordering and AI customer support system built by Vixora handles over 80% of our daily WhatsApp and online inquiries instantly. We were able to scale our customer base significantly without operational strain.",
+    author: "Mrs. Zulaekha",
+    role: "Managing Director",
+    company: "Hivea Foods",
+    industry: "Food & Consumer Goods",
     rating: 5
   },
   {
     id: "test-3",
-    quote: "From our brand guidelines to the full web platform launch, Vixora acted as our true technology partner. They think like product founders, not just coders.",
-    author: "Kareem Al-Mansoor",
-    role: "Founder & CEO",
-    company: "Stratum Capital",
-    industry: "FinTech / Real Estate",
+    quote: "From our digital inventory showcase to inbound vehicle sales pipelines, Vixora acted as our true technology partner. They think like business builders and engineer systems that drive immediate results.",
+    author: "Adewale Nafiudeen",
+    role: "Managing Director & CEO",
+    company: "Omo Oba Sarumi Autos",
+    industry: "Automotive & Logistics",
     rating: 5
   }
 ];

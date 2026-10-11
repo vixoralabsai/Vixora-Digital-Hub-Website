@@ -90,7 +90,7 @@ export function AcademyNavbar({
                 <img
                   src={BRAND_CONFIG.academyLogo?.imageUrl || "/images/vixora-academy-logo.png"}
                   alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.png'; }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.jpg'; }}
                   className="h-9 w-auto max-w-[170px] sm:max-w-[210px] object-contain rounded-lg"
                 />
               </div>

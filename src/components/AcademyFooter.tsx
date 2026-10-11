@@ -37,7 +37,7 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                 <img
                   src={BRAND_CONFIG.academyLogo?.imageUrl || "/images/vixora-academy-logo.png"}
                   alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.png'; }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.jpg'; }}
                   className="h-10 w-auto max-w-[200px] object-contain rounded-xl"
                 />
               </div>
