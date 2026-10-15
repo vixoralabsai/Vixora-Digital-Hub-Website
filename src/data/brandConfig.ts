@@ -50,6 +50,7 @@ export interface BrandConfig {
   };
   heroBackground: {
     imageUrl: string;
+    videoUrl?: string;
     overlayOpacity: number;
   };
 }
@@ -106,6 +107,7 @@ export const BRAND_CONFIG: BrandConfig = {
   },
   heroBackground: {
     imageUrl: "/images/hero-background.png",
+    videoUrl: "/videos/hero-background.mp4",
     overlayOpacity: 0.65
   }
 };

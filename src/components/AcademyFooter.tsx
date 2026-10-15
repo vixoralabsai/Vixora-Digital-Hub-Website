@@ -1,15 +1,11 @@
 import React from 'react';
 import {
   GraduationCap,
-  Award,
   ShieldCheck,
   Mail,
   MessageSquare,
-  ExternalLink,
-  BookOpen,
   ArrowRight,
-  Sparkles,
-  FileText
+  ExternalLink
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../data/brandConfig';
 import { ACADEMY_COURSES } from '../data/vixoraContent';
@@ -21,203 +17,143 @@ interface AcademyFooterProps {
 
 export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFooterProps) {
   return (
-    <footer className="bg-[#000030] text-purple-100 border-t border-[#480878]/40 pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <footer className="bg-[#000030] text-purple-100 border-t border-[#480878]/40 pt-14 pb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
-        {/* Top Tier: Academic Brand & Dean Directorate */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pb-12 border-b border-white/10">
+        {/* Main Grid: Clean 3-Column Balanced Arrangement */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-10 border-b border-white/10">
           
-          {/* Academy Brand Column */}
-          <div className="lg:col-span-4 space-y-4">
+          {/* Col 1 (5 cols): Identity & Inbound Admissions */}
+          <div className="md:col-span-5 space-y-4">
             <button
               onClick={() => onNavigate('academy', undefined, undefined, '/pages/academy')}
-              className="flex items-center gap-3 text-left cursor-pointer"
+              className="flex items-center gap-3 text-left cursor-pointer focus:outline-none"
             >
               <div className="p-2 bg-white rounded-2xl shadow-lg border border-purple-100 flex items-center justify-center">
                 <img
                   src={BRAND_CONFIG.academyLogo?.imageUrl || "/images/vixora-academy-logo.png"}
                   alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.jpg'; }}
-                  className="h-10 w-auto max-w-[200px] object-contain rounded-xl"
+                  className="h-10 w-auto max-w-[190px] object-contain rounded-xl"
                 />
               </div>
             </button>
 
-            <p className="text-xs sm:text-sm text-purple-100 leading-relaxed max-w-sm" style={{ color: '#E9D5FF' }}>
-              The premier technical institution under the Academic Directorate of Dean <strong className="text-white font-bold" style={{ color: '#FFFFFF' }}>Sarumi Hammad</strong>, offering rigorous cohort training in Autonomous AI Systems, Data Analytics, and Digital Freelancing.
+            <p className="text-xs sm:text-sm text-purple-200/90 leading-relaxed max-w-md" style={{ color: '#E9D5FF' }}>
+              Rigorous, implementation-first technical training in Autonomous AI, Data Analytics, and Digital Systems under Academic Director Dean <strong className="text-white font-bold" style={{ color: '#FFFFFF' }}>Sarumi Hammad</strong>.
             </p>
 
-            <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-1.5 text-xs">
-              <div className="flex items-center gap-2 text-amber-300 font-bold">
-                <Award className="w-4 h-4" />
-                <span>Dean Sarumi Hammad</span>
-              </div>
-              <div className="text-[11px] text-purple-100">
-                Dean & Academic Director, Vixora Academy
-              </div>
-              <div className="text-[11px] font-mono text-emerald-300 pt-0.5">
-                Subdomain: {BRAND_CONFIG.cleanAcademyDomain}
-              </div>
-            </div>
-
-            {/* Direct Admissions Links */}
-            <div className="space-y-2 pt-2 text-xs">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 text-xs">
               <a
                 href={BRAND_CONFIG.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-colors"
+                className="inline-flex items-center gap-1.5 text-emerald-300 hover:text-emerald-200 transition-colors font-semibold"
               >
-                <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Admissions Desk: {BRAND_CONFIG.whatsapp.nigeria.displayNumber}</span>
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Admissions: {BRAND_CONFIG.whatsapp.nigeria.displayNumber}</span>
               </a>
 
               <a
                 href={`mailto:${BRAND_CONFIG.email}`}
-                className="flex items-center gap-2 text-purple-100 hover:text-white transition-colors"
+                className="inline-flex items-center gap-1.5 text-purple-200 hover:text-white transition-colors"
               >
-                <Mail className="w-4 h-4 text-purple-400 shrink-0" />
-                <span>Admissions Email: {BRAND_CONFIG.email}</span>
+                <Mail className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                <span>{BRAND_CONFIG.email}</span>
               </a>
             </div>
           </div>
 
-          {/* Academic Columns */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-8">
-            
-            {/* 1. Academic Cohorts */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-amber-300" />
-                <span>Academic Cohorts</span>
-              </h4>
-              <ul className="space-y-2.5 text-xs text-purple-100">
-                {ACADEMY_COURSES.map((course) => (
-                  <li key={course.id}>
-                    <button
-                      onClick={() => onNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`)}
-                      className="hover:text-white transition-colors cursor-pointer text-left block"
-                    >
-                      <div className="font-semibold text-white/90 hover:text-white">{course.title}</div>
-                      <div className="text-[11px] text-purple-200 font-mono">{course.duration} • {course.badge}</div>
-                    </button>
-                  </li>
-                ))}
-                <li className="pt-1">
+          {/* Col 2 (4 cols): Cohort Programs */}
+          <div className="md:col-span-4 space-y-3">
+            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
+              <span>Cohort Programs</span>
+            </h4>
+            <ul className="space-y-2 text-xs">
+              {ACADEMY_COURSES.map((course) => (
+                <li key={course.id}>
                   <button
-                    onClick={() => onNavigate('academy', undefined, undefined, '/pages/academy')}
-                    className="text-amber-300 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                    onClick={() => onNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`)}
+                    className="hover:text-white transition-colors cursor-pointer text-left flex items-baseline gap-2 group"
                   >
-                    <span>View All Academy Tracks</span>
-                    <ArrowRight className="w-3 h-3" />
+                    <span className="font-semibold text-purple-200 group-hover:text-white transition-colors">{course.title}</span>
+                    <span className="text-[10px] text-purple-400 font-mono shrink-0">({course.duration})</span>
                   </button>
                 </li>
-              </ul>
-            </div>
-
-            {/* 2. Directorate & Portals */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
-                <span>Student Directorate</span>
-              </h4>
-              <ul className="space-y-2.5 text-xs text-purple-100">
-                <li>
-                  <button
-                    onClick={() => onNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
-                    className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
-                  >
-                    <GraduationCap className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                    <span>Student Portal & Dashboard</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => onNavigate('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
-                    className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Verify Credential ID</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => onNavigate('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
-                    className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-purple-200 shrink-0" />
-                    <span>Download Official PDF</span>
-                  </button>
-                </li>
-                {onOpenCorporateModal && (
-                  <li>
-                    <button
-                      onClick={onOpenCorporateModal}
-                      className="hover:text-white transition-colors cursor-pointer text-left text-amber-300"
-                    >
-                      Corporate Training Scoping
-                    </button>
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {/* 3. Main Hub Connection */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <ExternalLink className="w-3.5 h-3.5 text-emerald-300" />
-                <span>Main Digital Hub</span>
-              </h4>
-              <p className="text-xs text-purple-100 leading-relaxed">
-                Vixora Academy is the technical education arm of Vixora Digital Hub.
-              </p>
-              <ul className="space-y-2 text-xs text-purple-100">
-                <li>
-                  <a
-                    href={BRAND_CONFIG.domain}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold transition-all"
-                  >
-                    <span>Vixora Digital Hub Main Agency</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                </li>
-                <li className="pt-2">
-                  <a
-                    href={`${BRAND_CONFIG.domain}/#solutions`}
-                    className="hover:text-white transition-colors text-purple-200 hover:underline block"
-                  >
-                    Custom Software & Web Platforms
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={`${BRAND_CONFIG.domain}/#solutions`}
-                    className="hover:text-white transition-colors text-purple-200 hover:underline block"
-                  >
-                    Autonomous Business Automation
-                  </a>
-                </li>
-              </ul>
-            </div>
-
+              ))}
+              <li className="pt-1">
+                <button
+                  onClick={() => onNavigate('academy', undefined, undefined, '/pages/academy')}
+                  className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Explore All Cohorts</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </li>
+            </ul>
           </div>
+
+          {/* Col 3 (3 cols): Student & Academic Services */}
+          <div className="md:col-span-3 space-y-3">
+            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Student Services</span>
+            </h4>
+            <ul className="space-y-2 text-xs text-purple-200">
+              <li>
+                <button
+                  onClick={() => onNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
+                  className="hover:text-white transition-colors cursor-pointer text-left block"
+                >
+                  Student Portal &amp; LMS
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
+                  className="hover:text-white transition-colors cursor-pointer text-left block"
+                >
+                  Verify Certificate ID
+                </button>
+              </li>
+              {onOpenCorporateModal && (
+                <li>
+                  <button
+                    onClick={onOpenCorporateModal}
+                    className="hover:text-white transition-colors cursor-pointer text-left text-amber-300/90 hover:text-amber-300"
+                  >
+                    Corporate Team Training
+                  </button>
+                </li>
+              )}
+              <li className="pt-2 border-t border-white/10">
+                <a
+                  href={BRAND_CONFIG.domain}
+                  className="inline-flex items-center gap-1.5 text-purple-300 hover:text-white font-medium transition-colors"
+                >
+                  <span>Main Agency Platform</span>
+                  <ExternalLink className="w-3 h-3 text-purple-400" />
+                </a>
+              </li>
+            </ul>
+          </div>
+
         </div>
 
-        {/* Bottom Bar: Accreditation & Dean Authority */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-purple-100 pt-4">
+        {/* Sleek Bottom Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-purple-300/80">
           <div>
-            © 2026 Vixora Academy. All Rights Reserved. Supervised under Dean <strong className="text-white">Sarumi Hammad</strong>.
+            &copy; 2026 Vixora Academy &bull; Supervised under Dean <strong className="text-white">Sarumi Hammad</strong>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-emerald-400 text-[11px]">
-              Subdomain: {BRAND_CONFIG.cleanAcademyDomain}
-            </span>
-            <span>•</span>
+          <div className="flex items-center gap-3 font-mono text-[11px]">
+            <span className="text-emerald-400">{BRAND_CONFIG.cleanAcademyDomain}</span>
+            <span className="text-purple-500">&bull;</span>
             <a
               href={BRAND_CONFIG.domain}
-              className="text-purple-100 hover:text-white transition-colors"
+              className="text-purple-300 hover:text-white transition-colors"
             >
-              Main Platform: {BRAND_CONFIG.cleanDomain}
+              {BRAND_CONFIG.cleanDomain}
             </a>
           </div>
         </div>

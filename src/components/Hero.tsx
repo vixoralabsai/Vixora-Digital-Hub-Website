@@ -4,10 +4,11 @@ import {
   Bot,
   Code2,
   BarChart3,
-  Sparkles,
   CheckCircle2,
   ChevronRight,
-  Cpu
+  Cpu,
+  Layers,
+  Terminal
 } from 'lucide-react';
 import { BRAND_CONFIG, getImageFallbacks, getDirectImageUrl } from '../data/brandConfig';
 
@@ -25,6 +26,7 @@ export function Hero({
   const fallbacks = getImageFallbacks(BRAND_CONFIG.heroBackground.imageUrl);
   const [bgIdx, setBgIdx] = useState(0);
   const [bgLoadError, setBgLoadError] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   const handleImageError = () => {
     if (bgIdx + 1 < fallbacks.length) {
@@ -35,6 +37,7 @@ export function Hero({
   };
 
   const currentBgSrc = fallbacks[bgIdx] || getDirectImageUrl(BRAND_CONFIG.heroBackground.imageUrl);
+  const videoUrl = BRAND_CONFIG.heroBackground?.videoUrl;
 
   const capabilities = [
     {
@@ -69,36 +72,68 @@ export function Hero({
   return (
     <section
       id="hero"
+      aria-label="Vixora Digital Hub Hero"
       className="relative min-h-[88vh] sm:min-h-[92vh] pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
     >
-      {/* High-Fidelity Custom Background Image Canvas */}
-      {currentBgSrc && !bgLoadError && (
-        <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none">
-          <img
-            src={currentBgSrc}
-            alt="Vixora Digital Hub 3D Cyber Environment"
-            referrerPolicy="no-referrer"
-            onError={handleImageError}
-            className="w-full h-full object-cover object-right lg:object-center scale-100 transition-all duration-1000 ease-out"
-          />
+      {/* ========================================================================= */}
+      {/* 1. HERO BACKGROUND: Video Background with Seamless Image Poster Fallback */}
+      {/* ========================================================================= */}
+      <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none select-none">
+        
+        {/* Ambient Video Background */}
+        {videoUrl && !videoError ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster={currentBgSrc}
+            onError={() => setVideoError(true)}
+            className="w-full h-full object-cover object-center"
+          >
+            <source src={videoUrl} type="video/mp4" />
+            {currentBgSrc && !bgLoadError && (
+              <img
+                src={currentBgSrc}
+                alt="Vixora Digital Hub Ambient Environment"
+                referrerPolicy="no-referrer"
+                onError={handleImageError}
+                className="w-full h-full object-cover object-center"
+              />
+            )}
+          </video>
+        ) : (
+          /* High-Fidelity Custom Background Image Fallback */
+          currentBgSrc && !bgLoadError && (
+            <img
+              src={currentBgSrc}
+              alt="Vixora Digital Hub Environment"
+              referrerPolicy="no-referrer"
+              onError={handleImageError}
+              className="w-full h-full object-cover object-right lg:object-center transition-all duration-700 ease-out"
+            />
+          )
+        )}
 
-          {/* Left-Side Dark Vignette to guarantee pristine text readability on all viewports */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070314] via-[#070314]/90 lg:via-[#070314]/75 to-[#070314]/40 z-10" />
+        {/* Left-Side Dark Vignette to guarantee pristine text readability on all viewports */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070314] via-[#070314]/90 lg:via-[#070314]/75 to-[#070314]/40 z-10" />
 
-          {/* Top & Bottom seamless blending into Navbar and following page sections */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070314]/95 via-transparent to-[#070314] z-10" />
+        {/* Top & Bottom seamless blending into Navbar and following page sections */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#070314]/95 via-transparent to-[#070314] z-10" />
 
-          {/* Subtle Cyber Neon Grid Texture */}
-          <div 
-            className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-10" 
-          />
-        </div>
-      )}
+        {/* Subtle Cyber Neon Grid Texture */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-10" 
+        />
+      </div>
 
       {/* Atmospheric Ambient Glows */}
-      <div className="absolute top-1/4 right-1/4 w-[520px] h-[520px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse" />
+      <div className="absolute top-1/4 right-1/4 w-[520px] h-[520px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none -z-10" />
 
+      {/* ========================================================================= */}
+      {/* 2. FOREGROUND CONTENT GRID                                                */}
+      {/* ========================================================================= */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
           
@@ -107,20 +142,18 @@ export function Hero({
           {/* ========================================================= */}
           <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
             
-            {/* Clean Status Eyebrow Badge */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-950/60 border border-purple-500/30 text-purple-200 shadow-md shadow-purple-500/10 backdrop-blur-md">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-              </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-purple-200">
-                Software • AI Systems • Scalable Architecture
-              </span>
+            {/* Clean Status Eyebrow Tag */}
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-mono tracking-wider uppercase text-purple-300">
+              <span className="font-semibold text-purple-200">Software</span>
+              <span className="text-purple-400/60 font-bold" aria-hidden="true">·</span>
+              <span className="font-semibold text-indigo-200">AI Systems</span>
+              <span className="text-purple-400/60 font-bold" aria-hidden="true">·</span>
+              <span className="font-semibold text-cyan-200">Scalable Architecture</span>
             </div>
 
             {/* Bold, Distinct Headline */}
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.08]">
+              <h1 className="text-4xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.08] [text-wrap:balance]">
                 <span>Build Smarter.</span>
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-300">
@@ -178,7 +211,7 @@ export function Hero({
           </div>
 
           {/* ========================================================= */}
-          {/* RIGHT COLUMN: Clean Unified System Architecture Console */}
+          {/* RIGHT COLUMN: Clean Unified System Architecture Console   */}
           {/* ========================================================= */}
           <div className="lg:col-span-5 relative">
             
@@ -194,7 +227,8 @@ export function Hero({
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-                  <span className="ml-2 font-mono text-[11px] text-purple-300/80 font-medium">
+                  <span className="ml-2 font-mono text-[11px] text-purple-300/80 font-medium flex items-center gap-1.5">
+                    <Terminal className="w-3 h-3 text-purple-400" />
                     vixora-core // architecture
                   </span>
                 </div>
@@ -255,7 +289,7 @@ export function Hero({
                   className="text-purple-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <span>Explore Stack</span>
-                  <Sparkles className="w-3 h-3 text-purple-400" />
+                  <Layers className="w-3 h-3 text-purple-400" />
                 </button>
               </div>
 

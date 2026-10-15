@@ -165,9 +165,13 @@ CRITICAL RULES:
 export function getGeminiApiKey(): string {
   const rawKey =
     process.env.GEMINI_API_KEY ||
+    process.env.GEMINI_SECRET ||
     process.env.GOOGLE_API_KEY ||
     process.env.GOOGLE_GENAI_API_KEY ||
     process.env.GEMINI_KEY ||
+    process.env.VITE_GEMINI_API_KEY ||
+    process.env.GEMINI_APIKEY ||
+    process.env.GEMINI_TOKEN ||
     '';
   // Strip optional wrapping quotes or whitespace if accidentally pasted in Vercel
   return rawKey.trim().replace(/^["']|["']$/g, '');
@@ -297,11 +301,10 @@ DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid
 
     let response: any = null;
     const candidateModels = [
-      'gemini-2.5-flash',
       'gemini-3.8-flash',
+      'gemini-flash-latest',
       'gemini-3.1-flash-lite',
-      'gemini-2.0-flash',
-      'gemini-flash-latest'
+      'gemini-2.5-flash'
     ];
     let lastError: any = null;
 

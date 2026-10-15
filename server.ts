@@ -35,9 +35,11 @@ app.use((req, res, next) => {
 // Mount Student & Certificate Portal APIs with Rate Limiting
 app.use('/api', portalRouter);
 
-// Mount Vixora AI Advisor API
+// Mount Vixora AI Advisor API (supports both /api/ai, /api, and stripped serverless routes)
 app.use('/api/ai', aiAdvisorRouter);
 app.use('/api', aiAdvisorRouter);
+app.use('/ai', aiAdvisorRouter);
+app.use('/advisor', aiAdvisorRouter);
 
 // Mount Paystack Payment Gateway API (supported on both /api/payments/paystack, /api/paystack, and stripped serverless paths)
 app.use('/api/payments/paystack', paystackRouter);
@@ -292,8 +294,21 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, '0.0.0.0', async () => {
     console.log(`Vixora Analyzer server running on http://0.0.0.0:${PORT}`);
+    
+    // Optional automated schema migrations on startup
+    if (process.env.AUTO_MIGRATE === 'true') {
+      try {
+        const { runMigrations, getDatabaseConnectionString } = await import('./server/migrations/runner.js');
+        if (getDatabaseConnectionString()) {
+          console.log('[Startup] Executing pending database migrations...');
+          await runMigrations({ silent: false });
+        }
+      } catch (mErr: any) {
+        console.error('[Startup Migration Warning]:', mErr?.message || mErr);
+      }
+    }
   });
 }
 
