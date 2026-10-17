@@ -1,7 +1,213 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
+// server/migrations/runner.ts
+var runner_exports = {};
+__export(runner_exports, {
+  computeChecksum: () => computeChecksum,
+  discoverMigrationFiles: () => discoverMigrationFiles,
+  getDatabaseConnectionString: () => getDatabaseConnectionString,
+  runMigrations: () => runMigrations
+});
+import fs2 from "fs";
+import path2 from "path";
+import crypto3 from "crypto";
+import pg from "pg";
+import dotenv from "dotenv";
+function getDatabaseConnectionString() {
+  const conn = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || "";
+  return conn.trim().replace(/^["']|["']$/g, "");
+}
+function computeChecksum(content) {
+  const normalized = content.replace(/\r\n/g, "\n").trim();
+  return crypto3.createHash("sha256").update(normalized, "utf8").digest("hex");
+}
+function discoverMigrationFiles(dirPath) {
+  if (!fs2.existsSync(dirPath)) {
+    return [];
+  }
+  const files = fs2.readdirSync(dirPath).filter((f) => f.endsWith(".sql")).sort((a, b) => a.localeCompare(b, void 0, { numeric: true, sensitivity: "base" }));
+  return files.map((fileName) => {
+    const fullPath = path2.join(dirPath, fileName);
+    const content = fs2.readFileSync(fullPath, "utf8");
+    return {
+      name: fileName,
+      filePath: fullPath,
+      sql: content,
+      checksum: computeChecksum(content)
+    };
+  });
+}
+async function runMigrations(options = {}) {
+  const migrationsDir = options.migrationsDir || path2.resolve(process.cwd(), "supabase/migrations");
+  const connectionString = options.connectionString || getDatabaseConnectionString();
+  const dryRun = Boolean(options.dryRun);
+  const statusOnly = Boolean(options.statusOnly);
+  const silent = Boolean(options.silent);
+  const log = (msg) => {
+    if (!silent) console.log(msg);
+  };
+  const files = discoverMigrationFiles(migrationsDir);
+  if (files.length === 0) {
+    log(`[Migrations] No SQL migration files found in: ${migrationsDir}`);
+    return {
+      appliedCount: 0,
+      skippedCount: 0,
+      totalFiles: 0,
+      batch: 0,
+      appliedNames: [],
+      skippedNames: []
+    };
+  }
+  log(`[Migrations] Discovered ${files.length} migration file(s) in: ${migrationsDir}`);
+  if (!connectionString) {
+    if (statusOnly || dryRun) {
+      log("\n[Migrations Status (Offline / No DATABASE_URL)]");
+      files.forEach((f, idx) => {
+        log(`  ${idx + 1}. [UNTRACKED] ${f.name} (SHA: ${f.checksum.slice(0, 8)}...)`);
+      });
+      log("\nTo connect directly to Supabase, set DATABASE_URL in your .env or Vercel environment.");
+      return {
+        appliedCount: 0,
+        skippedCount: files.length,
+        totalFiles: files.length,
+        batch: 0,
+        appliedNames: [],
+        skippedNames: files.map((f) => f.name)
+      };
+    }
+    throw new Error(
+      "DATABASE_URL or SUPABASE_DB_URL is not configured in environment variables. Please add your PostgreSQL connection string to your environment or run the SQL files in Supabase SQL Editor."
+    );
+  }
+  const pool = new Pool({
+    connectionString,
+    ssl: connectionString.includes("localhost") ? false : { rejectUnauthorized: false },
+    connectionTimeoutMillis: 1e4
+  });
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS _migrations (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        batch INTEGER NOT NULL DEFAULT 1,
+        checksum TEXT NOT NULL,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_migrations_name ON _migrations(name);
+    `);
+    const res = await client.query(
+      "SELECT id, name, batch, checksum, applied_at FROM _migrations ORDER BY id ASC"
+    );
+    const appliedMap = /* @__PURE__ */ new Map();
+    let maxBatch = 0;
+    for (const row of res.rows) {
+      appliedMap.set(row.name, row);
+      if (row.batch > maxBatch) maxBatch = row.batch;
+    }
+    const currentBatch = maxBatch + 1;
+    if (statusOnly) {
+      log("\n======================================================");
+      log("  Vixora Academy: Database Migrations Status");
+      log("======================================================");
+      files.forEach((f, idx) => {
+        const applied = appliedMap.get(f.name);
+        if (applied) {
+          const dateStr = new Date(applied.applied_at).toLocaleString();
+          const checkMatch = applied.checksum === f.checksum ? "\u2713" : "\u26A0\uFE0F MISMATCH";
+          log(`  [APPLIED]  Batch #${applied.batch} | ${f.name} (Applied: ${dateStr}) [${checkMatch}]`);
+        } else {
+          log(`  [PENDING]  Batch #${currentBatch} | ${f.name}`);
+        }
+      });
+      log("======================================================\n");
+      return {
+        appliedCount: appliedMap.size,
+        skippedCount: files.length - appliedMap.size,
+        totalFiles: files.length,
+        batch: currentBatch,
+        appliedNames: Array.from(appliedMap.keys()),
+        skippedNames: files.filter((f) => !appliedMap.has(f.name)).map((f) => f.name)
+      };
+    }
+    const appliedNames = [];
+    const skippedNames = [];
+    for (const file of files) {
+      const existing = appliedMap.get(file.name);
+      if (existing) {
+        if (existing.checksum !== file.checksum) {
+          log(`[Migrations Warning] Checksum mismatch for already applied migration "${file.name}".`);
+        }
+        skippedNames.push(file.name);
+        continue;
+      }
+      log(`[Migrations] Applying: ${file.name} (Batch #${currentBatch})...`);
+      if (dryRun) {
+        log(`  [DRY-RUN] Simulating execution of ${file.name} without committing.`);
+        appliedNames.push(file.name);
+        continue;
+      }
+      await client.query("BEGIN");
+      try {
+        await client.query(file.sql);
+        await client.query(
+          "INSERT INTO _migrations (name, batch, checksum, applied_at) VALUES ($1, $2, $3, NOW())",
+          [file.name, currentBatch, file.checksum]
+        );
+        await client.query("COMMIT");
+        log(`  \u2713 Successfully applied: ${file.name}`);
+        appliedNames.push(file.name);
+      } catch (err) {
+        await client.query("ROLLBACK");
+        log(`  \u274C Failed applying: ${file.name}. Transaction rolled back.`);
+        throw err;
+      }
+    }
+    log(`
+[Migrations Complete] Applied: ${appliedNames.length}, Skipped (Already applied): ${skippedNames.length}
+`);
+    return {
+      appliedCount: appliedNames.length,
+      skippedCount: skippedNames.length,
+      totalFiles: files.length,
+      batch: currentBatch,
+      appliedNames,
+      skippedNames
+    };
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+var Pool;
+var init_runner = __esm({
+  "server/migrations/runner.ts"() {
+    dotenv.config();
+    ({ Pool } = pg);
+    if (process.argv[1] && process.argv[1].endsWith("runner.ts")) {
+      const args = process.argv.slice(2);
+      const statusOnly = args.includes("--status");
+      const dryRun = args.includes("--dry-run");
+      runMigrations({ statusOnly, dryRun }).then(() => process.exit(0)).catch((err) => {
+        console.error("[Migrations Execution Error]:", err.message || err);
+        process.exit(1);
+      });
+    }
+  }
+});
+
 // server.ts
 import express from "express";
-import path2 from "path";
-import dotenv from "dotenv";
+import path3 from "path";
+import dotenv2 from "dotenv";
 import { GoogleGenAI as GoogleGenAI2 } from "@google/genai";
 
 // server/studentPortalServer.ts
@@ -226,7 +432,7 @@ function generateCertificateEmailHtml(cert) {
                 Official Credential Issued
               </div>
               <h1 style="color: #000048; font-size: 26px; font-weight: 800; line-height: 1.3; margin: 0 0 14px 0;">
-                Congratulations, ${cert.studentName}! \u{1F393}
+                Congratulations, ${cert.studentName}!
               </h1>
               <p style="color: #5F6078; font-size: 15px; line-height: 1.65; margin: 0 0 20px 0;">
                 The Academic Directorate of <strong>Vixora Academy</strong> under the leadership of Dean <strong>Sarumi Hammad</strong> is pleased to confirm that you have successfully fulfilled all curriculum requirements, practical examinations, and the production capstone for:
@@ -261,7 +467,7 @@ function generateCertificateEmailHtml(cert) {
                 </tr>
                 <tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #5F6078;">Verification Status:</td>
-                  <td align="right" style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #059669;">\u2713 Verified & Active</td>
+                  <td align="right" style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #059669;">Verified &amp; Active</td>
                 </tr>
               </table>
             </td>
@@ -557,7 +763,7 @@ var BRAND_CONFIG = {
       displayNumber: "+1 (279) 257-4850",
       fullInternationalNumber: "+12792574850",
       cleanDigits: "12792574850",
-      flagEmoji: "\u{1F1FA}\u{1F1F8} \u{1F310}",
+      flagEmoji: "US",
       isPrimary: true
     },
     nigeria: {
@@ -567,7 +773,7 @@ var BRAND_CONFIG = {
       displayNumber: "08114542934",
       fullInternationalNumber: "+2348114542934",
       cleanDigits: "2348114542934",
-      flagEmoji: "\u{1F1F3}\u{1F1EC}",
+      flagEmoji: "NG",
       isPrimary: false
     },
     defaultUrl: "https://wa.me/12792574850?text=Hello%20Vixora%20Digital%20Hub%20Team%2C%20I%20would%20like%20to%20discuss%20a%20new%20project."
@@ -583,12 +789,13 @@ var BRAND_CONFIG = {
     altText: "Vixora Digital Hub Logo"
   },
   academyLogo: {
-    imageUrl: "https://i.imgur.com/mGAj2sK.png",
+    imageUrl: "/images/vixora-academy-logo.png",
     fallbackUrl: "/images/vixora-academy-logo.png",
     altText: "Vixora Academy"
   },
   heroBackground: {
     imageUrl: "/images/hero-background.png",
+    videoUrl: "https://i.imgur.com/fo6rXq2.mp4",
     overlayOpacity: 0.65
   }
 };
@@ -607,7 +814,7 @@ function getWhatsAppUrl(channelOrMessage = "us", customMessage) {
 }
 
 // server/emailTemplates.ts
-var LOGO_URL = "https://i.imgur.com/mGAj2sK.png";
+var LOGO_URL = "https://academy.vixoradigitalhub.com/images/vixora-academy-logo.png";
 var ACADEMY_URL = "https://academy.vixoradigitalhub.com";
 var PORTAL_URL = "https://academy.vixoradigitalhub.com/pages/student-portal";
 function renderPreheader(text) {
@@ -3710,7 +3917,7 @@ var ACADEMY_COURSES = [
     slug: "ai-image-short-videos-creation",
     title: "AI Image & Short Videos Creation",
     subtitle: "Master prompt engineering, photorealistic AI image generation, viral short video editing, voice cloning, and content monetization in a practical 4-week sprint.",
-    badge: "\u26A1 Fast-Track Sprint \u2022 \u20A610,000",
+    badge: "Fast-Track Sprint \u2022 \u20A610,000",
     level: "Beginner",
     status: "active",
     track: "Design & Marketing",
@@ -3846,7 +4053,7 @@ var ACADEMY_COURSES = [
     slug: "data-analysis-cohort",
     title: "Data Analysis Cohort",
     subtitle: 'In 16 weeks, go from "I have a laptop and curiosity" to a working data analyst who can clean messy data, write SQL, build Power BI dashboards, and tell a story businesses actually act on.',
-    badge: "\u{1F525} Early Price: \u20A660,000",
+    badge: "Early Tuition: \u20A660,000",
     level: "Beginner",
     track: "Data & Analytics",
     format: "16-Week Hybrid Cohort (Online & Physical)",
@@ -3895,7 +4102,7 @@ var ACADEMY_COURSES = [
       "Module 10 \u2014 Data Storytelling & Reporting (Executive Presentations)",
       "Module 11 \u2014 Data Analyst Portfolio (Showcase Ready for Hiring Managers)",
       "Module 12 \u2014 From Skill to Opportunity (Careers, Freelancing & Proposals)",
-      "\u{1F3C6} Final Capstone Project \u2014 Complete Real-World Business Analysis"
+      "Final Capstone Project \u2014 Complete Real-World Business Analysis"
     ],
     weeklySyllabus: [
       {
@@ -4029,7 +4236,7 @@ var ACADEMY_COURSES = [
     slug: "ai-automation-digital-skills",
     title: "AI Automation & Digital Skills",
     subtitle: "While most people are still asking ChatGPT to write birthday messages, you'll be building automations, creating AI content, and getting paid for skills the market is desperate for \u2014 no tech background required.",
-    badge: "\u{1F525} Early Bird: \u20A630,000",
+    badge: "Early Tuition: \u20A630,000",
     level: "Beginner",
     track: "Business Automation",
     format: "12-Week Hybrid Cohort (Online + Practical Sessions)",
@@ -4185,7 +4392,7 @@ var ACADEMY_COURSES = [
     slug: "ai-automation-digital-business-systems",
     title: "AI Automation & Digital Business Systems",
     subtitle: `This isn't the "learn the basics" course. This is where you build real automations, real client systems, and a real freelance or business income \u2014 with direct mentorship the whole way.`,
-    badge: "\u{1F525} Early Bird: \u20A660,000 (Reg \u20A6150,000+)",
+    badge: "Early Tuition: \u20A660,000 (Reg \u20A6150,000+)",
     level: "Advanced",
     track: "Business Automation",
     format: "12-Week Implementation & Mentorship-Led Cohort",
@@ -4360,7 +4567,7 @@ var ACADEMY_COURSES = [
     slug: "full-stack-vibe-coding",
     title: "Full Stack Vibe Coding",
     subtitle: "Build real full-stack web applications with AI as your coding partner \u2014 from idea and interface design to backend logic, databases, authentication, deployment, and production-ready delivery.",
-    badge: "\u{1F680} Practical 12-Week Build Cohort",
+    badge: "12-Week Production Cohort",
     level: "Beginner to Intermediate",
     status: "upcoming",
     track: "Engineering & AI",
@@ -5171,7 +5378,7 @@ var ACADEMY_COURSES = [
     slug: "machine-learning-data-science",
     title: "Machine Learning & Data Science",
     subtitle: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.",
-    badge: "\u{1F525} Practical 18-Week Hybrid Cohort",
+    badge: "18-Week Comprehensive Cohort",
     level: "Beginner to Intermediate",
     status: "active",
     track: "Data & Analytics",
@@ -6452,12 +6659,18 @@ CRITICAL RULES:
 4. Keep answers concise, highly structured, professional, and directly actionable.
 `;
 }
+function getGeminiApiKey() {
+  const rawKey = process.env.GEMINI_API_KEY || process.env.GEMINI_SECRET || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_APIKEY || process.env.GEMINI_TOKEN || "";
+  return rawKey.trim().replace(/^["']|["']$/g, "");
+}
+var cachedApiKey = "";
 var aiClient = null;
 function getGemini() {
-  if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY || "";
+  const currentKey = getGeminiApiKey();
+  if (!aiClient || cachedApiKey !== currentKey) {
+    cachedApiKey = currentKey;
     aiClient = new GoogleGenAI({
-      apiKey,
+      apiKey: currentKey,
       httpOptions: {
         headers: {
           "User-Agent": "aistudio-vixora-advisor"
@@ -6470,8 +6683,9 @@ function getGemini() {
 aiAdvisorRouter.get("/advisor/status", (req, res) => {
   const ip = getClientIp3(req);
   const status = advisorRateLimiter.peek(ip);
+  const apiKey = getGeminiApiKey();
   res.json({
-    ready: Boolean(process.env.GEMINI_API_KEY),
+    ready: Boolean(apiKey),
     limit: status.limit,
     remaining: status.remaining,
     resetInSeconds: status.resetInSeconds,
@@ -6499,9 +6713,10 @@ aiAdvisorRouter.post("/advisor", async (req, res) => {
       resetInSeconds: rlCheck.resetInSeconds
     });
   }
-  if (!process.env.GEMINI_API_KEY) {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
     return res.status(503).json({
-      error: "AI Advisor is currently unconfigured. Please contact support via WhatsApp or email.",
+      error: "GEMINI_API_KEY is not configured in environment variables. Please add GEMINI_API_KEY to your Vercel Project Settings and redeploy.",
       code: "GEMINI_UNCONFIGURED"
     });
   }
@@ -6554,7 +6769,12 @@ Respond with a JSON object strictly matching this schema:
 
 DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid JSON.`;
     let response = null;
-    const candidateModels = ["gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+    const candidateModels = [
+      "gemini-3.8-flash",
+      "gemini-flash-latest",
+      "gemini-3.1-flash-lite",
+      "gemini-2.5-flash"
+    ];
     let lastError = null;
     for (const model of candidateModels) {
       try {
@@ -6603,17 +6823,46 @@ DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid
       }
     });
   } catch (err) {
-    console.error("[AI Advisor Error]:", err);
-    return res.status(500).json({
-      error: "Failed to generate advisory recommendation. Please try again or reach out to our team directly.",
-      code: "ADVISOR_GENERATION_FAILED",
-      details: err?.message || String(err)
+    console.error("[AI Advisor Error]:", err?.message || err);
+    const isVideoQuery = message.toLowerCase().includes("video") || message.toLowerCase().includes("short") || message.toLowerCase().includes("tiktok");
+    const fallbackReply = isVideoQuery ? `For learning AI-driven video creation and short-form content, the **AI Image & Short Videos Creation** cohort is our dedicated program.
+
+* **Tuition:** \u20A610,000
+* **Duration:** 4 Weeks
+* **Tools Covered:** Midjourney, Flux, ElevenLabs, CapCut, and Runway.
+
+You will master prompt engineering, voice cloning, and synthetic video production.` : `Vixora Digital Hub offers industry-leading cohorts in Autonomous AI Engineering, Enterprise Workflow Automation, and AI-Powered Software. Our advisors are available to guide your roadmap.`;
+    return res.json({
+      success: true,
+      data: {
+        reply: fallbackReply,
+        category: track === "academy" ? "academy" : "business",
+        recommendedCourseSlug: isVideoQuery ? "ai-image-short-videos-creation" : void 0,
+        recommendedCourseTitle: isVideoQuery ? "AI Image & Short Videos Creation" : void 0,
+        suggestedActions: [
+          {
+            label: isVideoQuery ? "Explore AI Image & Short Videos Creation" : "Explore Academy Courses",
+            actionType: "navigate_course",
+            target: isVideoQuery ? "ai-image-short-videos-creation" : "all"
+          },
+          {
+            label: "Contact Vixora on WhatsApp",
+            actionType: "whatsapp_consultation",
+            target: COMPANY_CONTACT.phone || "+1 (279) 257-4850"
+          }
+        ]
+      },
+      quota: {
+        remaining: rlCheck.remaining,
+        resetInSeconds: rlCheck.resetInSeconds,
+        limit: rlCheck.limit
+      }
     });
   }
 });
 
 // server.ts
-dotenv.config();
+dotenv2.config();
 var app = express();
 var PORT = 3e3;
 app.use(
@@ -6636,16 +6885,20 @@ app.use((req, res, next) => {
 app.use("/api", portalRouter);
 app.use("/api/ai", aiAdvisorRouter);
 app.use("/api", aiAdvisorRouter);
+app.use("/ai", aiAdvisorRouter);
+app.use("/advisor", aiAdvisorRouter);
 app.use("/api/payments/paystack", paystackRouter);
 app.use("/api/paystack", paystackRouter);
 app.use("/payments/paystack", paystackRouter);
 app.use("/paystack", paystackRouter);
+var cachedApiKey2 = "";
 var aiClient2 = null;
 function getGemini2() {
-  if (!aiClient2) {
-    const apiKey = process.env.GEMINI_API_KEY || "";
+  const currentKey = getGeminiApiKey();
+  if (!aiClient2 || cachedApiKey2 !== currentKey) {
+    cachedApiKey2 = currentKey;
     aiClient2 = new GoogleGenAI2({
-      apiKey,
+      apiKey: currentKey,
       httpOptions: {
         headers: {
           "User-Agent": "aistudio-build"
@@ -6656,9 +6909,10 @@ function getGemini2() {
   return aiClient2;
 }
 app.get("/api/health", (req, res) => {
+  const apiKey = getGeminiApiKey();
   res.json({
     status: "ok",
-    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    hasGeminiKey: Boolean(apiKey),
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
   });
 });
@@ -6821,7 +7075,7 @@ Provide a direct, helpful, and concise answer with actionable technical clarity.
     res.status(500).json({ error: error.message || "Failed to answer query." });
   }
 });
-app.use(express.static(path2.join(process.cwd(), "public")));
+app.use(express.static(path3.join(process.cwd(), "public")));
 app.all("/api/*", (_req, res) => {
   res.status(404).json({
     error: "API endpoint not found.",
@@ -6847,14 +7101,25 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path2.join(process.cwd(), "dist");
+    const distPath = path3.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path2.join(distPath, "index.html"));
+      res.sendFile(path3.join(distPath, "index.html"));
     });
   }
-  app.listen(PORT, "0.0.0.0", () => {
+  app.listen(PORT, "0.0.0.0", async () => {
     console.log(`Vixora Analyzer server running on http://0.0.0.0:${PORT}`);
+    if (process.env.AUTO_MIGRATE === "true") {
+      try {
+        const { runMigrations: runMigrations2, getDatabaseConnectionString: getDatabaseConnectionString2 } = await Promise.resolve().then(() => (init_runner(), runner_exports));
+        if (getDatabaseConnectionString2()) {
+          console.log("[Startup] Executing pending database migrations...");
+          await runMigrations2({ silent: false });
+        }
+      } catch (mErr) {
+        console.error("[Startup Migration Warning]:", mErr?.message || mErr);
+      }
+    }
   });
 }
 var server_default = app;

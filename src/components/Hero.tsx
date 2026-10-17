@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   ArrowRight,
   Bot,
@@ -10,7 +10,7 @@ import {
   Layers,
   Terminal
 } from 'lucide-react';
-import { BRAND_CONFIG, getImageFallbacks, getDirectImageUrl } from '../data/brandConfig';
+import { BRAND_CONFIG, getImageFallbacks, getDirectImageUrl, getVideoSources } from '../data/brandConfig';
 
 interface HeroProps {
   onOpenProjectModal: () => void;
@@ -26,7 +26,9 @@ export function Hero({
   const fallbacks = getImageFallbacks(BRAND_CONFIG.heroBackground.imageUrl);
   const [bgIdx, setBgIdx] = useState(0);
   const [bgLoadError, setBgLoadError] = useState(false);
+  const [sourceIdx, setSourceIdx] = useState(0);
   const [videoError, setVideoError] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   const handleImageError = () => {
     if (bgIdx + 1 < fallbacks.length) {
@@ -38,6 +40,31 @@ export function Hero({
 
   const currentBgSrc = fallbacks[bgIdx] || getDirectImageUrl(BRAND_CONFIG.heroBackground.imageUrl);
   const videoUrl = BRAND_CONFIG.heroBackground?.videoUrl;
+  const videoSources = getVideoSources(videoUrl, '/videos/hero-background.mp4');
+  const currentVideoSource = videoSources[sourceIdx] || '/videos/hero-background.mp4';
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        video.muted = true;
+        video.play().catch(() => {});
+      });
+    }
+  }, [currentVideoSource]);
+
+  const handleVideoError = () => {
+    if (sourceIdx + 1 < videoSources.length) {
+      setSourceIdx(prev => prev + 1);
+    } else {
+      setVideoError(true);
+    }
+  };
 
   const capabilities = [
     {
@@ -73,74 +100,72 @@ export function Hero({
     <section
       id="hero"
       aria-label="Vixora Digital Hub Hero"
-      className="relative min-h-[88vh] sm:min-h-[92vh] pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
+      className="relative isolate min-h-[88vh] sm:min-h-[92vh] pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
     >
       {/* ========================================================================= */}
       {/* 1. HERO BACKGROUND: Video Background with Seamless Image Poster Fallback */}
       {/* ========================================================================= */}
-      <div className="absolute inset-0 -z-20 overflow-hidden pointer-events-none select-none">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
         
-        {/* Ambient Video Background */}
-        {videoUrl && !videoError ? (
+        {/* Base Poster Image - always present so there is never a blank screen (z-[1]) */}
+        {currentBgSrc && !bgLoadError && (
+          <img
+            src={currentBgSrc}
+            alt="Vixora Digital Hub Environment"
+            referrerPolicy="no-referrer"
+            onError={handleImageError}
+            className="w-full h-full object-cover object-right lg:object-center absolute inset-0 z-[1]"
+          />
+        )}
+
+        {/* Ambient Video Background (z-[2]) */}
+        {currentVideoSource && !videoError && (
           <video
+            ref={videoRef}
+            key={currentVideoSource}
+            src={currentVideoSource}
             autoPlay
             loop
             muted
             playsInline
+            preload="auto"
             poster={currentBgSrc}
-            onError={() => setVideoError(true)}
-            className="w-full h-full object-cover object-center"
-          >
-            <source src={videoUrl} type="video/mp4" />
-            {currentBgSrc && !bgLoadError && (
-              <img
-                src={currentBgSrc}
-                alt="Vixora Digital Hub Ambient Environment"
-                referrerPolicy="no-referrer"
-                onError={handleImageError}
-                className="w-full h-full object-cover object-center"
-              />
-            )}
-          </video>
-        ) : (
-          /* High-Fidelity Custom Background Image Fallback */
-          currentBgSrc && !bgLoadError && (
-            <img
-              src={currentBgSrc}
-              alt="Vixora Digital Hub Environment"
-              referrerPolicy="no-referrer"
-              onError={handleImageError}
-              className="w-full h-full object-cover object-right lg:object-center transition-all duration-700 ease-out"
-            />
-          )
+            onLoadedData={() => setVideoLoaded(true)}
+            onCanPlay={() => setVideoLoaded(true)}
+            onPlaying={() => setVideoLoaded(true)}
+            onError={handleVideoError}
+            className={`w-full h-full object-cover object-center absolute inset-0 z-[2] transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-70'}`}
+          />
         )}
 
-        {/* Left-Side Dark Vignette to guarantee pristine text readability on all viewports */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070314] via-[#070314]/90 lg:via-[#070314]/75 to-[#070314]/40 z-10" />
+        {/* Soft edge blending for navbar & section transition, keeping central video vivid (z-[3]) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#070314]/70 via-transparent to-[#070314]/80 z-[3]" />
 
-        {/* Top & Bottom seamless blending into Navbar and following page sections */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#070314]/95 via-transparent to-[#070314] z-10" />
+        {/* Gentle horizontal vignette to subtly anchor left-hand typography without darkening the background (z-[3]) */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070314]/55 via-[#070314]/25 to-transparent z-[3]" />
 
-        {/* Subtle Cyber Neon Grid Texture */}
+        {/* Subtle Cyber Neon Grid Texture (z-[3]) */}
         <div 
-          className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-10" 
+          className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-[3]" 
         />
       </div>
 
-      {/* Atmospheric Ambient Glows */}
-      <div className="absolute top-1/4 right-1/4 w-[520px] h-[520px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none -z-10" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none -z-10" />
+      {/* Atmospheric Ambient Glows (z-[4]) */}
+      <div className="absolute top-1/4 right-1/4 w-[520px] h-[520px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none z-[4]" />
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none z-[4]" />
 
       {/* ========================================================================= */}
-      {/* 2. FOREGROUND CONTENT GRID                                                */}
+      {/* 2. FOREGROUND CONTENT GRID (relative z-10)                                 */}
       {/* ========================================================================= */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-20">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
           
           {/* ========================================================= */}
           {/* LEFT COLUMN: Clear Value Proposition & Single Prominent CTA */}
           {/* ========================================================= */}
-          <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
+          <div className="lg:col-span-7 space-y-7 text-center lg:text-left relative">
+            {/* Localized soft radial vignette for effortless typography legibility */}
+            <div className="absolute -inset-6 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(7,3,20,0.65)_0%,rgba(7,3,20,0.2)_60%,transparent_85%)] blur-md pointer-events-none" />
             
             {/* Clean Status Eyebrow Tag */}
             <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-mono tracking-wider uppercase text-purple-300">
@@ -151,9 +176,9 @@ export function Hero({
               <span className="font-semibold text-cyan-200">Scalable Architecture</span>
             </div>
 
-            {/* Bold, Distinct Headline */}
+            {/* Bold, Distinct Headline with crisp text shadows */}
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.08] [text-wrap:balance]">
+              <h1 className="text-4xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.08] [text-wrap:balance] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
                 <span>Build Smarter.</span>
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-300">
@@ -166,8 +191,8 @@ export function Hero({
               </h1>
             </div>
 
-            {/* Concise Value Proposition Paragraph */}
-            <p className="text-base sm:text-lg lg:text-xl text-neutral-300 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0">
+            {/* Concise Value Proposition Paragraph with crisp readability */}
+            <p className="text-base sm:text-lg lg:text-xl text-neutral-100 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)]">
               We engineer custom enterprise software, autonomous AI agent workflows, and cloud-scale platforms that turn complex operations into lasting market advantage.
             </p>
 

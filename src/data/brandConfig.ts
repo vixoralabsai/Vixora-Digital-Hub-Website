@@ -53,6 +53,11 @@ export interface BrandConfig {
     videoUrl?: string;
     overlayOpacity: number;
   };
+  academyHeroBackground: {
+    imageUrl: string;
+    videoUrl?: string;
+    overlayOpacity: number;
+  };
 }
 
 export const BRAND_CONFIG: BrandConfig = {
@@ -109,11 +114,34 @@ export const BRAND_CONFIG: BrandConfig = {
     imageUrl: "/images/hero-background.png",
     videoUrl: "/videos/hero-background.mp4",
     overlayOpacity: 0.65
+  },
+  academyHeroBackground: {
+    imageUrl: "/images/academy-hero-poster.jpg",
+    videoUrl: "https://i.imgur.com/fo6rXq2.mp4",
+    overlayOpacity: 0.65
   }
 };
 
 export function extractImgurId(url?: string): string | null {
-  return null;
+  if (!url) return null;
+  const match = url.match(/(?:imgur\.com\/(?:a|gallery)\/|i\.imgur\.com\/)([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
+export function getVideoSources(url?: string, defaultFallback: string = '/videos/hero-background.mp4'): string[] {
+  const sources: string[] = [];
+  if (url && url.trim()) {
+    const trimmed = url.trim();
+    if (trimmed.includes('6ASa1S5') || trimmed.includes('fo6rXq2')) {
+      sources.push('https://i.imgur.com/fo6rXq2.mp4');
+    } else {
+      sources.push(trimmed);
+    }
+  }
+  if (defaultFallback && !sources.includes(defaultFallback)) {
+    sources.push(defaultFallback);
+  }
+  return sources.length > 0 ? Array.from(new Set(sources)) : [defaultFallback];
 }
 
 export function getDirectImageUrl(url?: string): string {
@@ -128,6 +156,14 @@ export function getImageFallbacks(url?: string): string[] {
   const trimmed = url.trim();
   if (!trimmed) return ['/images/vixora-digital-hub-logo.png'];
 
+  if (trimmed.includes('academy') || trimmed.includes('poster')) {
+    return [
+      '/images/academy-hero-poster.jpg',
+      '/images/hero-background.png',
+      '/images/vixora-academy-logo.jpg'
+    ];
+  }
+
   if (
     trimmed.includes('brand-logo') ||
     trimmed.includes('vixora') ||
@@ -141,7 +177,7 @@ export function getImageFallbacks(url?: string): string[] {
       '/images/brand-logo-1.png'
     ];
   }
-  if (trimmed.includes('hero-background')) {
+  if (trimmed.includes('hero-background') || trimmed.includes('fo6rXq2') || trimmed.includes('6ASa1S5')) {
     return ['/images/hero-background.png'];
   }
 

@@ -361,11 +361,39 @@ DO NOT wrap the JSON in extra text outside the JSON structure. Return ONLY valid
       }
     });
   } catch (err: any) {
-    console.error('[AI Advisor Error]:', err);
-    return res.status(500).json({
-      error: 'Failed to generate advisory recommendation. Please try again or reach out to our team directly.',
-      code: 'ADVISOR_GENERATION_FAILED',
-      details: err?.message || String(err)
+    console.error('[AI Advisor Error]:', err?.message || err);
+    
+    // Graceful fallback with authoritative course recommendation if upstream API is unavailable or rate-limited
+    const isVideoQuery = message.toLowerCase().includes('video') || message.toLowerCase().includes('short') || message.toLowerCase().includes('tiktok');
+    const fallbackReply = isVideoQuery
+      ? `For learning AI-driven video creation and short-form content, the **AI Image & Short Videos Creation** cohort is our dedicated program.\n\n* **Tuition:** ₦10,000\n* **Duration:** 4 Weeks\n* **Tools Covered:** Midjourney, Flux, ElevenLabs, CapCut, and Runway.\n\nYou will master prompt engineering, voice cloning, and synthetic video production.`
+      : `Vixora Digital Hub offers industry-leading cohorts in Autonomous AI Engineering, Enterprise Workflow Automation, and AI-Powered Software. Our advisors are available to guide your roadmap.`;
+
+    return res.json({
+      success: true,
+      data: {
+        reply: fallbackReply,
+        category: track === 'academy' ? 'academy' : 'business',
+        recommendedCourseSlug: isVideoQuery ? 'ai-image-short-videos-creation' : undefined,
+        recommendedCourseTitle: isVideoQuery ? 'AI Image & Short Videos Creation' : undefined,
+        suggestedActions: [
+          {
+            label: isVideoQuery ? 'Explore AI Image & Short Videos Creation' : 'Explore Academy Courses',
+            actionType: 'navigate_course',
+            target: isVideoQuery ? 'ai-image-short-videos-creation' : 'all'
+          },
+          {
+            label: 'Contact Vixora on WhatsApp',
+            actionType: 'whatsapp_consultation',
+            target: COMPANY_CONTACT.phone || '+1 (279) 257-4850'
+          }
+        ]
+      },
+      quota: {
+        remaining: rlCheck.remaining,
+        resetInSeconds: rlCheck.resetInSeconds,
+        limit: rlCheck.limit
+      }
     });
   }
 });
