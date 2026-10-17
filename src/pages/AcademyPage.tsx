@@ -270,10 +270,12 @@ export function AcademyPage({
             />
           )}
 
-          {/* 3. Soft Edge Blends (z-3) - Keeps central video vibrant & clear */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070314]/65 via-transparent to-[#070314]/75 z-[3]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070314]/40 via-transparent to-[#070314]/40 z-[3]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(144,48,248,0.12)_0%,transparent_75%)] z-[3]" />
+          {/* Semi-transparent cinematic radial backlight focusing luminous depth behind the center headline (z-[3]) */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_48%,rgba(144,48,248,0.22)_0%,rgba(99,102,241,0.12)_35%,rgba(7,3,20,0.35)_70%,transparent_100%)] pointer-events-none z-[3]" />
+
+          {/* Subtle edge feathering for seamless header and section transitions (z-[3]) */}
+          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#070314]/75 to-transparent pointer-events-none z-[3]" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#070314]/85 to-transparent pointer-events-none z-[3]" />
 
           {/* Subtle Cyber Neon Grid Texture */}
           <div 
@@ -285,8 +287,8 @@ export function AcademyPage({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#9030F8]/20 blur-[140px] rounded-full pointer-events-none z-[4]" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
-          {/* Soft Localized Radial Vignette behind typography block for pristine readability */}
-          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-[90%] -z-10 bg-[radial-gradient(ellipse_at_center,rgba(7,3,20,0.65)_0%,rgba(7,3,20,0.25)_55%,transparent_80%)] blur-lg pointer-events-none" />
+          {/* Luminous, cinematic radial backlight focused directly behind the academy headline */}
+          <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 h-[95%] -z-10 bg-[radial-gradient(ellipse_at_center,rgba(144,48,248,0.26)_0%,rgba(79,70,229,0.14)_35%,rgba(7,3,20,0.48)_65%,transparent_85%)] blur-2xl pointer-events-none" />
 
           <div className="flex justify-center">
             <div className="p-3 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-purple-300/40 inline-flex items-center justify-center">
