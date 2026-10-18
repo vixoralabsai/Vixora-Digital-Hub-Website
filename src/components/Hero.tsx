@@ -134,21 +134,15 @@ export function Hero({
             onCanPlay={() => setVideoLoaded(true)}
             onPlaying={() => setVideoLoaded(true)}
             onError={handleVideoError}
-            className={`w-full h-full object-cover object-center absolute inset-0 z-[2] transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-70'}`}
+            className={`w-full h-full object-cover object-center absolute inset-0 z-[2] transition-opacity duration-700 motion-reduce:hidden ${videoLoaded ? 'opacity-35' : 'opacity-20'}`}
           />
         )}
 
-        {/* Semi-transparent cinematic radial backlight focusing luminous depth behind the headline (z-[3]) */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_30%_45%,rgba(168,85,247,0.18)_0%,rgba(79,70,229,0.10)_35%,rgba(7,3,20,0.35)_70%,transparent_100%)] pointer-events-none z-[3]" />
-
-        {/* Subtle edge feathering to smoothly marry header and subsequent section content (z-[3]) */}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#070314]/75 to-transparent pointer-events-none z-[3]" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#070314]/85 to-transparent pointer-events-none z-[3]" />
-
-        {/* Subtle Cyber Neon Grid Texture (z-[3]) */}
-        <div 
-          className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-[3]" 
-        />
+        {/* Strong contrast layer: text remains readable while the video stays atmospheric. */}
+        <div className="absolute inset-0 bg-[#070314]/65 pointer-events-none z-[3]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070314]/95 via-[#070314]/85 to-[#070314]/55 pointer-events-none z-[3]" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#070314]/80 to-transparent pointer-events-none z-[3]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#070314]/90 to-transparent pointer-events-none z-[3]" />
       </div>
 
       {/* Atmospheric Ambient Glows (z-[4]) */}
@@ -166,7 +160,7 @@ export function Hero({
           {/* ========================================================= */}
           <div className="lg:col-span-7 space-y-7 text-center lg:text-left relative">
             {/* Luminous, cinematic focal glow behind headline for superior contrast, readability, and depth */}
-            <div className="absolute -inset-10 -z-10 bg-[radial-gradient(ellipse_at_35%_40%,rgba(147,51,234,0.25)_0%,rgba(79,70,229,0.14)_35%,rgba(7,3,20,0.5)_65%,transparent_85%)] blur-2xl pointer-events-none" />
+            <div className="absolute -inset-x-4 -inset-y-5 -z-10 rounded-3xl bg-[#070314]/35 blur-xl pointer-events-none lg:bg-transparent" />
             
             {/* Clean Status Eyebrow Tag */}
             <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-mono tracking-wider uppercase text-purple-300">
