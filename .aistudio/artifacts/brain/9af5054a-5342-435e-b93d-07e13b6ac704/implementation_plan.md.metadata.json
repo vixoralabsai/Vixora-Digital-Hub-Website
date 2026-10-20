@@ -1,6 +1,6 @@
 {
-  "summary": "Comprehensive architectural plan to enhance video background visibility on both the homepage Hero and AcademyPage by reducing heavy dark scrim overlays, applying soft edge-blending gradients, and introducing localized radial vignettes with crisp typography drop-shadows for pristine text legibility.",
-  "updatedAt": "2026-10-17T08:18:12.808970687Z",
+  "summary": "Comprehensive implementation plan for the Vixora Academy Cohort 1.0 flagship bundle landing page and 4 dedicated track subpages (AI Content Creation, AI Automation, AI Web Dev & Design, Client Acquisition & Freelancing), featuring interactive session video previews, downloadable PDF curriculum guides, and secure Telegram private group unlock upon enrollment.",
+  "updatedAt": "2026-10-20T10:02:53.593656951Z",
   "requestFeedback": true,
   "userFacing": true
 }

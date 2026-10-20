@@ -71,6 +71,14 @@ export const COURSE_PRICING: Record<string, CoursePrices> = {
     NGN: 60000,
     USD: 60,
   },
+  'course-client-acquisition-freelancing': {
+    NGN: 25000,
+    USD: 25,
+  },
+  'course-cohort-1-master-bundle': {
+    NGN: 45000,
+    USD: 45,
+  },
 };
 
 export function getCoursePrices(courseId: string): CoursePrices | null {

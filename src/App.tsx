@@ -37,11 +37,14 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { PaymentCallbackPage } from './pages/PaymentCallbackPage';
+import { CohortBundlePage } from './pages/CohortBundlePage';
+import { CohortTrackSubpage } from './pages/CohortTrackSubpage';
 
 import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
 import { ThemeProvider } from './context/ThemeContext';
 import { getPostBySlug } from './data/categoriesData';
+import { getCohortTrackBySlug } from './data/cohortData';
 
 export type PageType =
   | 'home'
@@ -49,6 +52,7 @@ export type PageType =
   | 'portfolio'
   | 'academy'
   | 'academy-course'
+  | 'cohort-1'
   | 'resources'
   | 'dashboard'
   | 'pages-directory'
@@ -175,7 +179,32 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
     return { page: 'dashboard', path: '/pages/dashboard' };
   }
 
-  // 3. Academy Course paths: /academy/:courseSlug
+  // 3. Cohort 1.0 Dedicated Route
+  if (
+    cleanPath === '/cohort-1' ||
+    cleanPath === '/pages/cohort-1' ||
+    cleanPath === '/academy/cohort-1' ||
+    cleanPath.startsWith('/academy/cohort-1/') ||
+    cleanPath.startsWith('/cohort-1/') ||
+    cleanPath.startsWith('/pages/cohort-1/') ||
+    pageParam === 'cohort-1'
+  ) {
+    let trackSlug: string | undefined = undefined;
+    if (cleanPath.startsWith('/academy/cohort-1/')) {
+      trackSlug = cleanPath.replace('/academy/cohort-1/', '').trim();
+    } else if (cleanPath.startsWith('/cohort-1/')) {
+      trackSlug = cleanPath.replace('/cohort-1/', '').trim();
+    } else if (cleanPath.startsWith('/pages/cohort-1/')) {
+      trackSlug = cleanPath.replace('/pages/cohort-1/', '').trim();
+    }
+    return {
+      page: 'cohort-1',
+      path: cleanPath,
+      courseSlug: trackSlug || undefined
+    };
+  }
+
+  // 4. Academy Course paths: /academy/:courseSlug
   if (cleanPath.startsWith('/academy/')) {
     const slug = cleanPath.replace('/academy/', '');
     return {
@@ -365,6 +394,8 @@ function AppContent() {
           targetPath = '/admin';
         } else if (page === 'categories') {
           targetPath = '/categories';
+        } else if (page === 'cohort-1') {
+          targetPath = courseSlug ? `/academy/cohort-1/${courseSlug}` : '/academy/cohort-1';
         } else if (page === 'academy-course' && courseSlug) {
           targetPath = `/academy/${courseSlug}`;
         } else {
@@ -468,8 +499,8 @@ function AppContent() {
     }
   };
 
-  const isAcademyNav = ['academy', 'academy-course', 'student-portal', 'certificate-portal', 'payment-callback'].includes(route.page);
-  const isAcademyLightBg = ['academy', 'academy-course', 'student-portal', 'certificate-portal'].includes(route.page);
+  const isAcademyNav = ['academy', 'academy-course', 'cohort-1', 'student-portal', 'certificate-portal', 'payment-callback'].includes(route.page);
+  const isAcademyLightBg = ['academy', 'academy-course', 'cohort-1', 'student-portal', 'certificate-portal'].includes(route.page);
   const isAcademyView = isAcademyLightBg;
 
   return (
@@ -557,10 +588,44 @@ function AppContent() {
             onEnrollCourse={handleEnrollInCourse}
             onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
             onNavigateToStudentPortal={() => handleNavigate('student-portal', undefined, undefined, '/student-portal')}
+            onNavigateCohort1={() => handleNavigate('cohort-1', undefined, undefined, '/academy/cohort-1')}
           />
         )}
 
-        {route.page === 'academy-course' && selectedCourse && (
+        {route.page === 'cohort-1' && (
+          route.courseSlug ? (
+            <CohortTrackSubpage
+              trackSlug={route.courseSlug}
+              onEnrollCourse={handleEnrollInCourse}
+              onNavigateTrack={(trackSlug) => handleNavigate('cohort-1', undefined, trackSlug, `/academy/cohort-1/${trackSlug}`)}
+              onNavigateBundle={() => handleNavigate('cohort-1', undefined, undefined, '/academy/cohort-1')}
+              onNavigateAcademy={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}
+              onOpenProjectModal={() => setProjectModalOpen(true)}
+            />
+          ) : (
+            <CohortBundlePage
+              initialTrackSlug={route.courseSlug}
+              onEnrollCourse={handleEnrollInCourse}
+              onNavigateCourse={(slug) => handleNavigate('cohort-1', undefined, slug, `/academy/cohort-1/${slug}`)}
+              onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
+              onNavigateAcademy={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}
+              onOpenProjectModal={() => setProjectModalOpen(true)}
+            />
+          )
+        )}
+
+        {route.page === 'academy-course' && route.courseSlug && getCohortTrackBySlug(route.courseSlug) && (
+          <CohortTrackSubpage
+            trackSlug={route.courseSlug}
+            onEnrollCourse={handleEnrollInCourse}
+            onNavigateTrack={(trackSlug) => handleNavigate('cohort-1', undefined, trackSlug, `/academy/cohort-1/${trackSlug}`)}
+            onNavigateBundle={() => handleNavigate('cohort-1', undefined, undefined, '/academy/cohort-1')}
+            onNavigateAcademy={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}
+            onOpenProjectModal={() => setProjectModalOpen(true)}
+          />
+        )}
+
+        {route.page === 'academy-course' && (!route.courseSlug || !getCohortTrackBySlug(route.courseSlug)) && selectedCourse && (
           <CourseLandingPage
             course={selectedCourse}
             onBackToAcademy={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}

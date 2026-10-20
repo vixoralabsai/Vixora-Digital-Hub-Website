@@ -100,7 +100,7 @@ export function Hero({
     <section
       id="hero"
       aria-label="Vixora Digital Hub Hero"
-      className="relative isolate min-h-[88vh] sm:min-h-[92vh] pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
+      className="relative isolate min-h-[85vh] sm:min-h-[92vh] pt-24 pb-14 sm:pt-36 sm:pb-28 overflow-hidden bg-[#070314] flex items-center"
     >
       {/* ========================================================================= */}
       {/* 1. HERO BACKGROUND: Video Background with Seamless Image Poster Fallback */}
@@ -114,7 +114,7 @@ export function Hero({
             alt="Vixora Digital Hub Environment"
             referrerPolicy="no-referrer"
             onError={handleImageError}
-            className="w-full h-full object-cover object-right lg:object-center absolute inset-0 z-[1]"
+            className="w-full h-full object-cover object-center absolute inset-0 z-[1]"
           />
         )}
 
@@ -139,11 +139,11 @@ export function Hero({
         )}
 
         {/* Semi-transparent cinematic radial backlight focusing luminous depth behind the headline (z-[3]) */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_30%_45%,rgba(168,85,247,0.18)_0%,rgba(79,70,229,0.10)_35%,rgba(7,3,20,0.35)_70%,transparent_100%)] pointer-events-none z-[3]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_35%,rgba(168,85,247,0.22)_0%,rgba(79,70,229,0.12)_40%,rgba(7,3,20,0.38)_75%,transparent_100%)] lg:bg-[radial-gradient(ellipse_60%_50%_at_30%_45%,rgba(168,85,247,0.18)_0%,rgba(79,70,229,0.10)_35%,rgba(7,3,20,0.35)_70%,transparent_100%)] pointer-events-none z-[3]" />
 
         {/* Subtle edge feathering to smoothly marry header and subsequent section content (z-[3]) */}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#070314]/75 to-transparent pointer-events-none z-[3]" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#070314]/85 to-transparent pointer-events-none z-[3]" />
+        <div className="absolute inset-x-0 top-0 h-20 sm:h-24 bg-gradient-to-b from-[#070314]/75 to-transparent pointer-events-none z-[3]" />
+        <div className="absolute inset-x-0 bottom-0 h-20 sm:h-28 bg-gradient-to-t from-[#070314]/85 to-transparent pointer-events-none z-[3]" />
 
         {/* Subtle Cyber Neon Grid Texture (z-[3]) */}
         <div 
@@ -152,24 +152,24 @@ export function Hero({
       </div>
 
       {/* Atmospheric Ambient Glows (z-[4]) */}
-      <div className="absolute top-1/4 right-1/4 w-[520px] h-[520px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none z-[4]" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none z-[4]" />
+      <div className="absolute top-1/4 right-1/4 w-[360px] sm:w-[520px] h-[360px] sm:h-[520px] bg-purple-600/20 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none z-[4]" />
+      <div className="absolute bottom-10 left-10 w-72 sm:w-96 h-72 sm:h-96 bg-indigo-600/15 rounded-full blur-[90px] sm:blur-[120px] pointer-events-none z-[4]" />
 
       {/* ========================================================================= */}
       {/* 2. FOREGROUND CONTENT GRID (relative z-10)                                 */}
       {/* ========================================================================= */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10 items-center">
           
           {/* ========================================================= */}
           {/* LEFT COLUMN: Clear Value Proposition & Single Prominent CTA */}
           {/* ========================================================= */}
-          <div className="lg:col-span-7 space-y-7 text-center lg:text-left relative">
+          <div className="lg:col-span-7 space-y-6 sm:space-y-7 text-center lg:text-left relative">
             {/* Luminous, cinematic focal glow behind headline for superior contrast, readability, and depth */}
-            <div className="absolute -inset-10 -z-10 bg-[radial-gradient(ellipse_at_35%_40%,rgba(147,51,234,0.25)_0%,rgba(79,70,229,0.14)_35%,rgba(7,3,20,0.5)_65%,transparent_85%)] blur-2xl pointer-events-none" />
+            <div className="absolute -inset-6 sm:-inset-10 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(147,51,234,0.28)_0%,rgba(79,70,229,0.14)_35%,rgba(7,3,20,0.5)_65%,transparent_85%)] lg:bg-[radial-gradient(ellipse_at_35%_40%,rgba(147,51,234,0.25)_0%,rgba(79,70,229,0.14)_35%,rgba(7,3,20,0.5)_65%,transparent_85%)] blur-2xl pointer-events-none" />
             
             {/* Clean Status Eyebrow Tag */}
-            <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-mono tracking-wider uppercase text-purple-300">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono tracking-wider uppercase text-purple-300">
               <span className="font-semibold text-purple-200">Software</span>
               <span className="text-purple-400/60 font-bold" aria-hidden="true">·</span>
               <span className="font-semibold text-indigo-200">AI Systems</span>
@@ -177,9 +177,9 @@ export function Hero({
               <span className="font-semibold text-cyan-200">Scalable Architecture</span>
             </div>
 
-            {/* Bold, Distinct Headline with crisp text shadows */}
+            {/* Bold, Distinct Headline with responsive clamp sizing and text shadows */}
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.08] [text-wrap:balance] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+              <h1 className="text-3xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.12] sm:leading-[1.08] [text-wrap:balance] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
                 <span>Build Smarter.</span>
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-300">
@@ -193,16 +193,16 @@ export function Hero({
             </div>
 
             {/* Concise Value Proposition Paragraph with crisp readability */}
-            <p className="text-base sm:text-lg lg:text-xl text-neutral-100 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)]">
+            <p className="text-sm sm:text-lg lg:text-xl text-neutral-100 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] px-1 sm:px-0">
               We engineer custom enterprise software, autonomous AI agent workflows, and cloud-scale platforms that turn complex operations into lasting market advantage.
             </p>
 
-            {/* Single Prominent Call-to-Action with subtle exploration link */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+            {/* Single Prominent Call-to-Action with mobile full-width tap targets */}
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 w-full sm:w-auto max-w-md mx-auto lg:mx-0">
               <button
                 id="hero-primary-cta-btn"
                 onClick={onOpenProjectModal}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 rounded-xl text-base font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] text-white shadow-xl shadow-purple-600/35 hover:shadow-purple-500/50 transition-all duration-300 cursor-pointer border border-purple-400/40 group"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 sm:px-9 sm:py-4 rounded-xl text-sm sm:text-base font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] text-white shadow-xl shadow-purple-600/35 hover:shadow-purple-500/50 transition-all duration-300 cursor-pointer border border-purple-400/40 group min-h-[48px]"
               >
                 <span>Start Your Project</span>
                 <ArrowRight className="w-5 h-5 text-purple-200 group-hover:translate-x-1 transition-transform" />
@@ -211,7 +211,7 @@ export function Hero({
               <button
                 id="hero-explore-link-btn"
                 onClick={onExploreServices}
-                className="inline-flex items-center gap-1.5 px-4 py-3 text-sm font-medium text-purple-300 hover:text-white transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-3 text-xs sm:text-sm font-medium text-purple-300 hover:text-white transition-colors cursor-pointer min-h-[44px]"
               >
                 <span>Explore capabilities</span>
                 <ChevronRight className="w-4 h-4 text-purple-400" />
@@ -219,17 +219,17 @@ export function Hero({
             </div>
 
             {/* Trust Assurance Strip */}
-            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 text-xs text-neutral-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-4 sm:gap-x-6 text-[11px] sm:text-xs text-neutral-300">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
                 <span>Fixed-scope milestones</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
                 <span>Zero vendor lock-in</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
                 <span>2-week rapid MVP delivery</span>
               </div>
             </div>
@@ -239,13 +239,13 @@ export function Hero({
           {/* ========================================================= */}
           {/* RIGHT COLUMN: Clean Unified System Architecture Console   */}
           {/* ========================================================= */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative mt-4 lg:mt-0">
             
             {/* Ambient Backlight */}
             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-purple-600/20 to-indigo-600/20 blur-xl opacity-70 pointer-events-none" />
 
             {/* Unified Glass Console */}
-            <div className="relative rounded-2xl bg-[#0B0520]/80 border border-purple-500/20 backdrop-blur-xl p-5 sm:p-6 shadow-2xl shadow-purple-950/40 space-y-4">
+            <div className="relative rounded-2xl bg-[#0B0520]/80 border border-purple-500/20 backdrop-blur-xl p-4 sm:p-6 shadow-2xl shadow-purple-950/40 space-y-3 sm:space-y-4">
               
               {/* Terminal Window Header */}
               <div className="flex items-center justify-between pb-3 border-b border-purple-500/15">

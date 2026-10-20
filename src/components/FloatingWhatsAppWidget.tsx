@@ -46,7 +46,7 @@ export function FloatingWhatsAppWidget() {
           role="dialog"
           aria-label="WhatsApp quick chat"
           data-theme="dark"
-          className="modal-dark w-[340px] sm:w-[380px] rounded-3xl bg-[#0C061F] border border-emerald-500/40 shadow-2xl shadow-emerald-950/90 overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 text-neutral-100"
+          className="modal-dark w-[calc(100vw-32px)] max-w-[380px] sm:w-[380px] rounded-3xl bg-[#0C061F] border border-emerald-500/40 shadow-2xl shadow-emerald-950/90 overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 text-neutral-100"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-900/90 via-purple-950 to-neutral-900 p-4 sm:p-5 border-b border-emerald-500/30 relative">

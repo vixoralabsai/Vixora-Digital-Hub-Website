@@ -2327,6 +2327,224 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
       }
     ],
     certificateType: "Official Vixora Certified Machine Learning & Data Science Specialist"
+  },
+  {
+    id: "course-client-acquisition-freelancing",
+    slug: "client-acquisition-freelancing",
+    title: "Client Acquisition & Freelancing Masterclass",
+    subtitle: "High-ticket positioning, Upwork optimization, cold outreach systems, and winning $1,000+ to $5,000+ monthly client retainers.",
+    badge: "Cohort 1.0 Track • ₦25,000",
+    level: "All Levels",
+    status: "active",
+    track: "Business Automation",
+    format: "4-Week Practical Sprint + Private Telegram Mastermind",
+    duration: "4 Weeks",
+    commitment: "3-4 hrs/week (Flexible Replays & Live Proposal Labs)",
+    nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
+    tuition: "₦25,000",
+    tuitionNote: "Full access to Cohort 1.0 recorded sessions, PDF templates, and private Telegram group.",
+    seatsRemaining: 20,
+    targetAudience: "Freelancers, Agency Owners, Web Developers, AI Creators, Consultants and Service Providers.",
+    description: "Technical skills without sales skills leave you underpaid. In this masterclass, learn the exact client acquisition engines, proposal frameworks, and outreach systems used to close international high-ticket clients on Upwork and direct outbound.",
+    heroPitch: "Stop competing on race-to-the-bottom hourly rates. Learn to position your technical and AI services as high-ROI investments and win international retainers.",
+    highlights: [
+      "Craft Upwork proposals with an 80%+ interview invitation rate",
+      "Plug-and-play cold email templates for US and European founders",
+      "High-converting discovery call script that diagnoses and closes",
+      "Scope of Work (SOW) and Master Services Agreement (MSA) legal contract templates",
+      "Direct admission to the Private Telegram Cohort 1.0 community"
+    ],
+    outcomes: [
+      "Package your AI and tech skills into an irresistible high-ticket service offer",
+      "Optimize your Upwork profile to rank for enterprise search terms",
+      "Close $1,000 to $5,000 monthly service retainers with clear deliverables",
+      "Handle pricing objections with poise and anchor conversations on ROI"
+    ],
+    prerequisites: [
+      "A laptop or smartphone with internet connection",
+      "A technical or creative skill (or willingness to learn AI services)"
+    ],
+    curriculum: [
+      "Module 1 — Offer Architecture & Irresistible Positioning",
+      "Module 2 — Upwork Profile Optimization & Proposal Psychology",
+      "Module 3 — Multi-Channel Outbound (Cold Email, LinkedIn & Twitter/X)",
+      "Module 4 — Closing Discovery Calls, Contracts & Client Retainer Retention"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 01",
+        title: "Offer Architecture & Market Positioning",
+        description: "Transform generic freelancer titles into specialized outcome-driven agency offers.",
+        topics: [
+          "The High-Ticket Value Equation: Dream Outcome × Perceived Likelihood ÷ Time Delay",
+          "Selecting profitable niches in US, UK, and European markets",
+          "Tiered pricing models: Starter, Growth, and Retainer packages",
+          "Drafting your 1-page irresistible service deck"
+        ],
+        handsOnLab: "Lab 01: Finalize your 1-page high-ticket offer outline with specific deliverables and pricing tiers."
+      },
+      {
+        week: "Week 02",
+        title: "Upwork Algorithm & Proposal Mastery",
+        description: "Master the psychology of winning proposals and optimizing your profile for inbound invitations.",
+        topics: [
+          "Profile architecture: Headline, video introduction, case studies, and specialized profiles",
+          "The 4-part winning proposal formula: Hook + Insight + Proof + Call to Action",
+          "How to filter jobs with verified payment and high average hourly rates",
+          "Setting up automated job search alerts"
+        ],
+        handsOnLab: "Lab 02: Submit 3 live proposals using our tested templates and review responses with mentors."
+      },
+      {
+        week: "Week 03",
+        title: "Cold Outbound & Multi-Channel Lead Generation",
+        description: "Generate consistent inbound discovery calls using targeted cold email and LinkedIn.",
+        topics: [
+          "Building 100-lead prospect databases using Google Maps, LinkedIn, and Apollo",
+          "Subject lines with 65%+ open rates and conversational pitch copy",
+          "The 3-stage non-annoying follow-up sequence",
+          "Booking calls directly to your calendar"
+        ],
+        handsOnLab: "Lab 03: Launch a 30-prospect outbound pilot campaign with personalized message hooks."
+      },
+      {
+        week: "Week 04",
+        title: "Closing Discovery Calls, Legal Contracts & Retainers",
+        description: "Navigate discovery calls, anchor pricing on value, and secure monthly retainers.",
+        topics: [
+          "The 20-minute Diagnostic Discovery Call script",
+          "Overcoming price resistance: 'That's outside our budget'",
+          "Standard Master Service Agreements, NDAs, and payment milestone contracts",
+          "Collecting foreign payments securely via Stripe, Payoneer, and crypto/bank transfers"
+        ],
+        handsOnLab: "Lab 04: Conduct a mock sales call with instructor feedback and draft your standard client SOW."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Live Client Proposal & Contract Execution",
+        description: "Create a complete client pitch package including market research, personalized proposal, and signed SOW contract.",
+        technologies: ["Upwork", "Cold Email", "Notion Proposal", "Client Agreement Contract"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Sarumi Hammad",
+        role: "Dean & Academic Director, Vixora Academy",
+        bio: "Director of technical programs and commercial software delivery across enterprise AI and automation clients worldwide.",
+        companyBackground: "Vixora Digital Hub Academic Directorate"
+      }
+    ],
+    faqs: [
+      {
+        q: "Are the Cohort 1.0 sessions recorded?",
+        a: "Yes. All sessions are recorded in high-definition and available inside the Private Telegram Cohort group with accompanying PDFs and templates."
+      },
+      {
+        q: "Can I combine this with the other Cohort 1.0 tracks?",
+        a: "Absolutely. You can enroll in the 4-in-1 Cohort 1.0 Master Bundle for complete access to all 4 tracks at a discounted rate."
+      }
+    ],
+    certificateType: "Official Vixora Certified Digital Business Consultant"
+  },
+  {
+    id: "course-cohort-1-master-bundle",
+    slug: "cohort-1-master-bundle",
+    title: "Cohort 1.0: 4-in-1 Masterclass All-Access Pass",
+    subtitle: "Complete access to all 4 training tracks: AI Content Creation, AI Automation, AI Web Development, and Client Acquisition.",
+    badge: "Flagship Bundle • ₦45,000",
+    level: "All Levels",
+    status: "active",
+    track: "Engineering & AI",
+    format: "4 Complete Modular Tracks + 28h Video Vault + 14 PDFs + Private Telegram Mastermind",
+    duration: "Full Lifetime Access",
+    commitment: "Self-Paced with Ongoing Community Mentorship",
+    nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
+    tuition: "₦45,000",
+    tuitionNote: "Includes all 4 courses (Standard price ₦95,000 when purchased separately). Save over 50%.",
+    seatsRemaining: 15,
+    targetAudience: "Ambitious Builders, Creators, Developers, Consultants and Entrepreneurs.",
+    description: "The complete Cohort 1.0 vault. Receive full access to all 4 tracks: AI Content Creation, AI Automation, AI Web Development & Design, and Client Acquisition & Freelancing. Includes all 28+ hours of session recordings, 14 strategy PDFs, workflow blueprints, and lifetime access to our Private Telegram Mastermind.",
+    heroPitch: "Everything you need to master AI creation, automate business workflows, build modern web apps, and acquire high-paying international clients.",
+    highlights: [
+      "Access to all 4 training tracks in one single enrollment pass",
+      "28+ hours of recorded video masterclasses in our private Telegram group",
+      "14 downloadable PDF guidebooks, prompt libraries & workflow blueprints",
+      "Full access to the Private Telegram Mastermind with Dean Sarumi Hammad",
+      "Cryptographically verifiable graduation certification"
+    ],
+    outcomes: [
+      "Generate photorealistic visual media and short-form video pipelines",
+      "Deploy production n8n workflows that automate business operations",
+      "Build and deploy modern responsive web apps with React and Tailwind",
+      "Close $1,000 to $5,000 monthly client contracts and international retainers"
+    ],
+    prerequisites: [
+      "A laptop or smartphone with internet connection",
+      "Dedication to apply the frameworks and build real projects"
+    ],
+    curriculum: [
+      "Track 1 — AI Content Creation (Image, Video & Audio)",
+      "Track 2 — AI Automation & Autonomous Workflows (n8n & APIs)",
+      "Track 3 — AI Web Development & Modern Design (React 19 & Tailwind)",
+      "Track 4 — Client Acquisition & Freelancing (High-Ticket Positioning)"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Track 1",
+        title: "AI Content Creation Masterclass",
+        description: "Diffusion models, prompt engineering, voice cloning, and viral short-form video pipelines.",
+        topics: ["Midjourney & Flux prompts", "Character consistency", "ElevenLabs voice cloning", "CapCut video pacing"],
+        handsOnLab: "Deliverable: 3 Complete Viral Short Form Video Creatives"
+      },
+      {
+        week: "Track 2",
+        title: "AI Automation & Autonomous Systems",
+        description: "n8n deployment, webhook architectures, OpenAI function calling, and CRM sync.",
+        topics: ["Self-hosted n8n", "Webhook listeners", "AI email responder", "WhatsApp automation"],
+        handsOnLab: "Deliverable: End-to-End Automated Client Ingestion & CRM Pipeline"
+      },
+      {
+        week: "Track 3",
+        title: "AI Web Development & Modern Design",
+        description: "React 19, Tailwind CSS spatial math, AI-assisted vibe coding, and production deployment.",
+        topics: ["Component architecture", "Dynamic state & hooks", "Paystack checkout integration", "Production deployment"],
+        handsOnLab: "Deliverable: Live Production-Grade Web Application"
+      },
+      {
+        week: "Track 4",
+        title: "Client Acquisition & Freelancing",
+        description: "High-ticket positioning, Upwork optimization, cold email systems, and closing retainers.",
+        topics: ["Irresistible offer design", "Winning Upwork proposals", "Cold outbound campaigns", "Closing discovery calls"],
+        handsOnLab: "Deliverable: Signed Client Contract & 50-Lead Outbound Campaign"
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Full-Stack AI Business or Agency Launch",
+        description: "Deploy an automated business engine combining AI media, automated CRM pipelines, modern web landing page, and outbound client acquisition.",
+        technologies: ["React 19", "n8n Self-Hosted", "Midjourney & Flux", "Upwork Proposal Deck"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Sarumi Hammad",
+        role: "Dean & Academic Director, Vixora Academy",
+        bio: "Director of technical programs and commercial software delivery across enterprise AI and automation clients worldwide.",
+        companyBackground: "Vixora Digital Hub Academic Directorate"
+      }
+    ],
+    faqs: [
+      {
+        q: "How do I access the session recordings and materials after payment?",
+        a: "Immediately upon enrollment, you receive direct access instructions and an exclusive invitation link to join the Private Telegram Cohort 1.0 Mastermind where all HD video replays, PDF blueprints, and mentor discussions are hosted."
+      },
+      {
+        q: "Can I watch the sessions at my own pace?",
+        a: "Yes. All sessions are permanently archived in the Telegram group so you can watch, rewatch, and download materials anytime at your own speed."
+      }
+    ],
+    certificateType: "Official Vixora Certified Autonomous AI & Growth Engineer"
   }
 ];
 

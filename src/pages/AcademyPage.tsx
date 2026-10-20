@@ -28,6 +28,7 @@ interface AcademyPageProps {
   onEnrollCourse: (course: AcademyCourse) => void;
   onNavigateHome: () => void;
   onNavigateToStudentPortal?: () => void;
+  onNavigateCohort1?: () => void;
 }
 
 export function AcademyPage({
@@ -35,7 +36,8 @@ export function AcademyPage({
   onSelectCourse,
   onEnrollCourse,
   onNavigateHome,
-  onNavigateToStudentPortal
+  onNavigateToStudentPortal,
+  onNavigateCohort1
 }: AcademyPageProps) {
   const [selectedTrack, setSelectedTrack] = useState<string>('All Tracks');
   const [sourceIdx, setSourceIdx] = useState(0);
@@ -76,8 +78,14 @@ export function AcademyPage({
     });
   }, []);
 
-  // Autoplay and source transition handling
+  // Autoplay and source transition handling respecting reduced motion
   useEffect(() => {
+    const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      console.info('[Vixora Academy Video] 🔇 prefers-reduced-motion is active; video autoplay suppressed.');
+      return;
+    }
+
     const video = videoRef.current;
     if (!video) return;
 
@@ -226,115 +234,216 @@ export function AcademyPage({
   ];
 
   return (
-    <div className="pt-16 pb-24 bg-[#F7F7FC] text-[#000048] min-h-screen">
-      {/* Hero Header with Cinematic Video Background */}
-      <section className="relative isolate py-16 sm:py-28 overflow-hidden border-b border-purple-950/20 bg-[#070314] text-white">
-        {/* Background Media Layer (z-0) */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-          {/* Base Dark Foundation (z-0) */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0F0728] via-[#150930] to-[#070314] z-0" />
+    <div className="pt-[74px] sm:pt-[84px] pb-24 bg-[#F7F7FC] text-[#0F1535] min-h-screen">
+      {/* Academy Hero Section — Clean Split Layout (Desktop) & Text-First Contained (Mobile) */}
+      <section className="relative bg-white border-b border-slate-200/80 overflow-hidden py-10 sm:py-16 lg:py-20">
+        {/* Subtle engineering grid texture */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#5B5FED_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" 
+          aria-hidden="true"
+        />
 
-          {/* 1. Base Poster Image Fallback (z-1) */}
-          {currentPosterSrc && !posterError && (
-            <img
-              src={currentPosterSrc}
-              alt="Vixora Academy Ambient Environment"
-              referrerPolicy="no-referrer"
-              onError={handlePosterError}
-              className="w-full h-full object-cover object-center absolute inset-0 z-[1]"
-            />
-          )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Left Text Column: Headline, Kicker, Description, and Action CTAs (1st on Mobile & Left on Desktop) */}
+            <div className="lg:col-span-7 flex flex-col items-start text-left">
+              
+              {/* Academy Identity & Dean Kicker */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 text-[#5B5FED] border border-purple-200/80 mb-5 max-w-full">
+                <GraduationCap className="w-3.5 h-3.5 text-[#5B5FED] shrink-0" />
+                <span className="font-mono text-[10px] sm:text-[11px] tracking-wide uppercase truncate">
+                  Vixora Academy • Dean: Sarumi Hammad
+                </span>
+                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className="hidden sm:inline text-[10px] text-emerald-700 font-medium shrink-0">
+                  2026 Admissions
+                </span>
+              </div>
 
-          {/* 2. Ambient Modern Workspace Video Loop (z-2) */}
-          {currentAcademyVideoSource && !videoError && (
-            <video
-              ref={videoRef}
-              key={currentAcademyVideoSource}
-              src={currentAcademyVideoSource}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              poster={currentPosterSrc}
-              onLoadStart={handleLoadStart}
-              onLoadedMetadata={handleLoadedMetadata}
-              onLoadedData={handleLoadedData}
-              onCanPlay={handleCanPlay}
-              onPlaying={handlePlaying}
-              onWaiting={handleWaiting}
-              onError={handleVideoError}
-              className={`w-full h-full object-cover object-center absolute inset-0 z-[2] transition-opacity duration-700 ${
-                videoLoaded ? 'opacity-85' : 'opacity-65'
-              }`}
-            />
-          )}
+              {/* Core Headline — Responsive sizing preventing awkward mobile wrapping */}
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl lg:text-[44px] xl:text-[50px] font-black text-[#0F1535] tracking-tight leading-[1.15] max-w-2xl">
+                Engineering-Grade Training in Software, AI &amp; Autonomous Systems
+              </h1>
 
-          {/* Semi-transparent cinematic radial backlight focusing luminous depth behind the center headline (z-[3]) */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_48%,rgba(144,48,248,0.22)_0%,rgba(99,102,241,0.12)_35%,rgba(7,3,20,0.35)_70%,transparent_100%)] pointer-events-none z-[3]" />
+              {/* Supporting Description — High contrast against clean plain background */}
+              <p className="mt-4 text-sm sm:text-base lg:text-lg text-[#475569] leading-relaxed max-w-xl font-normal">
+                Practical, cohort-based training and masterclasses designed to transform developers, executives, and organizations into high-impact innovators using real production toolchains.
+              </p>
 
-          {/* Subtle edge feathering for seamless header and section transitions (z-[3]) */}
-          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#070314]/75 to-transparent pointer-events-none z-[3]" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#070314]/85 to-transparent pointer-events-none z-[3]" />
+              {/* Action CTAs */}
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <button
+                  onClick={onOpenProjectModal}
+                  className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-bold bg-[#5B5FED] hover:bg-[#480878] text-white shadow-md shadow-[#5B5FED]/25 hover:shadow-lg transition-all cursor-pointer min-h-[44px] flex items-center justify-center gap-2"
+                >
+                  <span>Request Corporate In-House Cohort</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('catalog');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="px-5 py-3.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-[#0F1535] border border-slate-200/80 transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
+                >
+                  <BookOpen className="w-4 h-4 text-[#5B5FED]" />
+                  <span>Browse Program Tracks</span>
+                </button>
+              </div>
 
-          {/* Subtle Cyber Neon Grid Texture */}
-          <div 
-            className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#A855F7_1px,transparent_1px)] [background-size:32px_32px] z-[3]" 
-          />
-        </div>
+              {/* Key Highlights */}
+              <div className="mt-8 pt-6 border-t border-slate-200/80 flex flex-wrap items-center gap-x-6 gap-y-2.5 text-xs text-slate-500 w-full">
+                <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Live Production Labs</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                  <ShieldCheck className="w-4 h-4 text-[#5B5FED] shrink-0" />
+                  <span>Cryptographically Verified Certs</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                  <Users className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Strict Cohort Caps</span>
+                </div>
+              </div>
 
-        {/* Ambient Radial Glow behind text (z-[4]) */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#9030F8]/20 blur-[140px] rounded-full pointer-events-none z-[4]" />
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
-          {/* Luminous, cinematic radial backlight focused directly behind the academy headline */}
-          <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 h-[95%] -z-10 bg-[radial-gradient(ellipse_at_center,rgba(144,48,248,0.26)_0%,rgba(79,70,229,0.14)_35%,rgba(7,3,20,0.48)_65%,transparent_85%)] blur-2xl pointer-events-none" />
-
-          <div className="flex justify-center">
-            <div className="p-3 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-purple-300/40 inline-flex items-center justify-center">
-              <img
-                src="/images/vixora-academy-logo.jpg"
-                alt="Vixora Academy — Learn. Apply. Earn."
-                className="mx-auto w-auto h-28 sm:h-36 md:h-40 max-w-[340px] sm:max-w-[420px] object-contain rounded-2xl"
-              />
             </div>
+
+            {/* Right Contained Video Panel (2nd on Mobile & Right on Desktop) */}
+            <div className="lg:col-span-5 w-full">
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-900/5 bg-[#0F1535] group">
+                
+                {/* Contained Video Header Strip */}
+                <div className="px-4 py-2.5 bg-[#0A0E27] border-b border-white/10 flex items-center justify-between text-xs text-slate-300">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                    <span className="font-mono text-[11px] font-semibold text-white tracking-wide truncate">
+                      Vixora Lab Environment
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-purple-300 uppercase tracking-wider shrink-0">
+                    Active Cohort
+                  </span>
+                </div>
+
+                {/* Media Aspect Container — Preserves 16:9 aspect ratio */}
+                <div className="relative aspect-video w-full bg-[#070A1E] overflow-hidden">
+                  
+                  {/* Base Poster Fallback Image */}
+                  {currentPosterSrc && !posterError && (
+                    <img
+                      src={currentPosterSrc}
+                      alt="Vixora Academy Technical Environment"
+                      referrerPolicy="no-referrer"
+                      onError={handlePosterError}
+                      className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-500 ${
+                        videoLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                      }`}
+                    />
+                  )}
+
+                  {/* Contained Ambient Video Loop */}
+                  {currentAcademyVideoSource && !videoError && (
+                    <video
+                      ref={videoRef}
+                      key={currentAcademyVideoSource}
+                      src={currentAcademyVideoSource}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="auto"
+                      poster={currentPosterSrc}
+                      onLoadStart={handleLoadStart}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onLoadedData={handleLoadedData}
+                      onCanPlay={handleCanPlay}
+                      onPlaying={handlePlaying}
+                      onWaiting={handleWaiting}
+                      onError={handleVideoError}
+                      className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-500 motion-reduce:hidden ${
+                        videoLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    />
+                  )}
+
+                  {/* Contained Media Badges */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0F1535]/90 via-[#0F1535]/40 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-white/95 pointer-events-none font-mono">
+                    <span className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] border border-white/10">
+                      Autonomous AI &amp; Cloud Systems
+                    </span>
+                    <span className="bg-[#5B5FED]/90 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white border border-[#5B5FED]/40">
+                      2026 Cohort
+                    </span>
+                  </div>
+                </div>
+
+                {/* Contained Card Footer */}
+                <div className="p-3.5 bg-[#0F1535] text-purple-200 border-t border-white/10 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="text-[11px] text-purple-100 font-medium">Production-grade toolchains &amp; codebases</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('catalog');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-[11px] text-amber-300 hover:text-amber-200 font-semibold cursor-pointer shrink-0"
+                  >
+                    View Tracks &rarr;
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
           </div>
-          
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-purple-950/60 border border-purple-400/40 text-purple-200 backdrop-blur-md drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
-            <GraduationCap className="w-3.5 h-3.5 text-purple-300" />
-            <span className="font-mono uppercase tracking-widest text-[11px]">Vixora Academy & Live Cohorts • Dean: Sarumi Hammad</span>
+        </div>
+      </section>
+
+      {/* Featured Cohort 1.0 Masterclass Vault Banner */}
+      <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl bg-gradient-to-r from-[#0F1535] via-[#1A114A] to-[#0A0D28] text-white p-6 sm:p-8 border border-purple-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-amber-400 text-[#000048]">
+              <Sparkles className="w-3.5 h-3.5 fill-[#000048]" />
+              <span>Flagship Vault Available</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white">
+              Vixora Academy Cohort 1.0: 4-in-1 Masterclass
+            </h3>
+            <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl leading-relaxed">
+              Complete archives of our live cohort: AI Content Creation, AI Automation, AI Web Development, and Client Acquisition. 28+ hours of video replays, 14 strategy PDFs &amp; Private Telegram Community.
+            </p>
           </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-            Engineering-Grade Training in Software, AI & Autonomous Systems
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-100 max-w-3xl mx-auto font-normal leading-relaxed drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)]">
-            Practical, cohort-based training and masterclasses designed to transform developers, executives, and organizations into high-impact innovators using real production toolchains.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-            <button
-              onClick={onOpenProjectModal}
-              className="px-7 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-[#7000F8] via-[#9030F8] to-[#A855F7] hover:from-[#9030F8] hover:to-[#7000F8] text-white shadow-xl shadow-purple-600/35 hover:shadow-purple-500/50 transition-all cursor-pointer border border-purple-400/40"
-            >
-              Request Corporate In-House Cohort
-            </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
+            {onNavigateCohort1 && (
+              <button
+                onClick={onNavigateCohort1}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold bg-white text-[#0F1535] hover:bg-purple-50 transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Explore Cohort 1.0 Vault</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#5B5FED]" />
+              </button>
+            )}
             <button
               onClick={() => {
-                const el = document.getElementById('catalog');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                const bundle = ACADEMY_COURSES.find(c => c.id === 'course-cohort-1-master-bundle');
+                if (bundle) onEnrollCourse(bundle);
               }}
-              className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-purple-300/60 backdrop-blur-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-[#000048] transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
             >
-              <BookOpen className="w-4 h-4 text-purple-300" /> Browse Program Tracks
+              <Award className="w-3.5 h-3.5 text-[#000048]" />
+              <span>Enroll (₦45,000)</span>
             </button>
           </div>
         </div>
       </section>
 
       {/* Course Catalog Showcase */}
-      <section id="catalog" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <section id="catalog" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-[#480878]">

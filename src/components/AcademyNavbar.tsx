@@ -12,7 +12,8 @@ import {
   MessageSquare,
   Globe,
   User,
-  Bot
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../data/brandConfig';
 import { ACADEMY_COURSES } from '../data/vixoraContent';
@@ -59,39 +60,41 @@ export function AcademyNavbar({
       }`}
     >
       {/* Subdomain Indicator Strip */}
-      <div className="bg-[#000028] border-b border-purple-900/40 py-1.5 px-4 text-[11px] text-purple-200">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="bg-[#000028] border-b border-purple-900/40 py-1 px-3 sm:px-4 text-[11px] text-purple-200">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
             <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <span className="font-mono font-bold text-white tracking-wide">{BRAND_CONFIG.cleanAcademyDomain}</span>
+            <span className="font-mono font-bold text-white tracking-wide truncate text-[10px] sm:text-[11px]">
+              {BRAND_CONFIG.cleanAcademyDomain}
+            </span>
             <span className="text-purple-300/80 hidden sm:inline">• Official Academic Directorate Portal</span>
           </div>
           <button
             onClick={() => handleNavClick('home', undefined, undefined, '/')}
-            className="text-amber-300 hover:text-amber-200 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-amber-300 hover:text-amber-200 font-semibold flex items-center gap-1 cursor-pointer transition-colors shrink-0 text-[10px] sm:text-[11px]"
           >
-            <span>Return to Main Hub</span>
-            <span className="font-mono text-[10px]">({BRAND_CONFIG.cleanDomain})</span> &rarr;
+            <span>Return to <span className="hidden sm:inline">Main </span>Hub</span>
+            <span className="hidden md:inline font-mono text-[10px]">({BRAND_CONFIG.cleanDomain})</span> &rarr;
           </button>
         </div>
       </div>
 
       {/* Top Academic Subdomain Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
-        <div className="flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
           
           {/* Logo & Dean Academic Identity */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => handleNavClick('academy', undefined, undefined, '/pages/academy')}
-              className="flex items-center gap-3 group text-left cursor-pointer focus:outline-none"
+              className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer focus:outline-none min-w-0"
             >
-              <div className="p-1.5 bg-white rounded-xl shadow-md border border-purple-100 flex items-center justify-center shrink-0">
+              <div className="p-1 sm:p-1.5 bg-white rounded-xl shadow-md border border-purple-100 flex items-center justify-center shrink-0">
                 <img
                   src={BRAND_CONFIG.academyLogo?.imageUrl || "/images/vixora-academy-logo.png"}
                   alt={BRAND_CONFIG.academyLogo?.altText || "Vixora Academy"}
                   onError={(e) => { (e.target as HTMLImageElement).src = '/images/vixora-academy-logo.jpg'; }}
-                  className="h-9 w-auto max-w-[170px] sm:max-w-[210px] object-contain rounded-lg"
+                  className="h-7 sm:h-9 w-auto max-w-[125px] sm:max-w-[210px] object-contain rounded-lg"
                 />
               </div>
               <div className="hidden md:block">
@@ -154,6 +157,24 @@ export function AcademyNavbar({
                       </div>
                     </div>
                     <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+
+                  {/* Featured Cohort 1.0 Vault */}
+                  <button
+                    onClick={() => handleNavClick('cohort-1', undefined, undefined, '/academy/cohort-1')}
+                    className="w-full p-2.5 rounded-xl bg-purple-950/70 hover:bg-purple-900 border border-purple-500/40 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <div>
+                        <div className="text-xs font-bold text-white group-hover:text-amber-300 flex items-center gap-1.5">
+                          <span>Cohort 1.0 Master Vault</span>
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400 text-[#000048] font-bold">4 Tracks</span>
+                        </div>
+                        <div className="text-[10px] text-purple-200">Videos, PDFs &amp; Telegram Community</div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-amber-300 group-hover:translate-x-0.5 transition-transform" />
                   </button>
 
                   {ACADEMY_COURSES.map((course) => (
@@ -235,10 +256,10 @@ export function AcademyNavbar({
           </nav>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={() => handleNavClick('student-portal', undefined, undefined, '/pages/student-portal')}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 transition-all cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 transition-all cursor-pointer"
             >
               <User className="w-3.5 h-3.5 text-amber-300" />
               <span>Student Login</span>
@@ -253,19 +274,19 @@ export function AcademyNavbar({
                   handleNavClick('academy', undefined, undefined, '/pages/academy');
                 }
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-[#000048] bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold text-[#000048] bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-md flex items-center gap-1 sm:gap-1.5 shrink-0"
             >
-              <GraduationCap className="w-3.5 h-3.5 text-[#000048]" />
-              <span>Enroll in Cohort</span>
+              <GraduationCap className="w-3.5 h-3.5 text-[#000048] shrink-0" />
+              <span>Enroll<span className="hidden xs:inline"> in Cohort</span></span>
             </button>
 
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-white hover:bg-white/10 lg:hidden cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl text-white hover:bg-white/10 lg:hidden cursor-pointer shrink-0"
               aria-label="Toggle Navigation Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
           </div>
 
@@ -307,6 +328,17 @@ export function AcademyNavbar({
             >
               <span>All Academy Programs</span>
               <ArrowRight className="w-3.5 h-3.5 text-purple-300" />
+            </button>
+
+            <button
+              onClick={() => handleNavClick('cohort-1', undefined, undefined, '/academy/cohort-1')}
+              className="w-full p-2.5 rounded-xl text-left font-bold text-white bg-purple-950/70 border border-purple-500/40 flex items-center justify-between shadow-xs"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>Cohort 1.0 Master Vault (4 Tracks)</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
             </button>
 
             <button
