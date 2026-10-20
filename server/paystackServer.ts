@@ -28,6 +28,12 @@ export function isPaystackConfigured(): boolean {
   return Boolean(key && (key.startsWith('sk_test_') || key.startsWith('sk_live_')));
 }
 
+function isProductionPaymentEnvironment(): boolean {
+  return process.env.NODE_ENV === 'production' ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+}
+
 // ==============================================================================
 // 2. Sliding Window Rate Limiter
 // ==============================================================================
@@ -279,11 +285,13 @@ export async function ensureCourseRecordInDatabase(
   if (!supabase) return canonicalCourse.id;
 
   try {
-    const { data: matchedCourse } = await supabase
+    const { data: matchedCourse, error: lookupError } = await supabase
       .from('courses')
       .select('id')
       .or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`)
       .maybeSingle();
+
+    if (lookupError) throw lookupError;
 
     if (matchedCourse?.id) {
       return matchedCourse.id;
@@ -307,14 +315,15 @@ export async function ensureCourseRecordInDatabase(
       .select('id')
       .maybeSingle();
 
-    if (!insertErr && inserted?.id) {
+    if (insertErr) throw insertErr;
+    if (inserted?.id) {
       return inserted.id;
     }
+    throw new Error(`Course record could not be resolved for "${canonicalCourse.id}".`);
   } catch (err) {
-    console.warn('[Auto-provision course record warning]:', err);
+    console.error('[Course record resolution failed]:', err);
+    throw new Error('Course record could not be confirmed in the database.');
   }
-
-  return canonicalCourse.id;
 }
 
 export async function processPaymentFulfillment(
@@ -332,26 +341,51 @@ export async function processPaymentFulfillment(
 
   const supabase = getSupabaseAdmin();
 
+  // Production fulfillment must never use an ephemeral in-memory payment as its source of truth.
+  if (!supabase && isProductionPaymentEnvironment()) {
+    return {
+      verified: false,
+      error: 'Payment database is not configured. The transaction cannot be fulfilled safely yet.',
+      code: 'DATABASE_UNCONFIGURED',
+      status: 503
+    };
+  }
+
   // 1. Check existing payment record in database or fallback store
   let existingPayment: PaymentRecord | null = null;
 
   if (supabase) {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('payments')
         .select('*')
         .eq('id', reference)
         .maybeSingle();
+      if (error) {
+        console.error('[Supabase payments query failed]:', error);
+        return {
+          verified: false,
+          error: 'Payment record could not be read from the database. Please retry verification.',
+          code: 'PAYMENT_RECORD_READ_FAILED',
+          status: 503
+        };
+      }
       if (data) {
         existingPayment = data;
         fallbackPaymentsStore.set(reference, data);
       }
     } catch (dbErr) {
-      console.warn('[Supabase payments query]:', dbErr);
+      console.error('[Supabase payments query exception]:', dbErr);
+      return {
+        verified: false,
+        error: 'Payment database is unavailable. Please retry verification.',
+        code: 'DATABASE_UNAVAILABLE',
+        status: 503
+      };
     }
   }
 
-  if (!existingPayment) {
+  if (!existingPayment && !supabase) {
     existingPayment = fallbackPaymentsStore.get(reference) || null;
   }
 
@@ -733,14 +767,53 @@ export async function processPaymentFulfillment(
 
   if (supabase) {
     try {
-      await supabase.from('payments').upsert(updatedPaymentRecord, { onConflict: 'id' });
+      const { error: paymentUpsertError } = await supabase
+        .from('payments')
+        .upsert(updatedPaymentRecord, { onConflict: 'id' });
+
+      if (paymentUpsertError) {
+        console.error('[Supabase payments upsert failed]:', paymentUpsertError);
+        return {
+          verified: false,
+          error: 'Paystack confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.',
+          code: 'PAYMENT_RECORD_PERSISTENCE_FAILED',
+          status: 503,
+          payment: {
+            reference,
+            status: 'success',
+            amount: canonicalCourse.nairaAmount,
+            currency: 'NGN',
+            channel,
+            paidAt,
+            studentName: customerName,
+            studentEmail: customerEmail,
+            courseId: canonicalCourse.id,
+            courseTitle: canonicalCourse.title
+          }
+        };
+      }
     } catch (paymentDbErr) {
-      console.warn('[Supabase payments upsert error]:', paymentDbErr);
+      console.error('[Supabase payments upsert exception]:', paymentDbErr);
+      return {
+        verified: false,
+        error: 'Paystack confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.',
+        code: 'PAYMENT_RECORD_PERSISTENCE_FAILED',
+        status: 503
+      };
     }
+  } else if (isProductionPaymentEnvironment()) {
+    return {
+      verified: false,
+      error: 'Payment database is not configured. The transaction requires manual reconciliation.',
+      code: 'DATABASE_UNCONFIGURED',
+      status: 503
+    };
   }
 
-  // Always update fallback store
-  fallbackPaymentsStore.set(reference, updatedPaymentRecord);
+  // In-memory payment records are only authoritative in local development/tests.
+  if (!isProductionPaymentEnvironment()) {
+    fallbackPaymentsStore.set(reference, updatedPaymentRecord);
+  }
 
   // If enrollment failed, abort here: do NOT report success and do NOT send email yet
   if (!isFulfilled) {
@@ -973,9 +1046,24 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
 
     const supabase = getSupabaseAdmin();
+    if (!supabase && isProductionPaymentEnvironment()) {
+      return res.status(503).json({
+        error: 'Payment database is not configured. Checkout cannot be started safely.',
+        code: 'DATABASE_UNCONFIGURED'
+      });
+    }
+
     let resolvedCourseId = canonicalCourse.id;
     if (supabase) {
-      resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+      try {
+        resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+      } catch (courseDbErr) {
+        console.error('[Paystack Init Course Record Failure]:', courseDbErr);
+        return res.status(503).json({
+          error: 'The selected course is not available in the payment database yet. Please try again later.',
+          code: 'COURSE_DATABASE_UNAVAILABLE'
+        });
+      }
     }
 
     // 8. Pre-create durable pending payment record in database
@@ -1003,13 +1091,27 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     if (supabase) {
       try {
-        await supabase.from('payments').insert(initialPaymentRecord);
+        const { error: insertErr } = await supabase.from('payments').insert(initialPaymentRecord);
+        if (insertErr) {
+          console.error('[Supabase initial payment record insert failed]:', insertErr);
+          return res.status(503).json({
+            error: 'We could not securely save your payment session. No checkout was started. Please try again.',
+            code: 'PAYMENT_RECORD_CREATE_FAILED'
+          });
+        }
       } catch (insertErr) {
-        console.warn('[Supabase initial payment record insert]:', insertErr);
+        console.error('[Supabase initial payment record insert exception]:', insertErr);
+        return res.status(503).json({
+          error: 'The payment database is temporarily unavailable. No checkout was started. Please try again.',
+          code: 'DATABASE_UNAVAILABLE'
+        });
       }
     }
-    // Always track in fallback store
-    fallbackPaymentsStore.set(reference, initialPaymentRecord);
+
+    // Keep an in-memory copy for local development/tests only; production always requires Supabase.
+    if (!isProductionPaymentEnvironment()) {
+      fallbackPaymentsStore.set(reference, initialPaymentRecord);
+    }
 
     // 9. Initialize External Paystack Transaction
     const paystackPayload = {
