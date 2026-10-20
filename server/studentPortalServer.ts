@@ -517,6 +517,14 @@ async function getAuthenticatedStudentProfile(
           `)
           .eq('student_id', studentId);
 
+        if (enrollError) {
+          throw new DatabaseServiceError(
+            'Unable to load course enrollments from the database.',
+            'ENROLLMENTS_QUERY_FAILED',
+            503
+          );
+        }
+
         // Map certificates to courses if available
         const certs = await getCertificatesByStudentEmail(studentRow.email || cleanEmail);
         const certMap = new Map<string, string>();
@@ -531,32 +539,18 @@ async function getAuthenticatedStudentProfile(
                 courseId: course.id,
                 title: course.title,
                 badge: course.badge || 'Enterprise Track',
-                progressPercent: e.progress_percent ?? 75,
-                status: e.status || 'in-progress',
-                cohort: e.cohort || 'Cohort 2026-B',
-                instructor: course.instructor_name || 'Dr. Adebayo Vance',
-                completedModules: e.completed_modules ?? 9,
-                totalModules: course.total_modules || e.total_modules || 12,
+                progressPercent: e.progress_percent ?? 0,
+                status: e.status || 'enrolled',
+                cohort: e.cohort || 'Not assigned',
+                instructor: course.instructor_name || 'Vixora Academy',
+                completedModules: e.completed_modules ?? 0,
+                totalModules: course.total_modules || e.total_modules || 0,
                 certificateId: certMap.get(course.id) || undefined
               });
             }
           });
         }
 
-        if (studentCourses.length === 0) {
-          studentCourses.push({
-            courseId: 'ai-automation-digital-business-systems',
-            title: 'Autonomous AI Systems & Scalable Architecture',
-            badge: 'Enterprise Track',
-            progressPercent: 75,
-            status: 'in-progress',
-            cohort: 'Cohort 2026-B',
-            instructor: 'Dr. Adebayo Vance',
-            completedModules: 9,
-            totalModules: 12,
-            certificateId: certMap.get('ai-automation-digital-business-systems') || undefined
-          });
-        }
 
         return {
           id: studentId,
