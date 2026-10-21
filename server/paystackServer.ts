@@ -724,6 +724,25 @@ export async function processPaymentFulfillment(
         if (updateEnrollmentErr) throw updateEnrollmentErr;
       }
 
+      // A verified master-bundle purchase grants access to all four cohort tracks.
+      if (canonicalCourse.id === 'course-cohort-1-master-bundle') {
+        const bundleTrackCourseIds = ['course-ai-image-short-videos-creation', 'course-ai-automation-digital-skills', 'course-fullstack-vibe-coding', 'course-client-acquisition-freelancing'];
+        for (const trackCourseId of bundleTrackCourseIds) {
+          const trackCourse = findCanonicalCourse(trackCourseId);
+          if (!trackCourse) throw new Error('Bundle track course is missing from the canonical catalog: ' + trackCourseId);
+          const trackDbCourseId = await ensureCourseRecordInDatabase(trackCourse, supabase);
+          const { data: trackEnrollment, error: trackLookupError } = await supabase.from('enrollments').select('student_id, course_id, status, progress_percent').eq('student_id', studentId).eq('course_id', trackDbCourseId).maybeSingle();
+          if (trackLookupError) throw trackLookupError;
+          if (!trackEnrollment) {
+            const { error: trackInsertError } = await supabase.from('enrollments').insert({ id: crypto.randomUUID(), student_id: studentId, course_id: trackDbCourseId, status: 'enrolled', cohort: 'Cohort ' + trackCourse.nextCohortDate, progress_percent: 0, completed_modules: 0, total_modules: trackCourse.totalModules, enrolled_at: new Date().toISOString() });
+            if (trackInsertError) throw trackInsertError;
+          } else {
+            const { error: trackUpdateError } = await supabase.from('enrollments').update({ status: 'enrolled', updated_at: new Date().toISOString() }).eq('student_id', studentId).eq('course_id', trackDbCourseId);
+            if (trackUpdateError) throw trackUpdateError;
+          }
+        }
+      }
+
       isFulfilled = true;
     } catch (enrollErr: any) {
       console.error('[Supabase Enrollment Fulfillment Failure]:', enrollErr);
@@ -876,7 +895,8 @@ export async function processPaymentFulfillment(
         studentCode: studentCode || 'STU-ACTIVE',
         generatedTempPassword,
         directPasswordSetupLink,
-        whatsappUrl
+        whatsappUrl,
+        telegramInviteLink: 'https://t.me/+vixora_cohort1_private'
       });
 
       const emailResult = await dispatchGenericEmail({
