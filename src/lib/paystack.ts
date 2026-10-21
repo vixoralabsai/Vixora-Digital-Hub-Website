@@ -54,6 +54,7 @@ export interface VerifiedPaymentData {
   studentEmail: string;
   courseTitle: string;
   courseId: string;
+  telegramInviteLink?: string | null;
   emailDispatchedAt?: string | null;
   gatewayResponse?: string;
   last4?: string | null;
