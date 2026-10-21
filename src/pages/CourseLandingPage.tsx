@@ -537,22 +537,22 @@ function getCourseTransformationPhases(course: AcademyCourse) {
   if (slug === 'ai-automation-digital-business-systems') {
     return [
       {
-        phase: 'Phase 1: Core Automations & Webhooks',
-        duration: 'Weeks 1 – 4',
-        title: 'Core Automations, n8n Pipelines & Webhooks',
-        description: 'Foundation Automation Workflows • Webhook Triggers & Multi-App Syncs • Autonomous Lead Enrichment • CRM & Communications Integration'
+        phase: 'Phase 1: Content, Automations & Voice',
+        duration: 'Weeks 1 – 5 (Modules 1 & 2)',
+        title: 'AI Content, Business Automation & Vapi Voice Agents',
+        description: 'Generative AI & UGC Ads • Notion, Zapier & Make.com • GoHighLevel CRM Pipelines • n8n Workflows • Autonomous Vapi Voice Calling'
       },
       {
-        phase: 'Phase 2: Client Systems & Vibe Coding',
-        duration: 'Weeks 5 – 8',
-        title: 'Client Systems & Vibe Coding Micro-Apps',
-        description: 'Document Intelligence & Ingestion • Automated Commercial Asset Pipelines • Building Custom AI Tools via Vibe Coding • Client Workflow Portals'
+        phase: 'Phase 2: Digital Products & Full-Stack Dev',
+        duration: 'Weeks 6 – 10 (Modules 3 & 4)',
+        title: 'AI-Powered PDF Products & Full-Stack Vibe Coding',
+        description: 'Researching & Authoring Quality PDFs with AI • Digital Product Packaging & Selling • TypeScript & Vite • APIs & Databases • Paystack Checkout'
       },
       {
-        phase: 'Phase 3: Commercial Retainers & Capstone',
-        duration: 'Weeks 9 – 12',
-        title: 'Commercial Retainers, Sales Scripts & Capstone Launch',
-        description: 'Packaging Automation Retainers (₦200k-$2,500/mo) • Client Discovery & Proposal Templates • Enterprise Automation Capstone • Final Defense & Graduation'
+        phase: 'Phase 3: Client Acquisition & Capstone',
+        duration: 'Weeks 11 – 12 (Modules 5 & 6)',
+        title: 'Freelancing, Client Acquisition & Final Capstone',
+        description: 'High-Ticket Offer Packaging (₦200k–$2,500/mo) • Upwork & Outbound Outreach • Complete Production Capstone • Live Presentation & Portfolio Review'
       }
     ];
   }

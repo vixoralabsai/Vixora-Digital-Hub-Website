@@ -51,14 +51,14 @@ export function getCourseTools(course: AcademyCourse): CourseTool[] {
 
   if (slug === 'ai-automation-digital-business-systems') {
     return [
-      { name: 'Make.com', category: 'Multi-App Scenarios', color: '#5B5FED', glyph: 'MAK' },
+      { name: 'Make.com & Zapier', category: 'Workflow Pipelines', color: '#5B5FED', glyph: 'MAK' },
       { name: 'n8n Workflow Hub', category: 'Self-Hosted Automation', color: '#EA580C', glyph: 'N8N' },
-      { name: 'OpenAI API & Functions', category: 'LLM Orchestration', color: '#10B981', glyph: 'API' },
-      { name: 'Airtable Databases', category: 'Relational Low-Code', color: '#E11D48', glyph: 'AIR' },
-      { name: 'Zapier Central', category: 'Quick Integrations', color: '#FF8A65', glyph: 'ZAP' },
-      { name: 'Supabase Backend', category: 'Auth & DB Storage', color: '#16A34A', glyph: 'SUP' },
-      { name: 'Vibe Coding Tools', category: 'Custom Micro-Apps', color: '#6B3FB8', glyph: 'IDE' },
-      { name: 'WhatsApp & CRM APIs', category: 'Customer Pipelines', color: '#25D366', glyph: 'CRM' },
+      { name: 'GoHighLevel (GHL)', category: 'CRM & Funnel Automation', color: '#2563EB', glyph: 'GHL' },
+      { name: 'Vapi AI Voice Agents', category: 'Conversational Telephony', color: '#9030F8', glyph: 'VOX' },
+      { name: 'Notion Systems', category: 'Operational Control Centers', color: '#0F1535', glyph: 'NTN' },
+      { name: 'TypeScript & Vite', category: 'Full-Stack Vibe Coding', color: '#3178C6', glyph: 'TS' },
+      { name: 'Paystack Gateway', category: 'Checkout & Webhooks', color: '#00C3F7', glyph: 'PAY' },
+      { name: 'Generative Media AI', category: 'UGC Video & Visual Ads', color: '#FFC107', glyph: 'GEN' },
     ];
   }
 

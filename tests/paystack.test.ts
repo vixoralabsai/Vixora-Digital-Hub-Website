@@ -9,11 +9,13 @@ import {
   fallbackPaymentsStore,
   simulateEnrollmentFailureForTesting,
   processPaymentFulfillment,
+  ensureCourseRecordInDatabase,
   isValidEmail,
   isValidTransactionReference
 } from '../server/paystackServer.js';
 import { findCanonicalCourse } from '../server/payments/courseCatalog.js';
 import { getCoursePrice, getCoursePrices } from '../src/data/coursePricing.js';
+import { getSupabaseAdmin } from '../server/supabaseAdmin.js';
 
 // Setup Mock Environment Variables for Testing
 process.env.PAYSTACK_SECRET_KEY = 'sk_test_mock_secret_key_vixora_academy';
@@ -395,17 +397,46 @@ async function runAllTests() {
     const coldStartRef = 'VIX-PS-COLDSTART-021';
     const dispatchTime = '2026-09-22T13:00:00.000Z';
 
+    const supabase = getSupabaseAdmin();
+    let studentId = 'STU-COLDSTART';
+    let dbCourseId = 'course-data-analysis-cohort';
+
+    if (supabase) {
+      const canonical = findCanonicalCourse('course-data-analysis-cohort');
+      if (canonical) {
+        dbCourseId = await ensureCourseRecordInDatabase(canonical, supabase);
+      }
+      const { data: stu } = await supabase
+        .from('students')
+        .select('id')
+        .eq('email', 'coldstart@example.com')
+        .maybeSingle();
+      if (stu) {
+        studentId = stu.id;
+      } else {
+        const newId = crypto.randomUUID();
+        await supabase.from('students').insert({
+          id: newId,
+          name: 'Cold Start Student',
+          email: 'coldstart@example.com',
+          student_code: 'STU-COLD',
+          role: 'student'
+        });
+        studentId = newId;
+      }
+    }
+
     // Seed the database/fallback store with an existing record that already has email_dispatched_at set
-    fallbackPaymentsStore.set(coldStartRef, {
+    const seededPayment = {
       id: coldStartRef,
-      student_id: 'STU-COLDSTART',
-      course_id: 'course-data-analysis-cohort',
+      student_id: studentId,
+      course_id: dbCourseId,
       amount: 60000,
       amount_kobo: 6000000,
-      currency: 'NGN',
+      currency: 'NGN' as const,
       channel: 'card',
-      status: 'success',
-      fulfillment_status: 'fulfilled',
+      status: 'success' as const,
+      fulfillment_status: 'fulfilled' as const,
       fulfillment_error: null,
       email_dispatched_at: dispatchTime,
       paystack_transaction_id: '888021',
@@ -416,7 +447,13 @@ async function runAllTests() {
       raw_response: {},
       created_at: dispatchTime,
       updated_at: dispatchTime
-    });
+    };
+
+    fallbackPaymentsStore.set(coldStartRef, seededPayment);
+
+    if (supabase) {
+      await supabase.from('payments').upsert(seededPayment, { onConflict: 'id' });
+    }
 
     // Verification runs on a new/restarted process with empty in-memory set
     const res = await processPaymentFulfillment(coldStartRef, {
@@ -431,7 +468,11 @@ async function runAllTests() {
 
     assert.equal(res.verified, true);
     assert.equal(res.alreadyFulfilled, true);
-    assert.equal(res.payment?.emailDispatchedAt, dispatchTime, 'Must retain durable dispatch timestamp');
+    assert.equal(
+      new Date(res.payment?.emailDispatchedAt || '').toISOString(),
+      new Date(dispatchTime).toISOString(),
+      'Must retain durable dispatch timestamp'
+    );
   });
 
   // ------------------------------------------------------------------------

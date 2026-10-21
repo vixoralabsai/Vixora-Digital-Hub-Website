@@ -1148,19 +1148,20 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     description: "Vixora Academy's advanced, implementation-focused program for people ready to go beyond tools and start building. You'll learn to design, build, and deploy AI-powered automations and solutions — the kind organizations and clients actually pay for — with hands-on mentorship, real business projects, and direct support.",
     heroPitch: "Stop using AI tools. Start building AI systems businesses pay for — real automations, real client systems, and a real income stream with direct mentorship.",
     highlights: [
-      "Advanced, implementation-focused curriculum (not a repeat of the basics)",
-      "Direct mentorship and higher-touch support throughout",
-      "Real business projects — building your actual portfolio, not sample exercises",
-      "Client acquisition training — finding and closing clients, not just theory",
-      "Access to an active community of other builders",
-      "A clear path to freelance or service-business income"
+      "12-Week intensive curriculum covering 6 core pillars from content to deployment",
+      "Hands-on building with Make.com, n8n, GHL, and Vapi autonomous voice agents",
+      "AI-powered PDF & digital product creation, packaging, and commercialization",
+      "Full-stack Vibe Coding with TypeScript, Vite, databases & Paystack checkout",
+      "Direct mentorship and client acquisition training to close ₦200k–$2,500/mo retainers",
+      "Production capstone project and formal portfolio defense for verified certification"
     ],
     outcomes: [
-      "Architect multi-step advanced automations with Make, Zapier, Notion, n8n & GHL",
-      "Deliver professional-level AI image and video production assets for paying clients",
-      "Deploy business process & PDF automation systems solving high-ticket operational pain points",
-      "Build custom AI tools and web products using Vibe Coding without a traditional dev background",
-      "Master end-to-end client acquisition, discovery calls, scoping, and retaining recurring contracts"
+      "Produce commercial AI visuals, UGC video ads, voiceovers & branded media",
+      "Architect autonomous business workflows with Notion, Zapier, Make, GHL, n8n & Vapi voice agents",
+      "Author, design, package, and launch profitable AI-powered PDF digital products",
+      "Build and deploy full-stack web applications with TypeScript, APIs, databases & Paystack payment checkouts",
+      "Master high-ticket freelancing: Upwork proposals, cold outreach, and closing recurring client retainers",
+      "Complete and defend a live production capstone system to earn your Vixora Certificate of Advanced Mastery"
     ],
     prerequisites: [
       "Basic comfort with AI tools (ChatGPT, prompting fundamentals)",
@@ -1168,108 +1169,116 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
       "Laptop with reliable internet connection and willingness to build real projects"
     ],
     curriculum: [
-      "Module 1 — Advanced AI Workflows (Make, Zapier, Notion, n8n & GHL)",
-      "Module 2 — Advanced Prompting & AI Production (Client & Business Media)",
-      "Module 3 — Business Process & PDF Automation (Operational Pain Points)",
-      "Module 4 — Vibe Coding & AI-Powered Solutions (Custom Web Tools)",
-      "Module 5 — Client & Project Implementation (First Call to Delivery)",
-      "Module 6 — Freelancing & Service Business (Packaging Offers & Retainers)",
-      "Module 7 — Mentorship, Community & Capstone Client Deployments"
+      "Module 1 (Weeks 1–2) — AI Foundations & Content Creation",
+      "Module 2 (Weeks 3–5) — AI Automation & Business Tools",
+      "Module 3 (Weeks 6–7) — AI-Powered PDF & Digital Products",
+      "Module 4 (Weeks 8–10) — Vibe Coding & Full-Stack Development",
+      "Module 5 (Week 11) — Freelancing & Client Acquisition",
+      "Module 6 (Week 12) — Capstone & Final Assessment"
     ],
     weeklySyllabus: [
       {
-        week: "Weeks 1-2 (Module 1)",
-        title: "Advanced AI Workflows",
-        description: "Go beyond the basics with Make, Zapier, Notion, n8n, and GHL — building serious, multi-step automations that solve real business problems.",
+        week: "Weeks 1–2 (Module 1)",
+        title: "AI Foundations & Content Creation",
+        description: "AI fundamentals, responsible AI, generative AI, UGC ads, AI video and image creation, and everyday productivity tools to accelerate creative output.",
         topics: [
-          "Multi-step conditional logic, error routers, and fallback handlers in Make.com",
-          "Self-hosted & cloud n8n workflows for complex enterprise integrations",
-          "GoHighLevel (GHL) CRM automation, pipeline triggers & SMS/email sequences",
-          "Notion databases as real-time automation control centers and dashboards"
+          "AI fundamentals, foundational architecture & responsible AI principles",
+          "Generative AI prompt architecture, system instructions & output steering",
+          "High-converting UGC ad frameworks, scripting & visual storyboard strategy",
+          "Commercial AI image generation, consistent character & brand mockup production",
+          "AI video synthesis, voice cloning, sound design & kinetic caption workflows",
+          "Everyday AI productivity toolchains to 10x workflow efficiency"
         ],
-        handsOnLab: "Build and deploy a multi-channel lead routing & onboarding automation engine with Make and n8n."
+        handsOnLab: "Produce a complete commercial UGC ad package and high-converting visual brand asset kit."
       },
       {
-        week: "Weeks 3-4 (Module 2)",
-        title: "Advanced Prompting & AI Production",
-        description: "Professional-level prompting, plus AI image and video production built for client and business use — not just personal projects.",
+        week: "Weeks 3–5 (Module 2)",
+        title: "AI Automation & Business Tools",
+        description: "Architect robust multi-app automations with Notion, Zapier, Make.com, GoHighLevel fundamentals, self-hosted n8n workflows, and conversational Vapi voice agents.",
         topics: [
-          "System prompts, multi-persona chains, and structured JSON output extraction",
-          "Commercial AI image generation, consistent character & brand style matching",
-          "AI video commercials, dynamic voice cloning, and lip-syncing for client ads",
-          "Building automated batch content production pipelines"
+          "Notion databases as real-time automation command centers, wikis & client portals",
+          "Zapier & Make.com multi-step triggers, conditional filters & data routers",
+          "GoHighLevel (GHL) CRM fundamentals, pipeline stages & automated messaging funnels",
+          "n8n node architecture: self-hosted instances, webhook payloads & error handling",
+          "Vapi autonomous voice agents: telephony setup, knowledge base injection & inbound call routing",
+          "Automating multi-channel lead capture, appointment booking & client notification loops"
         ],
-        handsOnLab: "Create an end-to-end commercial video ad campaign asset pack for a real business client."
+        handsOnLab: "Build an autonomous inbound lead qualification system with Make, GHL, and a live Vapi voice assistant."
       },
       {
-        week: "Weeks 5-6 (Module 3)",
-        title: "Business Process & PDF Automation",
-        description: "Design automation systems that solve real operational pain points for businesses — the kind of work clients will pay premium rates for.",
+        week: "Weeks 6–7 (Module 3)",
+        title: "AI-Powered PDF & Digital Products",
+        description: "Research, write quality PDFs with AI, design professional documents, package value-added bundles, and sell digital products through automated funnels.",
         topics: [
-          "Automated PDF extraction, invoice OCR, and receipt parsing with AI models",
-          "Document generation pipelines (contract generation, proposals, automated reports)",
-          "ERP & accounting software sync (QuickBooks, Google Sheets, Airtable)",
-          "Human-in-the-loop review queues for compliance and quality control"
+          "Market research, audience pain points & high-demand digital product ideation",
+          "Directing LLMs to research and author authoritative, comprehensive guidebooks & SOPs",
+          "Professional PDF typography, layout mathematics, cover art & visual branding",
+          "Product packaging: worksheets, bonus resource packs & digital product mockups",
+          "Checkout page copywriting, Paystack payment gateway setup & automated instant delivery"
         ],
-        handsOnLab: "Deploy an automated invoice ingestion and financial summary system that saves 15+ hours/week."
+        handsOnLab: "Research, write, design, and package an authoritative commercial PDF guide ready to sell online."
       },
       {
-        week: "Weeks 7-8 (Module 4)",
-        title: "Vibe Coding & AI-Powered Solutions",
-        description: "Learn to build working AI-powered tools and products, even without a traditional developer background.",
+        week: "Weeks 8–10 (Module 4)",
+        title: "Vibe Coding & Full-Stack Development",
+        description: "Harness modern AI pair-programming to build production full-stack web applications with TypeScript, Vite, backend APIs, databases, payment gateways, and cloud deployment.",
         topics: [
-          "Modern AI-assisted code generation (Cursor, Claude Code, Lovable, Replit)",
-          "Building micro-SaaS calculators, lead magnets, and customer client portals",
-          "Integrating Gemini and OpenAI APIs into web interfaces with secure backends",
-          "Deploying fast, responsive web apps with zero devops hassle"
+          "Vibe coding mental models: pair-programming with modern AI coding assistants without losing control",
+          "TypeScript & Vite frontend architecture: responsive layouts, components & Tailwind CSS tokens",
+          "Backend endpoints, RESTful APIs, request validation & middleware logic",
+          "Database modeling, persistent storage, and secure client authentication flows",
+          "Paystack payment gateway integration: secure card/transfer checkouts, webhooks & transaction verification",
+          "Production build optimization, custom domain mapping, and cloud deployment"
         ],
-        handsOnLab: "Build and publish a live, functional AI-powered web tool that prospective clients can test."
+        handsOnLab: "Build and deploy a live, production-ready full-stack web application with TypeScript, persistent database, and Paystack checkout."
       },
       {
-        week: "Weeks 9-10 (Module 5)",
-        title: "Client & Project Implementation",
-        description: "Take a project from first conversation to delivered solution — the exact process professionals use to run real client work.",
+        week: "Week 11 (Module 5)",
+        title: "Freelancing & Client Acquisition",
+        description: "Package your newly acquired technical and automation skills into high-ticket offers, craft winning proposals, conduct client outreach, and close monthly retainers.",
         topics: [
-          "Conducting discovery calls & diagnosing high-value automation opportunities",
-          "Writing winning scopes of work (SOW), PRDs, and implementation milestones",
-          "Client onboarding, environment staging, and testing protocols",
-          "Handover documentation, Loom video walk-throughs, and client training"
+          "Positioning yourself as a high-value systems specialist rather than a commodity freelancer",
+          "Packaging service offers into clear deliverables and monthly maintenance retainers",
+          "Upwork profile optimization, algorithmic visibility & winning proposal formulas (80%+ reply rates)",
+          "Cold outreach systems: prospecting foreign decision-makers via email, LinkedIn, and Twitter/X",
+          "Conducting diagnostic client discovery calls, handling objections, and closing contracts"
         ],
-        handsOnLab: "Package a complete client proposal with detailed scope, architecture diagram, and milestone pricing."
+        handsOnLab: "Package your high-ticket service offer, launch your portfolio, and execute an active 20-lead outreach campaign."
       },
       {
-        week: "Weeks 11-12 (Module 6 & 7)",
-        title: "Freelancing, Service Business & Mentorship",
-        description: "Package your skills into a service business, find and close clients, build recurring retainers, and receive direct 1-on-1 mentorship.",
+        week: "Week 12 (Module 6)",
+        title: "Capstone & Final Assessment",
+        description: "Complete your end-to-end capstone system, perform rigorous edge-case testing, deliver a live presentation, and complete your formal portfolio review.",
         topics: [
-          "High-ticket service packaging & recurring monthly maintenance retainers",
-          "Cold outreach, inbound LinkedIn funnels, and closing discovery calls",
-          "Pricing your work (from ₦200k fixed projects to $2,500/mo retainers)",
-          "Graduation review, portfolio polishing, and peer mastermind community"
+          "End-to-end capstone system integration: connecting media, automations, voice agents & web portal",
+          "Rigorous edge-case testing, error handling, rate limiting & security hardening",
+          "Creating polished Loom video walkthroughs and client handover documentation",
+          "Live capstone presentation, mentor defense, and expert portfolio review",
+          "Graduation verification, Vixora Mastery Certificate issuance & alumni mastermind onboarding"
         ],
-        handsOnLab: "Launch your official automation service landing page & portfolio with active client outreach."
+        handsOnLab: "Present and defend your completed production capstone system before faculty mentors to receive certification."
       }
     ],
     capstoneProjects: [
       {
-        title: "Enterprise Multi-App Lead & Automation Engine",
-        description: "A production-grade n8n, Make.com, and GHL multi-system automation integrating webhook routers, CRM pipelines, and autonomous client notifications.",
-        technologies: ["n8n", "Make.com", "GoHighLevel", "OpenAI / Gemini API", "Notion", "PostgreSQL"]
+        title: "Autonomous Inbound Lead & Voice Agent Engine",
+        description: "A production-grade multi-system automation connecting GoHighLevel CRM, Make.com pipelines, and a conversational Vapi AI voice caller for 24/7 lead triage.",
+        technologies: ["Vapi Voice AI", "GoHighLevel", "Make.com", "n8n", "Notion", "Webhooks"]
       },
       {
-        title: "AI-Generated Commercial Production Suite & Client Asset Pipeline",
-        description: "An automated commercial media pipeline producing consistent-character visual campaigns, promotional AI video clips, voiceovers, and scheduled deliverables.",
-        technologies: ["Midjourney v6", "Runway Gen-3 / Kling", "ElevenLabs", "Claude 3.7", "Airtable"]
+        title: "AI Commercial UGC Video & Visual Brand Suite",
+        description: "An automated commercial media pipeline producing consistent-character visual campaigns, promotional UGC video ads, cloned voiceovers, and scheduled deliverables.",
+        technologies: ["Midjourney / Flux", "Runway Gen-3", "ElevenLabs", "CapCut", "Productivity AI"]
       },
       {
-        title: "Autonomous Invoice Ingestion & Document Intelligence Portal",
-        description: "An operational enterprise tool that monitors email inboxes, parses PDF invoices via OCR, reconciles ledger items, and triggers payment receipts.",
-        technologies: ["Make.com", "AI Document OCR", "Google Sheets / QuickBooks", "Zapier", "Slack API"]
+        title: "AI-Powered Commercial PDF Guide & Digital Storefront",
+        description: "An authoritative, well-researched digital guidebook written with AI, professionally designed, packaged with bonus assets, and sold via automated checkout.",
+        technologies: ["Research AI", "Layout Design", "Digital Packaging", "Paystack", "Instant Delivery"]
       },
       {
-        title: "Custom AI Micro-SaaS Tool (Vibe Coding Capstone)",
-        description: "A deployed, client-facing web application with custom prompt logic and interactive UI built using modern AI code generation.",
-        technologies: ["React / Vite", "Tailwind CSS", "Gemini API", "Cloud Run / Vercel"]
+        title: "Full-Stack AI Web App with Paystack Integration",
+        description: "A deployed, production-ready web application built via Vibe Coding with TypeScript, Vite, backend REST APIs, persistent database, and Paystack checkout.",
+        technologies: ["TypeScript", "Vite / React", "Tailwind CSS", "Paystack Gateway", "Cloud Deployment"]
       }
     ],
     instructors: [

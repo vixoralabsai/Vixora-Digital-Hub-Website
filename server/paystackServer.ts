@@ -385,7 +385,7 @@ export async function processPaymentFulfillment(
     }
   }
 
-  if (!existingPayment && !supabase) {
+  if (!existingPayment && (!supabase || !isProductionPaymentEnvironment())) {
     existingPayment = fallbackPaymentsStore.get(reference) || null;
   }
 

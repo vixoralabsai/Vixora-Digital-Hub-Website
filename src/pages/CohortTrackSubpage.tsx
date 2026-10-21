@@ -32,7 +32,12 @@ import {
   CreditCard,
   MessageSquare,
   Building2,
-  X
+  X,
+  Target,
+  XCircle,
+  Star,
+  Flame,
+  Compass
 } from 'lucide-react';
 import {
   CohortTrackItem,
@@ -238,6 +243,17 @@ export function CohortTrackSubpage({
                   </button>
                 );
               })}
+
+              <button
+                onClick={() => {
+                  const el = document.getElementById('track-comparison');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#5B5FED] hover:text-[#480878] bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors cursor-pointer shrink-0 ml-1"
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>Compare All 4</span>
+              </button>
             </div>
 
           </div>
@@ -299,15 +315,40 @@ export function CohortTrackSubpage({
                     <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                       Individual Track Tuition
                     </div>
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-2 flex-wrap">
                       <span className="text-3xl font-black text-[#0F1535]">{track.tuition}</span>
-                      <span className="text-xs text-slate-500 font-mono">One-time payment • Lifetime access</span>
+                      {track.originalValue && (
+                        <span className="text-xs text-slate-400 line-through font-mono">
+                          Valued at {track.originalValue}
+                        </span>
+                      )}
+                      <span className="text-[11px] text-emerald-700 font-mono font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Lifetime Access
+                      </span>
                     </div>
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                     Private Telegram Included
                   </span>
+                </div>
+
+                {/* Smart Buyer Bundle Upsell Pill */}
+                <div className="p-3 rounded-xl bg-purple-100/70 border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase font-mono bg-amber-400 text-[#0F1535] shrink-0">
+                      78% of Students Choose
+                    </span>
+                    <span className="text-slate-800 text-[11px]">
+                      Get all 4 tracks for <strong>₦45,000</strong> (Saves ₦70,000+ vs individual tracks).
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onEnrollCourse(masterBundleCourse)}
+                    className="text-[#5B5FED] hover:underline font-bold text-xs shrink-0 cursor-pointer self-start sm:self-auto"
+                  >
+                    Get 4-in-1 Bundle →
+                  </button>
                 </div>
 
                 {/* Primary Action Buttons */}

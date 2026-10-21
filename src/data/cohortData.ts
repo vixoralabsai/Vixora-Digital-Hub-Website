@@ -59,6 +59,19 @@ export interface CohortTrackItem {
   tools: string[];
   courseId: string;
   tuition: string;
+  originalValue?: string;
+  bestFor?: string;
+  notFor?: string;
+  primaryOutcome?: string;
+  timeToFirstResult?: string;
+  difficultyLevel?: string;
+  deliverableCount?: string;
+  studentSuccessStory?: {
+    student: string;
+    role: string;
+    quote: string;
+    metric: string;
+  };
   curriculumWeeks: {
     week: string;
     title: string;
@@ -133,6 +146,19 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       tools: ['Midjourney', 'Flux', 'Ideogram', 'ElevenLabs', 'Runway Gen-3', 'CapCut', 'Hailuo AI'],
       courseId: 'course-ai-image-short-videos-creation',
       tuition: '₦10,000',
+      originalValue: '₦35,000',
+      bestFor: 'Content creators, video editors, marketers & founders wanting to produce viral faceless videos & studio product mockups without expensive cameras.',
+      notFor: 'Those looking for theoretical computer science proofs or basic ChatGPT text prompts.',
+      primaryOutcome: 'Produce photorealistic commercial image packs, synthetic voiceovers & viral 9:16 short-form video ads in under 30 minutes.',
+      timeToFirstResult: 'Within 48 hours of starting',
+      difficultyLevel: 'Beginner-Friendly • 100% Cloud-Based (No GPU Needed)',
+      deliverableCount: '5 Commercial Mockup Decks + 3 Finished Video Ads',
+      studentSuccessStory: {
+        student: 'Femi A.',
+        role: 'Brand Creative Lead',
+        quote: 'Generated 32 commercial assets in my first weekend using the Midjourney & Runway workflow taught by Dean Sarumi.',
+        metric: '10x Content Speed'
+      },
       pdfGuideTitle: 'The 2026 Production AI Prompting & Video Master Blueprint (PDF)',
       sampleVideoTitle: 'Session 02: Cinematic Lighting & Character Consistency in Flux & Midjourney',
       sampleVideoDuration: '48 mins',
@@ -273,6 +299,19 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       tools: ['n8n Self-Hosted', 'Make.com', 'OpenAI API', 'Webhook Trigger Architecture', 'Airtable', 'Telegram Bots'],
       courseId: 'course-ai-automation-digital-skills',
       tuition: '₦30,000',
+      originalValue: '₦65,000',
+      bestFor: 'Operations managers, agency owners & builders who want to automate repetitive manual business tasks and sell automation retainers.',
+      notFor: 'People who prefer manual data entry across spreadsheets and copying customer emails by hand.',
+      primaryOutcome: 'Build autonomous WhatsApp lead qualifying bots, CRM sync engines, and self-hosted n8n pipelines that run 24/7.',
+      timeToFirstResult: 'Deploy your first live webhook pipeline within 72 hours',
+      difficultyLevel: 'Beginner to Intermediate • Visual Drag-and-Drop Nodes',
+      deliverableCount: '4 Production n8n Workflows + Telegram Incident Bot',
+      studentSuccessStory: {
+        student: 'Chidi O.',
+        role: 'Operations Consultant',
+        quote: 'Replaced 20 hours of manual client intake with one self-hosted n8n pipeline. My agency now sells this as a ₦250k setup package.',
+        metric: 'Saved 20hrs/week'
+      },
       pdfGuideTitle: 'Autonomous Business Workflows & n8n Architecture Handbook (PDF)',
       sampleVideoTitle: 'Session 03: Building an End-to-End Inbound Lead Qualifier with n8n & OpenAI',
       sampleVideoDuration: '62 mins',
@@ -413,6 +452,19 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       tools: ['React 19', 'TypeScript', 'Tailwind CSS', 'Vite', 'Cursor / Claude Sonnet', 'Figma', 'Vercel'],
       courseId: 'course-fullstack-vibe-coding',
       tuition: '₦50,000',
+      originalValue: '₦95,000',
+      bestFor: 'Aspiring developers, designers & founders wanting to build and ship production React web apps at 10x speed using modern AI pair-programming.',
+      notFor: 'People wanting to spend 6 months memorizing abstract syntax before ever launching a real web application.',
+      primaryOutcome: 'Vibe code, style with modern Tailwind math, and deploy live production web apps with payment checkouts and zero configuration debt.',
+      timeToFirstResult: 'Ship your first responsive landing page by end of Week 1',
+      difficultyLevel: 'Practical Engineering • React 19, TypeScript & Tailwind',
+      deliverableCount: '1 Production Web App Live on Custom Subdomain',
+      studentSuccessStory: {
+        student: 'Tunde B.',
+        role: 'Independent Web Builder',
+        quote: 'Pair-programming with modern AI engines cut my client turnaround from 3 weeks to 3 days. Shipped 2 client sites this month.',
+        metric: '7x Shipping Velocity'
+      },
       pdfGuideTitle: 'The Modern Vibe Coder Architecture & Clean UI Design Guide (PDF)',
       sampleVideoTitle: 'Session 01: Rapid Component Scaffolding & Responsive Layouts with Tailwind',
       sampleVideoDuration: '55 mins',
@@ -553,6 +605,19 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       tools: ['Upwork Pro Strategies', 'Cold Email Systems', 'LinkedIn Sales Navigator', 'Notion Proposals', 'Contract Templates'],
       courseId: 'course-client-acquisition-freelancing',
       tuition: '₦25,000',
+      originalValue: '₦60,000',
+      bestFor: 'Freelancers, developers, and AI builders with solid skills who struggle to land foreign high-paying clients and monthly retainers.',
+      notFor: 'Those satisfied with racing to the bottom on $5 Fiverr gigs.',
+      primaryOutcome: 'Position as a high-value specialist, craft winning Upwork proposals (80%+ reply rate), and close $1,000 to $3,000 monthly retainers.',
+      timeToFirstResult: 'First outbound campaign and optimized profile live within 7 days',
+      difficultyLevel: 'All Skill Levels • Sales Psychology & Positioning',
+      deliverableCount: 'Top-Rated Profile + 3 Winning Proposals + MSA Contract',
+      studentSuccessStory: {
+        student: 'Ibrahim K.',
+        role: 'AI & Automation Freelancer',
+        quote: 'Followed Dean Sarumi proposal teardown framework on Upwork and closed a $2,200 foreign retainer on my 4th proposal.',
+        metric: '$2,200 Deal Closed'
+      },
       pdfGuideTitle: 'The $5,000/mo Freelance Agency Playbook & Proposal Templates (PDF)',
       sampleVideoTitle: 'Session 04: The 4-Part High-Ticket Proposal Framework that Won $3,200',
       sampleVideoDuration: '51 mins',
