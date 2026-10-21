@@ -137,21 +137,20 @@ export function Footer({ onOpenDriveWorkspace, onOpenProjectModal, onNavigate }:
               </ul>
             </div>
 
-            {/* Academy & Training */}
+            {/* Academy & Training - Limited to 3 Latest Courses */}
             <div className="space-y-3">
               <div className="flex items-center gap-1.5">
                 <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                   Academy Programs
                 </h4>
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800/40">
-                  Cohorts
+                  Latest 3
                 </span>
               </div>
               <ul className="space-y-2 text-xs text-slate-200">
+                <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-image-short-videos-creation', '/academy/ai-image-short-videos-creation')} className="hover:text-white transition-colors cursor-pointer text-left">AI Image &amp; Videos</button></li>
                 <li><button onClick={() => onNavigate('academy-course', undefined, 'data-analysis-cohort', '/academy/data-analysis-cohort')} className="hover:text-white transition-colors cursor-pointer text-left">Data Analysis Cohort</button></li>
                 <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-automation-digital-business-systems', '/academy/ai-automation-digital-business-systems')} className="hover:text-white transition-colors cursor-pointer text-left">AI Automation Systems</button></li>
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'complete-ai-digital-skills-freelancing-mastery', '/academy/complete-ai-digital-skills-freelancing-mastery')} className="hover:text-white transition-colors cursor-pointer text-left">AI Skills & Freelance</button></li>
-                <li><button onClick={() => onNavigate('academy-course', undefined, 'ai-native-product-design-ui-ux', '/academy/ai-native-product-design-ui-ux')} className="hover:text-white transition-colors cursor-pointer text-left">AI Product Design & UI/UX</button></li>
                 <li><button onClick={() => onNavigate('academy', undefined, undefined, '/pages/academy')} className="hover:text-purple-300 text-purple-400 font-semibold transition-colors cursor-pointer text-left">All Academy Programs &rarr;</button></li>
               </ul>
             </div>

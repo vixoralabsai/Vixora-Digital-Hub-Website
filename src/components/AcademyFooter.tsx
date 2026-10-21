@@ -64,28 +64,37 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
             </div>
           </div>
 
-          {/* Col 2 (4 cols): Cohort Programs */}
+          {/* Col 2 (4 cols): Cohort Programs - Limited to 3 Latest Courses */}
           <div className="md:col-span-4 space-y-3">
-            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
-              <span>Cohort Programs</span>
-            </h4>
-            <ul className="space-y-2 text-xs">
-              {ACADEMY_COURSES.map((course) => (
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
+                <span>Latest Programs</span>
+              </h4>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-900/50 text-purple-200 border border-purple-700/50">
+                Latest 3
+              </span>
+            </div>
+            <ul className="space-y-2.5 text-xs">
+              {ACADEMY_COURSES.slice(0, 3).map((course) => (
                 <li key={course.id}>
                   <button
                     onClick={() => onNavigate('academy-course', undefined, course.slug, `/academy/${course.slug}`)}
-                    className="hover:text-white transition-colors cursor-pointer text-left flex items-baseline gap-2 group"
+                    className="hover:text-white transition-colors cursor-pointer text-left flex items-baseline justify-between w-full group py-0.5"
                   >
-                    <span className="font-semibold text-purple-200 group-hover:text-white transition-colors">{course.title}</span>
-                    <span className="text-[10px] text-purple-400 font-mono shrink-0">({course.duration})</span>
+                    <span className="font-semibold text-purple-200 group-hover:text-white transition-colors truncate pr-2">
+                      {course.title}
+                    </span>
+                    <span className="text-[10px] text-purple-400 font-mono shrink-0">
+                      ({course.duration})
+                    </span>
                   </button>
                 </li>
               ))}
-              <li className="pt-1">
+              <li className="pt-1.5 border-t border-white/5">
                 <button
                   onClick={() => onNavigate('academy', undefined, undefined, '/pages/academy')}
-                  className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 cursor-pointer"
+                  className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   <span>Explore All Cohorts</span>
                   <ArrowRight className="w-3 h-3" />
