@@ -5,6 +5,7 @@ import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
 import { findCanonicalCourse, type CanonicalCourse } from './payments/courseCatalog.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
+import { getTelegramInvitesForCourse, type TelegramTrackInvite } from './telegramConfig.js';
 
 export const paystackRouter = Router();
 
@@ -267,6 +268,7 @@ export interface FulfillmentResult {
     courseId: string;
     courseTitle: string;
     emailDispatchedAt?: string | null;
+    telegramInvites?: TelegramTrackInvite[];
   };
   error?: string;
   code?: string;
@@ -412,7 +414,8 @@ export async function processPaymentFulfillment(
         studentEmail: existingPayment.customer_email,
         courseId: existingPayment.course_id,
         courseTitle: canonical?.title || 'Vixora Academy Cohort',
-        emailDispatchedAt: existingPayment.email_dispatched_at
+        emailDispatchedAt: existingPayment.email_dispatched_at,
+        telegramInvites: getTelegramInvitesForCourse(existingPayment.course_id)
       }
     };
   }
@@ -857,6 +860,7 @@ export async function processPaymentFulfillment(
   }
 
   let finalEmailDispatchedAt = existingPayment?.email_dispatched_at || null;
+  const telegramInvitesList = getTelegramInvitesForCourse(canonicalCourse.id || canonicalCourse.slug);
 
   if (!alreadyEmailed) {
     try {
@@ -876,7 +880,8 @@ export async function processPaymentFulfillment(
         studentCode: studentCode || 'STU-ACTIVE',
         generatedTempPassword,
         directPasswordSetupLink,
-        whatsappUrl
+        whatsappUrl,
+        telegramInvites: telegramInvitesList
       });
 
       const emailResult = await dispatchGenericEmail({
@@ -922,7 +927,8 @@ export async function processPaymentFulfillment(
       studentEmail: customerEmail,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
-      emailDispatchedAt: finalEmailDispatchedAt
+      emailDispatchedAt: finalEmailDispatchedAt,
+      telegramInvites: telegramInvitesList
     }
   };
 }

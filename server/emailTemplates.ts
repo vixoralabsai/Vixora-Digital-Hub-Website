@@ -285,6 +285,11 @@ export function buildStudentOnboardingEmail(params: {
   generatedTempPassword?: string | null;
   directPasswordSetupLink?: string | null;
   whatsappUrl: string;
+  telegramInvites?: Array<{
+    title: string;
+    description?: string;
+    inviteUrl: string;
+  }>;
 }): { html: string; text: string; subject: string } {
   const {
     customerName,
@@ -297,7 +302,8 @@ export function buildStudentOnboardingEmail(params: {
     studentCode,
     generatedTempPassword,
     directPasswordSetupLink,
-    whatsappUrl
+    whatsappUrl,
+    telegramInvites = []
   } = params;
 
   const subject = `🎓 Student Account & Admission Confirmed: ${courseTitle} (₦${tuitionNaira.toLocaleString()})`;
@@ -410,6 +416,47 @@ export function buildStudentOnboardingEmail(params: {
       </tr>
     </table>
 
+    <!-- Dedicated Telegram Learning Space(s) -->
+    ${telegramInvites && telegramInvites.length > 0 ? `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #0f1c3f 0%, #081129 100%); border: 1px solid #38bdf8; border-radius: 14px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.15);">
+      <tr>
+        <td style="padding: 22px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td style="padding-bottom: 14px; border-bottom: 1px solid #1e3a8a;">
+                <span style="font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;">
+                  ✈️ Your Private Telegram Learning Access (${telegramInvites.length === 1 ? '1 Track Vault' : `${telegramInvites.length} Track Vaults Included`})
+                </span>
+                <p style="margin: 6px 0 0 0; font-size: 12px; color: #94a3b8; line-height: 1.4;">
+                  HD session video replays, downloadable PDF workbooks, code templates, and daily mentor Q&amp;A are hosted in these private Telegram channels:
+                </p>
+              </td>
+            </tr>
+            ${telegramInvites.map((inv, idx) => `
+            <tr>
+              <td style="padding: 12px 0; border-bottom: ${idx < telegramInvites.length - 1 ? '1px solid #1e293b' : 'none'};">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                  <tr>
+                    <td style="vertical-align: middle;">
+                      <strong style="color: #ffffff; font-size: 14px; display: block;">${inv.title}</strong>
+                      ${inv.description ? `<span style="color: #cbd5e1; font-size: 12px; display: block; margin-top: 3px;">${inv.description}</span>` : ''}
+                    </td>
+                    <td align="right" style="vertical-align: middle; padding-left: 14px; white-space: nowrap;">
+                      <a href="${inv.inviteUrl}" style="background-color: #0284c7; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 6px; display: inline-block;">
+                        Join Telegram Vault &rarr;
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            `).join('')}
+          </table>
+        </td>
+      </tr>
+    </table>
+    ` : ''}
+
     <!-- 3-Step Orientation Checklist -->
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
       <tr>
@@ -421,28 +468,28 @@ export function buildStudentOnboardingEmail(params: {
       </tr>
       <tr>
         <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
-          <strong style="color: #ffffff;">1. Activate Your Portal:</strong> Click the button below to set your password and access your student dashboard.
+          <strong style="color: #ffffff;">1. Join Your Telegram Vault:</strong> Click your invite link above to join your track's private Telegram learning group.
         </td>
       </tr>
       <tr>
         <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
-          <strong style="color: #ffffff;">2. Review Curriculum &amp; Labs:</strong> Browse the weekly modules, practical lab assignments, and capstone briefs.
+          <strong style="color: #ffffff;">2. Activate Your Student Portal:</strong> Click below to set your password and access your course curriculum and resources.
         </td>
       </tr>
       <tr>
         <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
-          <strong style="color: #ffffff;">3. Join WhatsApp Cohort:</strong> Connect with your instructors and fellow students in the private cohort room.
+          <strong style="color: #ffffff;">3. Join WhatsApp Admissions:</strong> Connect with your instructors and cohort peers for live updates.
         </td>
       </tr>
     </table>
   `;
 
   const html = renderEmailLayout({
-    previewText: `Welcome to ${courseTitle}! Your tuition is verified. Login and set your password here.`,
+    previewText: `Welcome to ${courseTitle}! Your tuition is verified. Login and join your Telegram vault here.`,
     badgeText: '✓ Verified Payment & Official Admission',
     badgeVariant: 'success',
     title: `Welcome to ${courseTitle}`,
-    subtitle: `Your official tuition payment receipt, student matriculation credentials, and portal access instructions.`,
+    subtitle: `Your official tuition payment receipt, student matriculation credentials, and private Telegram learning spaces.`,
     bodyContentHtml,
     primaryCta: {
       label: directPasswordSetupLink ? '🚀 Set Your Password & Access Student Portal' : '🚀 Log In to Your Student Portal',
@@ -455,13 +502,17 @@ export function buildStudentOnboardingEmail(params: {
     footerNote: 'This is an official transactional message regarding your verified enrollment on Vixora Academy.'
   });
 
+  const textTelegram = telegramInvites.length > 0
+    ? `\nTELEGRAM LEARNING SPACES:\n` + telegramInvites.map(t => `- ${t.title}: ${t.inviteUrl}`).join('\n') + `\n`
+    : '';
+
   const text = `
 Welcome to Vixora Academy!
 Admission Confirmed for: ${courseTitle}
 
 Dear ${customerName},
 Your tuition payment of ₦${tuitionNaira.toLocaleString()} NGN has been verified.
-
+${textTelegram}
 YOUR STUDENT CREDENTIALS:
 - Student ID / Code: ${studentCode}
 - Login Email: ${customerEmail}

@@ -1,94 +1,146 @@
-# Implementation Plan: Vixora Academy Cohort 1.0 Flagship & 4 Track Landing Pages
+# Vixora Academy Cohort 1.0 — Architecture Audit & Alignment Plan
 
-## 1. Executive Summary & User Alignment
-
-The user requests landing pages for **Vixora Academy Cohort 1.0**, featuring session recordings and PDF materials from the completed live cohort. Based on user clarification:
-- **Curriculum Scope**: 4 distinct training pillars:
-  1. **AI Content Creation** (Image, Video, Audio — Midjourney, Flux, ElevenLabs, Runway, CapCut)
-  2. **AI Automation** (n8n, Make, OpenAI API, Webhook Workflows, CRM Integrations)
-  3. **AI Web Development & Design** (React 19, Tailwind CSS, Modern UI, AI-Assisted Prototyping)
-  4. **Client Acquisition & Freelancing** (Upwork, Cold Outreach, Service Packaging, Closing High-Ticket Clients)
-- **Architecture**: A **Flagship Cohort 1.0 Bundle Landing Page** with interactive track tabs, plus **4 dedicated deep-dive subpages** (accessible via `/academy/cohort-1/content-creation`, `/academy/cohort-1/automation`, `/academy/cohort-1/web-development`, and `/academy/cohort-1/freelancing`).
-- **Resource Access & Media Delivery**: Public previews with high-production teaser video clips and downloadable syllabus PDF overviews; full high-definition session archives and internal masterclass PDFs are unlocked upon enrollment, with direct access to the **Private Telegram Cohort Group & Archive**.
+A thorough architectural audit and systematic alignment plan comparing what was built against the Cohort 1.0 course-sales specification: featuring four dedicated track subpages, one high-converting 4-in-1 flagship package, embedded video teasers with downloadable sample PDF workbooks, automated Paystack payment verification, student onboarding credentials, and track-specific Telegram vault invitations.
 
 ---
 
-## 2. Visual & UI Architectural Constitution
+## User Review & Critical Decisions
 
-Following the Vixora design system and `frontend-design` guidelines:
-- **Palette Tokens**:
-  - Dominant canvas: Deep Navy (`#0F1535` / `#000048`), rich dark violet (`#1E113E`), and crisp surface light (`#F7F7FC`).
-  - Brand Primary: Royal Violet (`#5B5FED` / `#6B3FB8`) and Electric Purple (`#7000F8`).
-  - High-Contrast Semantic Accents: Amber Gold (`#FFC107` / `#FFD700`) for cohort admissions and pricing badges; Emerald (`#10B981`) for verified credentials and active student enrollment.
-- **Typography & Scale**:
-  - Headings: Bold, tight display typography (`font-black tracking-tight leading-[1.15]`), clamp-scaled (`text-2xl sm:text-4xl lg:text-5xl`).
-  - Metadata: Zero-pill discipline for static informational badges — unboxed text with typographic separators (`·`, `/`) and subtle mono styling. Interactive filters use clean segmented tabs.
-- **Layout Math & Viewport**:
-  - Mobile-first responsive grid: single-column fluid on screens 320px–430px, expanding to asymmetric split and bento grids on desktop (1440px target).
-  - Touch targets $\ge 44\text{px}$ across all mobile buttons and tab switchers.
-  - Video players contained in strict `aspect-video` frames with poster fallbacks and reduced-motion support.
+> [!IMPORTANT]
+> The following key decisions have been aligned based on your direct input:
+> - **Telegram Delivery Architecture:** Confirmed. Dedicated private Telegram channels per individual track, with the Cohort 1.0 Flagship Bundle granting access to all 4 Telegram vaults.
+> - **Structured Commercial Pricing:** Confirmed. Retained current approved prices without currency conversions:
+>   - *Course 01 (AI Content Creation):* **₦10,000**
+>   - *Course 02 (AI Automation & Digital Business Systems):* **₦60,000**
+>   - *Course 03 (AI Web Development & Vibe Coding):* **₦50,000**
+>   - *Course 04 (Client Acquisition & Freelancing):* **₦25,000**
+>   - *Complete Package (Cohort 1.0 4-in-1 Masterclass Pass):* **₦45,000** (Save ₦100,000+ vs individual enrollment).
+> - **Media & Resource Previews:** Confirmed. Embedded responsive video preview teasers and one-click downloadable sample PDF workbooks directly on each course subpage.
 
 ---
 
-## 3. Information Architecture & Routing
+## 1. Audit: What Was Built vs. The Specification
 
-### New & Enhanced Routes
-1. `/academy/cohort-1` (or `/academy/cohort-1-bundle`):
-   - **Flagship Master Page**: Complete Cohort 1.0 curriculum overview, instructor credentials (Dean Sarumi Hammad & engineering mentors), interactive 4-track tab switcher, recorded session teaser player, downloadable cohort syllabus PDF, bundle tuition & single-track pricing, and direct enrollment modal integration.
-2. `/academy/cohort-1/:trackSlug`:
-   - `/academy/cohort-1/ai-content-creation`: Deep dive into prompts, character consistency, voice synthesis, and viral video creation.
-   - `/academy/cohort-1/ai-automation`: Deep dive into n8n nodes, API webhooks, automated lead qualification, and enterprise workflow architecture.
-   - `/academy/cohort-1/ai-web-development`: Deep dive into rapid AI-assisted development, component architecture, and responsive UX design.
-   - `/academy/cohort-1/client-acquisition-freelancing`: Deep dive into pricing models, proposals, international client contracts, and closing $1,000+ retainers.
-3. **Student Unlocked View**:
-   - For enrolled students, displays the **Cohort 1.0 Telegram Resource Hub**, direct links to download all 4 master session PDFs, and the private Telegram discussion and community invite link.
-
----
-
-## 4. Component & Technical Implementation Plan
-
-### A. Data Schema Updates (`src/data/vixoraContent.ts`)
-- Create `COHORT_1_BUNDLE` object detailing the 4 tracks, session recording metadata, deliverables, tools used, and download files.
-- Add structured entries to `ACADEMY_COURSES` representing the 4 modular courses with full syllabi, deliverables, and Paystack integration.
-
-### B. Core Components
-1. **`CohortBundlePage.tsx`**:
-   - Hero: High-impact split layout with cohort metadata, core proposition, and contained video player showcasing actual Cohort 1.0 session highlights.
-   - Interactive Track Explorer: Segmented switcher toggling between the 4 tracks with syllabus breakdown, tools matrix, and practical lab projects.
-   - Session Recordings & PDF Showcase: Interactive card deck showing preview clips and PDF outlines with clear locked/unlocked state badges.
-   - Community & Private Telegram Hub Banner: Explaining the cohort workflow, lifetime access to archives, and mentor Q&A in Telegram.
-   - High-Conversion Tuition & Enrollment Section: Options for Full 4-in-1 Cohort Bundle vs individual track selection.
-2. **`CohortTrackSubpage.tsx`**:
-   - Dedicated landing page component reusable for each of the 4 sub-tracks, with week-by-week curriculum, capstone preview, and direct enrollment button.
-3. **`TelegramAccessCard.tsx`**:
-   - High-security post-enrollment card displaying the unique invitation link to the Private Telegram Cohort Group, instructions, and download buttons for the session PDFs.
-
-### C. Enrollment & Payment Flow Preservation
-- Fully integrated with existing `CourseEnrollmentModal` and Paystack backend proxy (`/api/payments/paystack/initialize`).
-- Retains NGN authoritative pricing, instant automated verification, and safe error sanitization.
+| Specification Requirement | Current State in Codebase | Audit Status | Alignment Actions Required |
+| :--- | :--- | :--- | :--- |
+| **1. Four Dedicated Course Subpages** | Implemented via `CohortTrackSubpage.tsx` with dynamic routing (`/cohort-1/:slug`). | **Aligned** | Standardize video teasers, sample PDF downloaders, and direct checkout CTAs across all 4 subpages. |
+| **2. Complete 4-in-1 Bundle Offer** | Implemented via `CohortBundlePage.tsx` and `course-cohort-1-master-bundle` (`/cohort-1-bundle` and `/academy/cohort-1-master-bundle`). | **Aligned** | Highlight ₦45k value comparison and 4-track tabbed preview. |
+| **3. Psychological Decision Framework** | "Who this is strictly for", "Who should skip this", and "Time to first measurable result" components are present. | **Aligned** | Polish contrast and ensure seamless readability on mobile screens. |
+| **4. Video & PDF Previews** | Modal previews and simulated PDF generation exist. | **Needs Enhancement** | Upgrade to embedded inline video teaser players and tangible downloadable sample PDF workbooks. |
+| **5. Automated Paystack Verification** | Authoritative backend verification (`server/paystackServer.ts`) with tamper resistance, idempotency, and price locking. | **Fully Aligned** | Production-hardened with 26/26 automated tests passing. |
+| **6. Telegram Vault Invitation Routing** | Confirmation email dispatches credentials and WhatsApp link, but lacks track-specific Telegram links. | **Gap Identified** | Add dedicated Telegram invite link lookup for each individual track and bundle all 4 links for master bundle purchasers. |
+| **7. Student Portal Access** | Auto-provisions Supabase Auth account with one-click password setup link. | **Fully Aligned** | Keeps portal login credentials intact alongside Telegram links. |
 
 ---
 
-## 5. Verification & Testing Plan
+## 2. User Experience & Visual Design
 
-1. **Routing & Navigation**:
-   - Verify address bar routes (`/academy/cohort-1`, `/academy/cohort-1/automation`, etc.) and internal navigation clicks from `AcademyPage`, `AcademyNavbar`, and course catalog.
-2. **Mobile Layout (320px, 375px, 430px)**:
-   - Ensure zero horizontal overflow across all new pages and components.
-   - Confirm touch targets and segmented track switcher tabs wrap gracefully on mobile.
-3. **Media & PDF Interactions**:
-   - Test video playback in the contained player, test poster fallbacks, and test PDF download triggers.
-4. **Automated Verification**:
-   - Run `lint_applet` (`tsc --noEmit`).
-   - Run `tests/paystackFrontend.test.ts` to ensure enrollment modal contracts remain 100% green.
-   - Run production build (`npm run build`).
+### Key User Flows
+
+```
+[ Visitor / Buyer ]
+       │
+       ▼
+[ Cohort 1.0 Overview / Track Subpage ]
+  ├── 4-Track Tabbed Switcher (Immediate Comparison)
+  ├── Psychological Qualification (Fit vs. Non-Fit)
+  ├── Embedded Video Teaser & Sample PDF Workbook
+  └── Pricing Card (Individual ₦10k–₦60k vs Bundle ₦45k)
+       │
+       ▼
+[ Simplified 1-Click Paystack Modal ]
+  ├── Name, Email, Phone
+  └── Authoritative Backend Price Lock (NGN)
+       │
+       ▼
+[ Paystack Gateway Verification ]
+  ├── Server-side verification & Idempotent fulfillment
+  ├── Supabase student enrollment & Auth credential provisioning
+  └── Dynamic receipt generation
+       │
+       ▼
+[ Automated Delivery & Onboarding ]
+  ├── Instant Success Screen with direct Telegram Access
+  ├── Transactional Email with Matric ID & Password Setup Link
+  ├── Dedicated Track Telegram Channel Invite Link
+  └── WhatsApp Admissions Concierge Support
+```
+
+### Visual Identity & Theme Tokens
+- **Background & Canvas:** Crisp, ultra-clean neutral surface (`#FFFDF9` / `#F8FAFC`) with deep Obsidian Navy footer (`#05020F`) and glowing violet accents (`#5B5FED`).
+- **Accent Tints:** Amber Gold (`#F59E0B`) for high-value bundle savings and Telegram invitations; Emerald Green (`#10B981`) for verified status badges.
+- **Typographic Hierarchy:** Modern sans (`Plus Jakarta Sans` / `Inter`) with monospaced accents (`SF Mono` / `Consolas`) for matriculation IDs, course codes, and pricing tags.
+- **Zero-Pill Discipline:** Clean metadata lines with bullet and slash separators instead of nested colored capsules.
 
 ---
 
-## 6. Implementation Sequence
+## 3. Key Product Decisions & Trade-Offs
 
-1. **Step 1**: Register Cohort 1.0 bundle data and the 4 course tracks in `src/data/vixoraContent.ts`.
-2. **Step 2**: Build the `CohortBundlePage.tsx` master landing page with the 4-track tab switcher, video showcase, and PDF resource hub.
-3. **Step 3**: Build the track subpage component and hook up clean permalink routing in `src/App.tsx`.
-4. **Step 4**: Integrate the private Telegram access card and PDF download triggers for enrolled students.
-5. **Step 5**: Test and verify compilation, linting, and responsive viewports.
+- **Decision 1: Track-Specific Telegram Link Routing**
+  - *Chosen Approach:* Maintain a secure configuration mapping each course ID/slug to its respective private Telegram channel invite link. For the 4-in-1 Master Bundle, the email and success screen display all 4 dedicated track links.
+  - *Why:* Gives bundle buyers instant, organized access to all 4 domains without overwhelming single-track students.
+- **Decision 2: Embedded Video Teasers vs. Heavy Video Hosting**
+  - *Chosen Approach:* High-performance HTML5 video players with custom poster thumbnails and instant playback, paired with downloadable sample PDF workbooks.
+  - *Why:* Guarantees fast mobile page loads without requiring third-party video subscriptions or slowing down checkout conversions.
+- **Decision 3: Dual Delivery (Telegram Vault + Student Portal)**
+  - *Chosen Approach:* Students receive immediate Telegram channel access for real-time video replays, discussions, and mentor Q&A, while simultaneously receiving active credentials to the Vixora Student Portal for certificate generation and track tracking.
+  - *Why:* Delivers instant gratification via Telegram while building long-term platform retention and LMS assets.
+
+---
+
+## 4. Technical Architecture & Component Structure
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                          Client Application                            │
+│                                                                        │
+│  ┌───────────────────────┐  ┌──────────────────────────────────────┐  │
+│  │   CohortBundlePage    │  │        CohortTrackSubpage            │  │
+│  │  (/cohort-1-bundle)   │  │       (/cohort-1/:trackSlug)         │  │
+│  └───────────┬───────────┘  └──────────────────┬───────────────────┘  │
+│              │                                 │                       │
+│              └────────────────┬────────────────┘                       │
+│                               ▼                                        │
+│                 ┌───────────────────────────┐                          │
+│                 │  PaystackEnrollmentModal  │                          │
+│                 └─────────────┬─────────────┘                          │
+└───────────────────────────────┼────────────────────────────────────────┘
+                                │ POST /api/payments/paystack/initialize
+                                ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Backend Server                                  │
+│                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                   server/paystackServer.ts                       │  │
+│  │  - Validates Canonical Course & Authoritative NGN Price          │  │
+│  │  - Communicates with Paystack API & Verifies Signature           │  │
+│  │  - Resolves Telegram Links for purchased track(s)                │  │
+│  └───────────────┬───────────────────────────────┬──────────────────┘  │
+│                  │                               │                     │
+│                  ▼                               ▼                     │
+│   ┌─────────────────────────────┐  ┌───────────────────────────────┐   │
+│   │    server/supabaseAdmin.ts  │  │   server/emailTemplates.ts    │   │
+│   │  - Durable Payment Record   │  │  - Matriculation ID           │   │
+│   │  - Student Profile & Auth   │  │  - Portal Password Setup Link │   │
+│   │  - Course Enrollment        │  │  - Dedicated Telegram Link(s) │   │
+│   └─────────────────────────────┘  │  - Official WhatsApp Button   │   │
+│                                    └───────────────────────────────┘   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5. Execution Steps
+
+1. **Telegram Link Configuration (`server/telegramConfig.ts`):**
+   - Create a clean catalog mapping each of the 4 tracks and the 4-in-1 Master Bundle to their respective private Telegram channel/group invite URLs.
+2. **Onboarding Email Upgrade (`server/emailTemplates.ts`):**
+   - Enhance `buildStudentOnboardingEmail` to render dedicated Telegram Access cards.
+   - For individual track purchases: Display the specific track's private Telegram invitation.
+   - For the 4-in-1 bundle purchase: Display all 4 dedicated track invitations in an organized master list.
+3. **Course Subpage Media Enhancement (`src/pages/CohortTrackSubpage.tsx` & `src/data/cohortData.ts`):**
+   - Ensure each of the 4 track subpages displays responsive embedded video teasers with clear playback controls.
+   - Wire up the sample PDF workbook download buttons to trigger structured, publication-grade sample workbooks.
+4. **Verification & Testing:**
+   - Execute both `paystack.test.ts` and `paystackFrontend.test.ts` to verify full compatibility.
+   - Run `lint_applet` and `compile_applet` to confirm zero compilation errors.
