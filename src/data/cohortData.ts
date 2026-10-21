@@ -58,6 +58,7 @@ export interface CohortTrackItem {
   accentColor: string;
   tools: string[];
   courseId: string;
+  telegramInviteLink: string;
   tuition: string;
   curriculumWeeks: {
     week: string;
@@ -132,6 +133,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       accentColor: '#9030F8',
       tools: ['Midjourney', 'Flux', 'Ideogram', 'ElevenLabs', 'Runway Gen-3', 'CapCut', 'Hailuo AI'],
       courseId: 'course-ai-image-short-videos-creation',
+      telegramInviteLink: 'https://t.me/+vixora_cohort1_private',
       tuition: '₦10,000',
       pdfGuideTitle: 'The 2026 Production AI Prompting & Video Master Blueprint (PDF)',
       sampleVideoTitle: 'Session 02: Cinematic Lighting & Character Consistency in Flux & Midjourney',
@@ -272,6 +274,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       accentColor: '#5B5FED',
       tools: ['n8n Self-Hosted', 'Make.com', 'OpenAI API', 'Webhook Trigger Architecture', 'Airtable', 'Telegram Bots'],
       courseId: 'course-ai-automation-digital-skills',
+      telegramInviteLink: 'https://t.me/+vixora_cohort1_private',
       tuition: '₦30,000',
       pdfGuideTitle: 'Autonomous Business Workflows & n8n Architecture Handbook (PDF)',
       sampleVideoTitle: 'Session 03: Building an End-to-End Inbound Lead Qualifier with n8n & OpenAI',
@@ -412,6 +415,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       accentColor: '#10B981',
       tools: ['React 19', 'TypeScript', 'Tailwind CSS', 'Vite', 'Cursor / Claude Sonnet', 'Figma', 'Vercel'],
       courseId: 'course-fullstack-vibe-coding',
+      telegramInviteLink: 'https://t.me/+vixora_cohort1_private',
       tuition: '₦50,000',
       pdfGuideTitle: 'The Modern Vibe Coder Architecture & Clean UI Design Guide (PDF)',
       sampleVideoTitle: 'Session 01: Rapid Component Scaffolding & Responsive Layouts with Tailwind',
@@ -552,6 +556,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       accentColor: '#FFC107',
       tools: ['Upwork Pro Strategies', 'Cold Email Systems', 'LinkedIn Sales Navigator', 'Notion Proposals', 'Contract Templates'],
       courseId: 'course-client-acquisition-freelancing',
+      telegramInviteLink: 'https://t.me/+vixora_cohort1_private',
       tuition: '₦25,000',
       pdfGuideTitle: 'The $5,000/mo Freelance Agency Playbook & Proposal Templates (PDF)',
       sampleVideoTitle: 'Session 04: The 4-Part High-Ticket Proposal Framework that Won $3,200',
