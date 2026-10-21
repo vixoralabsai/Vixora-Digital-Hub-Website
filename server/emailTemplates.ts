@@ -285,6 +285,7 @@ export function buildStudentOnboardingEmail(params: {
   generatedTempPassword?: string | null;
   directPasswordSetupLink?: string | null;
   whatsappUrl: string;
+  telegramInviteLink?: string | null;
 }): { html: string; text: string; subject: string } {
   const {
     customerName,
@@ -297,7 +298,8 @@ export function buildStudentOnboardingEmail(params: {
     studentCode,
     generatedTempPassword,
     directPasswordSetupLink,
-    whatsappUrl
+    whatsappUrl,
+    telegramInviteLink
   } = params;
 
   const subject = `🎓 Student Account & Admission Confirmed: ${courseTitle} (₦${tuitionNaira.toLocaleString()})`;
@@ -316,6 +318,8 @@ export function buildStudentOnboardingEmail(params: {
         </td>
       </tr>
     </table>
+
+    ${telegramInviteLink ? '<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#102a35;border:1px solid #229ed9;border-radius:14px;margin-bottom:24px;"><tr><td style="padding:22px;"><p style="margin:0 0 8px;color:#7dd3fc;font-size:12px;font-weight:700;text-transform:uppercase;">Your Telegram Invitation</p><p style="margin:0 0 14px;color:#e2e8f0;font-size:14px;line-height:1.6;">Join the course community for learning resources and announcements. Open the button below, then tap Join in Telegram.</p><a href="' + telegramInviteLink + '" style="display:inline-block;background:#229ed9;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 20px;border-radius:9px;">Join Your Telegram Cohort &rarr;</a><p style="margin:12px 0 0;color:#94a3b8;font-size:11px;">If the button does not open, copy this link into Telegram: ' + telegramInviteLink + '</p></td></tr></table>' : ''}
 
     <!-- Credentials Card Component -->
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #180d3d 0%, #100829 100%); border: 1px solid #6366f1; border-radius: 14px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);">
