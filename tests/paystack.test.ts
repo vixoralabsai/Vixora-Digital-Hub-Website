@@ -48,9 +48,8 @@ async function runAllTests() {
     assert.deepEqual(getCoursePrices('course-data-analysis-cohort'), { NGN: 60000, USD: 50 });
     assert.deepEqual(getCoursePrices('course-ai-automation-digital-skills'), { NGN: 30000, USD: 25 });
     assert.deepEqual(getCoursePrices('course-ai-automation-digital-business-systems'), { NGN: 60000, USD: 50 });
-    assert.deepEqual(getCoursePrices('course-fullstack-vibe-coding'), { NGN: 50000, USD: 100 });
-    assert.equal(getCoursePrice('course-fullstack-ai', 'USD'), 1850);
-    assert.equal(getCoursePrice('course-fullstack-ai', 'NGN'), null);
+    assert.deepEqual(getCoursePrices('course-ai-image-short-videos-creation'), { NGN: 10000, USD: 10 });
+    assert.equal(getCoursePrice('course-fullstack-ai', 'USD'), null);
     assert.deepEqual(getCoursePrices('course-machine-learning-data-science'), { NGN: 60000, USD: 60 });
     assert.equal(getCoursePrice('unknown-course', 'NGN'), null);
   });

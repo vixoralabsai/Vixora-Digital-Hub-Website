@@ -1234,14 +1234,14 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
         pitch: 'Master data extraction, SQL relational queries, and Power BI dashboards before diving into advanced predictive algorithms.'
       },
       {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[1],
         relationType: 'Natural Next Progression',
-        pitch: 'Scale your predictive models into full-stack autonomous AI applications with production LLM pipelines, vector databases, and cloud deployment.'
+        pitch: 'Deploy autonomous business systems and integration pipelines to feed your predictive models with real-time operational data.'
       },
       {
-        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
+        course: all.find(c => c.slug === 'fullstack-vibe-coding') || all[2],
         relationType: 'Companion Specialization',
-        pitch: 'Deploy self-hosted n8n pipelines to automate data extraction, trigger your predictive ML models, and sync scored predictions back to production databases.'
+        pitch: 'Build custom interactive web applications and APIs to deliver machine learning models and predictive dashboards.'
       }
     ];
   }
@@ -1249,119 +1249,19 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
   if (slug === 'data-analysis-cohort') {
     return [
       {
-        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
+        course: all.find(c => c.slug === 'machine-learning-data-science') || all[0],
         relationType: 'Natural Next Progression',
         pitch: 'The natural step after descriptive analytics: move from reporting past numbers into training predictive machine learning models.'
       },
       {
-        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
+        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[1],
         relationType: 'Advanced Upsell',
-        pitch: 'Build automated data pipelines that extract, transform, and sync database records across enterprise tools using self-hosted n8n.'
+        pitch: 'Build automated data pipelines that extract, transform, and sync business metrics across enterprise tools.'
       },
       {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        course: all.find(c => c.slug === 'fullstack-vibe-coding') || all[2],
         relationType: 'Companion Specialization',
-        pitch: 'Learn how to build custom interactive data apps, vector search engines, and analytics dashboards with modern full-stack web frameworks.'
-      }
-    ];
-  }
-
-  if (slug === 'fullstack-ai-engineering') {
-    return [
-      {
-        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
-        relationType: 'Companion Specialization',
-        pitch: 'Deepen your foundational statistical understanding, feature engineering, and model training capabilities behind AI systems.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-product-design-ui-ux') || all[6],
-        relationType: 'Companion Specialization',
-        pitch: 'Master the streaming UI patterns, canvas workspaces, and Figma design systems needed to build world-class user interfaces for your AI agents.'
-      },
-      {
-        course: all.find(c => c.slug === 'executive-ai-strategy') || all[4],
-        relationType: 'Advanced Upsell',
-        pitch: 'Learn how to pitch, budget, and align complex AI engineering initiatives with corporate C-suite executives and board members.'
-      }
-    ];
-  }
-
-  if (slug === 'executive-ai-strategy') {
-    return [
-      {
-        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
-        relationType: 'Companion Specialization',
-        pitch: 'Discover how self-hosted n8n and unmetered integration pipelines eliminate recurring SaaS fees and protect sensitive corporate data.'
-      },
-      {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
-        relationType: 'Advanced Upsell',
-        pitch: 'Upskill your senior technical staff to architect resilient, scalable AI engineering infrastructure and autonomous agents.'
-      },
-      {
-        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
-        relationType: 'Companion Specialization',
-        pitch: 'Ensure operational teams have strong data literacy in SQL and Power BI to support enterprise AI readiness and KPI reporting.'
-      }
-    ];
-  }
-
-  if (slug === 'enterprise-workflow-automation') {
-    return [
-      {
-        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
-        relationType: 'Companion Specialization',
-        pitch: 'Combine automated n8n data flows with SQL data warehouses and executive Power BI dashboards for full-cycle business intelligence.'
-      },
-      {
-        course: all.find(c => c.slug === 'machine-learning-data-science') || all[8],
-        relationType: 'Advanced Upsell',
-        pitch: 'Trigger machine learning models and predictive scoring endpoints directly from your self-hosted enterprise pipelines.'
-      },
-      {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
-        relationType: 'Advanced Upsell',
-        pitch: 'Graduate from workflow orchestration to engineering custom full-stack autonomous AI systems with Python and TypeScript.'
-      }
-    ];
-  }
-
-  if (slug === 'ai-product-design-ui-ux') {
-    return [
-      {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
-        relationType: 'Natural Next Progression',
-        pitch: 'Bridge Figma prototypes into functioning full-stack AI applications with React, TypeScript, and API integrations.'
-      },
-      {
-        course: all.find(c => c.slug === 'generative-media-advertising') || all[7],
-        relationType: 'Companion Specialization',
-        pitch: 'Generate high-fidelity marketing assets, synthetic UGC videos, and campaign visuals for the digital products you design.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
-        relationType: 'Prerequisite Foundation',
-        pitch: 'Build solid foundational fluency in core prompting, visual AI, and productivity automation tools.'
-      }
-    ];
-  }
-
-  if (slug === 'generative-media-advertising') {
-    return [
-      {
-        course: all.find(c => c.slug === 'ai-product-design-ui-ux') || all[6],
-        relationType: 'Companion Specialization',
-        pitch: 'Design high-converting landing pages, interactive product prototypes, and coherent visual design systems for your ad campaigns.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
-        relationType: 'Advanced Upsell',
-        pitch: 'Automate customer lead capture, CRM onboarding, and invoice distribution from your high-converting advertising funnels.'
-      },
-      {
-        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
-        relationType: 'Prerequisite Foundation',
-        pitch: 'Gain versatile general AI productivity and visual workflow skills at an accessible rate.'
+        pitch: 'Learn how to build custom interactive data apps and client analytics dashboards with modern web frameworks.'
       }
     ];
   }
@@ -1369,19 +1269,19 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
   if (slug === 'ai-automation-digital-skills') {
     return [
       {
-        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[2],
+        course: all.find(c => c.slug === 'ai-automation-digital-business-systems') || all[0],
         relationType: 'Natural Next Progression',
-        pitch: 'The high-touch implementation tier: master n8n, Vibe Coding, client acquisition scripts, and closing ₦200,000+ monthly retainers.'
+        pitch: 'The high-touch implementation tier: master n8n, Vapi voice agents, Vibe Coding, and closing high-ticket retainers.'
       },
       {
-        course: all.find(c => c.slug === 'data-analysis-cohort') || all[0],
+        course: all.find(c => c.slug === 'ai-image-short-videos-creation') || all[1],
         relationType: 'Companion Specialization',
-        pitch: 'Add rigorous Excel, SQL, and business intelligence capabilities to your digital resume for corporate roles.'
+        pitch: 'Scale your creative output with generative AI video, UGC ad creation, and viral social media pipelines.'
       },
       {
-        course: all.find(c => c.slug === 'generative-media-advertising') || all[7],
+        course: all.find(c => c.slug === 'client-acquisition-freelancing') || all[2],
         relationType: 'Companion Specialization',
-        pitch: 'Scale your creative output with generative AI video, UGC ad creation, and digital media buying.'
+        pitch: 'Package your automation skills into high-ticket client offers, proposals, and outbound acquisition systems.'
       }
     ];
   }
@@ -1389,19 +1289,39 @@ function getRelatedCourses(current: AcademyCourse): RelatedCourseMapping[] {
   if (slug === 'ai-automation-digital-business-systems') {
     return [
       {
-        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[1],
-        relationType: 'Prerequisite Foundation',
-        pitch: 'Recommended starting point if you need to build foundational confidence with core AI tools before client delivery.'
+        course: all.find(c => c.slug === 'fullstack-vibe-coding') || all[0],
+        relationType: 'Companion Specialization',
+        pitch: 'Deepen your software engineering chops: build custom web applications, APIs, and client portals with TypeScript.'
       },
       {
-        course: all.find(c => c.slug === 'enterprise-workflow-automation') || all[5],
+        course: all.find(c => c.slug === 'client-acquisition-freelancing') || all[1],
         relationType: 'Advanced Upsell',
-        pitch: 'Scale from freelance client tools into self-hosted, unmetered enterprise n8n infrastructure with custom Python logic.'
+        pitch: 'Master client acquisition, discovery calls, service agreements, and high-ticket retainer sales.'
       },
       {
-        course: all.find(c => c.slug === 'fullstack-ai-engineering') || all[3],
+        course: all.find(c => c.slug === 'cohort-1-master-bundle') || all[2],
         relationType: 'Advanced Upsell',
-        pitch: 'Graduate from low-code platforms to building custom full-stack autonomous AI systems with Python and TypeScript.'
+        pitch: 'Get full vault access to all 4 Cohort 1.0 masterclass tracks with recordings, templates, and mastermind access.'
+      }
+    ];
+  }
+
+  if (slug === 'ai-image-short-videos-creation') {
+    return [
+      {
+        course: all.find(c => c.slug === 'ai-automation-digital-skills') || all[0],
+        relationType: 'Natural Next Progression',
+        pitch: 'Connect your creative content pipelines to automated CRM lead capture and distribution systems.'
+      },
+      {
+        course: all.find(c => c.slug === 'client-acquisition-freelancing') || all[1],
+        relationType: 'Companion Specialization',
+        pitch: 'Offer AI content creation and UGC video production services to e-commerce and local businesses on retainer.'
+      },
+      {
+        course: all.find(c => c.slug === 'cohort-1-master-bundle') || all[2],
+        relationType: 'Advanced Upsell',
+        pitch: 'Upgrade to the complete Cohort 1.0 4-in-1 masterclass pass for full-spectrum digital business mastery.'
       }
     ];
   }

@@ -47,26 +47,6 @@ export const COURSE_PRICING: Record<string, CoursePrices> = {
     NGN: 50000,
     USD: 100,
   },
-  'course-fullstack-ai': {
-    NGN: null,
-    USD: 1850,
-  },
-  'course-executive-ai': {
-    NGN: null,
-    USD: 2400,
-  },
-  'course-workflow-automation': {
-    NGN: null,
-    USD: 950,
-  },
-  'course-ai-product-design': {
-    NGN: null,
-    USD: 1100,
-  },
-  'course-generative-media-marketing': {
-    NGN: null,
-    USD: 850,
-  },
   'course-machine-learning-data-science': {
     NGN: 60000,
     USD: 60,
