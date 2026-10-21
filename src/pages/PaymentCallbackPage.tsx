@@ -21,6 +21,7 @@ import {
   VerifiedPaymentData
 } from '../lib/paystack';
 import { getWhatsAppUrl } from '../data/brandConfig';
+import { COHORT_1_BUNDLE, getCohortTrackBySlug } from '../data/cohortData';
 
 type CallbackPageState = 'processing' | 'success' | 'failed' | 'cancelled' | 'error';
 
@@ -227,6 +228,16 @@ export function PaymentCallbackPage({
                   </span>
                 </div>
               </div>
+
+              {(() => {
+                const courseTrack = getCohortTrackBySlug(payment.courseId);
+                const inviteLink = payment.telegramInviteLink || courseTrack?.telegramInviteLink || (payment.courseId === 'course-cohort-1-master-bundle' ? COHORT_1_BUNDLE.telegramInviteLink : undefined);
+                return inviteLink ? <div className="rounded-2xl border border-sky-500/40 bg-sky-950/40 p-5 space-y-3">
+                  <div><h3 className="font-bold text-white">Your Telegram Invitation</h3><p className="text-sm text-neutral-300 mt-1">Join the {courseTrack?.shortTitle || 'Cohort 1.0'} community for learning resources and announcements.</p></div>
+                  <a href={inviteLink} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-3 font-bold text-white hover:bg-sky-400"><MessageSquare className="w-4 h-4" /> Join Telegram Cohort <ExternalLink className="w-4 h-4" /></a>
+                  <p className="text-xs text-neutral-400">Open the link in Telegram and tap Join.</p>
+                </div> : null;
+              })()}
 
               {/* Action Buttons */}
               <div className="space-y-3">
