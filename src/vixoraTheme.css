@@ -343,22 +343,22 @@ footer [class~="text-white"] {
    Examples: Directorate Banner on AcademyPage, BankDetailsCard on CoursePricing,
              AcademyFooter on Academy pages, Dark modals on Academy pages. */
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, body)
-:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) {
+:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], [class*="from-[#0F1535]"], [class*="from-[#0B0D26]"], [class*="from-[#1A114A]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) {
   color: #F8FAFC !important;
 }
 
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, body)
-:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) :is(h1, h2, h3, h4, h5, h6) {
+:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], [class*="from-[#0F1535]"], [class*="from-[#0B0D26]"], [class*="from-[#1A114A]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) :is(h1, h2, h3, h4, h5, h6) {
   color: #FFFFFF !important;
 }
 
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, body)
-:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) p {
+:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], [class*="from-[#0F1535]"], [class*="from-[#0B0D26]"], [class*="from-[#1A114A]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) p {
   color: #E2E8F0 !important;
 }
 
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, body)
-:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) strong {
+:is(.modal-dark, [data-theme="dark"], [role="dialog"].modal-dark, [class*="from-[#000048]"], [class*="from-[#480878]"], [class*="from-[#0F1535]"], [class*="from-[#0B0D26]"], [class*="from-[#1A114A]"], .bg-\[\#000048\], .bg-\[\#000030\], .bg-\[\#05020F\], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0F1535\], .bg-\[\#1E113E\], .bg-\[\#07031C\], .bg-neutral-900, .bg-neutral-950, footer, #footer, #contact) strong {
   color: #FFFFFF !important;
 }
 
@@ -376,24 +376,40 @@ footer [class~="text-white"] {
    Guarantees deep navy headings (#000048) and readable slate body (#475569)
    Examples: BusinessMetrics, SolutionsSection, IndustriesSection, TrustedBy, Testimonials,
              CoursePricing white card inside CoursePricingSection. */
-:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero, body)
+:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero)
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, .bg-slate-100, #industries, #solutions, #catalog, #admissions) {
   color: #0F1535 !important;
 }
 
-:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero, body)
+:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero)
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, .bg-slate-100, #industries, #solutions, #catalog, #admissions) :is(h1, h2, h3, h4, h5, h6) {
   color: #000048 !important;
 }
 
-:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero, body)
+:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero)
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, .bg-slate-100, #industries, #solutions, #catalog, #admissions) p {
   color: #475569 !important;
 }
 
-:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero, body)
+:is(.modal-dark, [data-theme="dark"], .bg-\[\#070A1E\], .bg-\[\#070314\], .bg-\[\#0C061F\], .bg-\[\#0B051D\], .bg-\[\#0F1535\], .bg-\[\#000048\], #hero)
 :is(.bg-white, .bg-\[\#FFFFFF\], .bg-\[\#F7F7FC\], .bg-\[\#FFFDF9\], .bg-\[\#F8F9FE\], .bg-\[\#FFF6EC\], .bg-slate-50, .bg-slate-100, #industries, #solutions, #catalog, #admissions) :is([class*="text-[#5F6078]"], [class*="text-slate-500"], [class*="text-neutral-500"]) {
   color: #5F6078 !important;
+}
+
+/* Explicit high-contrast override for Cohort 1.0 Masterclass Vault banner */
+.cohort-vault-banner,
+.cohort-vault-banner h3,
+.cohort-vault-banner .cohort-banner-title,
+[class*="from-[#0F1535]"][class*="to-[#0A0D28]"] h3,
+div#root div main section div.cohort-vault-banner h3 {
+  color: #FFFFFF !important;
+}
+
+.cohort-vault-banner p,
+.cohort-vault-banner .cohort-banner-desc,
+[class*="from-[#0F1535]"][class*="to-[#0A0D28]"] p,
+div#root div main section div.cohort-vault-banner p {
+  color: #EDE9FE !important;
 }
 
 /* ==========================================================================

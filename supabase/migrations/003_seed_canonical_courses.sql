@@ -76,66 +76,6 @@ INSERT INTO courses (
     'published'
   ),
   (
-    'fullstack-ai-engineering',
-    'Full-Stack & Autonomous AI Engineering Cohort',
-    'fullstack-ai-engineering',
-    1850000.00,
-    185000000,
-    '12 Weeks',
-    'Advanced',
-    'Flagship Engineering Cohort',
-    'Go beyond toy prompts and basic API wrappers. Learn how to architect enterprise-grade AI applications with deterministic execution, self-healing agent swarms, vector retrieval, pgvector indexing, and production deployment.',
-    'published'
-  ),
-  (
-    'executive-ai-strategy',
-    'AI Strategy & Autonomous Operations for Executives',
-    'executive-ai-strategy',
-    2400000.00,
-    240000000,
-    '4 Weeks',
-    'Executive',
-    'Executive Leadership Track',
-    'Cut through the AI hype and understand the actual unit economics, enterprise security frameworks, workflow transformations, and governance models required to build an AI-native organization.',
-    'published'
-  ),
-  (
-    'enterprise-workflow-automation',
-    'Enterprise Workflow Automation with n8n & Python',
-    'enterprise-workflow-automation',
-    950000.00,
-    95000000,
-    '6 Weeks',
-    'Intermediate',
-    'High-Demand Practical Skills',
-    'Replace costly Zapier subscriptions with self-hosted, unmetered n8n workflows integrated with custom Python logic, vector search, webhooks, and enterprise databases.',
-    'published'
-  ),
-  (
-    'ai-product-design-ui-ux',
-    'AI-Native Product Design, UI/UX & Design Systems',
-    'ai-product-design-ui-ux',
-    1100000.00,
-    110000000,
-    '6 Weeks',
-    'Intermediate',
-    'Design & UX Masterclass',
-    'Traditional static UI patterns fail when designing for nondeterministic AI experiences. Learn to craft streaming text interactions, agent feedback loops, canvas workspaces, and modern dark-mode design systems.',
-    'published'
-  ),
-  (
-    'generative-media-advertising',
-    'Generative Media, UGC Ad Automation & Media Buying',
-    'generative-media-advertising',
-    850000.00,
-    85000000,
-    '4 Weeks',
-    'All Levels',
-    'Growth & Creative Track',
-    'Lower customer acquisition costs by generating hundreds of personalized UGC video ads, testing hooks algorithmically, and managing scalable campaigns across Meta, TikTok, and Google Ads.',
-    'published'
-  ),
-  (
     'machine-learning-data-science',
     'Machine Learning & Data Science',
     'machine-learning-data-science',
@@ -145,6 +85,30 @@ INSERT INTO courses (
     'Beginner to Intermediate',
     '18-Week Comprehensive Cohort',
     'Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.',
+    'published'
+  ),
+  (
+    'client-acquisition-freelancing',
+    'Client Acquisition & Freelancing Masterclass',
+    'client-acquisition-freelancing',
+    25000.00,
+    2500000,
+    '4 Weeks',
+    'All Levels',
+    'Cohort 1.0 Master Track • ₦25,000',
+    'A step-by-step masterclass on positioning yourself, packaging your digital & AI skills, finding high-paying clients, writing proposals that win, outreach workflows, and building a sustainable freelance business.',
+    'published'
+  ),
+  (
+    'cohort-1-master-bundle',
+    'Cohort 1.0: 4-in-1 Masterclass All-Access Pass',
+    'cohort-1-master-bundle',
+    45000.00,
+    4500000,
+    'Full Lifetime Access',
+    'All Levels',
+    'Flagship 4-in-1 Bundle • Save 69%',
+    'One purchase unlocks all four Cohort 1.0 masterclass tracks: AI Content Creation, AI Automation, AI Web Development (Full Stack Vibe Coding), and Client Acquisition & Freelancing with full Telegram community access and resources.',
     'published'
   )
 ON CONFLICT (id) DO UPDATE SET

@@ -405,16 +405,22 @@ export function AcademyPage({
 
       {/* Featured Cohort 1.0 Masterclass Vault Banner */}
       <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-gradient-to-r from-[#0F1535] via-[#1A114A] to-[#0A0D28] text-white p-6 sm:p-8 border border-purple-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="rounded-3xl bg-gradient-to-r from-[#0F1535] via-[#1A114A] to-[#0A0D28] text-white p-6 sm:p-8 border border-purple-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 cohort-vault-banner">
           <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-amber-400 text-[#000048]">
-              <Sparkles className="w-3.5 h-3.5 fill-[#000048]" />
-              <span>Flagship Vault Available</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-amber-400 text-slate-950 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+              <span className="text-slate-950 font-bold">Flagship Vault Available</span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white">
+            <h3 
+              className="text-xl sm:text-2xl font-black text-white tracking-tight cohort-banner-title"
+              style={{ color: '#FFFFFF' }}
+            >
               Vixora Academy Cohort 1.0: 4-in-1 Masterclass
             </h3>
-            <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl leading-relaxed">
+            <p 
+              className="text-xs sm:text-sm text-purple-100 max-w-2xl leading-relaxed cohort-banner-desc"
+              style={{ color: '#EDE9FE' }}
+            >
               Complete archives of our live cohort: AI Content Creation, AI Automation, AI Web Development, and Client Acquisition. 28+ hours of video replays, 14 strategy PDFs &amp; Private Telegram Community.
             </p>
           </div>
