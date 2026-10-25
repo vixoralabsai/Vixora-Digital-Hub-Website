@@ -12,7 +12,8 @@ import {
   RefreshCw,
   ArrowRight,
   ShieldCheck,
-  MessageSquare
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import {
   verifyPaystackPayment,
@@ -230,6 +231,63 @@ export function PaymentCallbackPage({
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {/* Telegram Learning Vault Access */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#0c1e3f] via-[#09152e] to-[#050b1a] border border-sky-500/40 space-y-3 shadow-lg shadow-sky-950/30">
+                  <div className="flex items-center justify-between border-b border-sky-900/40 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Send className="w-4 h-4 text-sky-400" />
+                      <span className="text-xs font-mono font-bold text-sky-300 uppercase tracking-wider">
+                        {payment.telegramInvites && payment.telegramInvites.length > 1
+                          ? `Telegram Learning Vaults (${payment.telegramInvites.length} Included)`
+                          : 'Telegram Learning Vault'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/40">
+                      Access Unlocked
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    HD session replays, downloadable PDF workbooks, project repositories, and mentor Q&amp;A are hosted in your private Telegram community:
+                  </p>
+
+                  <div className="space-y-2 pt-1">
+                    {(payment.telegramInvites && payment.telegramInvites.length > 0
+                      ? payment.telegramInvites
+                      : [
+                          {
+                            title: `${payment.courseTitle} Telegram Vault`,
+                            description: 'Direct student channel for session archives and materials.',
+                            inviteUrl: 'https://t.me/+VixoraCohort1MasterVault'
+                          }
+                        ]
+                    ).map((inv, idx) => (
+                      <a
+                        key={idx}
+                        href={inv.inviteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 rounded-xl bg-sky-950/60 hover:bg-sky-900/60 border border-sky-800/40 hover:border-sky-400 text-white transition-all group cursor-pointer"
+                      >
+                        <div className="min-w-0 pr-3">
+                          <div className="text-xs font-bold text-sky-200 group-hover:text-white truncate">
+                            {inv.title}
+                          </div>
+                          {inv.description && (
+                            <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                              {inv.description}
+                            </div>
+                          )}
+                        </div>
+                        <div className="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shrink-0 flex items-center gap-1 transition-colors">
+                          <span>Join</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
                 <a
                   href={getWhatsAppUrl(
                     'ng',

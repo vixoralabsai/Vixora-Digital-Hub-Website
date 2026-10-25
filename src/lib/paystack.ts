@@ -57,6 +57,11 @@ export interface VerifiedPaymentData {
   emailDispatchedAt?: string | null;
   gatewayResponse?: string;
   last4?: string | null;
+  telegramInvites?: Array<{
+    title: string;
+    description?: string;
+    inviteUrl: string;
+  }>;
 }
 
 export interface VerifyPaymentResponse {
