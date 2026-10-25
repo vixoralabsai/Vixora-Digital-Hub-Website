@@ -1057,7 +1057,8 @@ function buildStudentOnboardingEmail(params) {
     studentCode,
     generatedTempPassword,
     directPasswordSetupLink,
-    whatsappUrl
+    whatsappUrl,
+    telegramInvites = []
   } = params;
   const subject = `\u{1F393} Student Account & Admission Confirmed: ${courseTitle} (\u20A6${tuitionNaira.toLocaleString()})`;
   const portalUrl = PORTAL_URL;
@@ -1166,6 +1167,47 @@ function buildStudentOnboardingEmail(params) {
       </tr>
     </table>
 
+    <!-- Dedicated Telegram Learning Space(s) -->
+    ${telegramInvites && telegramInvites.length > 0 ? `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #0f1c3f 0%, #081129 100%); border: 1px solid #38bdf8; border-radius: 14px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.15);">
+      <tr>
+        <td style="padding: 22px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td style="padding-bottom: 14px; border-bottom: 1px solid #1e3a8a;">
+                <span style="font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;">
+                  \u2708\uFE0F Your Private Telegram Learning Access (${telegramInvites.length === 1 ? "1 Track Vault" : `${telegramInvites.length} Track Vaults Included`})
+                </span>
+                <p style="margin: 6px 0 0 0; font-size: 12px; color: #94a3b8; line-height: 1.4;">
+                  HD session video replays, downloadable PDF workbooks, code templates, and daily mentor Q&amp;A are hosted in these private Telegram channels:
+                </p>
+              </td>
+            </tr>
+            ${telegramInvites.map((inv, idx) => `
+            <tr>
+              <td style="padding: 12px 0; border-bottom: ${idx < telegramInvites.length - 1 ? "1px solid #1e293b" : "none"};">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                  <tr>
+                    <td style="vertical-align: middle;">
+                      <strong style="color: #ffffff; font-size: 14px; display: block;">${inv.title}</strong>
+                      ${inv.description ? `<span style="color: #cbd5e1; font-size: 12px; display: block; margin-top: 3px;">${inv.description}</span>` : ""}
+                    </td>
+                    <td align="right" style="vertical-align: middle; padding-left: 14px; white-space: nowrap;">
+                      <a href="${inv.inviteUrl}" style="background-color: #0284c7; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 6px; display: inline-block;">
+                        Join Telegram Vault &rarr;
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            `).join("")}
+          </table>
+        </td>
+      </tr>
+    </table>
+    ` : ""}
+
     <!-- 3-Step Orientation Checklist -->
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
       <tr>
@@ -1177,27 +1219,27 @@ function buildStudentOnboardingEmail(params) {
       </tr>
       <tr>
         <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
-          <strong style="color: #ffffff;">1. Activate Your Portal:</strong> Click the button below to set your password and access your student dashboard.
+          <strong style="color: #ffffff;">1. Join Your Telegram Vault:</strong> Click your invite link above to join your track's private Telegram learning group.
         </td>
       </tr>
       <tr>
         <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
-          <strong style="color: #ffffff;">2. Review Curriculum &amp; Labs:</strong> Browse the weekly modules, practical lab assignments, and capstone briefs.
+          <strong style="color: #ffffff;">2. Activate Your Student Portal:</strong> Click below to set your password and access your course curriculum and resources.
         </td>
       </tr>
       <tr>
         <td style="padding: 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
-          <strong style="color: #ffffff;">3. Join WhatsApp Cohort:</strong> Connect with your instructors and fellow students in the private cohort room.
+          <strong style="color: #ffffff;">3. Join WhatsApp Admissions:</strong> Connect with your instructors and cohort peers for live updates.
         </td>
       </tr>
     </table>
   `;
   const html = renderEmailLayout({
-    previewText: `Welcome to ${courseTitle}! Your tuition is verified. Login and set your password here.`,
+    previewText: `Welcome to ${courseTitle}! Your tuition is verified. Login and join your Telegram vault here.`,
     badgeText: "\u2713 Verified Payment & Official Admission",
     badgeVariant: "success",
     title: `Welcome to ${courseTitle}`,
-    subtitle: `Your official tuition payment receipt, student matriculation credentials, and portal access instructions.`,
+    subtitle: `Your official tuition payment receipt, student matriculation credentials, and private Telegram learning spaces.`,
     bodyContentHtml,
     primaryCta: {
       label: directPasswordSetupLink ? "\u{1F680} Set Your Password & Access Student Portal" : "\u{1F680} Log In to Your Student Portal",
@@ -1209,13 +1251,17 @@ function buildStudentOnboardingEmail(params) {
     },
     footerNote: "This is an official transactional message regarding your verified enrollment on Vixora Academy."
   });
+  const textTelegram = telegramInvites.length > 0 ? `
+TELEGRAM LEARNING SPACES:
+` + telegramInvites.map((t) => `- ${t.title}: ${t.inviteUrl}`).join("\n") + `
+` : "";
   const text = `
 Welcome to Vixora Academy!
 Admission Confirmed for: ${courseTitle}
 
 Dear ${customerName},
 Your tuition payment of \u20A6${tuitionNaira.toLocaleString()} NGN has been verified.
-
+${textTelegram}
 YOUR STUDENT CREDENTIALS:
 - Student ID / Code: ${studentCode}
 - Login Email: ${customerEmail}
@@ -1978,6 +2024,13 @@ async function getAuthenticatedStudentProfile(authUserId, verifiedEmail) {
               total_modules
             )
           `).eq("student_id", studentId);
+        if (enrollError) {
+          throw new DatabaseServiceError(
+            "Unable to load course enrollments from the database.",
+            "ENROLLMENTS_QUERY_FAILED",
+            503
+          );
+        }
         const certs = await getCertificatesByStudentEmail(studentRow.email || cleanEmail);
         const certMap = /* @__PURE__ */ new Map();
         certs.forEach((c) => certMap.set(c.courseId, c.id));
@@ -1990,29 +2043,15 @@ async function getAuthenticatedStudentProfile(authUserId, verifiedEmail) {
                 courseId: course.id,
                 title: course.title,
                 badge: course.badge || "Enterprise Track",
-                progressPercent: e.progress_percent ?? 75,
-                status: e.status || "in-progress",
-                cohort: e.cohort || "Cohort 2026-B",
-                instructor: course.instructor_name || "Dr. Adebayo Vance",
-                completedModules: e.completed_modules ?? 9,
-                totalModules: course.total_modules || e.total_modules || 12,
+                progressPercent: e.progress_percent ?? 0,
+                status: e.status || "enrolled",
+                cohort: e.cohort || "Not assigned",
+                instructor: course.instructor_name || "Vixora Academy",
+                completedModules: e.completed_modules ?? 0,
+                totalModules: course.total_modules || e.total_modules || 0,
                 certificateId: certMap.get(course.id) || void 0
               });
             }
-          });
-        }
-        if (studentCourses.length === 0) {
-          studentCourses.push({
-            courseId: "ai-automation-digital-business-systems",
-            title: "Autonomous AI Systems & Scalable Architecture",
-            badge: "Enterprise Track",
-            progressPercent: 75,
-            status: "in-progress",
-            cohort: "Cohort 2026-B",
-            instructor: "Dr. Adebayo Vance",
-            completedModules: 9,
-            totalModules: 12,
-            certificateId: certMap.get("ai-automation-digital-business-systems") || void 0
           });
         }
         return {
@@ -4411,19 +4450,20 @@ var ACADEMY_COURSES = [
     description: "Vixora Academy's advanced, implementation-focused program for people ready to go beyond tools and start building. You'll learn to design, build, and deploy AI-powered automations and solutions \u2014 the kind organizations and clients actually pay for \u2014 with hands-on mentorship, real business projects, and direct support.",
     heroPitch: "Stop using AI tools. Start building AI systems businesses pay for \u2014 real automations, real client systems, and a real income stream with direct mentorship.",
     highlights: [
-      "Advanced, implementation-focused curriculum (not a repeat of the basics)",
-      "Direct mentorship and higher-touch support throughout",
-      "Real business projects \u2014 building your actual portfolio, not sample exercises",
-      "Client acquisition training \u2014 finding and closing clients, not just theory",
-      "Access to an active community of other builders",
-      "A clear path to freelance or service-business income"
+      "12-Week intensive curriculum covering 6 core pillars from content to deployment",
+      "Hands-on building with Make.com, n8n, GHL, and Vapi autonomous voice agents",
+      "AI-powered PDF & digital product creation, packaging, and commercialization",
+      "Full-stack Vibe Coding with TypeScript, Vite, databases & Paystack checkout",
+      "Direct mentorship and client acquisition training to close \u20A6200k\u2013$2,500/mo retainers",
+      "Production capstone project and formal portfolio defense for verified certification"
     ],
     outcomes: [
-      "Architect multi-step advanced automations with Make, Zapier, Notion, n8n & GHL",
-      "Deliver professional-level AI image and video production assets for paying clients",
-      "Deploy business process & PDF automation systems solving high-ticket operational pain points",
-      "Build custom AI tools and web products using Vibe Coding without a traditional dev background",
-      "Master end-to-end client acquisition, discovery calls, scoping, and retaining recurring contracts"
+      "Produce commercial AI visuals, UGC video ads, voiceovers & branded media",
+      "Architect autonomous business workflows with Notion, Zapier, Make, GHL, n8n & Vapi voice agents",
+      "Author, design, package, and launch profitable AI-powered PDF digital products",
+      "Build and deploy full-stack web applications with TypeScript, APIs, databases & Paystack payment checkouts",
+      "Master high-ticket freelancing: Upwork proposals, cold outreach, and closing recurring client retainers",
+      "Complete and defend a live production capstone system to earn your Vixora Certificate of Advanced Mastery"
     ],
     prerequisites: [
       "Basic comfort with AI tools (ChatGPT, prompting fundamentals)",
@@ -4431,108 +4471,116 @@ var ACADEMY_COURSES = [
       "Laptop with reliable internet connection and willingness to build real projects"
     ],
     curriculum: [
-      "Module 1 \u2014 Advanced AI Workflows (Make, Zapier, Notion, n8n & GHL)",
-      "Module 2 \u2014 Advanced Prompting & AI Production (Client & Business Media)",
-      "Module 3 \u2014 Business Process & PDF Automation (Operational Pain Points)",
-      "Module 4 \u2014 Vibe Coding & AI-Powered Solutions (Custom Web Tools)",
-      "Module 5 \u2014 Client & Project Implementation (First Call to Delivery)",
-      "Module 6 \u2014 Freelancing & Service Business (Packaging Offers & Retainers)",
-      "Module 7 \u2014 Mentorship, Community & Capstone Client Deployments"
+      "Module 1 (Weeks 1\u20132) \u2014 AI Foundations & Content Creation",
+      "Module 2 (Weeks 3\u20135) \u2014 AI Automation & Business Tools",
+      "Module 3 (Weeks 6\u20137) \u2014 AI-Powered PDF & Digital Products",
+      "Module 4 (Weeks 8\u201310) \u2014 Vibe Coding & Full-Stack Development",
+      "Module 5 (Week 11) \u2014 Freelancing & Client Acquisition",
+      "Module 6 (Week 12) \u2014 Capstone & Final Assessment"
     ],
     weeklySyllabus: [
       {
-        week: "Weeks 1-2 (Module 1)",
-        title: "Advanced AI Workflows",
-        description: "Go beyond the basics with Make, Zapier, Notion, n8n, and GHL \u2014 building serious, multi-step automations that solve real business problems.",
+        week: "Weeks 1\u20132 (Module 1)",
+        title: "AI Foundations & Content Creation",
+        description: "AI fundamentals, responsible AI, generative AI, UGC ads, AI video and image creation, and everyday productivity tools to accelerate creative output.",
         topics: [
-          "Multi-step conditional logic, error routers, and fallback handlers in Make.com",
-          "Self-hosted & cloud n8n workflows for complex enterprise integrations",
-          "GoHighLevel (GHL) CRM automation, pipeline triggers & SMS/email sequences",
-          "Notion databases as real-time automation control centers and dashboards"
+          "AI fundamentals, foundational architecture & responsible AI principles",
+          "Generative AI prompt architecture, system instructions & output steering",
+          "High-converting UGC ad frameworks, scripting & visual storyboard strategy",
+          "Commercial AI image generation, consistent character & brand mockup production",
+          "AI video synthesis, voice cloning, sound design & kinetic caption workflows",
+          "Everyday AI productivity toolchains to 10x workflow efficiency"
         ],
-        handsOnLab: "Build and deploy a multi-channel lead routing & onboarding automation engine with Make and n8n."
+        handsOnLab: "Produce a complete commercial UGC ad package and high-converting visual brand asset kit."
       },
       {
-        week: "Weeks 3-4 (Module 2)",
-        title: "Advanced Prompting & AI Production",
-        description: "Professional-level prompting, plus AI image and video production built for client and business use \u2014 not just personal projects.",
+        week: "Weeks 3\u20135 (Module 2)",
+        title: "AI Automation & Business Tools",
+        description: "Architect robust multi-app automations with Notion, Zapier, Make.com, GoHighLevel fundamentals, self-hosted n8n workflows, and conversational Vapi voice agents.",
         topics: [
-          "System prompts, multi-persona chains, and structured JSON output extraction",
-          "Commercial AI image generation, consistent character & brand style matching",
-          "AI video commercials, dynamic voice cloning, and lip-syncing for client ads",
-          "Building automated batch content production pipelines"
+          "Notion databases as real-time automation command centers, wikis & client portals",
+          "Zapier & Make.com multi-step triggers, conditional filters & data routers",
+          "GoHighLevel (GHL) CRM fundamentals, pipeline stages & automated messaging funnels",
+          "n8n node architecture: self-hosted instances, webhook payloads & error handling",
+          "Vapi autonomous voice agents: telephony setup, knowledge base injection & inbound call routing",
+          "Automating multi-channel lead capture, appointment booking & client notification loops"
         ],
-        handsOnLab: "Create an end-to-end commercial video ad campaign asset pack for a real business client."
+        handsOnLab: "Build an autonomous inbound lead qualification system with Make, GHL, and a live Vapi voice assistant."
       },
       {
-        week: "Weeks 5-6 (Module 3)",
-        title: "Business Process & PDF Automation",
-        description: "Design automation systems that solve real operational pain points for businesses \u2014 the kind of work clients will pay premium rates for.",
+        week: "Weeks 6\u20137 (Module 3)",
+        title: "AI-Powered PDF & Digital Products",
+        description: "Research, write quality PDFs with AI, design professional documents, package value-added bundles, and sell digital products through automated funnels.",
         topics: [
-          "Automated PDF extraction, invoice OCR, and receipt parsing with AI models",
-          "Document generation pipelines (contract generation, proposals, automated reports)",
-          "ERP & accounting software sync (QuickBooks, Google Sheets, Airtable)",
-          "Human-in-the-loop review queues for compliance and quality control"
+          "Market research, audience pain points & high-demand digital product ideation",
+          "Directing LLMs to research and author authoritative, comprehensive guidebooks & SOPs",
+          "Professional PDF typography, layout mathematics, cover art & visual branding",
+          "Product packaging: worksheets, bonus resource packs & digital product mockups",
+          "Checkout page copywriting, Paystack payment gateway setup & automated instant delivery"
         ],
-        handsOnLab: "Deploy an automated invoice ingestion and financial summary system that saves 15+ hours/week."
+        handsOnLab: "Research, write, design, and package an authoritative commercial PDF guide ready to sell online."
       },
       {
-        week: "Weeks 7-8 (Module 4)",
-        title: "Vibe Coding & AI-Powered Solutions",
-        description: "Learn to build working AI-powered tools and products, even without a traditional developer background.",
+        week: "Weeks 8\u201310 (Module 4)",
+        title: "Vibe Coding & Full-Stack Development",
+        description: "Harness modern AI pair-programming to build production full-stack web applications with TypeScript, Vite, backend APIs, databases, payment gateways, and cloud deployment.",
         topics: [
-          "Modern AI-assisted code generation (Cursor, Claude Code, Lovable, Replit)",
-          "Building micro-SaaS calculators, lead magnets, and customer client portals",
-          "Integrating Gemini and OpenAI APIs into web interfaces with secure backends",
-          "Deploying fast, responsive web apps with zero devops hassle"
+          "Vibe coding mental models: pair-programming with modern AI coding assistants without losing control",
+          "TypeScript & Vite frontend architecture: responsive layouts, components & Tailwind CSS tokens",
+          "Backend endpoints, RESTful APIs, request validation & middleware logic",
+          "Database modeling, persistent storage, and secure client authentication flows",
+          "Paystack payment gateway integration: secure card/transfer checkouts, webhooks & transaction verification",
+          "Production build optimization, custom domain mapping, and cloud deployment"
         ],
-        handsOnLab: "Build and publish a live, functional AI-powered web tool that prospective clients can test."
+        handsOnLab: "Build and deploy a live, production-ready full-stack web application with TypeScript, persistent database, and Paystack checkout."
       },
       {
-        week: "Weeks 9-10 (Module 5)",
-        title: "Client & Project Implementation",
-        description: "Take a project from first conversation to delivered solution \u2014 the exact process professionals use to run real client work.",
+        week: "Week 11 (Module 5)",
+        title: "Freelancing & Client Acquisition",
+        description: "Package your newly acquired technical and automation skills into high-ticket offers, craft winning proposals, conduct client outreach, and close monthly retainers.",
         topics: [
-          "Conducting discovery calls & diagnosing high-value automation opportunities",
-          "Writing winning scopes of work (SOW), PRDs, and implementation milestones",
-          "Client onboarding, environment staging, and testing protocols",
-          "Handover documentation, Loom video walk-throughs, and client training"
+          "Positioning yourself as a high-value systems specialist rather than a commodity freelancer",
+          "Packaging service offers into clear deliverables and monthly maintenance retainers",
+          "Upwork profile optimization, algorithmic visibility & winning proposal formulas (80%+ reply rates)",
+          "Cold outreach systems: prospecting foreign decision-makers via email, LinkedIn, and Twitter/X",
+          "Conducting diagnostic client discovery calls, handling objections, and closing contracts"
         ],
-        handsOnLab: "Package a complete client proposal with detailed scope, architecture diagram, and milestone pricing."
+        handsOnLab: "Package your high-ticket service offer, launch your portfolio, and execute an active 20-lead outreach campaign."
       },
       {
-        week: "Weeks 11-12 (Module 6 & 7)",
-        title: "Freelancing, Service Business & Mentorship",
-        description: "Package your skills into a service business, find and close clients, build recurring retainers, and receive direct 1-on-1 mentorship.",
+        week: "Week 12 (Module 6)",
+        title: "Capstone & Final Assessment",
+        description: "Complete your end-to-end capstone system, perform rigorous edge-case testing, deliver a live presentation, and complete your formal portfolio review.",
         topics: [
-          "High-ticket service packaging & recurring monthly maintenance retainers",
-          "Cold outreach, inbound LinkedIn funnels, and closing discovery calls",
-          "Pricing your work (from \u20A6200k fixed projects to $2,500/mo retainers)",
-          "Graduation review, portfolio polishing, and peer mastermind community"
+          "End-to-end capstone system integration: connecting media, automations, voice agents & web portal",
+          "Rigorous edge-case testing, error handling, rate limiting & security hardening",
+          "Creating polished Loom video walkthroughs and client handover documentation",
+          "Live capstone presentation, mentor defense, and expert portfolio review",
+          "Graduation verification, Vixora Mastery Certificate issuance & alumni mastermind onboarding"
         ],
-        handsOnLab: "Launch your official automation service landing page & portfolio with active client outreach."
+        handsOnLab: "Present and defend your completed production capstone system before faculty mentors to receive certification."
       }
     ],
     capstoneProjects: [
       {
-        title: "Enterprise Multi-App Lead & Automation Engine",
-        description: "A production-grade n8n, Make.com, and GHL multi-system automation integrating webhook routers, CRM pipelines, and autonomous client notifications.",
-        technologies: ["n8n", "Make.com", "GoHighLevel", "OpenAI / Gemini API", "Notion", "PostgreSQL"]
+        title: "Autonomous Inbound Lead & Voice Agent Engine",
+        description: "A production-grade multi-system automation connecting GoHighLevel CRM, Make.com pipelines, and a conversational Vapi AI voice caller for 24/7 lead triage.",
+        technologies: ["Vapi Voice AI", "GoHighLevel", "Make.com", "n8n", "Notion", "Webhooks"]
       },
       {
-        title: "AI-Generated Commercial Production Suite & Client Asset Pipeline",
-        description: "An automated commercial media pipeline producing consistent-character visual campaigns, promotional AI video clips, voiceovers, and scheduled deliverables.",
-        technologies: ["Midjourney v6", "Runway Gen-3 / Kling", "ElevenLabs", "Claude 3.7", "Airtable"]
+        title: "AI Commercial UGC Video & Visual Brand Suite",
+        description: "An automated commercial media pipeline producing consistent-character visual campaigns, promotional UGC video ads, cloned voiceovers, and scheduled deliverables.",
+        technologies: ["Midjourney / Flux", "Runway Gen-3", "ElevenLabs", "CapCut", "Productivity AI"]
       },
       {
-        title: "Autonomous Invoice Ingestion & Document Intelligence Portal",
-        description: "An operational enterprise tool that monitors email inboxes, parses PDF invoices via OCR, reconciles ledger items, and triggers payment receipts.",
-        technologies: ["Make.com", "AI Document OCR", "Google Sheets / QuickBooks", "Zapier", "Slack API"]
+        title: "AI-Powered Commercial PDF Guide & Digital Storefront",
+        description: "An authoritative, well-researched digital guidebook written with AI, professionally designed, packaged with bonus assets, and sold via automated checkout.",
+        technologies: ["Research AI", "Layout Design", "Digital Packaging", "Paystack", "Instant Delivery"]
       },
       {
-        title: "Custom AI Micro-SaaS Tool (Vibe Coding Capstone)",
-        description: "A deployed, client-facing web application with custom prompt logic and interactive UI built using modern AI code generation.",
-        technologies: ["React / Vite", "Tailwind CSS", "Gemini API", "Cloud Run / Vercel"]
+        title: "Full-Stack AI Web App with Paystack Integration",
+        description: "A deployed, production-ready web application built via Vibe Coding with TypeScript, Vite, backend REST APIs, persistent database, and Paystack checkout.",
+        technologies: ["TypeScript", "Vite / React", "Tailwind CSS", "Paystack Gateway", "Cloud Deployment"]
       }
     ],
     instructors: [
@@ -4784,599 +4832,6 @@ var ACADEMY_COURSES = [
       }
     ],
     certificateType: "Vixora Certificate of Completion in Full Stack Vibe Coding"
-  },
-  {
-    id: "course-fullstack-ai",
-    slug: "fullstack-ai-engineering",
-    title: "Full-Stack & Autonomous AI Engineering Cohort",
-    subtitle: "Architect production SaaS, agentic workflows, LangGraph pipelines, and low-latency microservices from zero to scale.",
-    badge: "Flagship Engineering Cohort",
-    level: "Advanced",
-    track: "Engineering & AI",
-    format: "12-Week Live Cohort + Project Lab",
-    duration: "12 Weeks",
-    commitment: "6-8 hrs/week (Live sessions + Labs)",
-    nextCohortDate: "October 14, 2026",
-    tuition: "$1,850",
-    tuitionNote: "Or 3 monthly installments of $650. Corporate sponsorship accepted.",
-    seatsRemaining: 6,
-    targetAudience: "Software Engineers, Full-Stack Developers, Technical Leads, and Ambitious Builders looking to master modern AI engineering.",
-    description: "Go beyond toy prompts and basic API wrappers. Learn how to architect enterprise-grade AI applications with deterministic execution, self-healing agent swarms, vector retrieval, pgvector indexing, and production deployment.",
-    heroPitch: "Become the top 1% of modern engineers who can design, code, and deploy resilient autonomous AI systems from database schema to clean frontend UI.",
-    highlights: [
-      "Live code reviews by senior AI infrastructure leads",
-      "Deploy 3 real-world production capstones to your portfolio",
-      "Private Discord mastermind & direct office hours",
-      "Official Vixora Certified AI Engineer credential"
-    ],
-    outcomes: [
-      "Master TypeScript, React 19, FastAPI, and async Python backends",
-      "Build multi-agent autonomous teams with LangGraph and StateGraph",
-      "Implement high-recall Hybrid RAG with pgvector and semantic re-ranking",
-      "Containerize and deploy with Docker, Fly.io, and Cloud Run"
-    ],
-    prerequisites: [
-      "Working knowledge of JavaScript/TypeScript or Python",
-      "Basic familiarity with REST APIs and databases",
-      "Git version control essentials"
-    ],
-    curriculum: [
-      "Advanced TypeScript & React 19 Next-Gen Architectures",
-      "High-Performance Python Microservices with FastAPI",
-      "Agentic AI Swarms, State Machines & LangGraph",
-      "Production RAG: Chunking, Embeddings & pgvector",
-      "Observability, Token Budgets, Eval Frameworks & Cloud Deploy"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Weeks 1-2",
-        title: "Modern Full-Stack Foundation & High-Concurrency APIs",
-        description: "Set up enterprise TypeScript environments, asynchronous Python microservices with FastAPI, Pydantic schemas, and JWT auth architectures.",
-        topics: [
-          "React 19 Server Components & State Management",
-          "FastAPI Async Lifespans & Dependency Injection",
-          "PostgreSQL connection pooling with AsyncPG & Prisma",
-          "Structured JSON response contracts & schema validation"
-        ],
-        handsOnLab: "Build an authenticated multi-tenant backend API with real-time SSE event streaming."
-      },
-      {
-        week: "Weeks 3-5",
-        title: "Autonomous Agent Swarms & Deterministic Orchestration",
-        description: "Move from single LLM calls to multi-agent architectures using LangGraph, tool-calling protocols, and human-in-the-loop validation.",
-        topics: [
-          "StateGraph design: Cycles, branching, and state checkpointing",
-          "Tool-calling standards with function signatures & error fallbacks",
-          "Self-correcting code & data verification agents",
-          "Orchestrating multi-model pipelines (Gemini 2.5, Claude 3.5, GPT-4o)"
-        ],
-        handsOnLab: "Deploy an Autonomous Research & Fact-Checking Agent that searches, verifies, and generates structured reports."
-      },
-      {
-        week: "Weeks 6-8",
-        title: "Enterprise RAG: Vector Databases, Chunking & Semantic Search",
-        description: "Architect production retrieval pipelines that prevent hallucinations and scale to millions of corporate documents.",
-        topics: [
-          "Document parsing: PDFs, Markdown, Notion, and Google Drive",
-          "Context-aware chunking strategies & embedding benchmarks",
-          "Hybrid Search: Combining BM25 keyword search with pgvector cosine similarity",
-          "Cross-encoder re-ranking and citation generation"
-        ],
-        handsOnLab: "Build an Enterprise Knowledge Base Assistant with source document page citations and role-based access control."
-      },
-      {
-        week: "Weeks 9-10",
-        title: "Evaluation, Observability & Token Cost Engineering",
-        description: "Learn how to monitor LLM performance in production, measure latency, track hallucination rates, and optimize token usage.",
-        topics: [
-          "Prompt engineering vs. fine-tuning economics",
-          "Setting up Langfuse / OpenInference observability traces",
-          "Automated LLM-as-a-Judge test suites for regression testing",
-          "Rate-limiting, semantic caching with Redis, and fallback queues"
-        ],
-        handsOnLab: "Implement an automated evaluation pipeline that scores your agent's response accuracy before shipping."
-      },
-      {
-        week: "Weeks 11-12",
-        title: "Capstone Defense & Production Cloud Deployment",
-        description: "Package your full-stack AI system into Docker containers and deploy with CI/CD to scalable cloud infrastructure.",
-        topics: [
-          "Multi-stage Docker builds for Python and Node",
-          "Container orchestration on Google Cloud Run & Fly.io",
-          "Domain setup, SSL, CORS, and rate limiting reverse proxies",
-          "Final Capstone Project live showcase to hiring partners & clients"
-        ],
-        handsOnLab: "Deploy your production-grade Capstone application with a custom domain, CI/CD, and live monitoring."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "Autonomous RFP & Technical Proposal Synthesizer",
-        description: "A complete multi-agent application that ingests 100+ page enterprise RFP documents, parses requirements, and coordinates 3 specialized agents to draft compliant technical proposals.",
-        technologies: ["React 19", "FastAPI", "LangGraph", "pgvector", "PostgreSQL", "Docker"]
-      },
-      {
-        title: "Real-Time Voice & Screen Co-Pilot for Support Engineers",
-        description: "Low-latency multimodal assistant that monitors support tickets, analyzes error logs, and suggests deterministic code fixes with verified regression tests.",
-        technologies: ["TypeScript", "Gemini Multimodal Live API", "FastAPI", "WebSockets", "Tailwind CSS"]
-      },
-      {
-        title: "Self-Healing Data Scraping & Market Intelligence Pipeline",
-        description: "An autonomous agent swarm that browses competitor websites, recovers automatically when DOM structures change, and updates Postgres analytics dashboards.",
-        technologies: ["Python", "Playwright", "FastAPI", "Supabase", "Redis"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Dr. Marcus Vance",
-        role: "Head of AI Engineering, Vixora Labs",
-        bio: "Former Principal Architect with 12+ years of experience scaling distributed systems and deep learning infrastructure.",
-        companyBackground: "Ex-Google Cloud & Autonomous Systems Lead"
-      },
-      {
-        name: "Elena Rostova",
-        role: "Senior Full-Stack & Agentic Architect",
-        bio: "Specialist in high-throughput React architectures and LangGraph orchestration pipelines.",
-        companyBackground: "Vixora Digital Hub Senior Architect"
-      }
-    ],
-    faqs: [
-      {
-        q: "What is the time commitment required?",
-        a: "Expect approximately 6-8 hours per week: 3 hours of live interactive lectures/labs, and 3-5 hours of hands-on project building and mentor reviews."
-      },
-      {
-        q: "Are the live sessions recorded if I miss one?",
-        a: "Yes! Every live session, code-along, and Q&A is recorded in high definition and posted to your private student portal within 2 hours with all repository links."
-      },
-      {
-        q: "Do you offer corporate or employer reimbursement support?",
-        a: "Yes! Over 60% of our students are sponsored by their employers. We provide formal syllabus documents, tax invoices, and learning justification templates."
-      },
-      {
-        q: "Will I receive a verifiable certificate?",
-        a: "Yes, graduates who successfully complete their capstone project receive a blockchain-verified Vixora Certified AI Engineer credential and portfolio endorsement."
-      }
-    ],
-    certificateType: "Vixora Certified Full-Stack AI Engineer (VC-FAIE)"
-  },
-  {
-    id: "course-executive-ai",
-    slug: "executive-ai-strategy",
-    title: "AI Strategy & Autonomous Operations for Executives",
-    subtitle: "A no-fluff strategic masterclass for C-suite leaders and directors to deploy AI profitably and mitigate organizational risk.",
-    badge: "Executive Leadership Track",
-    level: "Executive",
-    track: "Executive & Leadership",
-    format: "4-Week Executive Cohort (Interactive Masterclass)",
-    duration: "4 Weeks",
-    commitment: "3-4 hrs/week (Evening/Weekend executive slots)",
-    nextCohortDate: "October 20, 2026",
-    tuition: "$2,400",
-    tuitionNote: "Includes 1-on-1 private strategy audit for your enterprise roadmap.",
-    seatsRemaining: 4,
-    targetAudience: "CEOs, CTOs, CIOs, Managing Directors, VPs of Operations, and Business Owners.",
-    description: "Cut through the AI hype and understand the actual unit economics, enterprise security frameworks, workflow transformations, and governance models required to build an AI-native organization.",
-    heroPitch: "Lead your organization's AI transformation with strategic clarity, proven ROI frameworks, and executive governance.",
-    highlights: [
-      "1-on-1 enterprise AI audit with Vixora Managing Partners",
-      "Executive templates: AI Vendor RFP, ROI Calculator & Governance Policies",
-      "Exclusive peer network of fellow C-suite leaders and founders",
-      "Private executive briefing on emerging frontier models"
-    ],
-    outcomes: [
-      "Identify high-ROI automation vectors across sales, ops, and product",
-      "Establish strict enterprise data security and compliance guardrails",
-      "Evaluate build vs. buy decisions for proprietary AI systems",
-      "Create a 12-month company-wide AI adoption roadmap"
-    ],
-    prerequisites: [
-      "Executive, Director, or Senior Management role",
-      "No coding background required; focus is on strategy, economics & execution"
-    ],
-    curriculum: [
-      "The Modern Enterprise AI Landscape & Unit Economics",
-      "Mapping 10x ROI Automation Vectors across Business Units",
-      "Security, IP Protection, SOC2 & Regulatory Compliance",
-      "Leading AI-Augmented Teams & Change Management"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Week 1",
-        title: "Frontier AI Landscape, Architecture & Unit Economics",
-        description: "Deconstruct the true capabilities of modern LLMs, reasoning models, and agent architectures without confusing technical jargon.",
-        topics: [
-          "Foundation Models vs. Open Weights vs. Specialized SLMs",
-          "Understanding token economics, inference costs & API budgets",
-          "Demystifying RAG, Agent Swarms, and Fine-Tuning",
-          "Identifying false promises and vendor vaporware"
-        ],
-        handsOnLab: "Perform an executive unit-cost audit for 3 potential enterprise AI use cases."
-      },
-      {
-        week: "Week 2",
-        title: "High-ROI Opportunity Mapping & Workflow Deconstruction",
-        description: "Systematically map your organization's highest-cost manual workflows and design autonomous replacement systems.",
-        topics: [
-          "The Automation Matrix: Impact vs. Feasibility scoring",
-          "Transforming Customer Support, Operations, and Finance pipelines",
-          "Human-in-the-loop safety nets and approval thresholds",
-          "Calculating payback periods and productivity multiples"
-        ],
-        handsOnLab: "Create an Executive Business Case & ROI Projection for your company's #1 automation priority."
-      },
-      {
-        week: "Week 3",
-        title: "Security, IP Sovereignty & Data Governance Guardrails",
-        description: "Protect proprietary corporate data, prevent IP leakage, and maintain compliance across international regulatory standards.",
-        topics: [
-          "Zero-data retention agreements with model providers",
-          "Private VPC deployment vs. public cloud APIs",
-          "GDPR, HIPAA, and EU AI Act compliance essentials",
-          "Creating enforceable internal employee AI usage guidelines"
-        ],
-        handsOnLab: "Draft a comprehensive Corporate AI Governance Policy tailored to your sector."
-      },
-      {
-        week: "Week 4",
-        title: "Execution Roadmap, Talent Strategy & 1-on-1 Advisory",
-        description: "Synthesize your company's 12-month implementation roadmap and review during your private advisory session.",
-        topics: [
-          "Hiring AI engineering talent vs. upskilling existing staff",
-          "Structuring build-vs-buy contracts with software agencies",
-          "Executive communication & board alignment strategies",
-          "Continuous iteration & maintaining technological agility"
-        ],
-        handsOnLab: "Finalize your company's 12-Month Enterprise AI Transformation Blueprint."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "Enterprise AI Transformation & ROI Blueprint",
-        description: "A board-ready strategic document detailing the target architecture, budget allocation, vendor selection criteria, and expected 18-month ROI for your organization.",
-        technologies: ["ROI Financial Models", "Risk Matrix", "Governance Framework", "Vendor RFP Template"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Arthur Sterling",
-        role: "Managing Partner & Strategic Lead",
-        bio: "Former enterprise technology director with 15+ years advising Fortune 500 executives on digital transformation.",
-        companyBackground: "Vixora Digital Hub Strategy Office"
-      }
-    ],
-    faqs: [
-      {
-        q: "Do I need any programming experience?",
-        a: "No. This course is specifically engineered for business leaders, executives, and strategists. All concepts are translated into business impact, unit economics, and operational frameworks."
-      },
-      {
-        q: "How does the 1-on-1 private strategy audit work?",
-        a: "During Week 4, you will have a dedicated 60-minute confidential consultation with Vixora Managing Partners to audit your organization's proprietary roadmap."
-      }
-    ],
-    certificateType: "Vixora Executive AI Strategist Certificate"
-  },
-  {
-    id: "course-workflow-automation",
-    slug: "enterprise-workflow-automation",
-    title: "Enterprise Workflow Automation with n8n & Python",
-    subtitle: "Build self-hosted, resilient automation pipelines that connect CRMs, databases, AI models, and communication channels without recurring SaaS fees.",
-    badge: "High-Demand Practical Skills",
-    level: "Intermediate",
-    track: "Business Automation",
-    format: "6-Week Hands-On Bootcamp",
-    duration: "6 Weeks",
-    commitment: "5 hrs/week (Live sessions + Workflows)",
-    nextCohortDate: "November 3, 2026",
-    tuition: "$950",
-    tuitionNote: "Includes lifetime access to Vixora's proprietary n8n template library (50+ workflows).",
-    seatsRemaining: 9,
-    targetAudience: "Operations Managers, Automation Specialists, Growth Engineers, and Technical Consultants.",
-    description: "Replace costly Zapier subscriptions with self-hosted, unmetered n8n workflows integrated with custom Python logic, vector search, webhooks, and enterprise databases.",
-    heroPitch: "Master self-hosted, scalable automation and eliminate manual operational bottlenecks across your entire organization.",
-    highlights: [
-      "Access to 50+ battle-tested enterprise n8n workflow templates",
-      "Learn self-hosting with Docker, SSL, and webhook security",
-      "Integrate OpenAI, Claude, and open-source models directly into workflows",
-      "Build custom Python nodes for complex business logic"
-    ],
-    outcomes: [
-      "Deploy self-hosted n8n on Docker with automatic backups and failovers",
-      "Automate CRM synchronization (HubSpot, Salesforce) with zero data loss",
-      "Build AI-powered document parsers, lead qualifiers, and invoice processors",
-      "Save thousands of dollars annually in third-party automation bills"
-    ],
-    prerequisites: [
-      "Basic understanding of APIs, JSON data, and webhooks",
-      "No advanced programming required, basic Python/JavaScript is a bonus"
-    ],
-    curriculum: [
-      "Self-Hosting n8n on Cloud Infrastructure with Docker",
-      "Mastering Webhooks, JSON Transformations & Custom Code Nodes",
-      "Embedding AI Models: Sentiment, Summarization & Data Extraction",
-      "Automated PDF Invoicing, Parsing, Email & CRM Synchronization",
-      "Error Handling, Queueing, Rate Limiting & Enterprise Security"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Weeks 1-2",
-        title: "Self-Hosting n8n & Architecture Fundamentals",
-        description: "Deploy n8n on Docker/VPS, configure SSL reverse proxies, webhook security, and understand the node execution model.",
-        topics: [
-          "Docker Compose setup with Postgres persistence",
-          "Securing endpoints with API keys, basic auth & rate limiting",
-          "JSON payload manipulation with JavaScript expressions",
-          "Working with complex arrays, merging, and filtering nodes"
-        ],
-        handsOnLab: "Spin up your own production-grade n8n instance and connect your first live webhook trigger."
-      },
-      {
-        week: "Weeks 3-4",
-        title: "AI Nodes, Vector Search & Document Intelligence",
-        description: "Integrate LLMs directly into visual workflows to summarize emails, extract unstructured PDF tables, and route tickets.",
-        topics: [
-          "LangChain nodes in n8n: Memory, Output Parsers & Agents",
-          "Extracting structured JSON from messy invoices and contracts",
-          "Vector embeddings and similarity searches in workflow nodes",
-          "Autonomous triage of incoming lead emails with sentiment scoring"
-        ],
-        handsOnLab: "Build an AI Invoice & Receipt Extractor that parses PDFs from email and updates Postgres + Notion automatically."
-      },
-      {
-        week: "Weeks 5-6",
-        title: "Enterprise Integration, Failovers & Retainer Monetization",
-        description: "Connect multi-app stacks (Slack, Salesforce, Stripe, PostgreSQL), handle network failures gracefully, and package workflows as consulting retainers.",
-        topics: [
-          "Error-trigger workflows, automatic retries & Slack alerting",
-          "Handling rate limits on third-party APIs (Stripe, HubSpot)",
-          "Building automated client onboarding & provisioning portals",
-          "Packaging and pricing automation retainers for clients"
-        ],
-        handsOnLab: "Deploy an End-to-End Client Onboarding & Billing Pipeline that synchronizes 5 distinct platforms simultaneously."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "Autonomous Lead Enrichment & CRM Routing Engine",
-        description: "A high-speed workflow that intercepts incoming web form leads, searches LinkedIn & company registries via API, scores fit with Gemini AI, and routes to sales reps in Slack.",
-        technologies: ["n8n", "Docker", "PostgreSQL", "Gemini AI", "Slack API", "HubSpot"]
-      },
-      {
-        title: "Automated Multi-Channel Content Repurposing Pipeline",
-        description: "Ingests long-form videos/audio, generates transcriptions via Whisper, produces 5 platform-specific social posts with AI, and queues drafts in social managers.",
-        technologies: ["n8n", "Whisper", "Claude 3.5", "Buffer API", "Airtable"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Devon Chen",
-        role: "Lead Automation Engineer, Vixora Labs",
-        bio: "Built and maintains hundreds of mission-critical enterprise workflows powering millions in ARR.",
-        companyBackground: "Automation Lead & n8n Specialist"
-      }
-    ],
-    faqs: [
-      {
-        q: "Why use self-hosted n8n instead of Zapier or Make?",
-        a: "Zapier charges per task, making high-volume workflows cost hundreds or thousands every month. Self-hosted n8n runs on your own server with unlimited workflows and executions for just a $5-10/mo hosting bill, while keeping all data private."
-      }
-    ],
-    certificateType: "Vixora Certified Automation Specialist (VCAS)"
-  },
-  {
-    id: "course-ai-product-design",
-    slug: "ai-product-design-ui-ux",
-    title: "AI-Native Product Design, UI/UX & Design Systems",
-    subtitle: "Design generative interfaces, canvas workflows, agent state visualizers, and scalable token systems in Figma.",
-    badge: "Design & UX Masterclass",
-    level: "Intermediate",
-    track: "Design & Marketing",
-    format: "6-Week Live Workshop",
-    duration: "6 Weeks",
-    commitment: "4-6 hrs/week",
-    nextCohortDate: "November 10, 2026",
-    tuition: "$1,100",
-    tuitionNote: "Includes the complete Vixora Obsidian Design System UI Kit in Figma.",
-    seatsRemaining: 8,
-    targetAudience: "UI/UX Designers, Product Designers, Design Leads, and Frontend Engineers.",
-    description: "Traditional static UI patterns fail when designing for nondeterministic AI experiences. Learn to craft streaming text interactions, agent feedback loops, canvas workspaces, and modern dark-mode design systems.",
-    heroPitch: "Design the next generation of AI-native products with modern visual craft, tokenized design systems, and seamless generative interactions.",
-    highlights: [
-      "Access to the complete Vixora Obsidian Design Kit (.fig)",
-      "Design for streaming, latency, hallucinations, and confidence scores",
-      "Interactive prototyping with Figma variables and generative plugins",
-      "Live portfolio critiques from top product design directors"
-    ],
-    outcomes: [
-      "Design generative UI patterns that build user trust and clarity",
-      "Build scalable token systems (colors, typography, radii, elevation)",
-      "Prototype complex canvas and conversational interfaces in Figma",
-      "Deliver engineering-ready specifications with zero friction"
-    ],
-    prerequisites: [
-      "Familiarity with Figma fundamentals (Auto-layout, components)",
-      "Basic understanding of digital product design principles"
-    ],
-    curriculum: [
-      "The Anatomy of AI-Native Interfaces & Mental Models",
-      "Tokenized Design Systems: Cosmic Dark Themes & Neon Accents",
-      "Streaming States, Latency Feedback & Confidence Indicators",
-      "Canvas & Infinite Workspace UX Patterns",
-      "Design System Handoff & Frontend Code Synchronization"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Weeks 1-2",
-        title: "Foundations of AI UI & The Vixora Token System",
-        description: "Master modern typography ratios, mathematical spacing, dark palette saturation, and building atomic components.",
-        topics: [
-          "Eliminating AI Slop: Principles of genuine craft and typography pairing",
-          "Building mathematical 8pt spacing and nested corner radius rules",
-          "Figma variables: Semantic tokens for light and dark modes",
-          "Crafting high-contrast accessible inputs and control states"
-        ],
-        handsOnLab: "Build a comprehensive Design Token Architecture & Component Library in Figma."
-      },
-      {
-        week: "Weeks 3-4",
-        title: "Designing for Nondeterministic AI & Generative UX",
-        description: "Solve the core UX challenges of AI: handling latency, streaming states, hallucinations, and prompt affordances.",
-        topics: [
-          "Streaming typography effects & micro-interaction physics",
-          "Confidence ratings, source citations & rollback controls",
-          "Human-in-the-loop approval drawers and modal patterns",
-          "Multimodal inputs: Combining voice, image, and text triggers"
-        ],
-        handsOnLab: "Design an AI Copilot Interface featuring streaming responses, citation drawers, and confidence scores."
-      },
-      {
-        week: "Weeks 5-6",
-        title: "Infinite Canvas Workspaces & Production Handoff",
-        description: "Design node-based visual editors and canvas workspaces for modern agent workflows, and prepare developer-ready tokens.",
-        topics: [
-          "Spatial UI: Pan, zoom, minimaps, and infinite node connections",
-          "State transition animations and micro-copy for AI interactions",
-          "Exporting Figma tokens to Tailwind CSS variables automatically",
-          "Final capstone review & portfolio case study presentation"
-        ],
-        handsOnLab: "Design an Interactive Agent Workflow Builder on an infinite canvas with complete node configurations."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "Next-Gen AI Canvas & Workspace Studio",
-        description: "A complete end-to-end Figma prototype of a multi-modal canvas workspace featuring node connections, live agent execution pills, and citation inspectors.",
-        technologies: ["Figma Variables", "Component Architecture", "Design Tokens", "Tailwind CSS Handoff"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Soren Morales",
-        role: "Head of Design & Brand Identity, Vixora Hub",
-        bio: "Award-winning designer with 10+ years crafting premium brand systems and AI-first software interfaces.",
-        companyBackground: "Vixora Design Systems Lead"
-      }
-    ],
-    faqs: [
-      {
-        q: "Do I get full access to the Vixora Figma files?",
-        a: "Yes! All enrolled students receive our complete production design system file with 200+ components, token collections, and dark/light variants."
-      }
-    ],
-    certificateType: "Vixora Certified AI Product Designer"
-  },
-  {
-    id: "course-generative-media-marketing",
-    slug: "generative-media-advertising",
-    title: "Generative Media, UGC Ad Automation & Media Buying",
-    subtitle: "Scale high-converting paid social campaigns with AI video generation, automated creative testing, and ROAS optimization.",
-    badge: "Growth & Creative Track",
-    level: "All Levels",
-    track: "Design & Marketing",
-    format: "4-Week Intensive Sprint",
-    duration: "4 Weeks",
-    commitment: "4 hrs/week",
-    nextCohortDate: "November 17, 2026",
-    tuition: "$850",
-    tuitionNote: "Includes AI video generation credit vouchers for workshop labs.",
-    seatsRemaining: 12,
-    targetAudience: "Growth Marketers, Media Buyers, Brand Founders, and Creative Directors.",
-    description: "Lower customer acquisition costs by generating hundreds of personalized UGC video ads, testing hooks algorithmically, and managing scalable campaigns across Meta, TikTok, and Google Ads.",
-    heroPitch: "Generate 50+ high-converting ad variations in minutes and master high-velocity media buying with AI creative pipelines.",
-    highlights: [
-      "Access to prompt engineering templates for Midjourney, Runway & ElevenLabs",
-      "Automated video editing pipelines for TikTok & Meta Reels",
-      "Media buying strategies for scaling past $50k/month ad spend",
-      "Live ad creative teardowns and conversion audits"
-    ],
-    outcomes: [
-      "Generate hyper-realistic AI avatars and voiceovers that convert",
-      "Build automated split-testing workflows for video hooks and CTAs",
-      "Lower blended CAC / CPA by 30-50% with creative volume",
-      "Master programmatic media buying on Meta and TikTok"
-    ],
-    prerequisites: [
-      "Basic familiarity with social media marketing or ad platforms (Meta Ads / TikTok Ads)"
-    ],
-    curriculum: [
-      "AI Creative Synthesis: Avatars, Voice Cloning & Scriptwriting",
-      "High-Conversion UGC Frameworks & 3-Second Hook Formulas",
-      "Automated Video Assembly & Dynamic Captions",
-      "Data-Driven Media Buying, Scaling Budgets & ROAS Attribution"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Week 1",
-        title: "AI Scriptwriting, Voice Cloning & Avatar Generation",
-        description: "Master viral direct-response copywriting and produce photorealistic synthetic talent.",
-        topics: [
-          "Direct response scripting frameworks (Hook, Problem, Solution, CTA)",
-          "Voice cloning and emotional cadence control with ElevenLabs",
-          "Generating realistic human avatars and lip-syncing pipelines",
-          "B-roll generation using Midjourney and Runway Gen-3"
-        ],
-        handsOnLab: "Produce 5 unique synthetic UGC ad videos from scratch with voiceover and lip-sync."
-      },
-      {
-        week: "Week 2",
-        title: "Automating Dynamic Video Assembly & Hook Variations",
-        description: "Build automated rendering pipelines that generate 20+ hook combinations from a single script.",
-        topics: [
-          "Programmatic video rendering with Remotion and Python",
-          "Dynamic auto-captions, sound effects & viral pacing",
-          "A/B testing top-of-funnel hooks in the first 3 seconds",
-          "Batch processing assets for TikTok, Instagram Reels, and YouTube Shorts"
-        ],
-        handsOnLab: "Set up an automated batch pipeline that generates 15 video variations in under 10 minutes."
-      },
-      {
-        week: "Week 3",
-        title: "Meta & TikTok Media Buying Strategies for 2026",
-        description: "Deploy creative testing frameworks to isolate winning hooks without burning ad spend.",
-        topics: [
-          "Dynamic Creative Testing (DCT) setup on Meta Ads Manager",
-          "TikTok Spark Ads & organic-to-paid amplification",
-          "Budget scaling rules and bid cap strategies",
-          "Analyzing creative fatigue and refresh cycles"
-        ],
-        handsOnLab: "Launch a live DCT testing campaign with your generated variations and establish attribution tracking."
-      },
-      {
-        week: "Week 4",
-        title: "Attribution, ROAS Optimization & Retainer Scaling",
-        description: "Analyze blended metrics (MER, CAC, LTV) and package creative-as-a-service retainers for clients.",
-        topics: [
-          "Server-side tracking (CAPI) and attribution modeling",
-          "Calculating true Marginal ROAS and customer lifetime value",
-          "Packaging generative ad production as a $5k/mo agency service",
-          "Final campaign performance review & certificate award"
-        ],
-        handsOnLab: "Present a complete 30-day Campaign Scale Plan with projected ROAS and budget allocation."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "Omnichannel Generative Ad Campaign & Growth Engine",
-        description: "A complete launch-ready ad campaign featuring 20 AI UGC video variations, automated landing page personalization, and Meta/TikTok media buying structure.",
-        technologies: ["Runway Gen-3", "ElevenLabs", "Midjourney", "Meta Ads Manager", "TikTok Ads"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Nadia Thorne",
-        role: "Director of Growth & Paid Media, Vixora Hub",
-        bio: "Managed over $15M in profitable ad spend across D2C and B2B SaaS platforms.",
-        companyBackground: "Vixora Media Collective"
-      }
-    ],
-    faqs: [
-      {
-        q: "Do I need high-end video editing software like Premiere or After Effects?",
-        a: "No! We teach cloud-based AI tools and automated pipelines that do not require expensive hardware or prior editing experience."
-      }
-    ],
-    certificateType: "Vixora Certified Growth & Media Specialist"
   },
   {
     id: "course-machine-learning-data-science",
@@ -5849,26 +5304,6 @@ var COURSE_PRICING = {
     NGN: 5e4,
     USD: 100
   },
-  "course-fullstack-ai": {
-    NGN: null,
-    USD: 1850
-  },
-  "course-executive-ai": {
-    NGN: null,
-    USD: 2400
-  },
-  "course-workflow-automation": {
-    NGN: null,
-    USD: 950
-  },
-  "course-ai-product-design": {
-    NGN: null,
-    USD: 1100
-  },
-  "course-generative-media-marketing": {
-    NGN: null,
-    USD: 850
-  },
   "course-machine-learning-data-science": {
     NGN: 6e4,
     USD: 60
@@ -5929,6 +5364,87 @@ function findCanonicalCourse(courseIdentifier) {
   return canonicalCourseMap.get(clean) || null;
 }
 
+// server/telegramConfig.ts
+var TELEGRAM_CONFIG = {
+  // Official admissions & support
+  supportUsername: process.env.TELEGRAM_SUPPORT_USERNAME || "VixoraAdmissions",
+  // Track 1: AI Content Creation
+  contentCreationInvite: process.env.TELEGRAM_INVITE_CONTENT_CREATION || "https://t.me/+VixoraContentCreationCohort1",
+  // Track 2: AI Automation & Digital Business Systems
+  automationInvite: process.env.TELEGRAM_INVITE_AUTOMATION || "https://t.me/+VixoraAutomationCohort1",
+  // Track 3: AI Web Development & Vibe Coding
+  vibeCodingInvite: process.env.TELEGRAM_INVITE_VIBE_CODING || "https://t.me/+VixoraVibeCodingCohort1",
+  // Track 4: Client Acquisition & Freelancing
+  freelancingInvite: process.env.TELEGRAM_INVITE_FREELANCING || "https://t.me/+VixoraClientAcquisitionCohort1",
+  // Master All-Access Cohort 1.0 Vault
+  masterBundleInvite: process.env.TELEGRAM_INVITE_MASTER_BUNDLE || "https://t.me/+VixoraCohort1MasterVault"
+};
+function getTelegramInvitesForCourse(courseIdOrSlug) {
+  const normalized = (courseIdOrSlug || "").toLowerCase().trim();
+  const track1 = {
+    trackId: "track-ai-content",
+    trackSlug: "ai-image-short-videos-creation",
+    courseId: "course-ai-image-short-videos-creation",
+    title: "AI Content Creation Vault",
+    description: "Direct-response UGC video ads, prompt recipes, and creative production masterminds.",
+    inviteUrl: TELEGRAM_CONFIG.contentCreationInvite,
+    accessTier: "single"
+  };
+  const track2 = {
+    trackId: "track-ai-automation",
+    trackSlug: "ai-automation-digital-business-systems",
+    courseId: "course-ai-automation-digital-business-systems",
+    title: "AI Automation & Systems Vault",
+    description: "Make.com, Zapier, n8n workflows, Vapi voice agents, and lead pipeline blueprints.",
+    inviteUrl: TELEGRAM_CONFIG.automationInvite,
+    accessTier: "single"
+  };
+  const track3 = {
+    trackId: "track-vibe-coding",
+    trackSlug: "fullstack-vibe-coding",
+    courseId: "course-fullstack-vibe-coding",
+    title: "AI Web Development & Vibe Coding Vault",
+    description: "React, Vite, TypeScript codebases, backend APIs, and Paystack integration repos.",
+    inviteUrl: TELEGRAM_CONFIG.vibeCodingInvite,
+    accessTier: "single"
+  };
+  const track4 = {
+    trackId: "track-freelancing",
+    trackSlug: "client-acquisition-freelancing",
+    courseId: "course-client-acquisition-freelancing",
+    title: "Client Acquisition & Retainers Vault",
+    description: "Cold outreach scripts, Upwork proposal teardowns, and high-ticket service contract templates.",
+    inviteUrl: TELEGRAM_CONFIG.freelancingInvite,
+    accessTier: "single"
+  };
+  if (normalized.includes("bundle") || normalized.includes("cohort-1-master") || normalized === "course-cohort-1-master-bundle") {
+    return [track1, track2, track3, track4];
+  }
+  if (normalized.includes("content") || normalized.includes("image") || normalized.includes("video") || normalized === "course-ai-image-short-videos-creation" || normalized === "ai-image-short-videos-creation") {
+    return [track1];
+  }
+  if (normalized.includes("automation") || normalized.includes("systems") || normalized === "course-ai-automation-digital-business-systems" || normalized === "course-ai-automation-digital-skills" || normalized === "ai-automation-digital-business-systems" || normalized === "ai-automation-digital-skills") {
+    return [track2];
+  }
+  if (normalized.includes("vibe") || normalized.includes("web-dev") || normalized.includes("fullstack") || normalized === "course-fullstack-vibe-coding" || normalized === "fullstack-vibe-coding") {
+    return [track3];
+  }
+  if (normalized.includes("client") || normalized.includes("acquisition") || normalized.includes("freelanc") || normalized === "course-client-acquisition-freelancing" || normalized === "client-acquisition-freelancing") {
+    return [track4];
+  }
+  return [
+    {
+      trackId: "track-general",
+      trackSlug: normalized,
+      courseId: normalized,
+      title: "Vixora Academy Cohort 1.0 Learning Space",
+      description: "Official student group with HD video replays, lesson PDFs, and instructor Q&A.",
+      inviteUrl: TELEGRAM_CONFIG.masterBundleInvite,
+      accessTier: "single"
+    }
+  ];
+}
+
 // server/paystackServer.ts
 var paystackRouter = Router2();
 var PAYSTACK_API_BASE = "https://api.paystack.co";
@@ -5941,6 +5457,9 @@ function getPaystackPublicKey() {
 function isPaystackConfigured() {
   const key = getPaystackSecretKey();
   return Boolean(key && (key.startsWith("sk_test_") || key.startsWith("sk_live_")));
+}
+function isProductionPaymentEnvironment() {
+  return process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL) || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
 }
 var SlidingWindowRateLimiter2 = class {
   constructor(options) {
@@ -6070,7 +5589,8 @@ async function extractOptionalAuthUser(req) {
 async function ensureCourseRecordInDatabase(canonicalCourse, supabase) {
   if (!supabase) return canonicalCourse.id;
   try {
-    const { data: matchedCourse } = await supabase.from("courses").select("id").or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`).maybeSingle();
+    const { data: matchedCourse, error: lookupError } = await supabase.from("courses").select("id").or(`id.eq.${canonicalCourse.id},slug.eq.${canonicalCourse.slug}`).maybeSingle();
+    if (lookupError) throw lookupError;
     if (matchedCourse?.id) {
       return matchedCourse.id;
     }
@@ -6085,13 +5605,15 @@ async function ensureCourseRecordInDatabase(canonicalCourse, supabase) {
       updated_at: (/* @__PURE__ */ new Date()).toISOString()
     };
     const { data: inserted, error: insertErr } = await supabase.from("courses").upsert(coursePayload, { onConflict: "id" }).select("id").maybeSingle();
-    if (!insertErr && inserted?.id) {
+    if (insertErr) throw insertErr;
+    if (inserted?.id) {
       return inserted.id;
     }
+    throw new Error(`Course record could not be resolved for "${canonicalCourse.id}".`);
   } catch (err) {
-    console.warn("[Auto-provision course record warning]:", err);
+    console.error("[Course record resolution failed]:", err);
+    throw new Error("Course record could not be confirmed in the database.");
   }
-  return canonicalCourse.id;
 }
 async function processPaymentFulfillment(reference, verifiedPaystackData) {
   if (!isValidTransactionReference(reference)) {
@@ -6103,19 +5625,42 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
     };
   }
   const supabase = getSupabaseAdmin();
+  if (!supabase && isProductionPaymentEnvironment()) {
+    return {
+      verified: false,
+      error: "Payment database is not configured. The transaction cannot be fulfilled safely yet.",
+      code: "DATABASE_UNCONFIGURED",
+      status: 503
+    };
+  }
   let existingPayment = null;
   if (supabase) {
     try {
-      const { data } = await supabase.from("payments").select("*").eq("id", reference).maybeSingle();
+      const { data, error } = await supabase.from("payments").select("*").eq("id", reference).maybeSingle();
+      if (error) {
+        console.error("[Supabase payments query failed]:", error);
+        return {
+          verified: false,
+          error: "Payment record could not be read from the database. Please retry verification.",
+          code: "PAYMENT_RECORD_READ_FAILED",
+          status: 503
+        };
+      }
       if (data) {
         existingPayment = data;
         fallbackPaymentsStore.set(reference, data);
       }
     } catch (dbErr) {
-      console.warn("[Supabase payments query]:", dbErr);
+      console.error("[Supabase payments query exception]:", dbErr);
+      return {
+        verified: false,
+        error: "Payment database is unavailable. Please retry verification.",
+        code: "DATABASE_UNAVAILABLE",
+        status: 503
+      };
     }
   }
-  if (!existingPayment) {
+  if (!existingPayment && (!supabase || !isProductionPaymentEnvironment())) {
     existingPayment = fallbackPaymentsStore.get(reference) || null;
   }
   if (existingPayment && existingPayment.status === "success" && existingPayment.fulfillment_status === "fulfilled" && !simulateEnrollmentFailureForTesting.has(reference)) {
@@ -6135,7 +5680,8 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
         studentEmail: existingPayment.customer_email,
         courseId: existingPayment.course_id,
         courseTitle: canonical?.title || "Vixora Academy Cohort",
-        emailDispatchedAt: existingPayment.email_dispatched_at
+        emailDispatchedAt: existingPayment.email_dispatched_at,
+        telegramInvites: getTelegramInvitesForCourse(existingPayment.course_id)
       }
     };
   }
@@ -6399,12 +5945,48 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
   };
   if (supabase) {
     try {
-      await supabase.from("payments").upsert(updatedPaymentRecord, { onConflict: "id" });
+      const { error: paymentUpsertError } = await supabase.from("payments").upsert(updatedPaymentRecord, { onConflict: "id" });
+      if (paymentUpsertError) {
+        console.error("[Supabase payments upsert failed]:", paymentUpsertError);
+        return {
+          verified: false,
+          error: "Paystack confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.",
+          code: "PAYMENT_RECORD_PERSISTENCE_FAILED",
+          status: 503,
+          payment: {
+            reference,
+            status: "success",
+            amount: canonicalCourse.nairaAmount,
+            currency: "NGN",
+            channel,
+            paidAt,
+            studentName: customerName,
+            studentEmail: customerEmail,
+            courseId: canonicalCourse.id,
+            courseTitle: canonicalCourse.title
+          }
+        };
+      }
     } catch (paymentDbErr) {
-      console.warn("[Supabase payments upsert error]:", paymentDbErr);
+      console.error("[Supabase payments upsert exception]:", paymentDbErr);
+      return {
+        verified: false,
+        error: "Paystack confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.",
+        code: "PAYMENT_RECORD_PERSISTENCE_FAILED",
+        status: 503
+      };
     }
+  } else if (isProductionPaymentEnvironment()) {
+    return {
+      verified: false,
+      error: "Payment database is not configured. The transaction requires manual reconciliation.",
+      code: "DATABASE_UNCONFIGURED",
+      status: 503
+    };
   }
-  fallbackPaymentsStore.set(reference, updatedPaymentRecord);
+  if (!isProductionPaymentEnvironment()) {
+    fallbackPaymentsStore.set(reference, updatedPaymentRecord);
+  }
   if (!isFulfilled) {
     return {
       verified: false,
@@ -6437,6 +6019,7 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
     }
   }
   let finalEmailDispatchedAt = existingPayment?.email_dispatched_at || null;
+  const telegramInvitesList = getTelegramInvitesForCourse(canonicalCourse.id || canonicalCourse.slug);
   if (!alreadyEmailed) {
     try {
       const whatsappUrl = getWhatsAppUrl(
@@ -6454,7 +6037,8 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
         studentCode: studentCode || "STU-ACTIVE",
         generatedTempPassword,
         directPasswordSetupLink,
-        whatsappUrl
+        whatsappUrl,
+        telegramInvites: telegramInvitesList
       });
       const emailResult = await dispatchGenericEmail({
         to: customerEmail,
@@ -6493,7 +6077,8 @@ async function processPaymentFulfillment(reference, verifiedPaystackData) {
       studentEmail: customerEmail,
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title,
-      emailDispatchedAt: finalEmailDispatchedAt
+      emailDispatchedAt: finalEmailDispatchedAt,
+      telegramInvites: telegramInvitesList
     }
   };
 }
@@ -6580,9 +6165,23 @@ paystackRouter.post("/initialize", async (req, res) => {
     const reqOrigin = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : "");
     const finalCallbackUrl = typeof callbackUrl === "string" && callbackUrl.startsWith("http") ? callbackUrl : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
     const supabase = getSupabaseAdmin();
+    if (!supabase && isProductionPaymentEnvironment()) {
+      return res.status(503).json({
+        error: "Payment database is not configured. Checkout cannot be started safely.",
+        code: "DATABASE_UNCONFIGURED"
+      });
+    }
     let resolvedCourseId = canonicalCourse.id;
     if (supabase) {
-      resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+      try {
+        resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+      } catch (courseDbErr) {
+        console.error("[Paystack Init Course Record Failure]:", courseDbErr);
+        return res.status(503).json({
+          error: "The selected course is not available in the payment database yet. Please try again later.",
+          code: "COURSE_DATABASE_UNAVAILABLE"
+        });
+      }
     }
     const initialPaymentRecord = {
       id: reference,
@@ -6607,12 +6206,25 @@ paystackRouter.post("/initialize", async (req, res) => {
     };
     if (supabase) {
       try {
-        await supabase.from("payments").insert(initialPaymentRecord);
+        const { error: insertErr } = await supabase.from("payments").insert(initialPaymentRecord);
+        if (insertErr) {
+          console.error("[Supabase initial payment record insert failed]:", insertErr);
+          return res.status(503).json({
+            error: "We could not securely save your payment session. No checkout was started. Please try again.",
+            code: "PAYMENT_RECORD_CREATE_FAILED"
+          });
+        }
       } catch (insertErr) {
-        console.warn("[Supabase initial payment record insert]:", insertErr);
+        console.error("[Supabase initial payment record insert exception]:", insertErr);
+        return res.status(503).json({
+          error: "The payment database is temporarily unavailable. No checkout was started. Please try again.",
+          code: "DATABASE_UNAVAILABLE"
+        });
       }
     }
-    fallbackPaymentsStore.set(reference, initialPaymentRecord);
+    if (!isProductionPaymentEnvironment()) {
+      fallbackPaymentsStore.set(reference, initialPaymentRecord);
+    }
     const paystackPayload = {
       email: cleanEmail,
       amount: canonicalCourse.koboAmount,
@@ -7145,6 +6757,52 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     hasGeminiKey: Boolean(apiKey),
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  });
+});
+app.get("/api/geo", async (req, res) => {
+  try {
+    const rawCountry = (req.headers["cf-ipcountry"] || req.headers["x-vercel-ip-country"] || req.headers["x-country-code"] || req.headers["x-country"] || req.headers["x-appengine-country"] || "").toString().toUpperCase().trim();
+    if (rawCountry && rawCountry.length === 2) {
+      const isNigeria = rawCountry === "NG";
+      return res.json({
+        country: rawCountry,
+        isNigeria,
+        currency: isNigeria ? "NGN" : "USD",
+        source: "header"
+      });
+    }
+    const clientIp = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "";
+    if (!clientIp || clientIp === "127.0.0.1" || clientIp === "::1" || clientIp.startsWith("192.168.") || clientIp.startsWith("10.")) {
+      return res.json({
+        country: "UNKNOWN",
+        isNigeria: false,
+        currency: "USD",
+        source: "local-default"
+      });
+    }
+    const geoRes = await fetch(`https://api.country.is/${encodeURIComponent(clientIp)}`, {
+      signal: AbortSignal.timeout(1500)
+    });
+    if (geoRes.ok) {
+      const geoData = await geoRes.json();
+      const detected = (geoData?.country || "").toUpperCase().trim();
+      if (detected && detected.length === 2) {
+        const isNigeria = detected === "NG";
+        return res.json({
+          country: detected,
+          isNigeria,
+          currency: isNigeria ? "NGN" : "USD",
+          source: "ip"
+        });
+      }
+    }
+  } catch (err) {
+  }
+  return res.json({
+    country: "GLOBAL",
+    isNigeria: false,
+    currency: "USD",
+    source: "fallback"
   });
 });
 app.post("/api/analyze-requirements", async (req, res) => {

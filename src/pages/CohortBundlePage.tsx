@@ -31,6 +31,7 @@ import {
 import { COHORT_1_BUNDLE, CohortTrackItem, CohortResource } from '../data/cohortData';
 import { AcademyCourse, ACADEMY_COURSES } from '../data/vixoraContent';
 import { BRAND_CONFIG } from '../data/brandConfig';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface CohortBundlePageProps {
   initialTrackSlug?: string;
@@ -49,6 +50,8 @@ export function CohortBundlePage({
   onNavigateAcademy,
   onOpenProjectModal
 }: CohortBundlePageProps) {
+  const { currency, formatPrice } = useCurrency();
+
   // Find initial track index if provided
   const initialIndex = initialTrackSlug
     ? Math.max(0, COHORT_1_BUNDLE.tracks.findIndex(t => t.slug === initialTrackSlug))
@@ -61,6 +64,11 @@ export function CohortBundlePage({
   const [downloadAlert, setDownloadAlert] = useState<string | null>(null);
 
   const activeTrack = COHORT_1_BUNDLE.tracks[activeTrackIndex] || COHORT_1_BUNDLE.tracks[0];
+
+  const masterBundleTuition = formatPrice('course-cohort-1-master-bundle');
+  const masterBundleStandard = currency === 'USD' ? '$95' : COHORT_1_BUNDLE.standardPrice;
+  const bundleSavingsBadge = currency === 'USD' ? 'Save $50' : 'Save ₦50,000';
+  const activeTrackTuition = formatPrice(activeTrack.courseId, activeTrack.tuition);
 
   // Map icon component
   const getTrackIcon = (iconName: string) => {
@@ -178,10 +186,10 @@ export function CohortBundlePage({
                       Full 4-Track All-Access Pass
                     </div>
                     <div className="flex items-baseline gap-2.5 mt-0.5">
-                      <span className="text-2xl sm:text-3xl font-black text-white">{COHORT_1_BUNDLE.tuitionBundle}</span>
-                      <span className="text-xs text-slate-400 line-through">{COHORT_1_BUNDLE.standardPrice}</span>
+                      <span className="text-2xl sm:text-3xl font-black text-white">{masterBundleTuition}</span>
+                      <span className="text-xs text-slate-400 line-through">{masterBundleStandard}</span>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        Save 52%
+                        {bundleSavingsBadge}
                       </span>
                     </div>
                   </div>
@@ -392,26 +400,33 @@ export function CohortBundlePage({
             </div>
 
             {/* Individual Track Tuition & CTA */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-[#F7F7FC] border border-slate-200/80 shrink-0 flex flex-col items-start sm:items-end gap-3 min-w-[260px]">
-              <div className="text-left sm:text-right">
-                <div className="text-[10px] font-mono uppercase text-slate-500 font-semibold">Single Track Tuition</div>
-                <div className="text-2xl font-black text-[#0F1535]">{activeTrack.tuition}</div>
-                <div className="text-[10px] text-slate-500 font-mono">Includes Telegram access for this track</div>
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0F1535] via-[#141A46] to-[#0A0D28] text-white border border-purple-500/30 shadow-xl shrink-0 flex flex-col items-start sm:items-end gap-3.5 min-w-[280px]">
+              <div className="text-left sm:text-right space-y-0.5">
+                <div className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold flex items-center sm:justify-end gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span>Single Track Tuition</span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  {activeTrackTuition}
+                </div>
+                <div className="text-[11px] text-purple-200/90 font-mono">
+                  Includes Telegram access for this track
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
                 <button
                   onClick={() => onNavigateCourse(activeTrack.slug)}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-purple-50 text-[#5B5FED] border border-[#5B5FED]/50 shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-100 text-[#0F1535] border border-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 group"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Dedicated Subpage</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED] group-hover:scale-110 transition-transform" />
+                  <span className="text-[#0F1535] font-bold">Dedicated Subpage</span>
                 </button>
                 <button
                   onClick={() => onEnrollCourse(getCourseForTrack(activeTrack.courseId))}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-[#5B5FED] hover:bg-[#480878] text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-[#5B5FED] hover:bg-[#480878] text-white shadow-md hover:shadow-indigo-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <Award className="w-3.5 h-3.5" />
-                  <span>Enroll ({activeTrack.tuition})</span>
+                  <Award className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-white font-bold">Enroll ({activeTrackTuition})</span>
                 </button>
               </div>
             </div>
@@ -497,7 +512,7 @@ export function CohortBundlePage({
               onClick={() => onEnrollCourse(masterBundleCourse)}
               className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#0F1535] hover:bg-[#480878] text-white transition-all cursor-pointer shadow-md flex items-center gap-2 shrink-0"
             >
-              <span>Get Full 4-Track Bundle ({COHORT_1_BUNDLE.tuitionBundle})</span>
+              <span>Get Full 4-Track Bundle ({masterBundleTuition})</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
             </button>
           </div>
@@ -652,14 +667,14 @@ export function CohortBundlePage({
                 <span>Want complete unmetered access to all 28+ hours of videos &amp; 14 PDFs?</span>
               </div>
               <p className="text-xs text-purple-200">
-                Enroll in the complete Cohort 1.0 4-in-1 Master Bundle for ₦45,000 and receive instant admission to the private Telegram vault.
+                Enroll in the complete Cohort 1.0 4-in-1 Master Bundle for {masterBundleTuition} and receive instant admission to the private Telegram vault.
               </p>
             </div>
             <button
               onClick={() => onEnrollCourse(masterBundleCourse)}
               className="px-6 py-3 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-[#0F1535] transition-all cursor-pointer shadow-md shrink-0 flex items-center gap-2"
             >
-              <span>Enroll in Master Bundle ({COHORT_1_BUNDLE.tuitionBundle})</span>
+              <span>Enroll in Master Bundle ({masterBundleTuition})</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -669,46 +684,72 @@ export function CohortBundlePage({
 
       {/* 4. Private Telegram Community & Vault Details */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-gradient-to-br from-[#0F1535] via-[#1A114A] to-[#0A0D28] text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden border border-purple-500/30 space-y-8">
+        <div className="rounded-3xl bg-gradient-to-br from-[#0A0D28] via-[#0F1535] to-[#141B4D] text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden border border-purple-500/40 space-y-8">
           
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-sky-300 bg-sky-950/60 border border-sky-400/40">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-sky-300 bg-sky-500/20 border border-sky-400/50 shadow-xs">
               <Send className="w-3.5 h-3.5 text-sky-400" />
               <span>Official Student Community &amp; Content Hub</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Why Cohort 1.0 is Hosted on Telegram Private Vault
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
+              Why Cohort 1.0 is Hosted on{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-amber-300">
+                Telegram Private Vault
+              </span>
             </h2>
-            <p className="text-xs sm:text-sm text-purple-100/90 leading-relaxed">
+            <p className="text-sm sm:text-base text-purple-200/90 leading-relaxed font-normal">
               Unlike generic corporate course portals where videos buffer or expire, Vixora Academy Cohort 1.0 gives you permanent, mobile-optimized, cloud-archived access directly in Telegram.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {COHORT_1_BUNDLE.telegramBenefits.slice(0, 3).map((benefit, bIdx) => (
-              <div
-                key={bIdx}
-                className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-2.5 backdrop-blur-sm"
-              >
-                <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center font-mono font-bold text-xs">
-                  0{bIdx + 1}
+            {COHORT_1_BUNDLE.telegramBenefits.slice(0, 3).map((benefit, bIdx) => {
+              const cardAccents = [
+                {
+                  badgeBg: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
+                  cardBorder: 'hover:border-sky-400/50',
+                  textColor: 'text-sky-100/90',
+                  description: 'Ask questions, get debugging assistance, and receive direct tactical feedback from Dean Sarumi and mentors daily.'
+                },
+                {
+                  badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+                  cardBorder: 'hover:border-amber-400/50',
+                  textColor: 'text-amber-100/90',
+                  description: 'Stream ultra-clear 1080p recordings on laptop or mobile with no expiring links, timeouts, or playback limits.'
+                },
+                {
+                  badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+                  cardBorder: 'hover:border-emerald-400/50',
+                  textColor: 'text-emerald-100/90',
+                  description: 'Directly download production PDF blueprints, copy-paste prompt swipe files, and pre-built workflow JSONs.'
+                }
+              ][bIdx];
+
+              return (
+                <div
+                  key={bIdx}
+                  className={`p-5 rounded-2xl bg-white/[0.08] border border-white/15 space-y-2.5 backdrop-blur-sm shadow-sm transition-all ${cardAccents.cardBorder}`}
+                >
+                  <div className={`w-8 h-8 rounded-xl border flex items-center justify-center font-mono font-bold text-xs ${cardAccents.badgeBg}`}>
+                    0{bIdx + 1}
+                  </div>
+                  <div className="text-sm font-bold text-white">{benefit}</div>
+                  <p className={`text-xs ${cardAccents.textColor} leading-relaxed`}>
+                    {cardAccents.description}
+                  </p>
                 </div>
-                <div className="text-xs font-bold text-white">{benefit}</div>
-                <p className="text-[11px] text-purple-200/80 leading-relaxed">
-                  Stream high-definition recordings on laptop or mobile, download PDF worksheets directly, and search previous cohort discussions.
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Student Access Workflow */}
-          <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs text-purple-200">
-              <strong>How it works:</strong> Complete your enrollment online &rarr; Instantly receive the verified Telegram invitation link &rarr; Gain immediate lifetime access.
+          <div className="pt-4 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs sm:text-sm text-slate-200">
+              <strong className="text-white font-bold">How it works:</strong> Complete your enrollment online &rarr; Instantly receive the verified Telegram invitation link &rarr; Gain immediate lifetime access.
             </div>
             <button
               onClick={() => onEnrollCourse(masterBundleCourse)}
-              className="px-6 py-3 rounded-xl text-xs font-bold bg-white text-[#0F1535] hover:bg-purple-50 transition-all cursor-pointer shadow-md shrink-0 flex items-center gap-2"
+              className="px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-white text-[#0F1535] hover:bg-slate-100 transition-all cursor-pointer shadow-md shrink-0 flex items-center gap-2"
             >
               <span>Unlock Telegram Access Now</span>
               <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
@@ -743,7 +784,7 @@ export function CohortBundlePage({
                 Diffusion models, prompt engineering, ElevenLabs voice cloning, and viral short-form video creation.
               </p>
               <div className="pt-2">
-                <span className="text-2xl font-black text-[#0F1535]">₦10,000</span>
+                <span className="text-2xl font-black text-[#0F1535]">{formatPrice('course-ai-image-short-videos-creation')}</span>
                 <span className="text-xs text-slate-400 font-mono block">One-time enrollment</span>
               </div>
             </div>
@@ -763,22 +804,22 @@ export function CohortBundlePage({
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider">
+                <span className="text-[11px] font-mono font-bold text-amber-300 uppercase tracking-wider">
                   Full 4-Track All-Access Pass
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                  Save ₦50,000
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {bundleSavingsBadge}
                 </span>
               </div>
-              <h3 className="text-2xl font-black text-white">Cohort 1.0 Master Bundle</h3>
-              <p className="text-xs text-purple-200 leading-relaxed">
+              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Cohort 1.0 Master Bundle</h3>
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
                 Complete access to all 4 tracks (AI Content, Automation, Web Dev, Client Acquisition) with all 28+ hours of videos, 14 PDFs, and lifetime Telegram mastermind.
               </p>
               <div className="pt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white">{COHORT_1_BUNDLE.tuitionBundle}</span>
-                <span className="text-xs text-slate-400 line-through">{COHORT_1_BUNDLE.standardPrice}</span>
+                <span className="text-3xl sm:text-4xl font-black text-white">{masterBundleTuition}</span>
+                <span className="text-xs text-slate-300 font-mono line-through font-semibold">{masterBundleStandard}</span>
               </div>
-              <ul className="space-y-2 text-xs text-purple-100 pt-2 border-t border-white/10">
+              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-100 font-medium pt-3 border-t border-white/15">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>All 4 Complete Course Tracks</span>
@@ -822,7 +863,7 @@ export function CohortBundlePage({
                 Self-hosted n8n, webhook pipelines, autonomous agents, and enterprise CRM integrations.
               </p>
               <div className="pt-2">
-                <span className="text-2xl font-black text-[#0F1535]">₦30,000</span>
+                <span className="text-2xl font-black text-[#0F1535]">{formatPrice('course-ai-automation-digital-skills')}</span>
                 <span className="text-xs text-slate-400 font-mono block">One-time enrollment</span>
               </div>
             </div>
