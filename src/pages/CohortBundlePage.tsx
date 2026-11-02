@@ -79,6 +79,8 @@ export function CohortBundlePage({
         return <Workflow className="w-4 h-4" />;
       case 'Code2':
         return <Code2 className="w-4 h-4" />;
+      case 'FileText':
+        return <FileText className="w-4 h-4" />;
       case 'Briefcase':
       default:
         return <Briefcase className="w-4 h-4" />;
@@ -183,7 +185,7 @@ export function CohortBundlePage({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                   <div>
                     <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300 font-bold">
-                      Full 4-Track All-Access Pass
+                      Full 5-Track All-Access Pass
                     </div>
                     <div className="flex items-baseline gap-2.5 mt-0.5">
                       <span className="text-2xl sm:text-3xl font-black text-white">{masterBundleTuition}</span>
@@ -202,7 +204,7 @@ export function CohortBundlePage({
                   </button>
                 </div>
                 <div className="pt-2.5 text-[11px] text-purple-200/90 flex items-center justify-between">
-                  <span>Includes all 4 tracks, 28+ hours video replays &amp; 14 strategy PDFs</span>
+                  <span>Includes all 5 tracks, 35+ hours video replays &amp; 18 strategy PDFs</span>
                   <span className="font-mono text-emerald-300 text-[10px] hidden sm:inline">Instant Access</span>
                 </div>
               </div>
@@ -214,7 +216,7 @@ export function CohortBundlePage({
                   className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-[#0F1535] border border-slate-200/80 transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
                 >
                   <Layers className="w-4 h-4 text-[#5B5FED]" />
-                  <span>Explore the 4 Curriculum Tracks</span>
+                  <span>Explore the 5 Curriculum Tracks</span>
                 </a>
                 <a
                   href="#resources-vault"
@@ -332,7 +334,7 @@ export function CohortBundlePage({
         </div>
       </section>
 
-      {/* 2. Interactive 4-Track Deep Dive & Curriculum Switcher */}
+      {/* 2. Interactive 5-Track Deep Dive & Curriculum Switcher */}
       <section id="tracks-breakdown" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Section Header */}
@@ -342,7 +344,7 @@ export function CohortBundlePage({
             <span>Cohort 1.0 Curriculum Architecture</span>
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0F1535] tracking-tight">
-            The 4 Training Pillars of Cohort 1.0
+            The 5 Training Pillars of Cohort 1.0
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
             Click through each track below to explore the week-by-week curriculum, tools used, hands-on lab deliverables, and session recording topics.
@@ -745,15 +747,27 @@ export function CohortBundlePage({
           {/* Student Access Workflow */}
           <div className="pt-4 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs sm:text-sm text-slate-200">
-              <strong className="text-white font-bold">How it works:</strong> Complete your enrollment online &rarr; Instantly receive the verified Telegram invitation link &rarr; Gain immediate lifetime access.
+              <strong className="text-white font-bold">How it works:</strong> Complete your full bundle enrollment online &rarr; Instantly receive your verified Master Vault Telegram invite on your payment receipt and via verified email &rarr; Gain immediate lifetime access to all 5 track replays.
             </div>
-            <button
-              onClick={() => onEnrollCourse(masterBundleCourse)}
-              className="px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-white text-[#0F1535] hover:bg-slate-100 transition-all cursor-pointer shadow-md shrink-0 flex items-center gap-2"
-            >
-              <span>Unlock Telegram Access Now</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <a
+                href={BRAND_CONFIG.telegramPublicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer border border-white/20 flex items-center gap-1.5"
+                title="Open public discussions channel"
+              >
+                <Send className="w-3.5 h-3.5 text-sky-400" />
+                <span>Join Public Channel</span>
+              </a>
+              <button
+                onClick={() => onEnrollCourse(masterBundleCourse)}
+                className="px-5 py-3 rounded-xl text-xs sm:text-sm font-bold bg-white text-[#0F1535] hover:bg-slate-100 transition-all cursor-pointer shadow-md flex items-center gap-2"
+              >
+                <span>Unlock Master Vault</span>
+                <ExternalLink className="w-3.5 h-3.5 text-[#5B5FED]" />
+              </button>
+            </div>
           </div>
 
         </div>

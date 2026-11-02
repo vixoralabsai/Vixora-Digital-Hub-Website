@@ -1,3 +1,4 @@
+import http from 'http';
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -349,10 +350,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Vite Middleware for Development & Static fallback for Production
 async function startServer() {
+  const httpServer = http.createServer(app);
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: process.env.DISABLE_HMR === 'true' ? false : { server: httpServer }
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -364,7 +370,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', async () => {
+  httpServer.listen(PORT, '0.0.0.0', async () => {
     console.log(`Vixora Analyzer server running on http://0.0.0.0:${PORT}`);
     
     // Optional automated schema migrations on startup

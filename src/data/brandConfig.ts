@@ -58,7 +58,12 @@ export interface BrandConfig {
     videoUrl?: string;
     overlayOpacity: number;
   };
+  telegramPublicUrl: string;
 }
+
+export const TELEGRAM_CHANNELS = {
+  publicCommunity: "https://t.me/vixoraacademy"
+};
 
 export const BRAND_CONFIG: BrandConfig = {
   name: "Vixora Digital Hub",
@@ -119,7 +124,8 @@ export const BRAND_CONFIG: BrandConfig = {
     imageUrl: "/images/academy-hero-poster.jpg",
     videoUrl: "https://i.imgur.com/fo6rXq2.mp4",
     overlayOpacity: 0.65
-  }
+  },
+  telegramPublicUrl: "https://t.me/vixoraacademy"
 };
 
 export function extractImgurId(url?: string): string | null {

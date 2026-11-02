@@ -256,9 +256,13 @@ export function PaymentCallbackPage({
                       ? payment.telegramInvites
                       : [
                           {
-                            title: `${payment.courseTitle} Telegram Vault`,
-                            description: 'Direct student channel for session archives and materials.',
-                            inviteUrl: 'https://t.me/+VixoraCohort1MasterVault'
+                            title: (payment.courseId || '').includes('bundle')
+                              ? 'Cohort 1.0 Master Vault (5-in-1 Pass)'
+                              : `${payment.courseTitle || 'Course'} Telegram Vault`,
+                            description: (payment.courseId || '').includes('bundle')
+                              ? 'Your authenticated private invite is being delivered via verified email and is also accessible directly inside your Student Portal.'
+                              : 'Your authenticated track group invite is available inside your Student Portal and registered email.',
+                            inviteUrl: 'https://t.me/vixoraacademy'
                           }
                         ]
                     ).map((inv, idx) => (
@@ -285,6 +289,20 @@ export function PaymentCallbackPage({
                         </div>
                       </a>
                     ))}
+                  </div>
+
+                  {/* Public Community Channel Reference */}
+                  <div className="pt-2 border-t border-sky-900/40 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Public student announcements channel:</span>
+                    <a
+                      href="https://t.me/vixoraacademy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1"
+                    >
+                      <span>@vixoraacademy</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
                 </div>
 

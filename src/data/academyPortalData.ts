@@ -41,6 +41,10 @@ export interface StudentCourse {
   completedModules: number;
   totalModules: number;
   certificateId?: string;
+  telegramInviteUrl?: string;
+  telegramVaultTitle?: string;
+  isMasterVault?: boolean;
+  telegramInvites?: { title: string; inviteUrl: string; description?: string; accessTier?: string }[];
 }
 
 export interface StudentProfile {

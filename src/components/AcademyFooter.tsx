@@ -5,7 +5,8 @@ import {
   Mail,
   MessageSquare,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Send
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../data/brandConfig';
 import { ACADEMY_COURSES } from '../data/vixoraContent';
@@ -136,6 +137,17 @@ export function AcademyFooter({ onNavigate, onOpenCorporateModal }: AcademyFoote
                   </button>
                 </li>
               )}
+              <li>
+                <a
+                  href={BRAND_CONFIG.telegramPublicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white text-sky-300 font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  <Send className="w-3 h-3 text-sky-400" />
+                  <span>Public Telegram (@vixoraacademy)</span>
+                </a>
+              </li>
               <li className="pt-2 border-t border-white/10">
                 <a
                   href={BRAND_CONFIG.domain}

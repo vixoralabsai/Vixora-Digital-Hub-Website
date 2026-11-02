@@ -54,10 +54,11 @@ export interface CohortTrackItem {
   badge: string;
   tagline: string;
   description: string;
-  iconName: 'Sparkles' | 'Workflow' | 'Code2' | 'Briefcase';
+  iconName: 'Sparkles' | 'Workflow' | 'Code2' | 'Briefcase' | 'FileText';
   accentColor: string;
   tools: string[];
   courseId: string;
+  telegramInviteLink?: string;
   tuition: string;
   originalValue?: string;
   bestFor?: string;
@@ -100,7 +101,7 @@ export interface CohortBundleConfig {
   standardPrice: string;
   savingsNote: string;
   telegramChannelName: string;
-  telegramInviteLink: string;
+  telegramInviteLink?: string;
   telegramBenefits: string[];
   tracks: CohortTrackItem[];
   resources: CohortResource[];
@@ -110,26 +111,26 @@ export interface CohortBundleConfig {
 export const COHORT_1_BUNDLE: CohortBundleConfig = {
   id: 'cohort-1-master-bundle',
   edition: 'Cohort 1.0 Archive & Ongoing Access',
-  title: 'Vixora Academy Cohort 1.0: 4-in-1 AI & Growth Masterclass',
+  title: 'Vixora Academy Cohort 1.0: 5-in-1 AI & Growth Masterclass',
   tagline: 'Complete Recordings, Practical Labs, Strategy PDFs & Direct Private Telegram Community Access',
-  heroHeadline: 'Master AI Creation, Automation, Web Dev & Client Acquisition in One Unified Program',
-  heroDescription: 'Access the complete curriculum of Vixora Academy Cohort 1.0. Four rigorous engineering and business tracks taught by production builders, complete with session video archives, step-by-step PDF blueprints, and our private Telegram community.',
+  heroHeadline: 'Master AI Creation, Automation, Web Dev, Sales & PDF Products in One Unified Program',
+  heroDescription: 'Access the complete curriculum of Vixora Academy Cohort 1.0. Five rigorous engineering, automation, and digital business tracks taught by production builders, complete with session video archives, step-by-step PDF blueprints, and our private Telegram community.',
   tuitionBundle: '₦45,000',
   standardPrice: '₦95,000',
-  savingsNote: 'Save over 50% with the full 4-track all-access pass. Individual tracks available from ₦10,000.',
+  savingsNote: 'Save over 55% with the full 5-track all-access pass. Individual tracks available from ₦10,000.',
   telegramChannelName: 'Vixora Academy | Cohort 1.0 Private Mastermind',
-  telegramInviteLink: 'https://t.me/+vixora_cohort1_private',
+  telegramInviteLink: 'https://t.me/vixoraacademy',
   telegramBenefits: [
     'Direct daily interaction with Dean Sarumi Hammad and engineering mentors',
-    'Exclusive HD cloud video recordings for every module session',
+    'Exclusive HD cloud video recordings for every module session across all 5 tracks',
     'Downloadable PDF blueprints, prompt cheatsheets & workflow JSONs',
-    'Weekly live code reviews and freelance proposal teardowns',
+    'Weekly live code reviews, digital product teardowns and freelance proposal reviews',
     'Lifetime student network and referral pipeline'
   ],
   stats: [
-    { label: 'Comprehensive Tracks', value: '4 Pillars', helper: 'Content, Automation, Web & Sales' },
-    { label: 'Recorded Sessions', value: '28+ Hours', helper: 'HD Telegram Cloud Replays' },
-    { label: 'Master Guides', value: '14 PDFs', helper: 'Actionable Blueprints & Prompts' },
+    { label: 'Comprehensive Tracks', value: '5 Pillars', helper: 'Content, Auto, Web, Sales & PDFs' },
+    { label: 'Recorded Sessions', value: '35+ Hours', helper: 'HD Telegram Cloud Replays' },
+    { label: 'Master Guides', value: '18 PDFs', helper: 'Actionable Blueprints & Prompts' },
     { label: 'Student Rating', value: '4.95 / 5.0', helper: 'Over 120+ Active Builders' }
   ],
   tracks: [
@@ -744,6 +745,135 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
           a: 'Absolutely. In fact, combining Client Acquisition with AI Automation, AI Content, or Web Development yields the fastest path to high-ticket retainers.'
         }
       ]
+    },
+    {
+      id: 'track-pdf-automation',
+      slug: 'pdf-automation',
+      title: 'PDF Automation & AI Digital Product Creation',
+      shortTitle: 'PDF Automation',
+      badge: 'Digital Products & Passive Revenue',
+      tagline: 'Digital product research, AI writing, PDF publishing & automated storefront delivery.',
+      description: 'Master AI-assisted digital product research, problem validation, high-quality PDF authoring, visual layout design, and automated digital delivery systems to build scalable passive income assets.',
+      iconName: 'FileText',
+      accentColor: '#EC4899',
+      tools: ['ChatGPT & Claude', 'Gamma App', 'Canva / Adobe Express', 'Notion', 'Paystack & Selar', 'Gumroad'],
+      courseId: 'course-pdf-automation-digital-products',
+      tuition: '₦20,000',
+      originalValue: '₦45,000',
+      bestFor: 'Writers, creators, consultants & founders wanting to package expertise into high-margin PDF guides, workbooks, and automated digital products.',
+      notFor: 'People looking for low-effort, copy-paste spam ebooks without research, structure, or real buyer value.',
+      primaryOutcome: 'Research, author, design, and launch a complete high-value commercial PDF product with automated checkout delivery in under 14 days.',
+      timeToFirstResult: 'Complete audience-validated product outline by Week 1',
+      difficultyLevel: 'Beginner-Friendly • Research, Authoring & Automated Sales',
+      deliverableCount: '1 Commercial PDF Product + Live Checkout Storefront',
+      studentSuccessStory: {
+        student: 'Kemi A.',
+        role: 'Digital Product Creator',
+        quote: 'Followed the W6 & W7 framework to research and publish a 42-page niche automation handbook. Made ₦340k in sales in my first 3 weeks.',
+        metric: '₦340k First Month'
+      },
+      pdfGuideTitle: 'The Complete AI Digital Product & PDF Publishing Handbook (PDF)',
+      sampleVideoTitle: 'Session 01: Validating Digital Product Niches & Structuring High-Converting PDF Outlines',
+      sampleVideoDuration: '54 mins',
+      keyTakeaways: [
+        'Finding hungry target audiences and validating painful commercial problems',
+        'Deep fact-checking and structured research workflows using frontier AI models',
+        'Authoring authoritative PDF guides, workbooks, handbooks, and prompt templates',
+        'Professional visual layout design, typography, custom diagrams, and cover art',
+        'Deploying automated digital storefronts with Paystack and Selar for instant PDF delivery'
+      ],
+      curriculumWeeks: [
+        {
+          week: 'Week 1 (W6)',
+          title: 'Digital product research and planning',
+          summary: 'Find a target audience and validate a problem. Research and fact-check using AI. Choose a PDF product format: guide, workbook, template or handbook. Create an outline and develop a clear value proposition. Plan a quality product from research to publication.',
+          handsOnDeliverable: 'Market-Validated Product Outline & Clear Value Proposition Blueprint',
+          sessionCount: 2,
+          hasPdf: true
+        },
+        {
+          week: 'Week 2 (W7)',
+          title: 'AI writing, PDF production and digital product sales',
+          summary: 'Use AI to write and refine a high-quality PDF. Improve structure, accuracy, originality and readability. Design layouts, covers, tables and visual elements. Export, proofread and package the final PDF. Introduction to pricing, product listings and delivery systems.',
+          handsOnDeliverable: 'Finished Commercial PDF Product with Live Automated Payment & Delivery Flow',
+          sessionCount: 2,
+          hasPdf: true
+        }
+      ],
+      sessions: [
+        {
+          sessionNumber: 'Session 01',
+          title: 'Audience Validation, AI Fact-Checking & PDF Format Selection (W6)',
+          duration: '1h 08m',
+          topics: [
+            'Find a target audience and validate a problem',
+            'Research and fact-check using AI',
+            'Choose a PDF product format: guide, workbook, template or handbook',
+            'Create an outline and develop a clear value proposition'
+          ],
+          description: 'Step-by-step masterclass on uncovering urgent market problems and structuring an outline that commands commercial sales.',
+          isPreviewAvailable: true,
+          previewVideoUrl: '/videos/academy-hero.mp4',
+          telegramMessageRef: 'Archive Post #48'
+        },
+        {
+          sessionNumber: 'Session 02',
+          title: 'AI-Powered Deep Writing, Layout Design & Storefront Automation (W7)',
+          duration: '1h 22m',
+          topics: [
+            'Use AI to write and refine a high-quality PDF',
+            'Improve structure, accuracy, originality and readability',
+            'Design layouts, covers, tables and visual elements',
+            'Export, proofread, packaging and delivery systems'
+          ],
+          description: 'Drafting high-retention content, designing polished visual layouts, and wiring instant automated PDF delivery upon payment.',
+          isPreviewAvailable: false,
+          telegramMessageRef: 'Archive Post #52'
+        }
+      ],
+      pdfDownloads: [
+        {
+          title: 'The Complete AI Digital Product & PDF Publishing Handbook',
+          category: 'Master Blueprint',
+          pages: '38 Pages',
+          fileSize: '4.6 MB',
+          description: 'End-to-end publishing guide covering audience research, prompt frameworks, cover design specs, and checkout wiring.',
+          isDownloadableSample: true,
+          sampleFileName: 'Vixora_PDF_Digital_Product_Sample.pdf'
+        },
+        {
+          title: 'High-Converting PDF Product Outline & Chapter Templates',
+          category: 'Templates',
+          pages: '16 Pages',
+          fileSize: '2.1 MB',
+          description: 'Fill-in-the-blank outline architectures for actionable guides, workbooks, checklists, and executive handbooks.',
+          isDownloadableSample: true,
+          sampleFileName: 'PDF_Outline_Templates.pdf'
+        },
+        {
+          title: 'Digital Product Pricing Matrix & Storefront Launch Cheatsheet',
+          category: 'Cheatsheet',
+          pages: '12 Pages',
+          fileSize: '1.5 MB',
+          description: 'Pricing psychology formulas, Selar & Paystack product listing setups, and customer onboarding email sequences.',
+          isDownloadableSample: false,
+          sampleFileName: 'Storefront_Launch_Cheatsheet.pdf'
+        }
+      ],
+      faqs: [
+        {
+          q: 'Do I need graphic design software like Adobe InDesign to create the PDF?',
+          a: 'No. We teach you to produce stunning, executive-ready layouts using modern tools like Gamma, Canva, Google Docs, and Markdown export tools with zero design background required.'
+        },
+        {
+          q: 'How does automated digital delivery work once someone buys?',
+          a: 'We show you how to connect Paystack or Selar so that the moment a buyer pays, the verified PDF is delivered automatically to their email and download screen with zero manual effort.'
+        },
+        {
+          q: 'Can I sell the digital products I create during this track?',
+          a: 'Yes. You own 100% of the copyright, content, and revenue for all digital products, guides, and templates you produce.'
+        }
+      ]
     }
   ],
   resources: [
@@ -757,7 +887,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       description: 'Comprehensive syntax guide with 200+ tested commercial prompts, lighting modifiers, and aspect ratio formulas.',
       isPublicPreview: true,
       previewUrl: '/docs/sample-prompt-guide.pdf',
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Pinned Message #14'
     },
     {
@@ -769,7 +899,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       trackName: 'AI Content Creation',
       description: 'Full unedited recorded masterclass explaining negative prompt weights, seed locking, and photorealistic skin textures.',
       isPublicPreview: false,
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Session Archive #01'
     },
     {
@@ -782,7 +912,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       description: 'Step-by-step installation guides for Docker VPS deployment, webhook security, and 8 ready-to-import JSON workflows.',
       isPublicPreview: true,
       previewUrl: '/docs/sample-automation-blueprint.pdf',
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Pinned Message #22'
     },
     {
@@ -794,7 +924,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       trackName: 'AI Automation',
       description: 'Watch Dean Sarumi build a production lead router with error traps, retries, and automated WhatsApp alert triggers in real-time.',
       isPublicPreview: false,
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Session Archive #04'
     },
     {
@@ -807,7 +937,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       description: 'Layout math, nested border radius formulas, mobile responsive rules, and high-conversion landing page skeletons.',
       isPublicPreview: true,
       previewUrl: '/docs/sample-web-ui-guide.pdf',
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Pinned Message #31'
     },
     {
@@ -819,7 +949,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       trackName: 'AI Web Dev & Design',
       description: 'Live build walkthrough showing how to direct AI models to generate reliable TypeScript React code without regressions.',
       isPublicPreview: false,
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Session Archive #07'
     },
     {
@@ -832,7 +962,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       description: 'Word-for-word pitch scripts, scope of work templates, payment milestone schedules, and client objection battlecards.',
       isPublicPreview: true,
       previewUrl: '/docs/sample-proposal-template.pdf',
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Pinned Message #45'
     },
     {
@@ -844,8 +974,33 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       trackName: 'Client Acquisition',
       description: 'Real client negotiation case study demonstrating how to anchor price on client ROI rather than hourly freelance rates.',
       isPublicPreview: false,
-      lockedUrl: 'https://t.me/+vixora_cohort1_private',
+      lockedUrl: '/pages/student-portal',
       telegramMessageRef: 'Session Archive #11'
+    },
+    {
+      id: 'res-pdf-01',
+      title: 'Digital Product Research & PDF Publishing Handbook (W6 & W7 Master Guide)',
+      type: 'pdf',
+      durationOrPages: '38 Pages',
+      trackId: 'track-pdf-automation',
+      trackName: 'PDF Automation',
+      description: 'Audience validation frameworks, prompt templates for deep research, layout specs, and Paystack/Selar automated delivery blueprints.',
+      isPublicPreview: true,
+      previewUrl: '/docs/sample-pdf-automation-guide.pdf',
+      lockedUrl: '/pages/student-portal',
+      telegramMessageRef: 'Pinned Message #50'
+    },
+    {
+      id: 'res-pdf-02',
+      title: 'Session Recording: W6 & W7 Digital Product Research, AI Writing & Automated Sales',
+      type: 'video',
+      durationOrPages: '1h 22m',
+      trackId: 'track-pdf-automation',
+      trackName: 'PDF Automation',
+      description: 'Watch Dean Sarumi walk through audience validation, outline development, AI drafting, and setting up an automated digital product checkout.',
+      isPublicPreview: false,
+      lockedUrl: '/pages/student-portal',
+      telegramMessageRef: 'Session Archive #14'
     }
   ]
 };
@@ -895,6 +1050,17 @@ export function getCohortTrackBySlug(slugOrId?: string): CohortTrackItem | undef
         normalized === 'freelancing' ||
         normalized === 'track-4' ||
         normalized === '4'
+      );
+    }
+    if (track.id === 'track-pdf-automation') {
+      return (
+        normalized === 'pdf-automation' ||
+        normalized === 'pdf-automation-digital-products' ||
+        normalized === 'ai-digital-product-creation' ||
+        normalized === 'digital-product-creation' ||
+        normalized === 'course-pdf-automation-digital-products' ||
+        normalized === 'track-5' ||
+        normalized === '5'
       );
     }
     return false;

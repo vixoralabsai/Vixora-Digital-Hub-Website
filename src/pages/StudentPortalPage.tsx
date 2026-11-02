@@ -39,6 +39,30 @@ interface StudentPortalPageProps {
   onNavigateToCourse?: (courseSlug: string) => void;
 }
 
+function getCourseTelegramVault(course: {
+  courseId: string;
+  title?: string;
+  telegramInviteUrl?: string;
+  telegramVaultTitle?: string;
+  isMasterVault?: boolean;
+}): { title: string; url: string; isMaster: boolean } {
+  // If the server securely attached the authorized Telegram invite URL for this enrolled student:
+  if (course.telegramInviteUrl) {
+    return {
+      title: course.telegramVaultTitle || (course.isMasterVault ? 'Cohort 1.0 Master Vault (5-in-1 Pass)' : `${course.title || 'Course'} Vault`),
+      url: course.telegramInviteUrl,
+      isMaster: Boolean(course.isMasterVault)
+    };
+  }
+
+  // Safe fallback to public community channel if student hasn't authenticated or enrolled
+  return {
+    title: 'Vixora Academy Community Telegram',
+    url: 'https://t.me/vixoraacademy',
+    isMaster: false
+  };
+}
+
 export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
   initialTab = 'dashboard',
   initialCertId,
@@ -1435,14 +1459,34 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                 </div>
 
                 {/* Enrolled Courses & Progress Section */}
-                <div className="bg-white rounded-3xl border border-purple-100 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-black text-[#000048] mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-[#7000F8]" />
-                    <span>My Enrolled Academic Programs</span>
-                  </h3>
+                <div className="bg-white rounded-3xl border border-purple-100 shadow-sm p-6 sm:p-8 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-black text-[#000048] flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-[#7000F8]" />
+                        <span>My Enrolled Academic Programs</span>
+                      </h3>
+                      <p className="text-xs text-neutral-500 mt-0.5">
+                        Coursework, completion progress, and authenticated Telegram mastermind access
+                      </p>
+                    </div>
+
+                    <a
+                      href="https://t.me/vixoraacademy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-1.5 transition-colors w-fit"
+                      title="Join public community announcements"
+                    >
+                      <Send className="w-3.5 h-3.5 text-sky-500" />
+                      <span>Public Telegram (@vixoraacademy)</span>
+                    </a>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentStudent?.courses.map((course, idx) => (
+                    {currentStudent?.courses.map((course, idx) => {
+                      const tgVault = getCourseTelegramVault(course);
+                      return (
                       <div 
                         key={idx}
                         className="p-5 rounded-2xl border border-neutral-200 hover:border-purple-300 bg-[#FCFCFF] hover:bg-purple-50/20 transition-all flex flex-col justify-between"
@@ -1487,9 +1531,54 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                               {course.completedModules} of {course.totalModules} production modules fulfilled
                             </div>
                           </div>
+
+                          {/* Authenticated Telegram Space Launcher */}
+                          <div className="mt-4 pt-3 border-t border-neutral-200/80 space-y-2">
+                            <a
+                              href={tgVault.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-between gap-2 transition-all shadow-xs ${
+                                tgVault.isMaster
+                                  ? 'bg-gradient-to-r from-[#000048] via-[#480878] to-[#7000F8] text-white hover:opacity-95 shadow-purple-900/20'
+                                  : 'bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-300/80'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <Send className={`w-3.5 h-3.5 shrink-0 ${tgVault.isMaster ? 'text-amber-300' : 'text-sky-600'}`} />
+                                <span className="truncate">
+                                  {tgVault.isMaster ? 'Open Master Vault (All 5 Tracks Replays)' : tgVault.title}
+                                </span>
+                              </div>
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                            </a>
+
+                            {/* If course has individual track invites (e.g. Master Pass 5-in-1), provide direct access to each track */}
+                            {course.telegramInvites && course.telegramInvites.length > 1 && (
+                              <div className="pt-1.5 space-y-1">
+                                <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                                  Included Track Vaults:
+                                </div>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {course.telegramInvites.map((trackInv, tIdx) => (
+                                    <a
+                                      key={tIdx}
+                                      href={trackInv.inviteUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="py-1.5 px-2.5 rounded-lg bg-neutral-100 hover:bg-purple-100/70 text-[11px] font-semibold text-[#000048] flex items-center justify-between gap-1 transition-colors"
+                                    >
+                                      <span className="truncate">{trackInv.title}</span>
+                                      <ExternalLink className="w-3 h-3 text-[#7000F8] shrink-0" />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="mt-5 pt-4 border-t border-neutral-200/70 flex items-center justify-between">
+                        <div className="mt-4 pt-3 border-t border-neutral-200/70 flex items-center justify-between">
                           {course.certificateId ? (
                             <button
                               onClick={() => {
@@ -1521,7 +1610,8 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                           )}
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 </div>
 

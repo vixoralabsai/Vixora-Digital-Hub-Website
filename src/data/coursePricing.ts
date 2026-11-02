@@ -55,6 +55,10 @@ export const COURSE_PRICING: Record<string, CoursePrices> = {
     NGN: 25000,
     USD: 25,
   },
+  'course-pdf-automation-digital-products': {
+    NGN: 20000,
+    USD: 20,
+  },
   'course-cohort-1-master-bundle': {
     NGN: 45000,
     USD: 45,

@@ -29,6 +29,7 @@ import { generateCertificatePdfBuffer } from './certificatePdfGenerator.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from './supabaseAdmin.js';
 import { requireAuthentication } from './auth/authMiddleware.js';
 import { requireAdmin, getAuthorizedAdminEmails } from './auth/requireAdmin.js';
+import { getTelegramInvitesForCourse } from './telegramConfig.js';
 
 export const portalRouter = Router();
 
@@ -535,6 +536,8 @@ async function getAuthenticatedStudentProfile(
           enrollments.forEach((e: any) => {
             const course = e.courses;
             if (course) {
+              const courseInvites = getTelegramInvitesForCourse(course.id);
+              const primaryInvite = courseInvites[0];
               studentCourses.push({
                 courseId: course.id,
                 title: course.title,
@@ -545,7 +548,16 @@ async function getAuthenticatedStudentProfile(
                 instructor: course.instructor_name || 'Vixora Academy',
                 completedModules: e.completed_modules ?? 0,
                 totalModules: course.total_modules || e.total_modules || 0,
-                certificateId: certMap.get(course.id) || undefined
+                certificateId: certMap.get(course.id) || undefined,
+                telegramInviteUrl: primaryInvite?.inviteUrl,
+                telegramVaultTitle: primaryInvite?.title,
+                isMasterVault: primaryInvite?.accessTier === 'bundle',
+                telegramInvites: courseInvites.map((i) => ({
+                  title: i.title,
+                  inviteUrl: i.inviteUrl,
+                  description: i.description,
+                  accessTier: i.accessTier
+                }))
               });
             }
           });
@@ -582,7 +594,26 @@ async function getAuthenticatedStudentProfile(
   // Fallback cache lookup (permitted ONLY in offline dev environment without Supabase)
   if (shouldPermitFallback()) {
     const cachedStudent = fallbackStudentsStore.get(cleanEmail);
-    return cachedStudent || null;
+    if (!cachedStudent) return null;
+    return {
+      ...cachedStudent,
+      courses: cachedStudent.courses.map((c) => {
+        const courseInvites = getTelegramInvitesForCourse(c.courseId);
+        const primaryInvite = courseInvites[0];
+        return {
+          ...c,
+          telegramInviteUrl: primaryInvite?.inviteUrl,
+          telegramVaultTitle: primaryInvite?.title,
+          isMasterVault: primaryInvite?.accessTier === 'bundle',
+          telegramInvites: courseInvites.map((i) => ({
+            title: i.title,
+            inviteUrl: i.inviteUrl,
+            description: i.description,
+            accessTier: i.accessTier
+          }))
+        };
+      })
+    };
   }
 
   return null;
@@ -1514,6 +1545,64 @@ portalRouter.get('/student/profile', requireAuthentication, async (req: Request,
     return res.status(status).json({
       error: 'Failed to retrieve student profile.',
       code: err instanceof DatabaseServiceError ? err.code : 'PROFILE_RETRIEVAL_ERROR'
+    });
+  }
+});
+
+// Authenticated Course Telegram Access Endpoint
+// Verifies:
+// 1. Valid Supabase Auth JWT (requireAuthentication)
+// 2. Active student enrollment in requested courseId (or all-access bundle)
+// Returns private telegram links strictly to authorized paying students.
+portalRouter.get('/student/courses/:courseId/telegram-invite', requireAuthentication, async (req: Request, res: Response) => {
+  const verifiedUser = req.user;
+  if (!verifiedUser || !verifiedUser.id || !verifiedUser.email) {
+    return res.status(401).json({
+      error: 'Invalid or missing user session context.',
+      code: 'AUTH_SESSION_INVALID'
+    });
+  }
+
+  const courseId = req.params.courseId?.trim();
+  if (!courseId) {
+    return res.status(400).json({ error: 'Course ID parameter is required.', code: 'MISSING_COURSE_ID' });
+  }
+
+  try {
+    const student = await getAuthenticatedStudentProfile(verifiedUser.id, verifiedUser.email);
+    if (!student) {
+      return res.status(404).json({ error: 'Student record not found.', code: 'STUDENT_NOT_FOUND' });
+    }
+
+    const normTarget = courseId.toLowerCase();
+    const hasEnrolled = student.courses.some((c) => {
+      const cId = c.courseId.toLowerCase();
+      return (
+        cId === normTarget ||
+        cId.includes('bundle') ||
+        cId === 'course-cohort-1-master-bundle' ||
+        (normTarget.includes('bundle') && cId.includes('bundle'))
+      );
+    });
+
+    if (!hasEnrolled) {
+      return res.status(403).json({
+        error: 'Access denied: You are not enrolled in this course.',
+        code: 'FORBIDDEN_NOT_ENROLLED'
+      });
+    }
+
+    const invites = getTelegramInvitesForCourse(courseId);
+    return res.json({
+      success: true,
+      courseId,
+      invites
+    });
+  } catch (err: any) {
+    console.error('Error fetching course telegram invite:', err);
+    return res.status(500).json({
+      error: 'Internal error resolving course access.',
+      code: 'INTERNAL_ERROR'
     });
   }
 });

@@ -100,15 +100,27 @@ INSERT INTO courses (
     'published'
   ),
   (
+    'pdf-automation-digital-products',
+    'PDF Automation & AI Digital Product Creation',
+    'pdf-automation-digital-products',
+    20000.00,
+    2000000,
+    '2 Weeks',
+    'All Levels',
+    'Cohort 1.0 Track • ₦20,000',
+    'Research high-demand audiences, validate market problems with AI, author professional PDF guides, design covers and visual layouts, and automate instant checkout delivery with Paystack and Selar.',
+    'published'
+  ),
+  (
     'cohort-1-master-bundle',
-    'Cohort 1.0: 4-in-1 Masterclass All-Access Pass',
+    'Cohort 1.0: 5-in-1 Masterclass All-Access Pass',
     'cohort-1-master-bundle',
     45000.00,
     4500000,
     'Full Lifetime Access',
     'All Levels',
-    'Flagship 4-in-1 Bundle • Save 69%',
-    'One purchase unlocks all four Cohort 1.0 masterclass tracks: AI Content Creation, AI Automation, AI Web Development (Full Stack Vibe Coding), and Client Acquisition & Freelancing with full Telegram community access and resources.',
+    'Flagship 5-in-1 Bundle • Save 72%',
+    'One purchase unlocks all five Cohort 1.0 masterclass tracks: AI Content Creation, AI Automation, AI Web Development (Full Stack Vibe Coding), Client Acquisition & Freelancing, and PDF Automation & Digital Products with full Telegram community access and resources.',
     'published'
   )
 ON CONFLICT (id) DO UPDATE SET

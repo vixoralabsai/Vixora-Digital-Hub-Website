@@ -6,6 +6,29 @@
     <meta name="referrer" content="no-referrer" />
     <link rel="icon" type="image/png" href="/images/vixora-icon.png" />
     <link rel="apple-touch-icon" href="/images/vixora-icon.png" />
+    <script>
+      // Gracefully prevent unhandled rejections from Vite HMR WebSocket in cloud preview/iframe environments
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event && event.reason;
+        var msg = (reason && (reason.message || reason.stack || String(reason))) || '';
+        if (
+          msg.includes('WebSocket') ||
+          msg.includes('closed without opened') ||
+          msg.includes('@vite/client')
+        ) {
+          event.preventDefault();
+        }
+      });
+      window.addEventListener('error', function(event) {
+        var msg = (event && (event.message || event.filename || '')) || '';
+        if (
+          msg.includes('WebSocket') ||
+          msg.includes('@vite/client')
+        ) {
+          event.preventDefault();
+        }
+      });
+    </script>
     <title>Vixora Digital Hub | Software, AI & Automation</title>
     <meta name="description" content="Build Smarter Businesses with Software, AI & Automation. Digital headquarters for custom software development, AI solutions, branding, media production, and Vixora Academy." />
     <meta property="og:title" content="Vixora Digital Hub | Software, AI & Automation" />

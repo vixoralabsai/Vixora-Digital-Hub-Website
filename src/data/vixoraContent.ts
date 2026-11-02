@@ -1864,28 +1864,124 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     certificateType: "Official Vixora Certified Digital Business Consultant"
   },
   {
+    id: "course-pdf-automation-digital-products",
+    slug: "pdf-automation-digital-products",
+    title: "PDF Automation & AI Digital Product Creation",
+    subtitle: "Research high-demand audiences, validate market problems, author professional PDF guides with AI, design covers & visual layouts, and automate checkout delivery.",
+    badge: "Cohort 1.0 Track • ₦20,000",
+    level: "All Levels",
+    status: "active",
+    track: "Business Automation",
+    format: "2-Week Practical Sprint (W6 & W7) + Telegram Mastermind",
+    duration: "2 Weeks",
+    commitment: "3-4 hrs/week (Flexible Replays & Publishing Labs)",
+    nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
+    tuition: "₦20,000",
+    tuitionNote: "Full access to Cohort 1.0 recorded sessions, PDF templates, and private Telegram group.",
+    seatsRemaining: 20,
+    targetAudience: "Digital Creators, Writers, Educators, Freelancers, Consultants, and Knowledge Entrepreneurs.",
+    description: "Learn to build scalable, passive digital income assets by researching hungry audiences, validating urgent problems with AI, crafting structured PDF formats (guides, workbooks, templates, handbooks), designing commercial layouts, and automating checkout delivery with Paystack and Selar.",
+    heroPitch: "Stop trading time for money. Learn to research, write, design, and automate the sale of high-margin commercial PDF products using modern AI workflows.",
+    highlights: [
+      "Find hungry target audiences and validate high-intent commercial problems with AI",
+      "Fact-check and research with precision using frontier AI models",
+      "Choose the right PDF format: guide, workbook, checklist, template or handbook",
+      "Author polished content with AI while preserving originality and human clarity",
+      "Design executive-level layouts, covers, tables, and visual elements",
+      "Wire up automated payment gateways (Paystack/Selar) for instant customer PDF delivery"
+    ],
+    outcomes: [
+      "Identify high-margin digital product niches and validate problem-solution fit",
+      "Produce complete 30-50 page authoritative PDF products in days instead of months",
+      "Format and export professional PDF layouts with visual hierarchy and cover art",
+      "Deploy self-executing checkout pages that deliver products 24/7 without manual intervention"
+    ],
+    prerequisites: [
+      "A laptop or smartphone with internet connection",
+      "Willingness to research and publish a practical digital product"
+    ],
+    curriculum: [
+      "Week 1 (W6) — Digital Product Research and Planning",
+      "Week 2 (W7) — AI Writing, PDF Production and Digital Product Sales"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 01 (W6)",
+        title: "Digital Product Research and Planning",
+        description: "Find a target audience and validate a problem. Research and fact-check using AI. Choose a PDF product format: guide, workbook, template or handbook. Create an outline and develop a clear value proposition. Plan a quality product from research to publication.",
+        topics: [
+          "Find a target audience and validate a problem",
+          "Research and fact-check using AI",
+          "Choose a PDF product format: guide, workbook, template or handbook",
+          "Create an outline and develop a clear value proposition",
+          "Plan a quality product from research to publication"
+        ],
+        handsOnLab: "Lab W6: Finalize an audience-validated digital product outline with a high-converting value proposition."
+      },
+      {
+        week: "Week 02 (W7)",
+        title: "AI Writing, PDF Production and Digital Product Sales",
+        description: "Use AI to write and refine a high-quality PDF. Improve structure, accuracy, originality and readability. Design layouts, covers, tables and visual elements. Export, proofread and package the final PDF. Introduction to pricing, product listings and delivery systems.",
+        topics: [
+          "Use AI to write and refine a high-quality PDF",
+          "Improve structure, accuracy, originality and readability",
+          "Design layouts, covers, tables and visual elements",
+          "Export, proofread and package the final PDF",
+          "Introduction to pricing, product listings and delivery systems"
+        ],
+        handsOnLab: "Lab W7: Export your finished PDF product and deploy an automated Paystack/Selar checkout delivery page."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Complete Commercial PDF Product & Automated Storefront Launch",
+        description: "Research, write, format, and publish a finished high-quality commercial PDF product connected to an automated instant checkout delivery system.",
+        technologies: ["AI Writing Models", "Visual Design Tools", "PDF Formatting", "Paystack / Selar", "Automated Email Delivery"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Sarumi Hammad",
+        role: "Dean & Academic Director, Vixora Academy",
+        bio: "Director of technical programs and commercial software delivery across enterprise AI and automation clients worldwide.",
+        companyBackground: "Vixora Digital Hub Academic Directorate"
+      }
+    ],
+    faqs: [
+      {
+        q: "What format will my digital product be in?",
+        a: "You can create guides, workbooks, checklists, templates, or full handbooks exported as crisp, professionally formatted PDFs."
+      },
+      {
+        q: "How do customers receive the PDF after paying?",
+        a: "The checkout system automatically redirects them to a secure download screen and sends a verified copy directly to their email address."
+      }
+    ],
+    certificateType: "Official Vixora Certified Digital Product Specialist"
+  },
+  {
     id: "course-cohort-1-master-bundle",
     slug: "cohort-1-master-bundle",
-    title: "Cohort 1.0: 4-in-1 Masterclass All-Access Pass",
-    subtitle: "Complete access to all 4 training tracks: AI Content Creation, AI Automation, AI Web Development, and Client Acquisition.",
+    title: "Cohort 1.0: 5-in-1 Masterclass All-Access Pass",
+    subtitle: "Complete access to all 5 training tracks: AI Content Creation, AI Automation, AI Web Development, Client Acquisition, and PDF Automation & Digital Products.",
     badge: "Flagship Bundle • ₦45,000",
     level: "All Levels",
     status: "active",
     track: "Engineering & AI",
-    format: "4 Complete Modular Tracks + 28h Video Vault + 14 PDFs + Private Telegram Mastermind",
+    format: "5 Complete Modular Tracks + 35h Video Vault + 18 PDFs + Private Telegram Mastermind",
     duration: "Full Lifetime Access",
     commitment: "Self-Paced with Ongoing Community Mentorship",
     nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
     tuition: "₦45,000",
-    tuitionNote: "Includes all 4 courses (Standard price ₦95,000 when purchased separately). Save over 50%.",
+    tuitionNote: "Includes all 5 courses (Standard price ₦95,000 when purchased separately). Save over 50%.",
     seatsRemaining: 15,
     targetAudience: "Ambitious Builders, Creators, Developers, Consultants and Entrepreneurs.",
-    description: "The complete Cohort 1.0 vault. Receive full access to all 4 tracks: AI Content Creation, AI Automation, AI Web Development & Design, and Client Acquisition & Freelancing. Includes all 28+ hours of session recordings, 14 strategy PDFs, workflow blueprints, and lifetime access to our Private Telegram Mastermind.",
-    heroPitch: "Everything you need to master AI creation, automate business workflows, build modern web apps, and acquire high-paying international clients.",
+    description: "The complete Cohort 1.0 vault. Receive full access to all 5 tracks: AI Content Creation, AI Automation, AI Web Development & Design, Client Acquisition & Freelancing, and PDF Automation & Digital Products. Includes all 35+ hours of session recordings, 18 strategy PDFs, workflow blueprints, and lifetime access to our Private Telegram Mastermind.",
+    heroPitch: "Everything you need to master AI creation, automate business workflows, build modern web apps, sell high-margin PDF products, and acquire high-paying international clients.",
     highlights: [
-      "Access to all 4 training tracks in one single enrollment pass",
-      "28+ hours of recorded video masterclasses in our private Telegram group",
-      "14 downloadable PDF guidebooks, prompt libraries & workflow blueprints",
+      "Access to all 5 training tracks in one single enrollment pass",
+      "35+ hours of recorded video masterclasses in our private Telegram group",
+      "18 downloadable PDF guidebooks, prompt libraries & workflow blueprints",
       "Full access to the Private Telegram Mastermind with Dean Sarumi Hammad",
       "Cryptographically verifiable graduation certification"
     ],
@@ -1893,6 +1989,7 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
       "Generate photorealistic visual media and short-form video pipelines",
       "Deploy production n8n workflows that automate business operations",
       "Build and deploy modern responsive web apps with React and Tailwind",
+      "Research, author, and sell commercial PDF products with automated checkout",
       "Close $1,000 to $5,000 monthly client contracts and international retainers"
     ],
     prerequisites: [
@@ -1903,7 +2000,8 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
       "Track 1 — AI Content Creation (Image, Video & Audio)",
       "Track 2 — AI Automation & Autonomous Workflows (n8n & APIs)",
       "Track 3 — AI Web Development & Modern Design (React 19 & Tailwind)",
-      "Track 4 — Client Acquisition & Freelancing (High-Ticket Positioning)"
+      "Track 4 — Client Acquisition & Freelancing (High-Ticket Positioning)",
+      "Track 5 — PDF Automation & AI Digital Product Creation (W6 & W7)"
     ],
     weeklySyllabus: [
       {
@@ -1933,6 +2031,13 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
         description: "High-ticket positioning, Upwork optimization, cold email systems, and closing retainers.",
         topics: ["Irresistible offer design", "Winning Upwork proposals", "Cold outbound campaigns", "Closing discovery calls"],
         handsOnLab: "Deliverable: Signed Client Contract & 50-Lead Outbound Campaign"
+      },
+      {
+        week: "Track 5",
+        title: "PDF Automation & AI Digital Product Creation (W6 & W7)",
+        description: "Digital product research, validation, AI authoring, visual layout design, and automated storefront delivery.",
+        topics: ["Audience research & validation", "AI fact-checking", "PDF guide & workbook formatting", "Paystack/Selar delivery automation"],
+        handsOnLab: "Deliverable: Published Commercial PDF Product with Live Checkout Link"
       }
     ],
     capstoneProjects: [
