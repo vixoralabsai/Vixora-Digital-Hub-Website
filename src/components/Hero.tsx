@@ -7,8 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Cpu,
-  Layers,
-  Terminal
+  Layers
 } from 'lucide-react';
 import { BRAND_CONFIG, getImageFallbacks, getDirectImageUrl, getVideoSources } from '../data/brandConfig';
 
@@ -177,24 +176,16 @@ export function Hero({
               <span className="font-semibold text-cyan-200">Scalable Architecture</span>
             </div>
 
-            {/* Bold, Distinct Headline with responsive clamp sizing and text shadows */}
+            {/* Bold, Distinct Headline with Single-Color Display Authority */}
             <div className="space-y-1">
-              <h1 className="text-3xl sm:text-5xl lg:text-[62px] xl:text-[66px] font-black tracking-tight text-white leading-[1.12] sm:leading-[1.08] [text-wrap:balance] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
-                <span>Build Smarter.</span>
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-300">
-                  Automate Faster.
-                </span>
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-sky-300 to-cyan-400">
-                  Scale Infinitely.
-                </span>
+              <h1 className="text-3xl sm:text-5xl lg:text-[60px] xl:text-[64px] font-black tracking-tight text-white leading-[1.12] sm:leading-[1.08] [text-wrap:balance] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+                Enterprise Software &amp; Autonomous AI Systems Engineered for Growth.
               </h1>
             </div>
 
             {/* Concise Value Proposition Paragraph with crisp readability */}
-            <p className="text-sm sm:text-lg lg:text-xl text-neutral-100 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] px-1 sm:px-0">
-              We engineer custom enterprise software, autonomous AI agent workflows, and cloud-scale platforms that turn complex operations into lasting market advantage.
+            <p className="text-sm sm:text-lg lg:text-xl text-neutral-200 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] px-1 sm:px-0">
+              We design, build, and deploy production web platforms, intelligent automation workflows, and high-performance digital infrastructure for modern businesses and ambitious founders.
             </p>
 
             {/* Single Prominent Call-to-Action with mobile full-width tap targets */}
@@ -244,24 +235,20 @@ export function Hero({
             {/* Ambient Backlight */}
             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-purple-600/20 to-indigo-600/20 blur-xl opacity-70 pointer-events-none" />
 
-            {/* Unified Glass Console */}
+            {/* Unified Architecture Spotlight Card */}
             <div className="relative rounded-2xl bg-[#0B0520]/80 border border-purple-500/20 backdrop-blur-xl p-4 sm:p-6 shadow-2xl shadow-purple-950/40 space-y-3 sm:space-y-4">
               
-              {/* Terminal Window Header */}
+              {/* Architecture Spotlight Header */}
               <div className="flex items-center justify-between pb-3 border-b border-purple-500/15">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-                  <span className="ml-2 font-mono text-[11px] text-purple-300/80 font-medium flex items-center gap-1.5">
-                    <Terminal className="w-3 h-3 text-purple-400" />
-                    vixora-core // architecture
+                  <div className="w-2 h-2 rounded-xs bg-[#5B5FED]" />
+                  <span className="text-xs font-semibold tracking-wide text-white">
+                    Integrated System Architecture
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>ONLINE</span>
-                </div>
+                <span className="text-[11px] text-neutral-400 font-medium">
+                  Enterprise Production Stack
+                </span>
               </div>
 
               {/* Capability Stack */}
@@ -290,7 +277,7 @@ export function Hero({
                             <h3 className="text-sm font-semibold text-white truncate">
                               {cap.title}
                             </h3>
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-medium whitespace-nowrap ${cap.badgeColor}`}>
+                            <span className="text-[11px] font-medium text-purple-300 shrink-0">
                               {cap.badge}
                             </span>
                           </div>
@@ -304,18 +291,18 @@ export function Hero({
                 })}
               </div>
 
-              {/* Console Footer */}
-              <div className="pt-3 border-t border-purple-500/15 flex items-center justify-between text-[11px] text-neutral-400 font-mono">
-                <span className="flex items-center gap-1.5 text-purple-300">
-                  <Cpu className="w-3.5 h-3.5" />
-                  <span>SLA 99.99% Guaranteed</span>
+              {/* Architecture Spotlight Footer */}
+              <div className="pt-3 border-t border-purple-500/15 flex items-center justify-between text-xs text-neutral-300">
+                <span className="flex items-center gap-2 text-neutral-400 text-xs">
+                  <Cpu className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Production-Ready SLA</span>
                 </span>
                 <button
                   onClick={onExploreServices}
-                  className="text-purple-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+                  className="text-xs font-semibold text-purple-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <span>Explore Stack</span>
-                  <Layers className="w-3 h-3 text-purple-400" />
+                  <span>Explore Capabilities</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
                 </button>
               </div>
 

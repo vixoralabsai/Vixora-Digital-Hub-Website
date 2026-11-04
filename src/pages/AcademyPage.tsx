@@ -252,13 +252,13 @@ export function AcademyPage({
             <div className="lg:col-span-7 flex flex-col items-start text-left">
               
               {/* Academy Identity & Dean Kicker */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 text-[#5B5FED] border border-purple-200/80 mb-5 max-w-full">
-                <GraduationCap className="w-3.5 h-3.5 text-[#5B5FED] shrink-0" />
-                <span className="font-mono text-[10px] sm:text-[11px] tracking-wide uppercase truncate">
-                  Vixora Academy • Dean: Sarumi Hammad
-                </span>
-                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span className="hidden sm:inline text-[10px] text-emerald-700 font-medium shrink-0">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#5B5FED] mb-5">
+                <GraduationCap className="w-4 h-4 text-[#5B5FED] shrink-0" />
+                <span>Vixora Academy</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span>Dean: Sarumi Hammad</span>
+                <span aria-hidden="true" className="text-slate-300 hidden sm:inline">·</span>
+                <span className="hidden sm:inline text-slate-500 font-normal">
                   2026 Admissions
                 </span>
               </div>
@@ -318,7 +318,6 @@ export function AcademyPage({
                 {/* Contained Video Header Strip */}
                 <div className="px-4 py-2.5 bg-[#0A0E27] border-b border-white/10 flex items-center justify-between text-xs text-slate-300">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
                     <span className="font-mono text-[11px] font-semibold text-white tracking-wide truncate">
                       Vixora Lab Environment
                     </span>
@@ -384,7 +383,7 @@ export function AcademyPage({
                 {/* Contained Card Footer */}
                 <div className="p-3.5 bg-[#0F1535] text-purple-200 border-t border-white/10 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <Code2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                     <span className="text-[11px] text-purple-100 font-medium">Production-grade toolchains &amp; codebases</span>
                   </div>
                   <button
@@ -409,9 +408,8 @@ export function AcademyPage({
       <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl bg-gradient-to-r from-[#0F1535] via-[#1A114A] to-[#0A0D28] text-white p-6 sm:p-8 border border-purple-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 cohort-vault-banner">
           <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-amber-400 text-slate-950 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-              <span className="text-slate-950 font-bold">Flagship Vault Available</span>
+            <div className="text-xs font-semibold tracking-wider text-amber-300 uppercase">
+              Flagship Curriculum Archive
             </div>
             <h3 
               className="text-xl sm:text-2xl font-black text-white tracking-tight cohort-banner-title"
@@ -560,8 +558,7 @@ export function AcademyPage({
                 </button>
 
                 <div className="flex items-center justify-between text-[11px] px-1 font-mono text-[#5F6078]">
-                  <span className="inline-flex items-center gap-1.5 text-amber-700 font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-amber-700 font-semibold">
                     {course.seatsRemaining} seats left
                   </span>
                   <button

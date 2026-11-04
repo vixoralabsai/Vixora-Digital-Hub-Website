@@ -144,19 +144,14 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
             {/* Right Column: Interactive Neo-Brutalist Feature Preview Card */}
             <div className="lg:col-span-5">
               <div className="bg-white border-2 border-[#1A1D4F] shadow-retro-xl rounded-2xl p-6 sm:p-7 relative transition-all">
-                {/* Mac-style Window Bar */}
+                {/* Curriculum & Specs Header */}
                 <div className="flex items-center justify-between pb-4 mb-5 border-b-2 border-[#1A1D4F]/15">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3.5 h-3.5 rounded-full bg-[#FF8A65] border border-[#1A1D4F]"></span>
-                    <span className="w-3.5 h-3.5 rounded-full bg-[#FFC107] border border-[#1A1D4F]"></span>
-                    <span className="w-3.5 h-3.5 rounded-full bg-[#10B981] border border-[#1A1D4F]"></span>
-                  </div>
-                  <span className="font-mono text-xs font-bold text-[#1A1D4F]/70 uppercase tracking-wider">
-                    VIXORA SPEC // 2026
+                  <span className="font-mono text-xs font-bold text-[#1A1D4F] uppercase tracking-wider">
+                    Course Specification
                   </span>
-                  <div className="w-12 text-right">
-                    <span className="inline-block w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
-                  </div>
+                  <span className="text-[11px] font-mono text-[#5B5FED] font-semibold">
+                    Cohort 1.0 Curriculum
+                  </span>
                 </div>
 
                 {/* Tab Switcher */}

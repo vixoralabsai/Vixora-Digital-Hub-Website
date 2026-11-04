@@ -33,8 +33,8 @@ export function IndustriesSection({ onSelectIndustry }: IndustriesSectionProps) 
     <section id="industries" className="py-24 bg-[#F7F7FC] border-t border-[#E5E5F0] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-[#480878] bg-[#480878]/5 border border-[#480878]/15 mb-3">
-            <span>DOMAIN SPECIALIZATION</span>
+          <div className="text-xs font-semibold tracking-wider text-[#480878] uppercase mb-2">
+            Industry Specialization
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>Industries We Transform</h2>
           <p className="mt-3 text-base sm:text-lg text-[#5F6078] font-normal" style={{ color: '#475569' }}>

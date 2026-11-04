@@ -7,7 +7,7 @@ interface FloatingAiAdvisorWidgetProps {
 
 export const FloatingAiAdvisorWidget: React.FC<FloatingAiAdvisorWidgetProps> = ({ onOpen }) => {
   return (
-    <aside aria-label="AI Advisor Quick Launch" className="fixed bottom-6 left-6 z-40 font-sans print:hidden">
+    <aside aria-label="AI Advisor Quick Launch" className="hidden sm:block fixed bottom-6 left-6 z-40 font-sans print:hidden">
       <button
         onClick={onOpen}
         className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#0C061F] hover:bg-[#1A0D3A] text-white shadow-2xl shadow-purple-950/80 border border-purple-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"

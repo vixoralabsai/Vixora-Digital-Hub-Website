@@ -21,12 +21,12 @@ export function FloatingWhatsAppWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 font-sans print:hidden">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 font-sans print:hidden">
       {/* Floating Toggle Bubble */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xl shadow-emerald-600/50 border border-emerald-400/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          className="group flex items-center gap-2 p-3 sm:px-4 sm:py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-950/60 border border-emerald-400/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
           aria-label="Open WhatsApp live chat support"
         >
           <div className="relative">

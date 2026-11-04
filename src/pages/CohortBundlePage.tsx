@@ -159,13 +159,13 @@ export function CohortBundlePage({
             <div className="lg:col-span-7 flex flex-col items-start text-left">
               
               {/* Directorate & Edition Kicker */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 text-[#5B5FED] border border-purple-200/80 mb-5 max-w-full">
-                <GraduationCap className="w-3.5 h-3.5 text-[#5B5FED] shrink-0" />
-                <span className="font-mono text-[10px] sm:text-[11px] tracking-wide uppercase truncate">
-                  {COHORT_1_BUNDLE.edition} • Dean: Sarumi Hammad
-                </span>
-                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span className="hidden sm:inline text-[10px] text-emerald-700 font-medium shrink-0">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#5B5FED] mb-5">
+                <GraduationCap className="w-4 h-4 text-[#5B5FED] shrink-0" />
+                <span>{COHORT_1_BUNDLE.edition}</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span>Dean: Sarumi Hammad</span>
+                <span aria-hidden="true" className="text-slate-300 hidden sm:inline">·</span>
+                <span className="hidden sm:inline text-slate-500 font-normal">
                   Private Telegram Vault
                 </span>
               </div>
@@ -249,7 +249,7 @@ export function CohortBundlePage({
                 {/* Frame Header */}
                 <div className="px-4 py-2.5 bg-[#0A0E27] border-b border-white/10 flex items-center justify-between text-xs text-slate-300">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                     <span className="font-mono text-[11px] font-semibold text-white tracking-wide truncate">
                       Cohort 1.0 Recorded Masterclass
                     </span>
@@ -290,7 +290,7 @@ export function CohortBundlePage({
                 {/* Contained Player Footer */}
                 <div className="p-3.5 bg-[#0F1535] text-purple-200 border-t border-white/10 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <Video className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span className="text-[11px] text-purple-100 font-medium">Session archives recorded in 1080p HD</span>
                   </div>
                   <button
@@ -339,9 +339,8 @@ export function CohortBundlePage({
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-[#5B5FED] bg-purple-50 border border-purple-200">
-            <Layers className="w-3.5 h-3.5" />
-            <span>Cohort 1.0 Curriculum Architecture</span>
+          <div className="text-xs font-semibold tracking-wider text-[#5B5FED] uppercase">
+            Curriculum Architecture
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0F1535] tracking-tight">
             The 5 Training Pillars of Cohort 1.0
@@ -529,9 +528,8 @@ export function CohortBundlePage({
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200">
-                <Video className="w-3.5 h-3.5" />
-                <span>Recorded Sessions &amp; Strategy Guides</span>
+              <div className="text-xs font-semibold tracking-wider text-emerald-700 uppercase">
+                Recorded Sessions &amp; Strategy Guides
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-[#0F1535] tracking-tight">
                 Cohort 1.0 Vault: Videos &amp; PDF Blueprints
@@ -689,9 +687,8 @@ export function CohortBundlePage({
         <div className="rounded-3xl bg-gradient-to-br from-[#0A0D28] via-[#0F1535] to-[#141B4D] text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden border border-purple-500/40 space-y-8">
           
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-sky-300 bg-sky-500/20 border border-sky-400/50 shadow-xs">
-              <Send className="w-3.5 h-3.5 text-sky-400" />
-              <span>Official Student Community &amp; Content Hub</span>
+            <div className="text-xs font-semibold tracking-wider text-sky-300 uppercase">
+              Official Student Community &amp; Content Hub
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
               Why Cohort 1.0 is Hosted on{' '}

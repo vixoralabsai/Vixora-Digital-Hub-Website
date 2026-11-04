@@ -882,7 +882,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                     {authMode === 'login' && <Lock className="w-7 h-7 text-amber-300" />}
                     {authMode === 'forgot' && <KeyRound className="w-7 h-7 text-amber-300" />}
                     {authMode === 'verify_otp' && <ShieldCheck className="w-7 h-7 text-amber-300" />}
-                    {authMode === 'recovery_direct' && <Sparkles className="w-7 h-7 text-amber-300" />}
+                    {authMode === 'recovery_direct' && <KeyRound className="w-7 h-7 text-amber-300" />}
                     {authMode === 'reset_success' && <Check className="w-7 h-7 text-emerald-300" />}
                   </div>
                   <h2 className="text-2xl font-black text-[#000048] tracking-tight">
@@ -1229,7 +1229,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
                 {authMode === 'recovery_direct' && (
                   <form onSubmit={handleDirectPasswordReset} className="space-y-4">
                     <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-[#000048] flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#7000F8] shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-[#7000F8] shrink-0" />
                       <span>Your identity has been verified. Please choose a new password for your Vixora student account.</span>
                     </div>
 

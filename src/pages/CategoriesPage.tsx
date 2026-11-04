@@ -237,7 +237,7 @@ export function CategoriesPage({
           {post.keyTakeaways && post.keyTakeaways.length > 0 && (
             <div className="p-6 rounded-3xl bg-neutral-900/90 border border-purple-500/30 shadow-xl space-y-3">
               <div className="flex items-center gap-2 text-purple-400 text-xs font-mono font-semibold uppercase tracking-wider">
-                <Sparkles className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-purple-400" />
                 <span>Executive Architectural Takeaways</span>
               </div>
               <ul className="space-y-2.5">

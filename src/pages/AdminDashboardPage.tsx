@@ -222,11 +222,12 @@ export function AdminDashboardPage({
 
               <div>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-purple-900/50 border border-purple-700/50 text-purple-300">
+                  <span className="text-xs font-mono font-bold tracking-wider uppercase text-purple-400">
                     Command Center
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-800/40">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-neutral-600 font-mono text-xs">/</span>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     Live &bull; 256-Bit SSL
                   </span>
                 </div>
@@ -488,7 +489,7 @@ export function AdminDashboardPage({
                   <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                         <span className="text-xs font-bold text-white">Resend API Provider</span>
                       </div>
                       <span className="text-[10px] font-mono text-emerald-400 font-semibold">Active Engine</span>

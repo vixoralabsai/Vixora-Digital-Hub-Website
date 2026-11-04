@@ -82,8 +82,8 @@ export function ProjectActivityAndTickets({
               <Activity className="w-5 h-5 text-purple-400" />
               <span>Real-Time Engineering Audit Feed</span>
             </h3>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span>Live Sync</span>
             </span>
           </div>

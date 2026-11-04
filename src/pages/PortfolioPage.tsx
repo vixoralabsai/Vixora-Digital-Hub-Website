@@ -31,9 +31,8 @@ export function PortfolioPage({ onOpenProjectModal }: PortfolioPageProps) {
       <section className="relative py-16 sm:py-24 overflow-hidden border-b border-purple-900/30">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-purple-600/15 blur-[120px] rounded-full pointer-events-none -z-10" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-500/10 border border-purple-500/30 text-purple-300">
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span className="font-mono uppercase tracking-widest text-[11px]">Proven Client Impact</span>
+          <div className="text-xs font-semibold tracking-wider text-purple-400 uppercase">
+            Client Impact &amp; Deployments
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">Case Studies & Featured Deployments</h1>
           <p className="text-base sm:text-lg text-neutral-300 max-w-2xl mx-auto font-normal leading-relaxed">Explore how Vixora Digital Hub builds practical software, AI-powered solutions, and digital platforms that help businesses work better and grow.</p>

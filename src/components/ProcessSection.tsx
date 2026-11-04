@@ -44,8 +44,8 @@ export function ProcessSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-3xl mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 mb-3">
-            <span>METHODOLOGY</span>
+          <div className="text-xs font-semibold tracking-wider text-indigo-400 uppercase mb-2">
+            Delivery Framework
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 tracking-tight">
             Our 7-Step Engineering Lifecycle

@@ -7,9 +7,8 @@ export function TrustedBy() {
       <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-neutral-100">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="shrink-0 text-center lg:text-left">
-            <span className="text-xs sm:text-sm font-semibold text-purple-900 flex items-center gap-1.5 justify-center lg:justify-start">
-              <span className="w-2 h-2 rounded-full bg-purple-600" />
-              Some of our clients
+            <span className="text-xs font-semibold tracking-wider uppercase text-neutral-500">
+              Selected Client Partnerships
             </span>
           </div>
 

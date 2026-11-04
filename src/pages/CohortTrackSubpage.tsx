@@ -367,7 +367,7 @@ export function CohortTrackSubpage({
                 {/* Video Header Bar */}
                 <div className="flex items-center justify-between px-2 pt-1">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-200">
                       Sample Session Recording
                     </span>

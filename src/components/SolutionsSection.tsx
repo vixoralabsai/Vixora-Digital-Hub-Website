@@ -50,25 +50,155 @@ export function SolutionsSection({ onOpenProjectModal }: SolutionsSectionProps) 
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold text-[#480878] bg-[#480878]/5 border border-[#480878]/15 uppercase tracking-widest"><span>WHAT WE DO</span></div>
+          <div className="text-xs font-semibold tracking-wider text-[#480878] uppercase">Capabilities &amp; Engineering</div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>Complete Digital Solutions</h2>
           <p className="text-sm sm:text-base text-[#5F6078] font-normal max-w-2xl mx-auto" style={{ color: '#475569' }}>End-to-end digital services and AI-powered solutions designed to transform your business.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {featuredCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <div key={card.id} className="bg-white rounded-2xl p-6 sm:p-7 shadow-lg border border-[#E5E5F0] flex flex-col justify-between group hover:-translate-y-1 hover:border-[#9030F8]/40 transition-all duration-300 cursor-pointer" onClick={() => { setActiveCategoryId(card.category); onOpenProjectModal(); }}>
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-[#480878]/8 text-[#480878] flex items-center justify-center mb-5 group-hover:bg-[#480878] group-hover:text-white transition-all shadow-sm"><Icon className="w-6 h-6" /></div>
-                  <h3 className="text-lg font-bold text-[#000048] mb-2 group-hover:text-[#480878] transition-colors">{card.title}</h3>
-                  <p className="text-xs sm:text-sm text-[#5F6078] leading-relaxed">{card.desc}</p>
+        {/* Asymmetric Capabilities Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 mb-12">
+          {/* Marquee Bento Card 1: Custom Software Engineering (Col span 7) */}
+          <div
+            className="lg:col-span-7 bg-white rounded-2xl p-7 sm:p-8 shadow-sm border border-[#E5E5F0] flex flex-col justify-between group hover:border-[#480878]/30 transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => { setActiveCategoryId('growth'); onOpenProjectModal(); }}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-xl bg-[#480878]/10 text-[#480878] flex items-center justify-center font-bold">
+                  <Code2 className="w-6 h-6 text-[#480878]" />
                 </div>
-                <div className="pt-6 mt-6 border-t border-[#E5E5F0] flex items-center text-xs font-bold text-[#480878] gap-1.5"><span>Learn More</span><ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" /></div>
+                <span className="text-xs font-mono font-semibold tracking-wider text-[#480878] uppercase">
+                  Flagship Capability
+                </span>
               </div>
-            );
-          })}
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#000048] mb-2 group-hover:text-[#480878] transition-colors">
+                  Software &amp; Cloud Platform Engineering
+                </h3>
+                <p className="text-sm text-[#5F6078] leading-relaxed max-w-xl">
+                  Custom web applications, enterprise SaaS backends, and high-concurrency systems engineered with typed TypeScript, FastAPI, and PostgreSQL. Built for verified scalability and zero vendor lock-in.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span className="text-xs font-mono text-[#000048] bg-[#F7F7FC] px-2.5 py-1 rounded border border-[#E5E5F0]">
+                  Next.js &amp; React 19
+                </span>
+                <span className="text-xs font-mono text-[#000048] bg-[#F7F7FC] px-2.5 py-1 rounded border border-[#E5E5F0]">
+                  FastAPI &amp; Python
+                </span>
+                <span className="text-xs font-mono text-[#000048] bg-[#F7F7FC] px-2.5 py-1 rounded border border-[#E5E5F0]">
+                  PostgreSQL &amp; RBAC
+                </span>
+              </div>
+            </div>
+            <div className="pt-6 mt-6 border-t border-[#E5E5F0] flex items-center text-xs font-bold text-[#480878] gap-1.5">
+              <span>Scope Software Project</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Marquee Bento Card 2: AI Workflows & Autonomous Agents (Col span 5) */}
+          <div
+            className="lg:col-span-5 bg-gradient-to-br from-[#000048] to-[#12002C] text-white rounded-2xl p-7 sm:p-8 shadow-sm border border-purple-900/30 flex flex-col justify-between group hover:border-purple-500/50 transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => { setActiveCategoryId('ai'); onOpenProjectModal(); }}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold">
+                  <Bot className="w-6 h-6 text-purple-300" />
+                </div>
+                <span className="text-xs font-mono font-semibold tracking-wider text-purple-300 uppercase">
+                  Autonomous Systems
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors">
+                  AI &amp; Intelligent Automation
+                </h3>
+                <p className="text-sm text-neutral-300 leading-relaxed">
+                  End-to-end n8n workflow pipelines, multi-agent reasoning, and vector RAG retrieval grounded in your proprietary documents.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span className="text-xs font-mono text-purple-200 bg-white/10 px-2.5 py-1 rounded border border-white/15">
+                  Multi-Agent Swarms
+                </span>
+                <span className="text-xs font-mono text-purple-200 bg-white/10 px-2.5 py-1 rounded border border-white/15">
+                  Vector RAG
+                </span>
+              </div>
+            </div>
+            <div className="pt-6 mt-6 border-t border-purple-900/40 flex items-center text-xs font-bold text-purple-300 gap-1.5">
+              <span>Deploy AI Automation</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-purple-300" />
+            </div>
+          </div>
+
+          {/* Secondary Bento Card 3: Modern Web & Conversion Architecture (Col span 4) */}
+          <div
+            className="lg:col-span-4 bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-[#E5E5F0] flex flex-col justify-between group hover:border-[#480878]/30 transition-all cursor-pointer"
+            onClick={() => { setActiveCategoryId('growth'); onOpenProjectModal(); }}
+          >
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#480878]/8 text-[#480878] flex items-center justify-center mb-4">
+                <Monitor className="w-5 h-5 text-[#480878]" />
+              </div>
+              <h3 className="text-base font-bold text-[#000048] group-hover:text-[#480878] transition-colors">
+                High-Conversion Web Development
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5F6078] leading-relaxed">
+                Responsive, accessible web storefronts and digital headquarters optimized for sub-second Core Web Vitals.
+              </p>
+            </div>
+            <div className="pt-5 mt-5 border-t border-[#E5E5F0] flex items-center text-xs font-bold text-[#480878] gap-1.5">
+              <span>View Web Specs</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Secondary Bento Card 4: Digital Marketing & Paid Acquisition (Col span 4) */}
+          <div
+            className="lg:col-span-4 bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-[#E5E5F0] flex flex-col justify-between group hover:border-[#480878]/30 transition-all cursor-pointer"
+            onClick={() => { setActiveCategoryId('marketing'); onOpenProjectModal(); }}
+          >
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#480878]/8 text-[#480878] flex items-center justify-center mb-4">
+                <Megaphone className="w-5 h-5 text-[#480878]" />
+              </div>
+              <h3 className="text-base font-bold text-[#000048] group-hover:text-[#480878] transition-colors">
+                Data-Driven Marketing Engines
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5F6078] leading-relaxed">
+                Paid acquisition campaigns with multi-touch attribution, rapid creative testing, and measurable ROAS tracking.
+              </p>
+            </div>
+            <div className="pt-5 mt-5 border-t border-[#E5E5F0] flex items-center text-xs font-bold text-[#480878] gap-1.5">
+              <span>View Growth Framework</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Secondary Bento Card 5: Brand Identity & Advisory (Col span 4) */}
+          <div
+            className="lg:col-span-4 bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-[#E5E5F0] flex flex-col justify-between group hover:border-[#480878]/30 transition-all cursor-pointer"
+            onClick={() => { setActiveCategoryId('growth'); onOpenProjectModal(); }}
+          >
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#480878]/8 text-[#480878] flex items-center justify-center mb-4">
+                <PenTool className="w-5 h-5 text-[#480878]" />
+              </div>
+              <h3 className="text-base font-bold text-[#000048] group-hover:text-[#480878] transition-colors">
+                Brand Systems &amp; Strategic Advisory
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5F6078] leading-relaxed">
+                Design systems, executive design tokens, and technical leadership to scale your internal engineering bandwidth.
+              </p>
+            </div>
+            <div className="pt-5 mt-5 border-t border-[#E5E5F0] flex items-center text-xs font-bold text-[#480878] gap-1.5">
+              <span>Explore Design Systems</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
         </div>
 
         <div className="text-center">

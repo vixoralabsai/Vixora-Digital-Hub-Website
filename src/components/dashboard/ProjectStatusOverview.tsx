@@ -300,7 +300,7 @@ export function ProjectStatusOverview({
                             {milestone.phase}
                           </span>
                           {isInProgress && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold animate-pulse">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold">
                               Current Sprint
                             </span>
                           )}

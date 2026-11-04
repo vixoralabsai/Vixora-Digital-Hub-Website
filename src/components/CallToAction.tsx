@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { WhatsAppContactButton } from './WhatsAppContactButton';
 
 interface CallToActionProps {
@@ -13,9 +13,8 @@ export function CallToAction({ onOpenProjectModal }: CallToActionProps) {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="p-8 sm:p-14 rounded-3xl bg-white border border-[#E5E5F0] shadow-xl text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#480878]/5 border border-[#480878]/15 text-[#480878]">
-            <Sparkles className="w-3.5 h-3.5 text-[#9030F8]" />
-            <span>Ready to Scale Your Digital Infrastructure?</span>
+          <div className="text-xs font-semibold tracking-wider text-[#480878] uppercase">
+            Start Your Next Initiative
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#000048] tracking-tight leading-tight max-w-3xl mx-auto" style={{ color: '#000048' }}>

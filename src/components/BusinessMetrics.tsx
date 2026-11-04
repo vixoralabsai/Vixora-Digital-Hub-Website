@@ -24,8 +24,8 @@ export function BusinessMetrics() {
     <section className="py-20 bg-[#F7F7FC] border-y border-[#E5E5F0] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-mono font-medium text-[#480878] bg-[#480878]/5 border border-[#480878]/15 mb-3">
-            <span>OUR TRACK RECORD</span>
+          <div className="text-xs font-semibold tracking-wider text-[#480878] uppercase mb-2">
+            Track Record &amp; Scale
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000048] tracking-tight" style={{ color: '#000048' }}>
             Proven Scale in Numbers
@@ -43,7 +43,7 @@ export function BusinessMetrics() {
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#9030F8]/5 rounded-full blur-xl pointer-events-none group-hover:bg-[#9030F8]/10 transition-all" />
 
-              <div className="text-3xl sm:text-4xl font-black text-[#480878] font-mono">
+              <div className="text-3xl sm:text-4xl font-black text-[#480878] font-mono tabular-nums">
                 {metric.value}
               </div>
 
@@ -55,10 +55,8 @@ export function BusinessMetrics() {
                 {metric.subtext}
               </p>
 
-              <div className="pt-2">
-                <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-[#F7F7FC] text-[#480878] border border-[#E5E5F0]">
-                  {metric.highlight}
-                </span>
+              <div className="pt-2 text-[11px] font-medium text-[#7000F8]">
+                {metric.highlight}
               </div>
             </div>
           ))}
