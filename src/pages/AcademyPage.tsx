@@ -415,13 +415,13 @@ export function AcademyPage({
               className="text-xl sm:text-2xl font-black text-white tracking-tight cohort-banner-title"
               style={{ color: '#FFFFFF' }}
             >
-              Vixora Academy Cohort 1.0: 4-in-1 Masterclass
+              Vixora Academy Cohort 1.0: 5-in-1 Masterclass
             </h3>
             <p 
               className="text-xs sm:text-sm text-purple-100 max-w-2xl leading-relaxed cohort-banner-desc"
               style={{ color: '#EDE9FE' }}
             >
-              Complete archives of our live cohort: AI Content Creation, AI Automation, AI Web Development, and Client Acquisition. 28+ hours of video replays, 14 strategy PDFs &amp; Private Telegram Community.
+              Complete archives of our live cohort: AI Content Creation, AI Automation, AI Web Development, Client Acquisition, and PDF Automation. 35+ hours of video replays, 18 strategy PDFs &amp; Private Telegram Community.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">

@@ -60,11 +60,10 @@ export function AcademyNavbar({
       <div className="bg-[#000028] border-b border-purple-900/40 py-1 px-3 sm:px-4 text-[11px] text-purple-200">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
             <span className="font-mono font-bold text-white tracking-wide truncate text-[10px] sm:text-[11px]">
               {BRAND_CONFIG.cleanAcademyDomain}
             </span>
-            <span className="text-purple-300/80 hidden sm:inline">• Academic Directorate Portal</span>
+            <span className="text-purple-300/80 hidden sm:inline">· Academic Directorate Portal</span>
           </div>
           <button
             onClick={() => handleNavClick('home', undefined, undefined, '/')}
@@ -80,11 +79,12 @@ export function AcademyNavbar({
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
         <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
           
-          {/* Logo & Dean Identity */}
+          {/* Logo Identity (Single Wordmark Element) */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => handleNavClick('academy', undefined, undefined, '/pages/academy')}
-              className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer focus:outline-none min-w-0"
+              className="flex items-center gap-2.5 group text-left cursor-pointer focus:outline-none min-w-0"
+              aria-label="Vixora Academy Home"
             >
               <div className="p-1 sm:p-1.5 bg-white rounded-xl shadow-md border border-purple-100 flex items-center justify-center shrink-0">
                 <img
@@ -94,17 +94,9 @@ export function AcademyNavbar({
                   className="h-7 sm:h-8 w-auto max-w-[125px] sm:max-w-[180px] object-contain rounded-lg"
                 />
               </div>
-              <div className="hidden md:block">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-white tracking-tight">Vixora Academy</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                    Cohort 1.0
-                  </span>
-                </div>
-                <div className="text-[11px] text-purple-200 flex items-center gap-1.5 font-medium">
-                  <span>Dean: <strong className="text-white">Sarumi Hammad</strong></span>
-                </div>
-              </div>
+              <span className="hidden md:inline text-sm font-black text-white tracking-tight whitespace-nowrap shrink-0">
+                Vixora Academy
+              </span>
             </button>
           </div>
 
@@ -189,7 +181,6 @@ export function AcademyNavbar({
                   : 'text-purple-100 hover:text-amber-300 hover:bg-white/10'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Cohort 1.0 Vault</span>
             </button>
 

@@ -69,9 +69,9 @@ export const CourseCurriculumSection: React.FC<CourseCurriculumSectionProps> = (
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
-          <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
+          <div className="text-xs font-mono font-semibold uppercase tracking-widest text-[#5B5FED]">
             Week-By-Week Syllabus Blueprint
-          </StickerLabel>
+          </div>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1D4F] tracking-tight">
             Curriculum Engineered for Mastery.
           </h2>
@@ -83,15 +83,11 @@ export const CourseCurriculumSection: React.FC<CourseCurriculumSectionProps> = (
         {/* Toolbar: Stats & Expand/Collapse & Download */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white border-2 border-[#1A1D4F] shadow-retro rounded-2xl mb-8">
           <div className="flex items-center gap-2 sm:gap-3 text-xs font-bold text-[#1A1D4F]">
-            <span className="px-2.5 py-1 bg-[#FFF6EC] border border-[#1A1D4F] rounded-lg">
-              {course.weeklySyllabus.length} Modules
-            </span>
-            <span className="px-2.5 py-1 bg-[#FFF6EC] border border-[#1A1D4F] rounded-lg">
-              {course.duration}
-            </span>
-            <span className="hidden sm:inline-block text-[#10B981] font-black">
-              · 100% Practical Labs
-            </span>
+            <span>{course.weeklySyllabus.length} Modules</span>
+            <span aria-hidden="true" className="text-slate-400">·</span>
+            <span>{course.duration}</span>
+            <span aria-hidden="true" className="text-slate-400">·</span>
+            <span className="text-[#10B981]">100% Practical Labs</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -142,13 +138,10 @@ export const CourseCurriculumSection: React.FC<CourseCurriculumSectionProps> = (
                   className="w-full p-5 sm:p-6 flex items-start justify-between gap-4 text-left hover:bg-[#FFFDF9] transition-colors cursor-pointer select-none"
                 >
                   <div className="space-y-1.5 pr-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 text-[11px] font-black uppercase font-mono bg-[#FFF6EC] border border-[#1A1D4F] rounded-md text-[#FF8A65]">
-                        {module.week}
-                      </span>
-                      <span className="text-xs font-bold text-[#1A1D4F]/60">
-                        Module {idx + 1}
-                      </span>
+                    <div className="flex items-center gap-2 text-xs font-bold text-[#5B5FED]">
+                      <span>{module.week}</span>
+                      <span aria-hidden="true" className="text-slate-300">·</span>
+                      <span className="text-slate-500 font-medium">Module {idx + 1}</span>
                     </div>
                     <h3 className="text-lg sm:text-xl font-black text-[#1A1D4F]">
                       {module.title}

@@ -13,104 +13,65 @@ interface CourseHeroSectionProps {
 export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
   course,
   onEnroll,
-  onScrollToCurriculum,
-  timeLeft
+  onScrollToCurriculum
 }) => {
   const [activePreviewTab, setActivePreviewTab] = useState<'specs' | 'career'>('specs');
 
-  // Format countdown numbers
-  const pad = (n: number) => n.toString().padStart(2, '0');
-
   return (
     <div>
-      {/* 1. TOP FOMO TICKER BANNER */}
-      <div className="bg-[#FFF6EC] border-b-2 border-[#1A1D4F] py-2.5 px-4 text-[#1A1D4F] overflow-hidden select-none">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-bold">
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-[#FF8A65]"></span>
-            <span className="uppercase tracking-wider">
-              Limited Cohort Seats · Next Cohort Starts {course.nextCohortDate} · Verified Enrollment Window
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 font-mono bg-white px-2.5 py-1 rounded-md border-2 border-[#1A1D4F] shadow-retro-sm">
-              <Clock className="w-3.5 h-3.5 text-[#5B5FED]" />
-              <span className="text-[#1A1D4F] font-black">{pad(timeLeft.hours)}h : {pad(timeLeft.minutes)}m : {pad(timeLeft.seconds)}s</span>
-            </div>
-            <button
-              onClick={onEnroll}
-              className="hidden sm:inline-flex items-center gap-1 text-xs font-black text-[#5B5FED] hover:underline cursor-pointer"
-            >
-              <span>Lock In Spot ({course.tuition})</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. HERO MAIN AREA */}
-      <section className="relative bg-[#FFFDF9] border-b-2 border-[#1A1D4F] pt-12 pb-16 lg:pt-16 lg:pb-24 overflow-hidden">
-        {/* Playful background decorative shapes */}
-        <div className="absolute top-12 right-12 w-64 h-64 bg-[#FFE4CC]/40 rounded-full blur-3xl pointer-events-none -z-0" />
-        <div className="absolute bottom-6 left-12 w-72 h-72 bg-[#E0D8FF]/30 rounded-full blur-3xl pointer-events-none -z-0" />
+      {/* HERO MAIN AREA */}
+      <section className="relative bg-[#0F1535] text-white border-b border-purple-900/40 pt-12 pb-16 lg:pt-16 lg:pb-24 overflow-hidden">
+        {/* Subtle engineering grid texture */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#5B5FED_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" 
+          aria-hidden="true"
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             
             {/* Left Column: Course Identity & Narrative */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              {/* Eyebrow Stickers */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
-                  100% Practical Accelerator
-                </StickerLabel>
-                <StickerLabel color="bg-[#5B5FED]" textColor="text-white" rotate={0}>
-                  {course.track}
-                </StickerLabel>
-                <span className="hidden sm:inline-block text-xs font-bold text-slate-700 px-2.5 py-1 border border-slate-300 rounded-md bg-white">
-                  {course.level}
-                </span>
+              {/* Quiet Unboxed Metadata Kicker */}
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-purple-300">
+                <span className="font-semibold text-amber-300">Engineering Masterclass</span>
+                <span aria-hidden="true" className="text-purple-400/60">·</span>
+                <span>{course.track}</span>
+                <span aria-hidden="true" className="text-purple-400/60">·</span>
+                <span className="text-purple-200">{course.level}</span>
+                <span aria-hidden="true" className="text-purple-400/60">·</span>
+                <span className="text-emerald-300 font-mono">Next Cohort: {course.nextCohortDate}</span>
               </div>
 
               {/* Main Headline */}
               <div className="space-y-2">
-                <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1A1D4F] tracking-tight leading-[1.08] text-balance">
-                  Master <span className="text-[#5B5FED] relative inline-block">
-                    {course.title}
-                    <span className="absolute -bottom-2 left-0 right-0 w-full pointer-events-none">
-                      <SquiggleUnderline color="#FFC107" />
-                    </span>
-                  </span> in {course.duration}.
+                <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-[1.12] text-balance">
+                  Master <span className="text-amber-300">{course.title}</span> in {course.duration}.
                 </h1>
               </div>
 
               {/* Subtitle / Value Pitch */}
-              <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-normal max-w-2xl">
+              <p className="text-base sm:text-lg text-purple-100/90 leading-relaxed font-normal max-w-2xl">
                 {course.heroPitch || course.description}
               </p>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3.5 pt-2">
-                <TactileButton
-                  variant="primary"
-                  size="lg"
+                <button
                   onClick={onEnroll}
-                  className="w-full sm:w-auto"
+                  className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-bold bg-[#5B5FED] hover:bg-purple-600 text-white shadow-lg shadow-purple-600/30 transition-all cursor-pointer flex items-center gap-2 min-h-[44px]"
                 >
-                  <span>Enroll Now & Secure Spot</span>
-                  <ArrowRight className="w-5 h-5 text-white" />
-                </TactileButton>
+                  <span>Enroll Now &amp; Lock In Spot</span>
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </button>
 
-                <TactileButton
-                  variant="outline"
-                  size="lg"
+                <button
                   onClick={onScrollToCurriculum}
-                  className="w-full sm:w-auto"
+                  className="px-5 py-3.5 rounded-xl text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all flex items-center gap-2 cursor-pointer min-h-[44px]"
                 >
-                  <span>Explore Curriculum</span>
-                  <ChevronDown className="w-4 h-4 text-[#1A1D4F]" />
-                </TactileButton>
+                  <span>Explore Syllabus</span>
+                  <ChevronDown className="w-4 h-4 text-purple-300" />
+                </button>
               </div>
 
               {/* Trust & Proof Strip */}

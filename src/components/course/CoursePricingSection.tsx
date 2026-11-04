@@ -43,9 +43,9 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
         
         {/* Section Header */}
         <div className="space-y-3 mb-12">
-          <StickerLabel color="bg-[#FFC107]" textColor="text-[#1A1D4F]" rotate={0}>
+          <div className="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300">
             Cohort Tuition &amp; Enrollment
-          </StickerLabel>
+          </div>
           <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight">
             Invest in Career-Defining Mastery.
           </h2>
@@ -57,12 +57,12 @@ export const CoursePricingSection: React.FC<CoursePricingSectionProps> = ({
         {/* Tactile Neo-Brutalist Pricing Card */}
         <div className="bg-white text-[#1A1D4F] border-2 border-[#1A1D4F] shadow-retro-xl rounded-3xl p-7 sm:p-10 max-w-2xl mx-auto text-left relative">
           
-          {/* Top Cohort Urgency Pill */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-5 border-b-2 border-[#1A1D4F]/10">
-            <span className="text-xs font-black uppercase text-[#5B5FED] tracking-wider">
+          {/* Top Cohort Urgency Row */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-5 border-b-2 border-[#1A1D4F]/10 text-xs">
+            <span className="font-black uppercase text-[#5B5FED] tracking-wider">
               Next Cohort: {course.nextCohortDate}
             </span>
-            <span className="px-2.5 py-0.5 text-xs font-black bg-[#FFF6EC] border border-[#FF8A65] text-[#FF8A65] rounded-full">
+            <span className="font-bold text-amber-700">
               Only {course.seatsRemaining} spots available
             </span>
           </div>

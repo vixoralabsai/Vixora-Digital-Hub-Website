@@ -282,7 +282,7 @@ export function CohortBundlePage({
                       Live Workshop Session Highlights
                     </span>
                     <span className="bg-[#5B5FED]/90 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white border border-[#5B5FED]/40">
-                      4 Tracks Combined
+                      5 Tracks Combined
                     </span>
                   </div>
                 </div>
@@ -513,7 +513,7 @@ export function CohortBundlePage({
               onClick={() => onEnrollCourse(masterBundleCourse)}
               className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#0F1535] hover:bg-[#480878] text-white transition-all cursor-pointer shadow-md flex items-center gap-2 shrink-0"
             >
-              <span>Get Full 4-Track Bundle ({masterBundleTuition})</span>
+              <span>Get Full 5-Track Bundle ({masterBundleTuition})</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
             </button>
           </div>
@@ -820,7 +820,7 @@ export function CohortBundlePage({
               </div>
               <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Cohort 1.0 Master Bundle</h3>
               <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
-                Complete access to all 4 tracks (AI Content, Automation, Web Dev, Client Acquisition) with all 28+ hours of videos, 14 PDFs, and lifetime Telegram mastermind.
+                Complete access to all 5 tracks (AI Content, Automation, Web Dev, Client Acquisition, and PDF Automation) with all 35+ hours of videos, 18 PDFs, and lifetime Telegram mastermind.
               </p>
               <div className="pt-2 flex items-baseline gap-2">
                 <span className="text-3xl sm:text-4xl font-black text-white">{masterBundleTuition}</span>
@@ -829,7 +829,7 @@ export function CohortBundlePage({
               <ul className="space-y-2.5 text-xs sm:text-sm text-slate-100 font-medium pt-3 border-t border-white/15">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>All 4 Complete Course Tracks</span>
+                  <span>All 5 Complete Course Tracks</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
