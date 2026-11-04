@@ -322,8 +322,12 @@ export async function ensureCourseRecordInDatabase(
       return inserted.id;
     }
     throw new Error(`Course record could not be resolved for "${canonicalCourse.id}".`);
-  } catch (err) {
-    console.error('[Course record resolution failed]:', err);
+  } catch (err: any) {
+    if (err && (err.message?.includes('fetch failed') || err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT')) {
+      console.log('[Supabase] Note: Supabase offline or unreachable (fetch failed). Using canonical course ID fallback:', canonicalCourse.id);
+      return canonicalCourse.id;
+    }
+    console.error('[Course record resolution failed]:', err?.message || err);
     throw new Error('Course record could not be confirmed in the database.');
   }
 }

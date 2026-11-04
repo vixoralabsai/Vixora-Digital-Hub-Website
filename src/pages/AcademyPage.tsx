@@ -490,13 +490,13 @@ export function AcademyPage({
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#480878] via-[#7000F8] to-[#10B981] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
               <div className="p-6 sm:p-7 space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#480878] bg-[#480878]/5 px-2.5 py-1 rounded-md border border-[#480878]/15">
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="font-semibold text-[#480878]">
                     {course.badge}
                   </span>
-                  <div className="text-sm font-black font-mono tracking-tight text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200/60">
+                  <span className="font-bold font-mono text-slate-900 text-sm">
                     {formatPrice(course.id, course.tuition)}
-                  </div>
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
@@ -649,7 +649,7 @@ export function AcademyPage({
                     <div className="p-3 rounded-xl bg-[#480878]/5 text-[#480878] w-fit">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-[#480878]/5 text-[#480878] border border-[#480878]/15">
+                    <span className="text-xs font-semibold text-[#480878]">
                       {off.badge}
                     </span>
                   </div>

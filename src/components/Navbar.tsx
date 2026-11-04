@@ -106,6 +106,17 @@ export function Navbar({
             </button>
 
             <button
+              onClick={() => handleNavClick('training', undefined, undefined, '/pages/training')}
+              className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 border-b-2 ${
+                currentPage === 'training' || currentPath.includes('training') || currentPath.includes('curriculum')
+                  ? 'text-white border-purple-400 font-semibold'
+                  : 'text-neutral-300 hover:text-white border-transparent'
+              }`}
+            >
+              Curriculum
+            </button>
+
+            <button
               onClick={() => handleNavClick('about', undefined, undefined, '/pages/about')}
               className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 border-b-2 ${
                 isCurrent('about', '/pages/about')
@@ -188,6 +199,12 @@ export function Navbar({
               className="px-3 py-2.5 rounded-lg text-left text-sm font-medium text-neutral-200 hover:text-white hover:bg-purple-950/40 transition-colors"
             >
               Vixora Academy
+            </button>
+            <button
+              onClick={() => handleNavClick('training', undefined, undefined, '/pages/training')}
+              className="px-3 py-2.5 rounded-lg text-left text-sm font-medium text-neutral-200 hover:text-white hover:bg-purple-950/40 transition-colors"
+            >
+              Course Curriculum Hub
             </button>
             <button
               onClick={() => handleNavClick('about', undefined, undefined, '/pages/about')}

@@ -50,6 +50,14 @@ export function PagesDirectoryPage({
       description: "16-week and 12-week intensive cohorts in Data Analysis, AI Automation, and Digital Business Systems."
     },
     {
+      title: "Cohort 2 Course Curriculum Hub",
+      path: "/pages/training",
+      pageKey: "training",
+      badge: "Full Syllabus",
+      icon: BookOpen,
+      description: "Week-by-week learning outcomes, toolchains, lab assignments, and capstone specifications across all 6 Cohort 2 tracks."
+    },
+    {
       title: "Vixora Academy Student Portal",
       path: "/pages/student-portal",
       pageKey: "student-portal",

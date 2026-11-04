@@ -1,0 +1,244 @@
+﻿Data Analysis Cohort 2: Full Curriculum
+Vixora Academy · 16 weeks · Draft v1 for review
+Course Overview
+This is a practical, beginner-to-professional course that takes students from raw data to clear business insight. Students learn Excel, statistics, SQL and Python, get a short introduction to Power BI, and learn to use AI tools to work faster. The course ends with a capstone project and a portfolio they can show to employers and clients.
+* Duration: 16 weeks
+* Format: Online / Physical (hybrid)
+* Level: Beginner to professional
+* Pricing: ₦30,000
+* Certificate: Awarded on completion of the capstone project
+Learning Outcomes
+By the end of the course, students will be able to:
+* Follow a structured analysis workflow, from business question to recommendation
+* Clean, organize and analyze data in Excel, SQL and Python
+* Apply core statistics to interpret data correctly
+* Build clear charts and dashboards in Excel, Python and Power BI
+* Use AI tools to speed up analysis while checking the results for accuracy
+* Present findings as a clear story to non-technical audiences
+* Complete a portfolio-ready capstone project
+Tools Used
+Excel (or Google Sheets), a free SQL tool (such as SQLite or MySQL), Python in Google Colab / Jupyter (Pandas, Matplotlib, Seaborn), Power BI Desktop (introduction only), and AI assistants (ChatGPT, Claude or similar).
+Course Structure
+* Phase 1: Excel (Weeks 1-5): workflow, Excel, cleaning, pivot tables, dashboards
+* Phase 2: Statistics and SQL (Weeks 6-8)
+* Phase 3: Python (Weeks 9-11)
+* Phase 4: Power BI and AI (Weeks 12-13)
+* Phase 5: Application and Career (Weeks 14-16)
+Assessment (Proposed)
+* Weekly practical assignments
+* Mid-course practical test (Excel, SQL)
+* Capstone project: report, dashboard and presentation
+* Certificate issued on completing all weekly deliverables and the capstone
+Week 1: Introduction to Data Analysis and Tools Setup
+Objectives
+* Understand what data analysis is and what analysts do
+* Learn the analysis workflow
+* Set up all tools for the course
+Topics
+* What data analysis is, and the types of analysis
+* Analyst roles and career paths
+* The analysis workflow: ask, prepare, process, analyze, share, act
+* Types of data: structured and unstructured, quantitative and qualitative
+* Tools overview, and setting up Excel, Google Colab and a portfolio folder
+Hands-on
+* Classify sample datasets by type
+* Turn a vague business problem into a clear analysis question
+Deliverable: one-page analysis question brief
+Week 2: Excel Fundamentals
+Objectives
+* Work confidently in Excel
+* Use core formulas and lookups
+Topics
+* Interface, data entry, formatting and tables
+* Formulas and functions: SUM, AVERAGE, COUNT, MIN, MAX, IF
+* Relative and absolute references
+* Lookups: XLOOKUP / VLOOKUP
+* Sorting and filtering
+Hands-on
+* Build a sales tracker with formulas and lookups
+Deliverable: completed sales workbook
+Week 3: Data Cleaning and Preparation
+Objectives
+* Spot and fix common data quality problems
+* Document cleaning decisions
+Topics
+* Duplicates, missing values and inconsistent entries
+* Text functions: TRIM, LEFT, RIGHT, CONCAT, TEXTSPLIT
+* Date and number formatting
+* Data validation
+* Introduction to Power Query for cleaning
+Hands-on
+* Clean a deliberately messy customer dataset
+Deliverable: cleaned dataset plus a short change log
+Week 4: Data Analysis with Excel
+Objectives
+* Summarize large datasets quickly
+* Answer business questions with Pivot Tables
+Topics
+* Pivot Tables, grouping and slicers
+* SUMIFS, COUNTIFS, AVERAGEIFS
+* Calculated fields
+* Descriptive summaries and basic trend analysis
+Hands-on
+* Analyze a year of sales data by product, region and month
+Deliverable: pivot summary report with three insights
+Week 5: Excel Dashboards and Data Visualization
+Objectives
+* Choose the right chart for the question
+* Build a clean, interactive dashboard
+Topics
+* Chart types and when to use each
+* Design principles: clarity, color, layout
+* Common visualization mistakes
+* Interactive dashboards with slicers
+Hands-on
+* Build a sales performance dashboard
+Deliverable: Excel dashboard
+Week 6: Statistics Essentials for Analysts
+Objectives
+* Understand the statistics behind everyday analysis
+* Avoid common interpretation errors
+Topics
+* Mean, median, mode, range
+* Variance and standard deviation
+* Distributions and outliers
+* Correlation versus causation
+* Sampling, bias and introductory hypothesis testing
+Hands-on
+* Run summary statistics and correlation analysis in Excel
+Deliverable: statistics worksheet with written interpretations
+Week 7: SQL Basics
+Objectives
+* Understand how databases are organized
+* Retrieve and summarize data with SQL
+Topics
+* Databases, tables, rows, columns, primary and foreign keys
+* SELECT, WHERE, ORDER BY, LIMIT, DISTINCT
+* Aggregate functions: COUNT, SUM, AVG, MIN, MAX
+* GROUP BY
+Hands-on
+* Query a sample store database to answer business questions
+Deliverable: SQL query set with answers
+Week 8: SQL Intermediate
+Objectives
+* Combine data from multiple tables
+* Write more advanced queries
+Topics
+* INNER and LEFT joins
+* HAVING and filtering aggregated results
+* Subqueries and CASE statements
+* Date functions
+* Introduction to CTEs
+Hands-on
+* Solve multi-table business questions (top customers, monthly revenue, repeat buyers)
+Deliverable: SQL assignment plus mid-course practical test
+Week 9: Python Fundamentals for Data
+Objectives
+* Write basic Python for data work
+* Work comfortably in notebooks
+Topics
+* Google Colab / Jupyter basics
+* Variables, data types, lists and dictionaries
+* Conditionals, loops and functions
+* Importing libraries
+Hands-on
+* Write small scripts that process lists of sales and customer records
+Deliverable: Python practice notebook
+Week 10: Data Manipulation with Pandas
+Objectives
+* Load, clean and reshape data in Python
+* Repeat Excel and SQL tasks with Pandas
+Topics
+* DataFrames and Series
+* Loading CSV and Excel files
+* Selecting, filtering and sorting
+* Handling missing values and duplicates
+* groupby, merge and creating new columns
+* Exporting results
+Hands-on
+* Clean and summarize the Week 3 dataset in Pandas
+Deliverable: cleaning and analysis notebook
+Week 11: Exploratory Data Analysis and Visualization in Python
+Objectives
+* Explore a new dataset systematically
+* Create clear charts in Python
+Topics
+* Matplotlib and Seaborn basics
+* Distributions, relationships and outliers
+* Correlation heatmaps
+* An EDA checklist
+Hands-on
+* Run a full EDA on a real-world dataset
+Deliverable: EDA notebook with written insights
+Week 12: Power BI Introduction
+Objectives
+* Understand where Power BI fits in an analyst's toolkit
+* Build a simple dashboard
+Topics
+* What Power BI is and when to use it
+* Interface and data connection
+* Basic transformation with Power Query
+* Core visuals, filters and slicers
+* Building a one-page dashboard
+Hands-on
+* Rebuild the Week 5 dashboard in Power BI
+Deliverable: one-page Power BI dashboard
+This week is an introduction only. Advanced Power BI (DAX, data modeling) is outside this course.
+Week 13: AI for Data Analysis
+Objectives
+* Use AI tools to speed up analysis responsibly
+* Verify AI output before relying on it
+Topics
+* Prompt patterns for formulas, SQL and Python
+* Using AI to explain results and suggest cleaning steps
+* Checking and testing AI-generated work
+* Data privacy and ethics when using AI tools
+Hands-on
+* Complete an analysis task with AI help and document what was verified and corrected
+Deliverable: AI-assisted analysis with a verification log
+Week 14: Real-World Case Studies and Capstone Kickoff
+Objectives
+* See how analysis is applied across industries
+* Plan the capstone project
+Topics
+* Case studies in sales, marketing, finance and operations
+* Choosing a capstone dataset and question
+* Project planning and scoping
+Hands-on
+* Walk through two complete case studies
+* Select the capstone dataset
+Deliverable: capstone proposal (question, dataset, tools, timeline)
+Week 15: Data Storytelling, Reporting and Capstone Build
+Objectives
+* Turn analysis into a clear story
+* Complete the capstone analysis
+Topics
+* Insight versus observation
+* Structuring a report: summary, findings, recommendations
+* Presenting to non-technical audiences
+* Slide design for analysts
+Hands-on
+* Build the capstone analysis and dashboard
+* Write the executive summary
+Deliverable: draft capstone report and dashboard
+Week 16: Capstone Presentation, Portfolio and Career Pathways
+Objectives
+* Present findings with confidence
+* Leave with a portfolio and a plan for earning
+Topics
+* Final presentations and feedback
+* Building a portfolio (GitHub, LinkedIn, Kaggle)
+* CV and LinkedIn profile for data analysts
+* Freelancing, pricing and finding first clients
+* Interview preparation and next steps
+Hands-on
+* Present the capstone to the class
+* Publish a portfolio project
+Deliverable: final capstone project and published portfolio
+Capstone Project Requirements (Proposed)
+* A clear business question
+* A cleaned dataset with a change log
+* Analysis in at least two tools (for example Excel plus SQL or Python)
+* A dashboard
+* A short written report with recommendations
+* A 10-minute presentation

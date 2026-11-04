@@ -1,0 +1,254 @@
+﻿Data Science and Machine Learning Cohort 2: Full Curriculum
+Vixora Academy · 16 weeks · Draft v1 for review
+Course Overview
+This course takes students from the basics of data science to building and evaluating machine learning models. Students learn Python and R, the statistics and theory behind common models, and how to use modern AI tools in their workflow. The course ends with a capstone project and a portfolio.
+* Duration: 16 weeks
+* Format: Online / Physical (hybrid)
+* Level: Beginner to professional (no prior coding required; basic comfort with math helps)
+* Pricing: ₦30,000
+* Certificate: Awarded on completion of the capstone project
+Learning Outcomes
+By the end of the course, students will be able to:
+* Follow the full data science workflow, from problem definition to model delivery
+* Write Python and R code to clean, explore and visualize data
+* Apply statistics and probability to interpret data and model results
+* Build, evaluate and improve regression, classification and clustering models
+* Explain how common machine learning models work, in plain language
+* Use AI and LLM tools to speed up data science work responsibly
+* Complete a portfolio-ready capstone project in Python or R
+Tools Used
+Python in Google Colab / Jupyter (NumPy, Pandas, Matplotlib, Seaborn, scikit-learn), R with RStudio (tidyverse, ggplot2, and base modeling tools), Git/GitHub for the portfolio, and AI assistants (ChatGPT, Claude or similar).
+Course Structure
+* Phase 1: Foundations (Weeks 1-4): workflow, Python, data handling, cleaning
+* Phase 2: Analysis (Weeks 5-8): Python visualization, statistics, R
+* Phase 3: Machine Learning (Weeks 9-13): ML theory, regression, classification, clustering, evaluation
+* Phase 4: Modern Tools (Week 14): AI/LLM tools and a light neural networks introduction
+* Phase 5: Capstone and Career (Weeks 15-16)
+Assessment (Proposed)
+* Weekly practical assignments
+* Mid-course practical test (Python data handling and statistics)
+* Model-building assessment (Weeks 10-13)
+* Capstone project: notebook or R Markdown report, model and presentation
+* Certificate issued on completing all weekly deliverables and the capstone
+Week 1: Introduction to Data Science and Tools Setup
+Objectives
+* Understand what data science is and how it differs from data analysis
+* Learn the data science workflow
+* Set up all tools for the course
+Topics
+* Data science, data analysis, machine learning and AI: how they relate
+* Roles and career paths (data scientist, ML engineer, analyst)
+* The workflow: define the problem, collect data, clean, explore, model, evaluate, deliver
+* Types of data and types of problems (prediction, classification, grouping)
+* Setting up Google Colab, RStudio and GitHub
+Hands-on
+* Match real-world problems to the right type of data science task
+* Run a first notebook end to end
+Deliverable: one-page problem definition brief
+Week 2: Python Fundamentals
+Objectives
+* Write basic Python confidently
+* Work in notebooks
+Topics
+* Variables, data types, operators
+* Lists, tuples, dictionaries and sets
+* Conditionals and loops
+* Functions and importing libraries
+* Reading error messages
+Hands-on
+* Write small programs that process lists of customer and sales records
+Deliverable: Python fundamentals notebook
+Week 3: Python for Data (NumPy and Pandas)
+Objectives
+* Load and manipulate datasets in Python
+* Understand arrays and DataFrames
+Topics
+* NumPy arrays and vectorized operations
+* Pandas Series and DataFrames
+* Loading CSV and Excel files
+* Selecting, filtering and sorting
+* groupby, merge and creating new columns
+Hands-on
+* Explore and summarize a real dataset with Pandas
+Deliverable: data handling notebook
+Week 4: Data Cleaning and Preparation
+Objectives
+* Fix common data quality problems
+* Prepare data for modeling
+Topics
+* Missing values: detecting, dropping, filling
+* Duplicates, inconsistent entries and data types
+* Outliers
+* Encoding categorical variables
+* Scaling and normalizing numeric features
+Hands-on
+* Clean a messy dataset and document each decision
+Deliverable: cleaned dataset plus a short change log
+Week 5: Data Visualization in Python
+Objectives
+* Create clear, honest charts
+* Choose the right chart for the question
+Topics
+* Matplotlib basics
+* Seaborn for statistical plots
+* Histograms, box plots, scatter plots, bar and line charts
+* Design principles and common mistakes
+Hands-on
+* Build a set of charts that answers three questions about a dataset
+Deliverable: visualization notebook with written takeaways
+Week 6: Statistics and Probability Essentials
+Objectives
+* Understand the statistics behind data science
+* Avoid common interpretation errors
+Topics
+* Mean, median, variance and standard deviation
+* Probability basics and common distributions
+* Sampling, bias and the central limit theorem (conceptual)
+* Correlation versus causation
+* Hypothesis testing and p-values (introduction)
+* Confidence intervals
+Hands-on
+* Run summary statistics, correlations and a simple hypothesis test in Python
+Deliverable: statistics notebook plus mid-course practical test
+Week 7: R Fundamentals and Data Handling
+Objectives
+* Work confidently in R and RStudio
+* Handle data with the tidyverse
+Topics
+* RStudio interface, scripts and R Markdown
+* Vectors, data frames and basic syntax
+* Importing data
+* dplyr: select, filter, arrange, mutate, summarize, group_by
+* Comparing R and Python approaches to the same task
+Hands-on
+* Repeat the Week 3 and Week 4 dataset work in R
+Deliverable: R data handling script or R Markdown file
+Week 8: Exploratory Data Analysis and Visualization in R
+Objectives
+* Explore a dataset systematically
+* Create publication-quality charts in R
+Topics
+* ggplot2: grammar of graphics
+* Distributions, relationships and outliers
+* Correlation analysis
+* An EDA checklist
+* Writing reproducible reports in R Markdown
+Hands-on
+* Run a full EDA on a new dataset in R
+Deliverable: EDA report in R Markdown
+Week 9: Machine Learning Foundations
+Objectives
+* Understand how machine learning works
+* Set up a proper modeling process
+Topics
+* What machine learning is, and supervised versus unsupervised learning
+* Features and targets
+* Train/test split and cross-validation
+* Overfitting and underfitting
+* The bias-variance tradeoff (conceptual)
+* Introduction to scikit-learn
+Hands-on
+* Split a dataset properly and train a simple baseline model
+Deliverable: baseline model notebook
+Week 10: Supervised Learning: Regression
+Objectives
+* Predict numeric values with regression models
+* Interpret model results
+Topics
+* Simple and multiple linear regression
+* How the model learns (loss functions, intuitively)
+* Regularization: Ridge and Lasso (introduction)
+* Decision tree and random forest regression
+* Metrics: MAE, RMSE, R-squared
+Hands-on
+* Predict house prices or sales and compare two models
+Deliverable: regression project notebook
+Week 11: Supervised Learning: Classification
+Objectives
+* Predict categories with classification models
+* Choose metrics that fit the problem
+Topics
+* Logistic regression
+* k-Nearest Neighbors
+* Decision trees and random forests
+* Confusion matrix, precision, recall, F1, ROC and AUC
+* Handling imbalanced data (introduction)
+Hands-on
+* Build a classifier (for example customer churn or loan default) and compare models
+Deliverable: classification project notebook
+Week 12: Unsupervised Learning
+Objectives
+* Find structure in unlabeled data
+* Explain results to non-technical audiences
+Topics
+* k-Means clustering and choosing k
+* Hierarchical clustering (introduction)
+* Dimensionality reduction: PCA
+* Use cases: customer segmentation, anomaly spotting
+Hands-on
+* Segment customers and describe each group in plain language
+Deliverable: clustering notebook with segment descriptions
+Week 13: Model Evaluation, Tuning and Improvement
+Objectives
+* Improve models in a disciplined way
+* Avoid data leakage and misleading results
+Topics
+* Cross-validation in depth
+* Hyperparameter tuning (grid and random search)
+* Feature engineering and feature selection
+* Data leakage
+* Pipelines
+* Model comparison and choosing the final model
+* Saving a model
+Hands-on
+* Improve the Week 10 or Week 11 model and report the gains honestly
+Deliverable: model improvement report
+Week 14: AI and LLM Tools for Data Science, with a Neural Networks Introduction
+Objectives
+* Use AI tools to speed up data science work responsibly
+* Understand the basic idea of neural networks
+Topics
+* Prompt patterns for code, debugging, feature ideas and explanations
+* Checking and testing AI-generated code and results
+* Data privacy and ethics when using AI tools
+* Neural networks: the core idea, in plain language
+* A first look at how LLMs relate to machine learning
+Hands-on
+* Complete a data science task with AI assistance and document what was verified and corrected
+* Train a very small neural network and compare it with an earlier model
+Deliverable: AI-assisted analysis with a verification log
+The neural networks portion is an introduction only. Deep learning in depth is outside this course.
+Week 15: Capstone Project Build
+Objectives
+* Complete an end-to-end data science project
+* Apply everything learned
+Topics
+* Choosing the problem and dataset
+* Project plan and scope
+* Building the pipeline: clean, explore, model, evaluate
+* Writing the findings and recommendations
+Hands-on
+* Build the capstone in Python or R with instructor check-ins
+Deliverable: draft capstone notebook or R Markdown report
+Week 16: Capstone Presentation, Portfolio and Career Pathways
+Objectives
+* Present results with confidence
+* Leave with a portfolio and a plan for next steps
+Topics
+* Final presentations and feedback
+* Portfolio on GitHub, LinkedIn and Kaggle
+* CV and LinkedIn profile for data science roles
+* Freelancing, pricing and finding first clients
+* Interview preparation and learning paths after the course
+Hands-on
+* Present the capstone to the class
+* Publish a portfolio project
+Deliverable: final capstone project and published portfolio
+Capstone Project Requirements (Proposed)
+* A clear problem statement and success measure
+* A cleaned dataset with a change log
+* EDA with visualizations
+* At least two models, compared with appropriate metrics
+* A short written report with findings and recommendations
+* A 10-minute presentation
+* Code published on GitHub

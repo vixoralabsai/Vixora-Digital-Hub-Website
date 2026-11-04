@@ -1,6 +1,6 @@
 {
-  "summary":  "Completed implementation of authoritative Telegram access gating across Vixora Academy. Gated the 4-course Cohort 1.0 master recordings vault (https://t.me/+SGIRa-T4lL1hZTk0) exclusively to full-access bundle buyers across Paystack post-payment receipts, automated onboarding emails, and the authenticated Student Portal dashboard. Integrated all 5 individual track links and the specialized PDF automation link for single-track enrollees. Embedded the general public community channel (https://t.me/vixoraacademy) in the Academy navigation bar, site footers, and community cards. Added comprehensive automated tests in tests/telegramAccess.test.ts, with all 105 tests passing.",
-  "updatedAt":  "2026-10-26T16:54:36.408758806Z",
-  "requestFeedback":  true,
-  "userFacing":  true
+  "summary": "Updated implementation plan for building the /training curriculum page with revised Cohort 2 pricing: ₦20,000 for AI Content Creation, ₦150,000 for AI Engineer (Data Science & ML), and ₦60,000 for all other tracks.",
+  "updatedAt": "2026-11-04T19:27:57.241768184Z",
+  "requestFeedback": true,
+  "userFacing": true
 }

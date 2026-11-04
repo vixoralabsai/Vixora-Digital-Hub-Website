@@ -1,5 +1,5 @@
 {
-  "summary": "Checklist tracking remediation of AI slop across the Vixora platform. All 8 items from the audit are now 100% Completed, verified via compile_applet and Vitest test suite. Item 8 eliminated competing dual floating corner widgets on mobile devices to strictly respect the 15% sticky viewport cap.",
-  "updatedAt": "2026-11-04T07:39:46.367765536Z",
+  "summary": "Vixora Academy AI Slop Remediation Checklist updated with completed items across Academy components.",
+  "updatedAt": "2026-11-04T19:45:17.945953105Z",
   "userFacing": true
 }

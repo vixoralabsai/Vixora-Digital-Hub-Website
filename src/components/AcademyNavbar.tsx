@@ -167,7 +167,20 @@ export function AcademyNavbar({
               )}
             </div>
 
-            {/* 2. Direct Link: Cohort 1.0 Master Vault */}
+            {/* 2. Direct Link: Course Curriculum Hub */}
+            <button
+              onClick={() => handleNavClick('training', undefined, undefined, '/pages/training')}
+              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                currentPage === 'training'
+                  ? 'text-amber-300 bg-purple-950/80 border border-amber-400/30'
+                  : 'text-purple-100 hover:text-amber-300 hover:bg-white/10'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-purple-300" />
+              <span>Curriculum</span>
+            </button>
+
+            {/* 3. Direct Link: Cohort 1.0 Master Vault */}
             <button
               onClick={() => handleNavClick('cohort-1', undefined, undefined, '/academy/cohort-1')}
               className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -292,6 +305,17 @@ export function AcademyNavbar({
                 <ArrowRight className="w-3.5 h-3.5 text-purple-300" />
               </button>
             )}
+
+            <button
+              onClick={() => handleNavClick('training', undefined, undefined, '/pages/training')}
+              className="w-full p-2.5 rounded-xl text-left font-bold text-white bg-purple-950/70 border border-purple-500/40 flex items-center justify-between shadow-xs"
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-purple-300" />
+                <span>Course Curriculum Hub</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-purple-300" />
+            </button>
 
             <button
               onClick={() => handleNavClick('cohort-1', undefined, undefined, '/academy/cohort-1')}

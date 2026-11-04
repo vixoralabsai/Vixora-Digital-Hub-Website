@@ -106,12 +106,16 @@ async function syncMachineLearningCourseToDatabase() {
       total_modules: 18
     });
     if (error) {
-      console.warn('[Supabase] Note on syncing Machine Learning & Data Science course:', error.message);
+      console.log('[Supabase] Note on syncing Machine Learning & Data Science course:', error.message);
     } else {
       console.log('[Supabase] Successfully verified database record for course "machine-learning-data-science" (18 modules, ₦60,000, Hybrid)');
     }
-  } catch (err) {
-    console.warn('[Supabase] Exception checking courses table for Machine Learning & Data Science:', err);
+  } catch (err: any) {
+    if (err && (err.message?.includes('fetch failed') || err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT')) {
+      console.log('[Supabase] Note: Supabase offline or unreachable (fetch failed). Running on local JSON store fallback.');
+    } else {
+      console.log('[Supabase] Note checking courses table for Machine Learning & Data Science:', err?.message || err);
+    }
   }
 }
 syncMachineLearningCourseToDatabase();

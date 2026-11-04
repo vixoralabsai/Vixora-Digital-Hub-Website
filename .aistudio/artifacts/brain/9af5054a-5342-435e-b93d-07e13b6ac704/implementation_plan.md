@@ -1,68 +1,113 @@
-# Cohort 1.0 Telegram Access Gating & Multi-Track Link Architecture
+# Vixora Academy Cohort 2 Curriculum Hub (`/training`)
 
-## Implementation Summary
-
-### 1. Telegram Spaces & Access Policies Implemented
-
-| Space / Program | Official Telegram Invite URL | Gated Access Policy |
-| :--- | :--- | :--- |
-| **Cohort 1.0 Master Vault (All 4 Tracks)** | `https://t.me/+SGIRa-T4lL1hZTk0` | **Full-Access Bundle Only** (`course-cohort-1-master-bundle`). Gated via Paystack post-payment verification, welcome email, and authenticated Student Portal. Single-track buyers cannot access. |
-| **Track 1: AI Content Creation** | `https://t.me/+wfBtF79zAWJhMTNk` | Single-track enrollees in AI Content & Video Creation. |
-| **Track 2: AI Automation No Code** | `https://t.me/+g8Upx0T9tOcwOTg0` | Single-track enrollees in AI Automation & Business Systems. |
-| **Track 3: AI Web & App Dev (Vibe Coding)** | `https://t.me/+CVf0IxhvRWFkYjZk` | Single-track enrollees in AI Web Development / Vibe Coding. |
-| **Track 4: Client Acquisition** | `https://t.me/+kItRKPShz-Y2NjM8` | Single-track enrollees in Client Acquisition & Freelancing. |
-| **Specialized: PDF Automation** | `https://t.me/+nsbDIiXSU7sxZmVk` | Students enrolled in AI Digital Product & PDF Automation workflows. |
-| **Public Community Channel** | `https://t.me/vixoraacademy` | **Public / Open to Everyone**. Placed in Academy navigation, site footers, and preview cards. |
+Updated implementation plan for creating a dedicated, pure informational curriculum hub at `/training` (and `/pages/training`) with the updated pricing schedule across all 6 Cohort 2 programs.
 
 ---
 
-### 2. Changes Made Across Files
+### User Review & Confirmed Choices
 
-1. **Server Configuration (`server/telegramConfig.ts`)**:
-   - Centralized all 7 Telegram endpoints with environment variable overrides.
-   - Enforced tier-based resolution in `getTelegramInvitesForCourse`:
-     - Master bundle queries return `https://t.me/+SGIRa-T4lL1hZTk0` (Master Vault) plus all 4 track spaces.
-     - Single-track payments return **only** their specific track invite and strictly withhold the Master Vault.
-     - General / unregistered queries return the public community channel (`https://t.me/vixoraacademy`).
+> [!IMPORTANT]
+> **Revised Pricing Schedule (Confirmed)**:
+> - **AI Content Creation**: **₦20,000**
+> - **AI Engineer / Data Science & ML**: **₦150,000**
+> - **All Other Courses** (AI Automation, Virtual Assistance, AI Web Dev, Data Analysis): **₦60,000**
 
-2. **Brand & Cohort Data Models (`src/data/brandConfig.ts`, `src/data/cohortData.ts`)**:
-   - Added `telegramPublicUrl` (`https://t.me/vixoraacademy`) and `telegramCohort1Vault` (`https://t.me/+SGIRa-T4lL1hZTk0`) to `BRAND_CONFIG`.
-   - Updated `COHORT_1_BUNDLE.telegramInviteLink` to `https://t.me/+SGIRa-T4lL1hZTk0`.
-   - Added `telegramInviteLink` to each track item in `COHORT_1_BUNDLE.tracks`.
-   - Updated all 8 resource `lockedUrl` fields to point to their verified track Telegram spaces.
-
-3. **Academy Navigation & Footers (`src/components/AcademyNavbar.tsx`, `src/components/AcademyFooter.tsx`, `src/components/Footer.tsx`)**:
-   - Added direct "Telegram Community" (`@vixoraacademy`) link in the desktop navbar and mobile drawer.
-   - Added the public Telegram link to the Academy footer under Student Services.
-
-4. **Cohort 1.0 Page (`src/pages/CohortBundlePage.tsx`)**:
-   - Added "Join Public Channel" (`@vixoraacademy`) button next to the Master Vault enrollment action.
-   - Clarified that the Master Vault link (`https://t.me/+SGIRa-T4lL1hZTk0`) is unlocked immediately upon full-bundle payment.
-
-5. **Post-Payment Verification Receipt (`src/pages/PaymentCallbackPage.tsx`)**:
-   - Displays the unlocked Telegram invites returned by the backend.
-   - Features the verified Master Vault button for full-bundle buyers, or individual track buttons for single-track enrollees.
-   - Includes a quick link to the public `@vixoraacademy` channel for general announcements.
-
-6. **Authenticated Student Portal (`src/pages/StudentPortalPage.tsx`)**:
-   - Added `getCourseTelegramVault` helper.
-   - Each enrolled course card in "My Enrolled Academic Programs" features a dedicated Telegram launcher:
-     - Full bundle: Glowing **"Open Master Vault (4 Tracks Replays)"** button (`https://t.me/+SGIRa-T4lL1hZTk0`).
-     - Single track: **"Open [Track] Vault"** button linking to that track's space.
-   - Added a direct link to `@vixoraacademy` in the dashboard header.
-
-7. **Automated Unit Tests (`tests/telegramAccess.test.ts`)**:
-   - 8 test cases verifying that the master vault is delivered to bundle buyers, withheld from single-track buyers, each single track receives its exact URL, and unknown queries default safely to the public community.
+- **Confirmed UX Format**: Interactive curriculum hub featuring track category filters, expandable week-by-week module accordions, phase badges, and a real-time topic search bar.
+- **Confirmed Integration Scope**: Pure informational catalog focused strictly on week-by-week learning outcomes, toolchains, hands-on lab assignments, and weekly deliverables.
+- **Confirmed Course Coverage & Pricing**:
+  1. **AI Automation & Digital Literacy** (12 Weeks · **₦60,000** · 4 Phases)
+  2. **Virtual Assistance & Appointment Setting** (8 Weeks · **₦60,000** · 4 Phases)
+  3. **AI Web Development & Vibe Coding** (12 Weeks · **₦60,000** · 4 Phases)
+  4. **AI Content Creation & Personal Branding** (10 Weeks · **₦20,000** · 4 Phases)
+  5. **AI Engineer / Data Science & Machine Learning** (16 Weeks · **₦150,000** · 5 Phases)
+  6. **Data Analysis & Business Intelligence** (16 Weeks · **₦60,000** · 5 Phases)
 
 ---
 
-### 3. Verification & Test Results
-- **TypeScript Linting**: `npm run lint` (`tsc --noEmit`) passed with **0 errors**.
-- **Compilation**: `npm run build` compiled successfully.
-- **Unit Test Suite**: `npm test` executed all 6 test suites with **105 passing, 0 failed**:
-  - Paystack Server Phase 2 & 2.6: 26 passed
-  - Paystack Frontend Phase 3: 14 passed
-  - Focused Auth: 8 passed
-  - AI Advisor: 4 passed
-  - Database Migrations as Code: 45 passed
-  - Telegram Access & Gating: 8 passed
+### 1. Overview & Core Concept
+
+The `/training` page serves as the authoritative academic blueprint for Vixora Academy Cohort 2. It allows students, corporate partners, and technical auditors to inspect complete week-by-week progression, tool requirements, phase transitions, hands-on lab projects, and portfolio criteria.
+
+- **Target Persona**: Aspiring tech professionals, career switchers, virtual assistants, data analysts, and software developers seeking transparent, zero-fluff syllabus breakdowns.
+- **Key Value**: 100% transparency into week-by-week learning outcomes, toolchains, practical assignments, and capstone project requirements.
+
+---
+
+### 2. User Experience & Visual Design
+
+#### Key User Flow
+1. **Hero Header & Search**: High-impact header displaying total cohort hours, 6 program tracks, and an instant keyword search bar (e.g. searching "n8n", "SQL", "CapCut", "scikit-learn", or "Prompting" filters matching weeks across all courses).
+2. **Track Filter Bar**: Clean segmented control to filter by program category (`All Programs`, `AI & Automation`, `Virtual Assistance`, `Web Development`, `Content Creation`, `AI Engineer / Data Science`, `Data Analysis`).
+3. **Course Overview Summary**: Displays duration, hybrid format, updated tuition badge, certificate criteria, tools stack chips, and 4–5 phase breakdown badges.
+4. **Interactive Week Accordion**: Expandable week-by-week cards detailing:
+   - **Objectives**: Clear milestone goals for that week.
+   - **Core Topics**: Bulleted topic lists and concepts.
+   - **Hands-on Exercise**: Practical assignment description.
+   - **Weekly Deliverable**: Concrete artifact required for certificate progression.
+5. **Portfolio & Capstone Showcase**: Explicit specifications for the final capstone project and evaluation rubric at the bottom of each course syllabus.
+
+#### Visual Identity & Styling
+- **Theme**: Premium slate & midnight navy background (`#0F1535` / `#F7F7FC`), deep purple (`#5B5FED`), emerald highlights (`#10B981`), and amber status chips (`#FFC107`).
+- **Typography**: Display headlines set in `Outfit`, body prose in `Plus Jakarta Sans`, and technical metadata/deliverables in `JetBrains Mono`.
+- **Zero-Pill Discipline**: Clean unboxed metadata labels with `·` separators and subtle hairline borders (`border-slate-200 / border-purple-900/40`).
+
+---
+
+### 3. Key Product Decisions & Trade-Offs
+
+- **Dedicated Structured Data File (`src/data/trainingCurriculumData.ts`)**:
+  - *Chosen Approach*: Extract all 6 full 8-to-16-week curricula with updated tuition values into a typed, structured data store rather than hardcoding in JSX.
+  - *Why*: Enables client-side instant search, phase filtering, topic indexing, and clean maintainability for future cohort revisions.
+- **Direct Route Mapping (`/training` & `/pages/training`)**:
+  - *Chosen Approach*: Map canonical `/training` permalink in `App.tsx` alongside navigation links in `Navbar.tsx` and `AcademyNavbar.tsx`.
+  - *Why*: Provides clean address bar access for students and direct sharing on social/email.
+
+---
+
+### 4. Technical Architecture & System Layout
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        App.tsx Router (/training)                      │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                         TrainingCurriculumPage                         │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ Hero Header + Global Topic Search + Track Filter Bar             │  │
+│  └────────────────────────────────┬─────────────────────────────────┘  │
+│                                   │                                    │
+│                                   ▼                                    │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ Course Curriculum Cards (6 Cohort 2 Programs)                    │  │
+│  │  ├─ Course Meta (Duration, Level, Format, Tuition, Tools)        │  │
+│  │  ├─ Phase Roadmap Indicators (Foundations ➔ Applied ➔ Capstone)  │  │
+│  │  ├─ Week-by-Week Accordion Modules (Topics, Labs, Deliverable)   │  │
+│  │  └─ Capstone Requirements & Portfolio Rubric                      │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                     trainingCurriculumData.ts                          │
+│  (Updated Prices: AI Content ₦20k, AI Engineer ₦150k, Others ₦60k)     │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Implementation Steps
+
+1. **Curriculum Data Repository (`src/data/trainingCurriculumData.ts`)**:
+   - Create TypeScript interfaces for `TrainingCourse`, `CoursePhase`, `CurriculumWeek`, and `CapstoneSpec`.
+   - Populate all 6 complete curricula with updated pricing: AI Content Creation (₦20k), AI Engineer / Data Science (₦150k), and ₦60k for AI Automation, Virtual Assistance, Web Dev, and Data Analysis.
+2. **Page Component (`src/pages/TrainingCurriculumPage.tsx`)**:
+   - Build responsive layout with global search, program track filters, phase progress bars, expandable week modules, and capstone specifications.
+3. **Routing & Permalinks (`src/App.tsx`)**:
+   - Add `'training'` to `PageType`.
+   - Add route resolver for `/training`, `/pages/training`, and `#training`.
+4. **Header Navigation Links (`src/components/Navbar.tsx` & `src/components/AcademyNavbar.tsx`)**:
+   - Add `Curriculum` / `Training` link to primary navigation bars.
+5. **Verification**:
+   - Run `compile_applet` and execute `npm test` to ensure 100% build integrity.

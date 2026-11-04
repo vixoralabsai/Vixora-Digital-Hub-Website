@@ -1,0 +1,194 @@
+﻿AI Automation and Digital Literacy Cohort 2: Full Curriculum
+Vixora Academy · 12 weeks · Draft v1 for review
+Course Overview
+This beginner-friendly course teaches students to use AI tools and no-code automation to work faster and earn more. Students start with digital literacy, learn to prompt AI tools well, then build real automations and AI assistants for everyday and business tasks. The course ends with a portfolio project and a clear path to offering automation services.
+* Duration: 12 weeks
+* Format: Online / Physical (hybrid)
+* Level: Beginner (no coding required)
+* Pricing: ₦30,000
+* Certificate: Awarded on completion, with a portfolio project
+Learning Outcomes
+By the end of the course, students will be able to:
+* Use computers, cloud tools and the internet safely and confidently
+* Write clear prompts that get useful results from AI tools
+* Use AI to speed up writing, research, planning and spreadsheet work
+* Design and build no-code automations that connect everyday apps
+* Build a simple AI assistant or chatbot
+* Automate common business tasks such as email, lead follow-up and social media
+* Package and price automation work for clients or employers
+Tools Used
+ChatGPT, Claude and Gemini (AI assistants), Excel or Google Sheets, Google Workspace, Zapier and Make (no-code automation), and a no-code chatbot builder. Alternatives such as n8n can be added if preferred.
+Course Structure
+* Phase 1: Foundations (Weeks 1-3): digital literacy, AI basics, prompting
+* Phase 2: AI for Productivity (Weeks 4-5): writing, research, planning, Excel with AI
+* Phase 3: Automation (Weeks 6-9): workflows, no-code builds, agents and chatbots, business automations
+* Phase 4: Application and Career (Weeks 10-12): portfolio project and monetizing skills
+Assessment (Proposed)
+* Weekly practical assignments
+* Mid-course practical (prompting and one working automation)
+* Portfolio project: a working automation or AI assistant with documentation and a short demo
+* Certificate issued on completing all weekly deliverables and the portfolio project
+Week 1: Digital Literacy Foundations
+Objectives
+* Build confidence with devices, files and online tools
+* Learn the safe-use basics
+Topics
+* Files, folders and cloud storage (Google Drive)
+* Email, calendars and online collaboration
+* Search skills and judging online information
+* Passwords, two-factor authentication and common scams
+* Setting up the accounts needed for the course
+Hands-on
+* Organize a cloud folder system
+* Set up all course accounts securely
+Deliverable: organized workspace and account checklist
+Week 2: Introduction to AI and the Main AI Tools
+Objectives
+* Understand what AI is and what it can and cannot do
+* Get comfortable with the main AI assistants
+Topics
+* What AI, machine learning and large language models are, in plain language
+* What AI does well and where it fails (mistakes, made-up facts, bias)
+* Tour of ChatGPT, Claude and Gemini
+* Responsible use: privacy, honesty and checking outputs
+Hands-on
+* Try the same tasks in three AI tools and compare the results
+Deliverable: AI tools comparison sheet
+Week 3: Prompt Engineering
+Objectives
+* Write prompts that produce reliable, useful results
+* Build a personal prompt library
+Topics
+* The parts of a good prompt: role, context, task, format, constraints
+* Giving examples and step-by-step instructions
+* Improving a weak prompt through iteration
+* Reusable prompt templates
+* Common prompting mistakes
+Hands-on
+* Rewrite ten weak prompts into strong ones
+* Build prompt templates for your own work
+Deliverable: personal prompt library (at least 10 templates)
+Week 4: AI for Writing, Research and Planning
+Objectives
+* Use AI to save time on everyday knowledge work
+* Check AI output before using it
+Topics
+* Drafting and editing emails, documents and reports
+* Summarizing long documents and meetings
+* Research with AI and verifying sources
+* Planning: schedules, project plans and to-do systems
+* AI note-taking and transcription tools
+Hands-on
+* Produce a research summary and a work plan using AI, with fact-checking
+Deliverable: research summary and plan, with a short fact-check note
+Week 5: Excel and AI for Work
+Objectives
+* Use spreadsheets effectively with AI help
+* Clean and analyze simple data faster
+Topics
+* Spreadsheet basics: formulas, sorting, filtering, charts
+* Using AI to write and explain formulas
+* Cleaning and organizing data with AI help
+* Summarizing data and spotting trends
+* Checking AI-generated formulas for errors
+Hands-on
+* Build a small business tracker with AI-assisted formulas
+Deliverable: working spreadsheet tracker
+Week 6: Workflow Automation Basics
+Objectives
+* Think in workflows
+* Plan an automation before building it
+Topics
+* What automation is and where it pays off
+* Triggers, actions and conditions
+* Mapping a manual process into steps
+* Choosing tasks worth automating
+* How apps connect: APIs and webhooks, in plain language
+Hands-on
+* Map three of your own repetitive tasks as workflow diagrams
+Deliverable: workflow maps with one chosen to build
+Week 7: Building Automations with No-Code Tools
+Objectives
+* Build working automations in Zapier and Make
+* Test and fix automations
+Topics
+* Zapier: triggers, actions, filters and multi-step workflows
+* Make: scenarios, modules and routers
+* Connecting Gmail, Google Sheets, Calendar and forms
+* Testing, error handling and monitoring
+* Free plan limits and costs
+Hands-on
+* Build a form-to-spreadsheet-to-email automation
+* Build the same flow in both tools and compare
+Deliverable: two working automations with screenshots
+Week 8: AI Agents and Chatbots
+Objectives
+* Understand how AI assistants and agents work
+* Build a simple chatbot for a real use case
+Topics
+* Chatbots versus agents: the difference
+* Giving an AI instructions and knowledge (custom assistants)
+* Building a no-code chatbot for FAQs or customer support
+* Adding AI steps inside automations
+* Limits, safety and when a human should step in
+Hands-on
+* Build and test a chatbot for a small business scenario
+Deliverable: working chatbot with a test log
+Week 9: Automating Business Tasks
+Objectives
+* Apply automation to common business workflows
+* Combine AI and automation in one flow
+Topics
+* Email: sorting, auto-replies and AI-drafted responses
+* Lead capture and follow-up with a simple CRM
+* Social media scheduling and content repurposing
+* Invoicing, reminders and booking workflows
+* Measuring time saved
+Hands-on
+* Build a lead capture and follow-up system end to end
+Deliverable: business automation with a time-saved estimate
+Week 10: Portfolio Project Build
+Objectives
+* Design and build a complete project
+* Document the work properly
+Topics
+* Choosing a real problem (your own work or a small business)
+* Scoping and planning the build
+* Building, testing and improving
+* Writing clear documentation
+Hands-on
+* Build the portfolio project with instructor check-ins
+Deliverable: working project with draft documentation
+Week 11: Portfolio Project Presentation and Review
+Objectives
+* Present the project clearly
+* Learn from feedback
+Topics
+* Demoing an automation to a non-technical audience
+* Explaining the problem, the solution and the results
+* Peer and instructor feedback
+* Final fixes and polish
+Hands-on
+* Present a live demo to the class
+* Update the project after feedback
+Deliverable: final project, demo and documentation
+Week 12: Monetizing Your Skills
+Objectives
+* Turn skills into income
+* Present yourself professionally
+Topics
+* Ways to earn: freelancing, offering automation services, jobs and local businesses
+* Finding clients and writing a simple proposal
+* Pricing automation work
+* Building a portfolio page and LinkedIn profile
+* Next steps for continued learning
+Hands-on
+* Write a service offer and a one-page proposal
+* Publish a portfolio page
+Deliverable: service offer, proposal and portfolio page
+Portfolio Project Requirements (Proposed)
+* A real problem, clearly described
+* A working automation or AI assistant
+* Documentation: purpose, steps, tools used and how to maintain it
+* An estimate of time or money saved
+* A 5-minute live demo

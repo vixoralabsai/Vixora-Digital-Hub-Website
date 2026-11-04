@@ -692,7 +692,7 @@ export function CohortBundlePage({
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
               Why Cohort 1.0 is Hosted on{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-amber-300">
+              <span className="text-sky-300">
                 Telegram Private Vault
               </span>
             </h2>
@@ -808,17 +808,13 @@ export function CohortBundlePage({
           </div>
 
           {/* Card 2: 4-in-1 Master Bundle (Recommended Highlighted) */}
-          <div className="p-8 rounded-3xl bg-[#0F1535] text-white border-2 border-amber-400 shadow-2xl relative flex flex-col justify-between space-y-6 lg:-translate-y-2">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-400 text-[#0F1535] shadow-md">
-              Most Popular • Best Value
-            </div>
-
+          <div className="p-8 rounded-3xl bg-[#0F1535] text-white border-2 border-amber-400 shadow-2xl relative flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold text-amber-300 uppercase tracking-wider">
-                  Full 4-Track All-Access Pass
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-amber-300">
+                  Full 4-Track All-Access Pass · Most Popular
                 </span>
-                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-emerald-300 font-semibold font-mono">
                   {bundleSavingsBadge}
                 </span>
               </div>

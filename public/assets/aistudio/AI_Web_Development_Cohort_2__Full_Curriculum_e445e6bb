@@ -1,0 +1,198 @@
+﻿AI Web Development Cohort 2: Full Curriculum
+Vixora Academy · 12 weeks · Draft v1 for review
+Course Overview
+This course teaches students to build and launch real websites and web apps using modern web fundamentals together with AI coding tools. Students first learn HTML, CSS and JavaScript so they understand what they are building, then use vibe coding and AI assistants to build faster, add features, connect databases and AI, and deploy live projects. The course ends with a full capstone site or app and a freelancing-ready portfolio.
+* Duration: 12 weeks
+* Format: Online / Physical (hybrid)
+* Level: Beginner (no prior coding required)
+* Pricing: ₦30,000
+* Certificate: Awarded on completion of the capstone project
+Learning Outcomes
+By the end of the course, students will be able to:
+* Explain how websites and web apps work
+* Build responsive pages with HTML, CSS and JavaScript
+* Use AI coding tools to plan, build, debug and improve code, and check what the AI produces
+* Build landing pages and multi-page sites quickly
+* Build a simple React front end
+* Store and retrieve data with a basic backend and database
+* Add AI features to an app through an API
+* Deploy a site with a domain and hosting
+* Present their work and win freelance projects
+Tools Used
+VS Code, browser developer tools, Git and GitHub, AI coding assistants and vibe coding tools (such as Claude, ChatGPT, Cursor or similar), React, a hosted database service, and free deployment platforms. Specific tools may change, and free tiers are used wherever possible.
+Course Structure
+* Phase 1: Foundations (Weeks 1-3): how the web works, HTML, CSS
+* Phase 2: Programming and AI Tools (Weeks 4-6): JavaScript, interactivity, vibe coding
+* Phase 3: Building Real Projects (Weeks 7-10): landing pages, React, backend and databases, APIs and AI features
+* Phase 4: Launch and Career (Weeks 11-12): deployment, capstone, portfolio, freelancing
+Assessment (Proposed)
+* Weekly build assignments
+* Mid-course project: a responsive multi-section website
+* Capstone project: a full website or web app, deployed live
+* Certificate issued on completing all weekly deliverables and the capstone
+Week 1: How the Web Works and Tools Setup
+Objectives
+* Understand how websites reach a browser
+* Set up a professional coding workspace
+Topics
+* Browsers, servers, domains and hosting, in plain language
+* Front end versus back end
+* Setting up VS Code and useful extensions
+* Browser developer tools
+* Git and GitHub basics: repositories, commits and pushing code
+Hands-on
+* Set up the workspace and publish a first page to GitHub
+Deliverable: GitHub account with a first repository
+Week 2: HTML and Structuring Pages
+Objectives
+* Build the structure of a web page
+* Write clean, accessible HTML
+Topics
+* HTML document structure and common tags
+* Headings, text, lists, links and images
+* Forms and inputs
+* Semantic HTML and accessibility basics
+* Planning a page before coding
+Hands-on
+* Build a personal profile page and a simple business page with a contact form
+Deliverable: two HTML pages in GitHub
+Week 3: CSS and Styling
+Objectives
+* Style pages so they look professional
+* Build layouts that work on every screen size
+Topics
+* CSS selectors, colors, fonts and spacing (the box model)
+* Flexbox and Grid
+* Responsive design and media queries
+* Basic design principles: hierarchy, contrast and consistency
+* Typography and image handling
+Hands-on
+* Style the Week 2 pages into a responsive, polished site
+Deliverable: responsive styled website
+Week 4: JavaScript Basics
+Objectives
+* Understand core programming ideas
+* Write basic JavaScript
+Topics
+* Variables, data types and operators
+* Conditionals and loops
+* Functions
+* Arrays and objects
+* Reading and fixing errors in the console
+Hands-on
+* Write small programs: a tip calculator and a quiz
+Deliverable: JavaScript practice exercises
+Week 5: JavaScript for Interactivity
+Objectives
+* Make pages respond to users
+* Work with the page through the DOM
+Topics
+* The DOM: selecting and changing elements
+* Events: clicks, input and form submission
+* Form validation
+* Fetching data from an API
+* Saving small amounts of data in the browser
+Hands-on
+* Build a to-do app and a weather or quote app that loads live data
+Deliverable: two interactive mini apps
+Week 6: Vibe Coding and AI Coding Tools
+Objectives
+* Build with AI as a coding partner
+* Stay in control of the code
+Topics
+* What vibe coding is, and where it works well and where it fails
+* Writing clear build prompts: goal, features, style and constraints
+* Breaking a project into steps for the AI
+* Reading, testing and debugging AI-generated code
+* Refactoring and asking AI to explain code
+* Security and safety basics: never share secret keys, and review what you deploy
+Hands-on
+* Build a small app by prompting, then review and fix the code yourself
+Deliverable: AI-built app with a prompt log and review notes
+Week 7: Building Landing Pages with AI
+Objectives
+* Build high-quality landing pages fast
+* Write page content that converts
+Topics
+* Landing page structure: hero, benefits, proof, offer and call to action
+* Using AI to draft copy, layouts and code
+* Images, icons and fonts
+* Contact forms and lead capture
+* Basic search visibility (SEO) and page speed
+Hands-on
+* Build a complete landing page for a real or sample business
+Deliverable: landing page project (also the mid-course project)
+Week 8: Frontend Frameworks: Introduction to React
+Objectives
+* Understand why frameworks exist
+* Build a small React app
+Topics
+* Components, props and state
+* JSX and rendering lists
+* Handling events and forms
+* Project structure and running a React project
+* Using AI to help generate and explain React code
+Hands-on
+* Rebuild an earlier mini app in React
+Deliverable: working React app
+Week 9: Backend and Database Basics
+Objectives
+* Understand how apps store and serve data
+* Connect a front end to a database
+Topics
+* What a backend is and how front end and back end talk
+* Databases: tables, records and simple queries
+* Using a hosted database service
+* Basic user accounts and authentication, at an introductory level
+* Keeping data and keys safe
+Hands-on
+* Add saving and loading of data to an app
+Deliverable: app that stores and retrieves data
+Week 10: APIs and AI Integration
+Objectives
+* Use APIs to add features to an app
+* Add an AI feature safely
+Topics
+* What APIs are, and reading API documentation
+* Making API requests and handling responses
+* Adding an AI feature (such as a chatbot or text generator) through an API
+* Protecting API keys with environment variables
+* Costs and limits
+Hands-on
+* Add an AI-powered feature to an existing app
+Deliverable: app with a working AI feature
+Week 11: Deployment, Domains and Hosting, with Capstone Build
+Objectives
+* Put a project live on the internet
+* Make solid progress on the capstone
+Topics
+* Deploying with free hosting platforms
+* Connecting a custom domain
+* Environment variables and configuration in production
+* Testing and fixing bugs before launch
+* Capstone planning and build sessions with instructor check-ins
+Hands-on
+* Deploy a project live
+* Build the capstone
+Deliverable: deployed project and capstone in progress
+Week 12: Capstone Presentation, Portfolio and Freelancing
+Objectives
+* Present the capstone with confidence
+* Leave ready to take on clients
+Topics
+* Final capstone presentations and feedback
+* Building a portfolio site and GitHub profile
+* Finding clients: freelance platforms, LinkedIn and local businesses
+* Writing proposals and pricing web projects
+* Contracts, deadlines and client communication basics
+Hands-on
+* Present the capstone live
+* Publish the portfolio site
+Deliverable: final capstone and live portfolio
+Capstone Project Requirements (Proposed)
+* A real or realistic problem and a short project brief
+* A responsive, deployed website or web app
+* At least one dynamic feature (data storage or an AI feature)
+* Code on GitHub with a clear README
+* A prompt log or short note on how AI was used and checked
+* A 10-minute live demo and presentation

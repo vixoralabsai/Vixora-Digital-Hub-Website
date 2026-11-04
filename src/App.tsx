@@ -39,6 +39,7 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { PaymentCallbackPage } from './pages/PaymentCallbackPage';
 import { CohortBundlePage } from './pages/CohortBundlePage';
 import { CohortTrackSubpage } from './pages/CohortTrackSubpage';
+import { TrainingCurriculumPage } from './pages/TrainingCurriculumPage';
 
 import { ACADEMY_COURSES, AcademyCourse } from './data/vixoraContent';
 import { BRAND_CONFIG } from './data/brandConfig';
@@ -54,6 +55,7 @@ export type PageType =
   | 'academy'
   | 'academy-course'
   | 'cohort-1'
+  | 'training'
   | 'resources'
   | 'dashboard'
   | 'pages-directory'
@@ -123,7 +125,7 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
     return { page: 'dashboard', path: '/pages/dashboard' };
   }
 
-  if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'dashboard', 'student-portal', 'certificate-portal'].includes(pageParam)) {
+  if (pageParam && ['about', 'portfolio', 'resources', 'academy', 'training', 'dashboard', 'student-portal', 'certificate-portal'].includes(pageParam)) {
     return {
       page: pageParam as PageType,
       path: `/pages/${pageParam}`,
@@ -172,6 +174,9 @@ function parseLocationPath(pathname: string, search: string, hash: string = ''):
   }
   if (cleanPath === '/pages/academy' || cleanPath === '/academy') {
     return { page: 'academy', path: '/pages/academy' };
+  }
+  if (cleanPath === '/pages/training' || cleanPath === '/training' || cleanPath === '/curriculum' || cleanPath === '/pages/curriculum' || cleanHash === 'training' || cleanHash === 'curriculum') {
+    return { page: 'training', path: '/pages/training' };
   }
   if (cleanPath === '/pages/resources' || cleanPath === '/resources') {
     return { page: 'resources', path: '/pages/resources' };
@@ -387,6 +392,8 @@ function AppContent() {
           targetPath = '/pages/portfolio';
         } else if (page === 'academy') {
           targetPath = '/pages/academy';
+        } else if (page === 'training') {
+          targetPath = '/pages/training';
         } else if (page === 'resources') {
           targetPath = '/pages/resources';
         } else if (page === 'dashboard') {
@@ -500,8 +507,8 @@ function AppContent() {
     }
   };
 
-  const isAcademyNav = ['academy', 'academy-course', 'cohort-1', 'student-portal', 'certificate-portal', 'payment-callback'].includes(route.page);
-  const isAcademyLightBg = ['academy', 'academy-course', 'cohort-1', 'student-portal', 'certificate-portal'].includes(route.page);
+  const isAcademyNav = ['academy', 'academy-course', 'cohort-1', 'training', 'student-portal', 'certificate-portal', 'payment-callback'].includes(route.page);
+  const isAcademyLightBg = ['academy', 'academy-course', 'cohort-1', 'training', 'student-portal', 'certificate-portal'].includes(route.page);
   const isAcademyView = isAcademyLightBg;
 
   return (
@@ -590,6 +597,14 @@ function AppContent() {
             onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
             onNavigateToStudentPortal={() => handleNavigate('student-portal', undefined, undefined, '/student-portal')}
             onNavigateCohort1={() => handleNavigate('cohort-1', undefined, undefined, '/academy/cohort-1')}
+          />
+        )}
+
+        {route.page === 'training' && (
+          <TrainingCurriculumPage
+            onNavigateHome={() => handleNavigate('home', undefined, undefined, '/')}
+            onNavigateAcademy={() => handleNavigate('academy', undefined, undefined, '/pages/academy')}
+            onNavigateStudentPortal={() => handleNavigate('student-portal', undefined, undefined, '/pages/student-portal')}
           />
         )}
 
