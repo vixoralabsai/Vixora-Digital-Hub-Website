@@ -77,6 +77,77 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ExchangeRate-API (open.er-api.com) 24-hour server-side cache
+interface ExchangeRatesCache {
+  rates: Record<string, number>;
+  base: string;
+  lastUpdated: number;
+  nextUpdate: number;
+}
+
+let exchangeRatesCache: ExchangeRatesCache | null = null;
+const FX_CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+app.get('/api/exchange-rates', async (req, res) => {
+  const now = Date.now();
+  if (exchangeRatesCache && (now - exchangeRatesCache.lastUpdated < FX_CACHE_DURATION_MS)) {
+    return res.json({
+      success: true,
+      source: 'cache',
+      base: exchangeRatesCache.base,
+      rates: exchangeRatesCache.rates,
+      lastUpdated: new Date(exchangeRatesCache.lastUpdated).toISOString(),
+      nextUpdate: new Date(exchangeRatesCache.nextUpdate).toISOString(),
+    });
+  }
+
+  try {
+    const response = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (response.ok) {
+      const data: any = await response.json();
+      if (data && data.result === 'success' && data.conversion_rates) {
+        const lastUp = data.time_last_update_unix ? data.time_last_update_unix * 1000 : now;
+        const nextUp = data.time_next_update_unix ? data.time_next_update_unix * 1000 : now + FX_CACHE_DURATION_MS;
+
+        exchangeRatesCache = {
+          rates: data.conversion_rates,
+          base: data.base_code || 'USD',
+          lastUpdated: lastUp,
+          nextUpdate: nextUp,
+        };
+
+        return res.json({
+          success: true,
+          source: 'live',
+          base: exchangeRatesCache.base,
+          rates: exchangeRatesCache.rates,
+          lastUpdated: new Date(exchangeRatesCache.lastUpdated).toISOString(),
+          nextUpdate: new Date(exchangeRatesCache.nextUpdate).toISOString(),
+        });
+      }
+    }
+  } catch (error: any) {
+    console.warn('[Exchange Rate API] ⚠️ Fetch from open.er-api.com failed, using fallback:', error?.message);
+  }
+
+  // Graceful Fallback Rates
+  const fallbackRates: Record<string, number> = {
+    USD: 1,
+    NGN: 1450,
+    EUR: 0.92,
+    GBP: 0.78,
+  };
+
+  return res.json({
+    success: true,
+    source: 'fallback',
+    base: 'USD',
+    rates: fallbackRates,
+    lastUpdated: new Date().toISOString(),
+    nextUpdate: new Date(now + FX_CACHE_DURATION_MS).toISOString(),
+  });
+});
+
 // Geolocation endpoint for location-based currency (USD outside Nigeria, NGN in Nigeria)
 app.get('/api/geo', async (req, res) => {
   try {

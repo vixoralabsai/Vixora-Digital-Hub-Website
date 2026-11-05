@@ -33,12 +33,14 @@ const CURRENCY_OPTIONS: Array<{
 export const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
   className = '',
 }) => {
-  const { currency, setCurrency, isAutoDetected, detectedCountry } = useCurrency();
+  const { currency, setCurrency, isAutoDetected, detectedCountry, fxRateNgn, fxSource } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const activeOption =
     CURRENCY_OPTIONS.find((opt) => opt.code === currency) || CURRENCY_OPTIONS[0];
+
+  const formattedFxRate = `1 USD = ₦${fxRateNgn.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -81,8 +83,8 @@ export const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
         aria-label="Select currency"
         title={
           isAutoDetected && detectedCountry
-            ? `Detected location: ${detectedCountry}. Current: ${currency}. Click to switch.`
-            : `Current currency: ${currency}. Click to switch.`
+            ? `Detected location: ${detectedCountry}. Current: ${currency} (${formattedFxRate}). Click to switch.`
+            : `Current currency: ${currency} (${formattedFxRate}). Click to switch.`
         }
         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold font-mono bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
       >
@@ -101,7 +103,7 @@ export const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
         <div
           role="listbox"
           aria-label="Available currencies"
-          className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-[#07031C] border border-purple-500/30 shadow-2xl p-1.5 space-y-1 z-50 text-white animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 top-full mt-2 w-52 rounded-2xl bg-[#07031C] border border-purple-500/30 shadow-2xl p-1.5 space-y-1 z-50 text-white animate-in fade-in zoom-in-95 duration-150"
         >
           <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-purple-300 border-b border-purple-900/40 flex items-center justify-between">
             <span className="flex items-center gap-1">
@@ -146,6 +148,12 @@ export const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
               </button>
             );
           })}
+
+          {/* Unboxed Live FX Rate Indicator */}
+          <div className="px-2.5 py-1.5 pt-2 border-t border-purple-900/40 flex items-center justify-between text-[10px] font-mono text-purple-300/80">
+            <span>{formattedFxRate}</span>
+            <span className="text-purple-400 font-medium">{fxSource || 'Live FX'}</span>
+          </div>
         </div>
       )}
     </div>

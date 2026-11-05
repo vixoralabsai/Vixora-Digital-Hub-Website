@@ -1,6 +1,6 @@
 {
-  "summary": "Implementation plan for updating Vixora Academy course contents and pricing to match the 2026 curriculum from trainingCurriculumData.ts, updating NGN/USD prices in coursePricing.ts, preserving Cohort Vault recordings, and separating non-curriculum courses into an archived section.",
-  "updatedAt": "2026-11-05T08:53:13.374562664Z",
+  "summary": "Implementation plan for conducting research and integrating the ExchangeRate-API free endpoint (https://open.er-api.com/v6/latest/USD) via a 24-hour cached server proxy endpoint (/api/exchange-rates), providing live estimated FX conversions in the UI while preserving server-authoritative payment security.",
+  "updatedAt": "2026-11-05T11:52:21.404320621Z",
   "requestFeedback": true,
   "userFacing": true
 }

@@ -1,6 +1,6 @@
-# Academy Curriculum & Pricing Synchronization Plan
+# Currency Exchange Rate API Research & Integration Plan
 
-Synchronize Vixora Academy's live course catalog, curriculum specifications, and dual-currency pricing (NGN & USD) with the updated 2026 curriculum definitions in `trainingCurriculumData.ts`, while preserving the Cohort 1.0 Master Vault recordings and categorizing legacy non-curriculum courses into an archived catalog section.
+Research and integrate the **ExchangeRate-API** open free service (`https://open.er-api.com/v6/latest/USD`) to provide live estimated FX rate displays in the UI, cached server-side for 24 hours with an automatic fallback to Vixora's approved fixed commercial pricing contract.
 
 ---
 
@@ -9,40 +9,61 @@ Synchronize Vixora Academy's live course catalog, curriculum specifications, and
 > [!IMPORTANT]
 > The following choices were confirmed during Phase 1 clarification:
 
-- **Confirmed Decision 1 (Curriculum Source)**: Sync `ACADEMY_COURSES` in `vixoraContent.ts` directly with the updated 2026 curriculum definitions from `trainingCurriculumData.ts`.
-- **Confirmed Decision 2 (Pricing Across Currencies)**: Update both NGN and USD price values in `src/data/coursePricing.ts` and sync them across all `ACADEMY_COURSES` and backend payment verification objects.
-- **Confirmed Decision 3 (Cohort Vault Protection)**: Keep Cohort 1.0 Master Vault (`cohort-1-master-bundle`) and its 5 accredited track recordings untouched and isolated from standalone catalog updates.
-- **Confirmed Decision 4 (Legacy Courses)**: Separate non-matching legacy courses into a dedicated "Archived Specializations" catalog tab in `AcademyPage.tsx` rather than deleting them.
+- **Confirmed Decision 1 (Primary Goal)**: Display live estimated converted prices in the UI as informative metadata, while keeping payment checkout amounts server-authoritative to prevent price tampering.
+- **Confirmed Decision 2 (API Provider)**: Use **ExchangeRate-API** (`https://open.er-api.com/v6/latest/USD`), an ultra-reliable free-tier FX service requiring zero API keys.
+- **Confirmed Decision 3 (24-Hour Server Caching)**: Proxy requests through `/api/exchange-rates` on Express (`server.ts`) with a 24-hour server memory cache and graceful fallback to approved fixed prices in `coursePricing.ts`.
 
 ---
 
-## 1. Overview & Core Concept
+## 1. Research & Technical Specifications
 
-- **What It Does**: Aligns all active courses in Vixora Academy with the official 2026 training curriculum structure (weeks, learning outcomes, tools used, phases, capstones, and dual NGN/USD pricing).
-- **Target Audience**: Prospective students, enrolled students, and admissions reps seeking accurate course details and pricing in their local or preferred currency (NGN / USD).
-- **Key Value**: Delivers 100% curriculum and pricing accuracy across catalog views, course landing pages, checkout initialization, and certificate verification without breaking existing cohort vault access.
+### A. ExchangeRate-API Provider Analysis
+- **Endpoint**: `GET https://open.er-api.com/v6/latest/USD`
+- **Authentication**: None required (keyless open endpoint).
+- **Update Frequency**: Daily (24-hour cycle matching `time_next_update_unix`).
+- **Response Format**:
+```json
+{
+  "result": "success",
+  "provider": "https://www.exchangerate-api.com",
+  "time_last_update_unix": 1710000000,
+  "time_next_update_unix": 1710086400,
+  "base_code": "USD",
+  "conversion_rates": {
+    "USD": 1,
+    "NGN": 1450.25,
+    "EUR": 0.91,
+    "GBP": 0.78
+  }
+}
+```
+
+### B. Security & Rate-Limiting Protection
+- Direct client-side calls to third-party APIs can leak user IP addresses, encounter CORS blocks, or trigger rate limits.
+- Routing requests through Express `/api/exchange-rates` ensures:
+  1. Single API call per 24 hours across all active users.
+  2. Automatic fallbacks if third-party servers undergo downtime.
+  3. Strict zero-trust separation between UI estimation displays and Paystack payment initialization.
 
 ---
 
 ## 2. User Experience & Visual Design
 
-- **Asymmetric & Segmented Catalog View**:
-  - Primary Segmented Control: `Active 2026 Curriculum` vs `Archived Specializations`.
-  - Active 2026 Curriculum Spotlight: Clean unboxed metadata, flagship track highlight, week-by-week curriculum badges, and dynamic NGN/USD currency toggle display.
-- **Course Landing Page Consistency**:
-  - `CourseHeroSection.tsx` and `CourseCurriculumSection.tsx` pull directly from synced `ACADEMY_COURSES` data.
-  - Displays full week-by-week topics, hands-on projects, deliverables, and capstone specifications without AI slop or cartoon squiggles.
+- **Subtle Live FX Indicator**:
+  - In `CurrencySwitcher.tsx`, display an unboxed, quiet indicator showing live FX status (e.g. `1 USD = ₦1,450.25 · Live FX Rate`).
+  - No static pill capsules or decorative green pulsing dots.
+- **Course Pricing Display**:
+  - When switching currencies (NGN ₦ / USD $), display both the approved commercial price and a quiet estimated live conversion note where helpful.
 
 ---
 
-## 3. Key Product Decisions & Trade-Offs
+## 3. Key Technical Decisions & Trade-Offs
 
-- **Single Source of Truth for Pricing (`coursePricing.ts`)**:
-  - *Chosen Approach*: Update `COURSE_PRICING` dictionary with explicit NGN and USD prices for all 2026 curriculum courses, then expose them through `ACADEMY_COURSES.tuition` and backend Paystack initialization handlers.
-  - *Why*: Ensures server-authoritative price enforcement during payment initialization while allowing dynamic client-side FX currency switching.
-- **Cohort Vault Isolation**:
-  - *Chosen Approach*: Maintain `course-cohort-1-master-bundle` and its 5 underlying tracks in `cohortData.ts` and `vixoraContent.ts` without modifying recording links or vault access gates.
-  - *Why*: Protects existing student access and Telegram recordings vault intact.
+- **Server-Side Memory Cache (`/api/exchange-rates`)**:
+  - *Chosen Approach*: Cache FX rates in memory for 24 hours (`86,400,000 ms`).
+  - *Why*: Prevents unnecessary external network overhead, abides by ExchangeRate-API fair-use terms, and guarantees Instant 0ms response latency for clients.
+- **Graceful Fallback**:
+  - *Chosen Approach*: If the external API call fails or times out, serve the approved commercial pricing defaults from `src/data/coursePricing.ts`.
 
 ---
 
@@ -50,30 +71,29 @@ Synchronize Vixora Academy's live course catalog, curriculum specifications, and
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│             2026 Training Curriculum Data              │
-│          (src/data/trainingCurriculumData.ts)          │
+│           ExchangeRate-API Open Endpoint               │
+│         (https://open.er-api.com/v6/latest/USD)         │
 └──────────────────────────┬─────────────────────────────┘
-                           │
+                           │ 24-Hour Fetch
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│            Synchronized Content & Pricing              │
-│       - src/data/vixoraContent.ts (ACADEMY_COURSES)    │
-│       - src/data/coursePricing.ts (COURSE_PRICING)    │
-└──────────┬─────────────────────────────────┬───────────┘
-           │                                 │
-           ▼                                 ▼
-┌──────────────────────┐          ┌──────────────────────┐
-│  Academy Catalog UI  │          │ Payment & Checkout   │
-│ - AcademyPage.tsx    │          │ - Paystack API /     │
-│ - Course Page Views  │          │   Verify Endpoint    │
-└──────────────────────┘          └──────────────────────┘
+│          Express Backend Server (/api/exchange-rates)  │
+│        - 24-Hour Memory Cache                          │
+│        - Fallback to src/data/coursePricing.ts         │
+└──────────────────────────┬─────────────────────────────┘
+                           │ JSON Rates Payload
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│            Client Context & UI Components              │
+│       - src/context/CurrencyContext.tsx               │
+│       - src/components/CurrencySwitcher.tsx            │
+└────────────────────────────────────────────────────────┘
 ```
 
 ### Affected Files & Components:
-1. `src/data/vixoraContent.ts`: Sync course descriptions, weeks, topics, outcomes, and tuition strings with `trainingCurriculumData.ts`.
-2. `src/data/coursePricing.ts`: Update NGN and USD price maps for all active 2026 curriculum courses.
-3. `src/pages/AcademyPage.tsx`: Implement segmented catalog filter (`Active 2026 Curriculum` vs `Archived Specializations`) and unboxed card metadata.
-4. `server.ts` / seed files (if applicable): Ensure backend payment initialization recognizes updated course IDs and authoritative NGN/USD prices.
+1. `server.ts`: Add `/api/exchange-rates` endpoint with 24-hour caching and fallback.
+2. `src/context/CurrencyContext.tsx`: Fetch FX rates from `/api/exchange-rates` on mount and expose live rate calculation helpers.
+3. `src/components/CurrencySwitcher.tsx`: Render quiet live FX rate attribution.
 
 ---
 

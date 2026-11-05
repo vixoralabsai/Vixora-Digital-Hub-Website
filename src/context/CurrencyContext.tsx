@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { COURSE_PRICING, SupportedCourseCurrency, getCoursePrice } from '../data/coursePricing';
+import { COURSE_PRICING, SupportedCourseCurrency } from '../data/coursePricing';
 
 const STORAGE_KEY = 'vixora_user_currency';
 
@@ -16,6 +16,12 @@ interface CurrencyContextType {
   toggleCurrency: () => void;
   detectedCountry?: string;
   isAutoDetected: boolean;
+  // Live FX Exchange Rate properties
+  fxRates: Record<string, number>;
+  fxRateNgn: number;
+  fxLastUpdated?: string;
+  fxSource?: string;
+  isFxLoading: boolean;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | null>(null);
@@ -124,6 +130,12 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [detectedCountry, setDetectedCountry] = useState<string | undefined>(undefined);
   const [isAutoDetected, setIsAutoDetected] = useState<boolean>(false);
 
+  // FX Rates State
+  const [fxRates, setFxRates] = useState<Record<string, number>>({ USD: 1, NGN: 1450 });
+  const [fxLastUpdated, setFxLastUpdated] = useState<string | undefined>(undefined);
+  const [fxSource, setFxSource] = useState<string | undefined>(undefined);
+  const [isFxLoading, setIsFxLoading] = useState<boolean>(true);
+
   // Set currency and store preference
   const setCurrency = useCallback((newCurrency: Currency) => {
     setCurrencyState(newCurrency);
@@ -140,6 +152,38 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const toggleCurrency = useCallback(() => {
     setCurrency(currency === 'NGN' ? 'USD' : 'NGN');
   }, [currency, setCurrency]);
+
+  // Fetch FX rates on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/exchange-rates')
+      .then((res) => {
+        if (!res.ok) throw new Error('Exchange rate API response not ok');
+        return res.json();
+      })
+      .then((data) => {
+        if (!isMounted) return;
+        if (data && data.success && data.rates && typeof data.rates.NGN === 'number') {
+          setFxRates(data.rates);
+          setFxLastUpdated(data.lastUpdated);
+          setFxSource(
+            data.source === 'live' || data.source === 'cache'
+              ? 'ExchangeRate-API (24h)'
+              : 'Fixed Rates'
+          );
+        }
+      })
+      .catch((err) => {
+        console.warn('[CurrencyContext] FX rate fetch error:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsFxLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Geolocation detection via backend API or Geo IP
   useEffect(() => {
@@ -197,6 +241,10 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return currency === 'NGN' ? '₦' : '$';
   }, [currency]);
 
+  const fxRateNgn = useMemo(() => {
+    return fxRates['NGN'] || 1450;
+  }, [fxRates]);
+
   // Format price for a course
   const formatPrice = useCallback((courseIdOrSlug: string, fallback?: string): string => {
     const resolvedId = resolveCourseId(courseIdOrSlug);
@@ -234,12 +282,12 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (amountUsd != null) {
         return `$${amountUsd.toLocaleString()}`;
       }
-      // Approximate fallback only if amountUsd is not configured
-      const approx = Math.round(amountNgn / 1000);
+      // Approximate fallback using fxRateNgn if amountUsd is not configured
+      const approx = Math.round(amountNgn / (fxRateNgn || 1450));
       return `$${approx.toLocaleString()}`;
     }
     return `₦${amountNgn.toLocaleString()}`;
-  }, [currency]);
+  }, [currency, fxRateNgn]);
 
   const value = useMemo(() => ({
     currency,
@@ -252,6 +300,11 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     toggleCurrency,
     detectedCountry,
     isAutoDetected,
+    fxRates,
+    fxRateNgn,
+    fxLastUpdated,
+    fxSource,
+    isFxLoading,
   }), [
     currency,
     currencySymbol,
@@ -263,6 +316,11 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     toggleCurrency,
     detectedCountry,
     isAutoDetected,
+    fxRates,
+    fxRateNgn,
+    fxLastUpdated,
+    fxSource,
+    isFxLoading,
   ]);
 
   return (
