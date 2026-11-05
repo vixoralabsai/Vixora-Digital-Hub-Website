@@ -108,12 +108,12 @@ export function ResourcesPage({ onOpenDriveWorkspace, onOpenProjectModal }: Reso
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="p-8 rounded-3xl bg-gradient-to-r from-purple-950/70 via-indigo-950/60 to-neutral-950 border border-purple-500/40 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              <HardDrive className="w-3 h-3 text-purple-400" />
+            <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-purple-300">
+              <HardDrive className="w-3.5 h-3.5 text-purple-400" />
               <span>Drive PRD Hub Utility</span>
             </div>
             <h3 className="text-2xl font-bold text-white">
-              Scan Your Google Drive & Compile a Project PRD
+              Scan Your Google Drive &amp; Compile a Project PRD
             </h3>
             <p className="text-xs sm:text-sm text-neutral-300">
               Connect your Google Workspace or browse sample blueprints. Our Gemini AI engine synthesizes full functional requirements, tech stack choices, and delivery timelines in seconds.
@@ -134,10 +134,10 @@ export function ResourcesPage({ onOpenDriveWorkspace, onOpenProjectModal }: Reso
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
         <div className="space-y-1">
           <div className="text-xs font-mono uppercase tracking-widest text-purple-400">
-            TECHNICAL BLUEPRINTS
+            Technical Blueprints
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white">
-            Free Architecture & Strategy Downloads
+            Free Architecture &amp; Strategy Downloads
           </h2>
         </div>
 
@@ -148,7 +148,7 @@ export function ResourcesPage({ onOpenDriveWorkspace, onOpenProjectModal }: Reso
               className="p-6 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-purple-500/40 transition-all flex flex-col justify-between space-y-4"
             >
               <div className="space-y-2">
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/40">
+                <span className="text-xs font-semibold text-purple-400">
                   {wp.category}
                 </span>
                 <h4 className="text-base font-bold text-white">{wp.title}</h4>
@@ -174,10 +174,10 @@ export function ResourcesPage({ onOpenDriveWorkspace, onOpenProjectModal }: Reso
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
         <div className="space-y-1">
           <div className="text-xs font-mono uppercase tracking-widest text-purple-400">
-            ENGINEERING DISPATCHES
+            Engineering Dispatches
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white">
-            Articles & Research Papers
+            Articles &amp; Research Papers
           </h2>
         </div>
 
@@ -189,7 +189,7 @@ export function ResourcesPage({ onOpenDriveWorkspace, onOpenProjectModal }: Reso
             >
               <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-purple-950/60 via-neutral-900 to-indigo-950/60 p-6 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-purple-950/80 text-purple-300 border border-purple-800/50">
+                  <span className="text-xs font-semibold text-purple-300">
                     {post.category}
                   </span>
                   <div className="w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">

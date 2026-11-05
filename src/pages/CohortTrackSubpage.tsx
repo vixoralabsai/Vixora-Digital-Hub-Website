@@ -190,7 +190,7 @@ export function CohortTrackSubpage({
         </div>
       )}
 
-      {/* Top Breadcrumb & 4-Track Segmented Switcher Strip */}
+      {/* Top Breadcrumb & 5-Track Segmented Switcher Strip */}
       <div className="bg-white border-b border-slate-200/90 sticky top-[74px] sm:top-[84px] z-30 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -208,7 +208,7 @@ export function CohortTrackSubpage({
                 onClick={onNavigateBundle}
                 className="hover:text-[#5B5FED] transition-colors cursor-pointer shrink-0 truncate max-w-[140px] sm:max-w-none"
               >
-                Cohort 1.0 Vault
+                Cohort 1.0
               </button>
               <span className="text-slate-300">/</span>
               <span className="text-[#0F1535] font-bold truncate">
@@ -216,7 +216,7 @@ export function CohortTrackSubpage({
               </span>
             </div>
 
-            {/* Quick 4-Track Segmented Switcher */}
+            {/* Quick 5-Track Segmented Switcher */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
               <span className="text-[10px] font-mono uppercase text-slate-400 font-bold hidden xl:inline shrink-0 mr-1">
                 Cohort Tracks:
@@ -331,7 +331,7 @@ export function CohortTrackSubpage({
                     onClick={() => onEnrollCourse(masterBundleCourse)}
                     className="px-5 py-3.5 rounded-xl text-sm font-bold bg-[#0F1535] hover:bg-slate-800 text-white transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 border border-slate-700"
                   >
-                    <span>Get All 4 Tracks ({localizedBundleTuition})</span>
+                    <span>Get All 5 Tracks ({localizedBundleTuition})</span>
                     <ArrowRight className="w-4 h-4 text-amber-400" />
                   </button>
                 </div>
@@ -918,22 +918,22 @@ export function CohortTrackSubpage({
                     <span className="text-xs text-slate-400 line-through font-mono">{localizedBundleStandard}</span>
                   </div>
                   <p className="text-[11px] text-purple-200 mt-1 font-mono">
-                    Includes this track + all 3 other tracks (Content, Automation, Web &amp; Sales)
+                    Includes this track + all 4 other tracks (Content, Automation, Web, Freelancing &amp; PDF Products)
                   </p>
                 </div>
 
                 <div className="space-y-2 text-xs text-purple-100 pt-2 border-t border-white/10">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>All 4 Tracks (Content, Automation, Web &amp; Freelancing)</span>
+                    <span>All 5 Complete Tracks (Content, Automation, Web, Freelancing &amp; PDF Products)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>28+ Hours of HD Session Replays across all modules</span>
+                    <span>35+ Hours of HD Session Replays across all modules</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>14 Master PDF Guides, Cheatsheets &amp; Workflow JSONs</span>
+                    <span>18 Master PDF Guides, Cheatsheets &amp; Workflow JSONs</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -946,7 +946,7 @@ export function CohortTrackSubpage({
                 onClick={() => onEnrollCourse(masterBundleCourse)}
                 className="w-full py-3.5 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-[#0F1535] shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Unlock All 4 Tracks ({localizedBundleTuition})</span>
+                <span>Unlock All 5 Tracks ({localizedBundleTuition})</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

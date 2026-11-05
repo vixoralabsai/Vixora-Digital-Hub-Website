@@ -52,38 +52,19 @@ export function AcademyNavbar({
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
         isScrolled
-          ? 'bg-[#000048]/95 backdrop-blur-md border-b border-[#480878]/50 shadow-lg shadow-black/40'
-          : 'bg-[#000048] border-b border-[#480878]/40'
+          ? 'bg-[#000048]/95 backdrop-blur-md border-b border-[#480878]/50 shadow-lg shadow-black/40 py-2.5'
+          : 'bg-[#000048] border-b border-[#480878]/40 py-3.5'
       }`}
     >
-      {/* Subdomain Indicator Strip */}
-      <div className="bg-[#000028] border-b border-purple-900/40 py-1 px-3 sm:px-4 text-[11px] text-purple-200">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
-            <span className="font-mono font-bold text-white tracking-wide truncate text-[10px] sm:text-[11px]">
-              {BRAND_CONFIG.cleanAcademyDomain}
-            </span>
-            <span className="text-purple-300/80 hidden sm:inline">· Academic Directorate Portal</span>
-          </div>
-          <button
-            onClick={() => handleNavClick('home', undefined, undefined, '/')}
-            className="text-amber-300 hover:text-amber-200 font-semibold flex items-center gap-1 cursor-pointer transition-colors shrink-0 text-[10px] sm:text-[11px]"
-          >
-            <span>Return to <span className="hidden sm:inline">Main </span>Hub</span>
-            <span className="hidden md:inline font-mono text-[10px]">({BRAND_CONFIG.cleanDomain})</span> &rarr;
-          </button>
-        </div>
-      </div>
-
-      {/* Main Academy Navbar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+      {/* Main Academy Navbar — Clean 3-Zone Contract */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-8 min-w-0">
           
-          {/* Logo Identity (Single Wordmark Element) */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* ZONE 1: BRAND WORDMARK */}
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => handleNavClick('academy', undefined, undefined, '/pages/academy')}
-              className="flex items-center gap-2.5 group text-left cursor-pointer focus:outline-none min-w-0"
+              className="flex items-center gap-2.5 group text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-xl shrink-0"
               aria-label="Vixora Academy Home"
             >
               <div className="p-1 sm:p-1.5 bg-white rounded-xl shadow-md border border-purple-100 flex items-center justify-center shrink-0">
@@ -94,27 +75,28 @@ export function AcademyNavbar({
                   className="h-7 sm:h-8 w-auto max-w-[125px] sm:max-w-[180px] object-contain rounded-lg"
                 />
               </div>
-              <span className="hidden md:inline text-sm font-black text-white tracking-tight whitespace-nowrap shrink-0">
+              <span className="text-sm sm:text-base font-black text-white tracking-tight whitespace-nowrap shrink-0">
                 Vixora Academy
               </span>
             </button>
           </div>
 
-          {/* Streamlined Desktop Navigation (Clean 4 Items) */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-            
+          {/* ZONE 2: 4 CLEAN NAVIGATION LINKS */}
+          <nav 
+            aria-label="Academy Primary Navigation"
+            className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs sm:text-sm font-bold"
+          >
             {/* 1. Academic Programs Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setCoursesDropdownOpen(!coursesDropdownOpen)}
                 onMouseEnter={() => setCoursesDropdownOpen(true)}
-                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`py-1 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   currentPage === 'academy' || currentPage === 'academy-course'
-                    ? 'text-white bg-white/15'
-                    : 'text-purple-100 hover:text-white hover:bg-white/10'
+                    ? 'text-white border-purple-400'
+                    : 'text-purple-100 hover:text-white border-transparent'
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5 text-purple-300" />
                 <span>Programs</span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${coursesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -122,7 +104,7 @@ export function AcademyNavbar({
               {coursesDropdownOpen && (
                 <div
                   onMouseLeave={() => setCoursesDropdownOpen(false)}
-                  className="absolute top-full left-0 mt-2 w-84 rounded-2xl bg-[#07031C] border border-purple-500/30 shadow-2xl p-3 space-y-1.5 animate-in fade-in duration-150 z-50 text-white"
+                  className="absolute top-full left-0 mt-2 w-80 rounded-2xl bg-[#07031C] border border-purple-500/30 shadow-2xl p-3 space-y-1.5 animate-in fade-in duration-150 z-50 text-white"
                 >
                   <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest text-purple-300 border-b border-purple-900/40 flex items-center justify-between">
                     <span>Accredited Tracks</span>
@@ -159,77 +141,52 @@ export function AcademyNavbar({
               )}
             </div>
 
-            {/* 2. Direct Link: Course Curriculum Hub */}
+            {/* 2. Curriculum Hub */}
             <button
               onClick={() => handleNavClick('training', undefined, undefined, '/pages/training')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`py-1 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPage === 'training'
-                  ? 'text-amber-300 bg-purple-950/80 border border-amber-400/30'
-                  : 'text-purple-100 hover:text-amber-300 hover:bg-white/10'
+                  ? 'text-white border-purple-400'
+                  : 'text-purple-100 hover:text-white border-transparent'
               }`}
             >
-              <BookOpen className="w-3.5 h-3.5 text-purple-300" />
-              <span>Curriculum</span>
+              Curriculum
             </button>
 
-            {/* 3. Direct Link: Cohort 1.0 Master Vault */}
+            {/* 3. Cohort 1.0 Master Vault */}
             <button
               onClick={() => handleNavClick('cohort-1', undefined, undefined, '/academy/cohort-1')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`py-1 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPage === 'cohort-1'
-                  ? 'text-amber-300 bg-purple-950/80 border border-amber-400/30'
-                  : 'text-purple-100 hover:text-amber-300 hover:bg-white/10'
+                  ? 'text-white border-purple-400'
+                  : 'text-purple-100 hover:text-white border-transparent'
               }`}
             >
-              <span>Cohort 1.0 Vault</span>
+              Cohort Vault
             </button>
 
-            {/* 3. Direct Link: Verify Credential */}
+            {/* 4. Verify Credential */}
             <button
               onClick={() => handleNavClick('certificate-portal', undefined, undefined, '/pages/certificate-portal')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`py-1 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPage === 'certificate-portal'
-                  ? 'text-white bg-white/20'
-                  : 'text-purple-100 hover:text-white hover:bg-white/10'
+                  ? 'text-white border-purple-400'
+                  : 'text-purple-100 hover:text-white border-transparent'
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Verify Credential</span>
+              Verify Credential
             </button>
-
-            {/* 4. Admissions Desk WhatsApp */}
-            <a
-              href={BRAND_CONFIG.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-2 text-xs font-semibold text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/40 rounded-xl transition-all flex items-center gap-1.5"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Admissions Desk</span>
-            </a>
-
-            {/* 5. Public Telegram Channel */}
-            <a
-              href={BRAND_CONFIG.telegramPublicUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-2 text-xs font-semibold text-sky-300 hover:text-sky-200 hover:bg-sky-950/40 rounded-xl transition-all flex items-center gap-1.5"
-              title="Join Vixora Academy Public Telegram Community"
-            >
-              <Send className="w-3.5 h-3.5 text-sky-400" />
-              <span>Telegram</span>
-            </a>
           </nav>
 
-          {/* Action CTAs (Right Side) */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Currency Switcher (USD / NGN) */}
+          {/* ZONE 3: PRIMARY ENROLL ACTION & UTILITIES */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Currency Switcher */}
             <CurrencySwitcher />
 
-            {/* Student Portal Button (Clean, Non-redundant) */}
+            {/* Student Portal Button */}
             <button
               onClick={() => handleNavClick('student-portal', undefined, undefined, '/pages/student-portal')}
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 currentPage === 'student-portal'
                   ? 'bg-purple-600 text-white border border-purple-400 shadow-purple-600/30'
                   : 'text-white bg-white/15 hover:bg-white/25 border border-white/20'
@@ -249,17 +206,18 @@ export function AcademyNavbar({
                   handleNavClick('academy', undefined, undefined, '/pages/academy');
                 }
               }}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-[#000048] bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[#000048] bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
             >
               <span>Enroll Now</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#000048]" />
             </button>
 
-            {/* Mobile Hamburger Toggle */}
+            {/* Mobile Navigation Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-1.5 sm:p-2 rounded-xl text-white hover:bg-white/10 lg:hidden cursor-pointer shrink-0"
               aria-label="Toggle Navigation Menu"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
@@ -272,12 +230,10 @@ export function AcademyNavbar({
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#000048] border-t border-[#480878]/50 px-4 pt-4 pb-6 space-y-3 animate-in slide-in-from-top-3 duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
-            <div className="text-purple-200">
-              Dean: <strong className="text-white">Sarumi Hammad</strong>
-            </div>
             <span className="font-mono text-[11px] text-emerald-300 bg-white/10 px-2 py-0.5 rounded-md">
               {BRAND_CONFIG.cleanAcademyDomain}
             </span>
+            <CurrencySwitcher />
           </div>
 
           <div className="space-y-1.5 text-xs">

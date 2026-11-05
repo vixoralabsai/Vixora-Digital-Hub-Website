@@ -20,7 +20,8 @@ import {
   Bot,
   Code2,
   Megaphone,
-  Palette
+  Palette,
+  CheckCircle2
 } from 'lucide-react';
 import {
   CATEGORIES_DATA,

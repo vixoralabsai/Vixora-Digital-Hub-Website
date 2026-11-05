@@ -104,7 +104,7 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="text-xs font-mono uppercase tracking-widest text-purple-400">
-            WHAT WE STAND FOR
+            What We Stand For
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
             Why Businesses Choose Vixora
@@ -126,7 +126,7 @@ export function AboutPage({ onOpenProjectModal, onNavigate }: AboutPageProps) {
                   <div className="p-3 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-neutral-950 text-purple-300 border border-purple-900/40 uppercase">
+                  <span className="text-xs font-semibold text-purple-400">
                     {val.badge}
                   </span>
                 </div>

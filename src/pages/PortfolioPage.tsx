@@ -73,7 +73,7 @@ export function PortfolioPage({ onOpenProjectModal }: PortfolioPageProps) {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#08082F] via-[#08082F]/40 to-transparent pointer-events-none" />
-                <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase bg-[#000048]/85 text-white border border-white/20 backdrop-blur-md">{project.category}</span>
+                <span className="absolute top-4 left-4 text-xs font-semibold text-purple-300 drop-shadow-md">{project.category}</span>
               </div>
 
               <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-6">
