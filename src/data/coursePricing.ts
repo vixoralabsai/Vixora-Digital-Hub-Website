@@ -48,28 +48,32 @@ export const COURSE_PRICING: Record<string, CoursePrices> = {
   'course-data-analysis-cohort': { NGN: 60000, USD: 50 },
   'data-analysis-cohort': { NGN: 60000, USD: 50 },
 
-  // Cohort 1.0 Master Vault (Preserved Untouched)
-  'course-cohort-1-master-bundle': { NGN: 45000, USD: 45 },
-  'cohort-1-master-bundle': { NGN: 45000, USD: 45 },
+  // Cohort 1.0 Master Vault
+  'course-cohort-1-master-bundle': { NGN: 20000, USD: 20 },
+  'cohort-1-master-bundle': { NGN: 20000, USD: 20 },
 
-  // Legacy / Specialization Courses (Archived Catalog)
-  'course-ai-image-short-videos-creation': { NGN: 10000, USD: 10 },
-  'ai-image-short-videos-creation': { NGN: 10000, USD: 10 },
+  // Track 1: AI Content Creation
+  'course-ai-image-short-videos-creation': { NGN: 4000, USD: 4 },
+  'ai-image-short-videos-creation': { NGN: 4000, USD: 4 },
 
-  'course-ai-automation-digital-skills': { NGN: 30000, USD: 25 },
-  'ai-automation-digital-skills': { NGN: 30000, USD: 25 },
+  // Track 2: AI Automation & Autonomous Systems
+  'course-ai-automation-digital-skills': { NGN: 10000, USD: 10 },
+  'ai-automation-digital-skills': { NGN: 10000, USD: 10 },
 
   'course-ai-automation-digital-business-systems': { NGN: 60000, USD: 50 },
   'ai-automation-digital-business-systems': { NGN: 60000, USD: 50 },
 
-  'course-fullstack-vibe-coding': { NGN: 50000, USD: 50 },
-  'full-stack-vibe-coding': { NGN: 50000, USD: 50 },
+  // Track 3: Full Stack Vibe Coding
+  'course-fullstack-vibe-coding': { NGN: 10000, USD: 10 },
+  'full-stack-vibe-coding': { NGN: 10000, USD: 10 },
 
-  'course-client-acquisition-freelancing': { NGN: 25000, USD: 25 },
-  'client-acquisition-freelancing': { NGN: 25000, USD: 25 },
+  // Track 4: Client Acquisition & Freelancing Masterclass
+  'course-client-acquisition-freelancing': { NGN: 10000, USD: 10 },
+  'client-acquisition-freelancing': { NGN: 10000, USD: 10 },
 
-  'course-pdf-automation-digital-products': { NGN: 20000, USD: 20 },
-  'pdf-automation-digital-products': { NGN: 20000, USD: 20 },
+  // Track 5: PDF Automation & Digital Products
+  'course-pdf-automation-digital-products': { NGN: 10000, USD: 10 },
+  'pdf-automation-digital-products': { NGN: 10000, USD: 10 },
 };
 
 export function getCoursePrices(courseId: string): CoursePrices | null {

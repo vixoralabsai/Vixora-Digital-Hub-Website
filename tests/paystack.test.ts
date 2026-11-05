@@ -46,9 +46,9 @@ async function runAllTests() {
   // ------------------------------------------------------------------------
   await runTest('0. Structured pricing contract preserves approved prices without FX conversion', () => {
     assert.deepEqual(getCoursePrices('course-data-analysis-cohort'), { NGN: 60000, USD: 50 });
-    assert.deepEqual(getCoursePrices('course-ai-automation-digital-skills'), { NGN: 30000, USD: 25 });
+    assert.deepEqual(getCoursePrices('course-ai-automation-digital-skills'), { NGN: 10000, USD: 10 });
     assert.deepEqual(getCoursePrices('course-ai-automation-digital-business-systems'), { NGN: 60000, USD: 50 });
-    assert.deepEqual(getCoursePrices('course-ai-image-short-videos-creation'), { NGN: 10000, USD: 10 });
+    assert.deepEqual(getCoursePrices('course-ai-image-short-videos-creation'), { NGN: 4000, USD: 4 });
     assert.equal(getCoursePrice('course-fullstack-ai', 'USD'), null);
     assert.deepEqual(getCoursePrices('course-machine-learning-data-science'), { NGN: 150000, USD: 120 });
     assert.equal(getCoursePrice('unknown-course', 'NGN'), null);
@@ -274,7 +274,7 @@ async function runAllTests() {
       id: 888015,
       status: 'success',
       reference: guestRef,
-      amount: 3000000,
+      amount: 1000000,
       currency: 'NGN',
       customer: { email: 'newguest@example.com', first_name: 'GuestUser' },
       metadata: {
@@ -286,7 +286,7 @@ async function runAllTests() {
     const res = await processPaymentFulfillment(guestRef, guestData);
     assert.equal(res.verified, true);
     assert.equal(res.payment?.studentEmail, 'newguest@example.com');
-    assert.equal(res.payment?.amount, 30000);
+    assert.equal(res.payment?.amount, 10000);
   });
 
   // ------------------------------------------------------------------------

@@ -255,9 +255,9 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return `$${prices.USD.toLocaleString()}`;
       }
       // If course is Cohort 1 bundle
-      if (resolvedId === 'course-cohort-1-master-bundle') return '$45';
+      if (resolvedId === 'course-cohort-1-master-bundle') return '$20';
       if (fallback && fallback.includes('$')) return fallback;
-      return fallback || '$45';
+      return fallback || '$20';
     }
 
     // NGN
@@ -265,7 +265,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return `₦${prices.NGN.toLocaleString()}`;
     }
     if (fallback && fallback.includes('₦')) return fallback;
-    return fallback || '₦45,000';
+    return fallback || '₦20,000';
   }, [currency]);
 
   // Get raw numeric amount in active currency

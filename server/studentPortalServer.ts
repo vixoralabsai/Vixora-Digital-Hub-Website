@@ -92,34 +92,6 @@ if (SEED_CERTIFICATES.length > 0) {
   });
 }
 
-// Ensure Machine Learning & Data Science course record is created/updated in Supabase
-async function syncMachineLearningCourseToDatabase() {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return;
-  try {
-    const { error } = await supabase.from('courses').upsert({
-      id: 'machine-learning-data-science',
-      title: 'Machine Learning & Data Science',
-      track_badge: 'Data & Analytics',
-      instructor: 'Marcus Sterling',
-      cohort: 'Cohort 2026-B',
-      total_modules: 18
-    });
-    if (error) {
-      console.log('[Supabase] Note on syncing Machine Learning & Data Science course:', error.message);
-    } else {
-      console.log('[Supabase] Successfully verified database record for course "machine-learning-data-science" (18 modules, ₦60,000, Hybrid)');
-    }
-  } catch (err: any) {
-    if (err && (err.message?.includes('fetch failed') || err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT')) {
-      console.log('[Supabase] Note: Supabase offline or unreachable (fetch failed). Running on local JSON store fallback.');
-    } else {
-      console.log('[Supabase] Note checking courses table for Machine Learning & Data Science:', err?.message || err);
-    }
-  }
-}
-syncMachineLearningCourseToDatabase();
-
 // ==========================================
 // Database Row <-> TypeScript Mappers
 // ==========================================
