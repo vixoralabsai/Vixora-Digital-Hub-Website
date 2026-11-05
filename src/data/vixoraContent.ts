@@ -124,7 +124,7 @@ export interface AcademyCourse {
   title: string;
   subtitle: string;
   badge: string;
-  level: 'All Levels' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Executive' | 'Beginner to Intermediate';
+  level: 'All Levels' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Executive' | 'Beginner to Intermediate' | 'Beginner to Professional';
   status?: 'active' | 'archived' | 'upcoming';
   track: 'Data & Analytics' | 'Engineering & AI' | 'Executive & Leadership' | 'Business Automation' | 'Design & Marketing';
   format: string;
@@ -654,1193 +654,846 @@ export const BANK_PAYMENT_DETAILS = {
 };
 
 export const ACADEMY_COURSES: AcademyCourse[] = [
+  // -------------------------------------------------------------
+  // 2026 ACCREDITED CURRICULUM COURSES (Active Catalog)
+  // -------------------------------------------------------------
   {
-    id: "course-ai-image-short-videos-creation",
-    slug: "ai-image-short-videos-creation",
-    title: "AI Image & Short Videos Creation",
-    subtitle: "Master prompt engineering, photorealistic AI image generation, viral short video editing, voice cloning, and content monetization in a practical 4-week sprint.",
-    badge: "Fast-Track Sprint • ₦10,000",
+    id: "course-ai-automation-c2",
+    slug: "ai-automation-digital-literacy",
+    title: "AI Automation & Digital Literacy",
+    subtitle: "Master AI prompting, no-code workflows, and automated business agents in a 12-week practical cohort.",
+    badge: "2026 Curriculum • ₦60,000",
     level: "Beginner",
     status: "active",
-    track: "Design & Marketing",
-    format: "4-Week Practical Sprint (Online + Hands-On Labs)",
-    duration: "4 Weeks",
-    commitment: "3-4 hrs/week (Flexible Bite-Sized Sessions & Live Labs)",
-    nextCohortDate: "October 9, 2026",
-    tuition: "₦10,000",
-    tuitionNote: "Special fast-track price: ₦10,000 (Standard: ₦25,000). Instant enrollment access.",
-    seatsRemaining: 25,
-    targetAudience: "Content Creators, Small Business Owners, Social Media Managers, Marketers, Freelancers, and Complete Beginners.",
-    description: "Learn how to use state-of-the-art AI tools to create photorealistic images, stylized graphics, viral short-form video scripts, synthetic voiceovers, and captivating personal or faceless videos. From Midjourney, Flux, and Ideogram to CapCut, ElevenLabs, and Runway, you'll build an automated creative content engine from your laptop or smartphone.",
-    heroPitch: "You don't need expensive cameras, a studio, or complex video editing software. In 4 weeks, learn to generate stunning AI images, produce engaging short-form videos, and monetize content for brands and personal growth.",
+    track: "Business Automation",
+    format: "12-Week Hybrid Cohort (Online + Practical Labs)",
+    duration: "12 Weeks",
+    commitment: "4-5 hrs/week (Flexible Bite-Sized Sessions & Live Labs)",
+    nextCohortDate: "November 16, 2026",
+    tuition: "₦60,000",
+    tuitionNote: "Standard 2026 tuition: ₦60,000 ($50 USD). Includes live labs, automated workflows, and lifetime alumni access.",
+    seatsRemaining: 15,
+    targetAudience: "Beginners, Small Business Owners, Professionals, and Job Seekers looking to master no-code AI automation.",
+    description: "This beginner-friendly course teaches students to use AI tools and no-code automation to work faster and earn more. Build real automations and AI assistants for everyday and business tasks.",
+    heroPitch: "Master AI prompting, no-code Zapier/Make automations, custom AI agents, and document processing in 12 structured weeks.",
     highlights: [
-      "Generate photorealistic images, high-CTR thumbnails, and brand assets with AI prompts",
-      "Produce viral TikTok, Instagram Reels, and YouTube Shorts from text prompts in minutes",
-      "Master AI voice cloning, automated captioning, dynamic b-roll, and sound design",
-      "Build high-converting faceless theme pages and client video marketing campaigns",
-      "Special ₦10,000 tuition with instant automated gateway verification & enrollment",
+      "12 weeks of hands-on training with zero coding background required",
+      "Master ChatGPT, Claude, Gemini, Zapier, Make, and n8n",
+      "Build working automations, custom AI chatbots, and CRM lead flows",
       "Official Vixora Digital Hub Certificate of Completion upon graduation"
     ],
     outcomes: [
-      "Write precision prompts for photorealistic AI photography, product renders, and concept art",
-      "Automate short-form video generation using AI scriptwriting, voiceover, and b-roll pipelines",
-      "Edit engaging 9:16 vertical videos with CapCut, dynamic kinetic subtitles, and sound effects",
-      "Produce faceless content channels for affiliate marketing, digital products, and brand deals",
-      "Offer high-ticket AI content creation services to SMEs, e-commerce stores, and influencers"
+      "Use computers, cloud tools and the internet safely and confidently",
+      "Write clear prompts that get useful results from AI tools",
+      "Design and build no-code automations that connect everyday apps",
+      "Build custom AI assistants and chatbots for business operations"
     ],
     prerequisites: [
-      "A smartphone or laptop with internet connection",
-      "Zero prior graphic design, video editing, or AI knowledge required (taught from scratch)",
-      "Curiosity and willingness to practice hands-on creative prompts"
+      "A laptop or smartphone with internet access",
+      "Zero coding required (taught from scratch)"
     ],
     curriculum: [
-      "Module 1 — Foundations of AI Image Generation & Prompt Engineering",
-      "Module 2 — Character Consistency, Styles & Product Visual Mockups",
-      "Module 3 — AI Scriptwriting, Voice Cloning & Audio Synthesis",
-      "Module 4 — Video Generation, Dynamic Editing & Viral Short Form Formats",
-      "Module 5 — Faceless Channel Workflows, Client Services & Monetization"
+      "Phase 1 — Digital Literacy & Prompt Engineering Foundations",
+      "Phase 2 — AI for Writing, Research, Planning & Spreadsheets",
+      "Phase 3 — Workflow Automation with Zapier, Make & Custom Chatbots",
+      "Phase 4 — Portfolio Project, Client Pitch & Monetization"
     ],
     weeklySyllabus: [
       {
         week: "Week 01",
-        title: "AI Image Generation & Professional Prompt Crafting",
-        description: "Master modern diffusion models, prompt syntax, aspect ratios, lighting, camera angles, and stylization.",
-        topics: [
-          "Understanding modern AI image generators (Midjourney, Flux, Ideogram, Leonardo)",
-          "Prompt engineering formula: Subject + Medium + Style + Lighting + Camera Lens",
-          "Aspect ratios, negative prompts, resolution upscaling, and composition rules",
-          "Generating realistic human portraits, hyper-detailed photography, and digital art"
-        ],
-        handsOnLab: "Lab 01: Create a portfolio of 5 photorealistic commercial assets and 3 brand concept visuals using precision prompting."
+        title: "Digital Literacy Foundations & Cloud Security",
+        description: "Files, folders, Google Drive, password hygiene, and cloud account security setup.",
+        topics: ["Cloud file systems", "Passwords & 2FA", "Search skills", "Collaboration workspace"],
+        handsOnLab: "Organize a structured cloud folder system and set up all course accounts securely."
       },
       {
         week: "Week 02",
-        title: "Character Consistency, Styles & E-Commerce Mockups",
-        description: "Generate consistent characters across multiple scenes and professional product photography.",
-        topics: [
-          "Maintaining facial and clothing consistency across different poses and backgrounds",
-          "AI product photography: placing 3D products in luxury studio and lifestyle scenes",
-          "Text rendering inside images for posters, logos, and YouTube/Reels thumbnails",
-          "Fixing artifacts, inpainting, outpainting, and background replacement"
-        ],
-        handsOnLab: "Lab 02: Design a complete e-commerce visual lookbook with a consistent AI model and branded product mockups."
+        title: "Introduction to AI & Main AI Tools",
+        description: "Guided tour of ChatGPT, Claude, and Gemini across real-world tasks.",
+        topics: ["AI vs ML vs LLMs", "Hallucinations & verification", "AI tools comparison", "Responsible AI"],
+        handsOnLab: "Execute identical tasks across three AI tools and compare output accuracy and style."
       },
       {
         week: "Week 03",
-        title: "AI Scriptwriting, Voice Cloning & Audio Synthesis",
-        description: "Write viral hooks, generate human-like synthetic voiceovers, and produce clean audio.",
-        topics: [
-          "High-retention short-form video scripting using ChatGPT and Claude",
-          "The 3-second hook framework: Visual, auditory, and psychological curiosity loops",
-          "AI voice cloning, natural pacing, emotion modulation, and multilingual synthesis (ElevenLabs)",
-          "Audio mixing: background music selection, beat drops, and sound effects (SFX)"
-        ],
-        handsOnLab: "Lab 03: Script and record 3 viral voiceover tracks with cloned voices, sound design, and retention hooks."
+        title: "Prompt Engineering Principles",
+        description: "Role, context, task, format, and constraints for production-grade prompts.",
+        topics: ["Anatomy of a strong prompt", "Few-shot prompting", "Chain of thought", "Prompt libraries"],
+        handsOnLab: "Rewrite ten weak prompts into production-grade templates and test them."
       },
       {
         week: "Week 04",
-        title: "Short-Form Video Production, Viral Hooks & Capstone",
-        description: "Assemble AI images, text-to-video clips, and voiceovers into high-performing vertical videos.",
-        topics: [
-          "Text-to-video and image-to-video AI tools (Runway, Pika, Kling, Luma Dream Machine)",
-          "Editing vertical videos (9:16) with CapCut: zoom-ins, transitions, overlays, and color grading",
-          "Auto-captions, kinetic typography, b-roll sequencing, and trending audio pairing",
-          "Publishing strategies, algorithmic triggers, and monetization via client retainers"
-        ],
-        handsOnLab: "Final Capstone: Produce and publish a complete 45-second viral AI video with custom generated visuals, synthetic voiceover, kinetic subtitles, and sound effects."
+        title: "AI for Writing, Research & Planning",
+        description: "Drafting, editing, summarizing PDFs, and research verification with AI.",
+        topics: ["Document drafting", "PDF summaries", "Fact checking", "AI project planning"],
+        handsOnLab: "Produce a comprehensive research summary and work plan using AI."
+      },
+      {
+        week: "Week 05",
+        title: "Excel & AI for Spreadsheet Mastery",
+        description: "Formulas, sorting, filtering, data cleaning, and automated spreadsheet logic.",
+        topics: ["Excel fundamentals", "AI formula generation", "Data cleaning", "Trend insights"],
+        handsOnLab: "Build a small business revenue and expense tracker with AI-generated formulas."
+      },
+      {
+        week: "Weeks 06-07",
+        title: "Workflow Automation with Zapier & Make",
+        description: "Triggers, actions, filters, API webhooks, Zapier, and Make scenario builds.",
+        topics: ["Workflow mapping", "Zapier multi-step Zaps", "Make scenarios", "Error handling"],
+        handsOnLab: "Build a lead form-to-spreadsheet-to-email notification automation in Zapier and Make."
+      },
+      {
+        week: "Weeks 08-09",
+        title: "AI Agents, Chatbots & Operations",
+        description: "No-code AI chatbots, knowledge bases, custom GPTs, and business CRM sync.",
+        topics: ["Chatbots vs agents", "Knowledge bases", "Customer support bots", "Email triage"],
+        handsOnLab: "Build an end-to-end lead capture, AI qualification, and automated follow-up system."
+      },
+      {
+        week: "Weeks 10-12",
+        title: "Portfolio Project, Presentation & Monetization",
+        description: "Real-world portfolio automation, live presentation, proposal writing, and pricing.",
+        topics: ["Portfolio build", "5-min live demo", "Proposal writing", "Service packages"],
+        handsOnLab: "Build a complete real-world business automation with documentation and live demo."
       }
     ],
     capstoneProjects: [
       {
-        title: "Viral Multi-Platform Short Video Campaign",
-        description: "A complete 9:16 short-form video campaign designed for TikTok, Reels, and Shorts featuring AI-generated scenes, synthetic voiceover, and kinetic typography.",
-        technologies: ["Midjourney / Flux", "ElevenLabs", "CapCut", "Runway Gen-2", "ChatGPT"]
-      },
-      {
-        title: "AI Brand Commercial Lookbook & Product Mockup Series",
-        description: "A high-fashion or commercial e-commerce advertising package with consistent AI models, customized product backdrops, and promotional banners.",
-        technologies: ["Ideogram", "Flux", "Photoshop AI", "Canva", "Inpainting Tools"]
+        title: "Real-World Business Automation or AI Agent Build",
+        description: "A working multi-step automation or custom AI chatbot with documentation and an estimate of time saved for the business.",
+        technologies: ["Zapier", "Make.com", "ChatGPT API", "Google Workspace", "Notion"]
       }
     ],
     instructors: [
       {
-        name: "David Adeleke",
-        role: "Lead AI Creative Producer & Media Director",
-        bio: "Digital media producer and generative AI practitioner specializing in viral short-form storytelling, brand advertising, and automated content engines.",
+        name: "Vixora AI Automation Faculty",
+        role: "Lead Instructors & Automation Specialists",
+        bio: "Practicing automation engineers who build production no-code systems for enterprise clients.",
         companyBackground: "Vixora Digital Hub"
       }
     ],
     faqs: [
       {
-        q: "Can I take this course using just my smartphone?",
-        a: "Yes! Most modern AI image tools, scriptwriters, and mobile editing apps like CapCut, Ideogram, and ElevenLabs run smoothly on iOS and Android as well as laptops."
-      },
-      {
-        q: "Do I need any previous graphic design or video editing experience?",
-        a: "None at all. We start from absolute zero, guiding you through prompt formulation, tool setup, and step-by-step video assembly."
-      },
-      {
-        q: "Why is the price ₦10,000?",
-        a: "This is a special fast-track price enabling prospective students and creators to experience Vixora Academy's live hands-on teaching and practical creative toolchains."
-      },
-      {
-        q: "Will I receive a verified certificate upon completion?",
-        a: "Yes. Once you complete the weekly practical labs and submit your final short video capstone, you will be awarded an official Vixora Digital Hub Certificate of Completion with a digital verification QR code."
+        q: "Do I need any coding experience?",
+        a: "No coding is required. The entire course uses no-code visual drag-and-drop tools and plain-language AI prompts."
       }
     ],
-    certificateType: "Certificate of Completion in AI Creative Media & Video Production"
+    certificateType: "Vixora Certificate of Completion in AI Automation & Digital Literacy"
   },
   {
-    id: "course-data-analysis-cohort",
-    slug: "data-analysis-cohort",
-    title: "Data Analysis Cohort",
-    subtitle: "In 16 weeks, go from \"I have a laptop and curiosity\" to a working data analyst who can clean messy data, write SQL, build Power BI dashboards, and tell a story businesses actually act on.",
-    badge: "Early Tuition: ₦60,000",
+    id: "course-va-setter-c2",
+    slug: "virtual-assistance-appointment-setter",
+    title: "Virtual Assistance & Appointment Setting",
+    subtitle: "Master executive VA operations, AI productivity, CRM lead management, and cold outreach scripts in an 8-week cohort.",
+    badge: "2026 Curriculum • ₦60,000",
     level: "Beginner",
-    track: "Data & Analytics",
-    format: "16-Week Hybrid Cohort (Online & Physical)",
-    duration: "16 Weeks",
-    commitment: "5-6 hrs/week (Flexible Bite-Sized Sessions & Practical Labs)",
-    nextCohortDate: "October 9, 2026",
+    status: "active",
+    track: "Business Automation",
+    format: "8-Week Hybrid Cohort (Online + Practical Labs)",
+    duration: "8 Weeks",
+    commitment: "4-5 hrs/week (Flexible Bite-Sized Sessions & Live Labs)",
+    nextCohortDate: "November 16, 2026",
     tuition: "₦60,000",
-    tuitionNote: "Early applicant price: ₦60,000 (Standard: ₦65,000). Limited seats, ends soon.",
-    seatsRemaining: 10,
-    targetAudience: "Students, Graduates, Job Seekers, Freelancers, Professionals, and Complete Beginners.",
-    description: "A 16-week, project-based program that takes you through the full analyst toolkit: Excel → SQL → Power BI → AI-Assisted Analysis. You won't just learn what a pivot table is. You'll clean real messy datasets, write SQL queries that answer real business questions, build interactive Power BI dashboards, and finish with a portfolio-ready capstone project.",
-    heroPitch: "Your laptop already has the power to change your career. You just haven't learned to use it yet. In 16 weeks, go from raw data to real decisions with Excel, SQL, Power BI, and AI-assisted analysis.",
+    tuitionNote: "Standard 2026 tuition: ₦60,000 ($50 USD). Includes script suites, CRM templates, and portfolio review.",
+    seatsRemaining: 12,
+    targetAudience: "Aspiring Virtual Assistants, Appointment Setters, Remote Professionals, and Freelancers.",
+    description: "Train to work as a professional virtual assistant and appointment setter. Learn inbox management, scheduling across time zones, CRM lead tracking, AI speed tools, and cold outreach scripts.",
+    heroPitch: "Become an in-demand Executive VA & Appointment Setter with AI speed tools, CRM lead management, and proven client outreach scripts.",
     highlights: [
-      "16 weeks of structured, project-based training with zero fluff",
-      "12 comprehensive modules: Excel, SQL, Power BI & AI-assisted analysis",
-      "Multiple real portfolio projects (Sales Dashboard, Customer Analysis, Marketing Performance, SQL Business Analysis, BI Dashboard)",
-      "A full Final Capstone Project — real analyst-level work, start to finish",
-      "Official Vixora Certificate of Completion upon graduation",
-      "Online & Physical hybrid access — learn however suits you",
-      "Career + freelancing guidance to turn your skill into income"
+      "8 weeks of practical executive VA and appointment setting training",
+      "Master Notion, Google Workspace, Trello, HubSpot CRM, and AI assistants",
+      "Cold outreach scripts for email, LinkedIn DMs, and discovery calls",
+      "Official Vixora Digital Hub Certificate of Completion upon graduation"
     ],
     outcomes: [
-      "Clean messy, unreliable datasets into analysis-ready business models with Excel & Power Query",
-      "Write professional SQL queries (SELECT, JOINs, CASE, aggregations, and window functions)",
-      "Build interactive Power BI dashboards with DAX measures and cross-filtered analytics",
-      "Leverage AI tools for automated formula generation, SQL debugging, and fast reporting",
-      "Present data insights using the Finding → Evidence → Meaning → Recommendation framework",
-      "Package dashboard-building, reporting, and data analysis as high-income freelance services"
+      "Manage high-volume email inboxes and complex calendars across time zones",
+      "Run cold outreach campaigns by email and LinkedIn using tested scripts",
+      "Manage CRM pipelines and book qualified discovery calls",
+      "Package VA and appointment setting services for international clients"
+    ],
+    prerequisites: [
+      "A laptop or smartphone with internet connection",
+      "Good written and verbal communication skills"
+    ],
+    curriculum: [
+      "Phase 1 — Introduction to VA & Workspace Admin",
+      "Phase 2 — Core VA Operations & AI Productivity",
+      "Phase 3 — CRM Systems, Outreach Scripts & Booking Calls",
+      "Phase 4 — Client Acquisition, Pricing Packages & Portfolio Launch"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Week 01",
+        title: "Introduction to VA & Appointment Setting",
+        description: "Role expectations, remote work protocols, niche selection, and professional communication.",
+        topics: ["VA vs Appointment Setter", "Remote work norms", "Niche positioning", "Email etiquette"],
+        handsOnLab: "Draft a professional client introduction email and niche positioning statement."
+      },
+      {
+        week: "Week 02",
+        title: "Productivity & Workspace Admin Tools",
+        description: "Google Workspace, Notion dashboards, Trello Kanban boards, and Toggl time tracking.",
+        topics: ["Google Workspace", "Notion databases", "Trello task boards", "File structure"],
+        handsOnLab: "Configure a complete mock client workspace with task boards and shared folders."
+      },
+      {
+        week: "Week 03",
+        title: "Email & Calendar Management (Inbox Zero)",
+        description: "Inbox Zero methodology, scheduling across time zones, Calendly, and travel itineraries.",
+        topics: ["Inbox Zero", "Calendar buffer rules", "Calendly setup", "Conflict resolution"],
+        handsOnLab: "Process a mock inbox of 50 client emails and resolve 1 week of scheduling conflicts."
+      },
+      {
+        week: "Week 04",
+        title: "AI Productivity Suite for Virtual Assistants",
+        description: "Prompting AI for email drafts, Otter meeting notes, research, and social captions.",
+        topics: ["AI email drafting", "Meeting transcription", "Web research", "Privacy rules"],
+        handsOnLab: "Complete a complex VA task suite (inbox responses, meeting summary, research) with AI."
+      },
+      {
+        week: "Week 05",
+        title: "CRM Systems & Lead Management",
+        description: "HubSpot / GoHighLevel CRM pipelines, prospect sourcing, and lead qualification.",
+        topics: ["CRM fundamentals", "Pipeline stages", "LinkedIn prospect sourcing", "Lead hygiene"],
+        handsOnLab: "Build a qualified lead list of 30 prospects inside a CRM workspace."
+      },
+      {
+        week: "Week 06",
+        title: "Cold Outreach Strategies & Scriptwriting",
+        description: "Cold email copy, LinkedIn DMs, phone scripts, and anti-spam compliance.",
+        topics: ["Cold email subject lines", "LinkedIn DM sequences", "Phone call scripts", "Personalization"],
+        handsOnLab: "Write a multi-touch outreach sequence (3 emails, 2 LinkedIn DMs, 1 phone script)."
+      },
+      {
+        week: "Week 07",
+        title: "Handling Objections & Booking Sales Calls",
+        description: "Acknowledge-Reframe-Bridge framework, discovery call qualification, and reducing no-shows.",
+        topics: ["Objection handling", "Call qualification", "Confirmation SMS/email", "Metrics tracking"],
+        handsOnLab: "Participate in live role-play appointment-setting calls and objection exercises."
+      },
+      {
+        week: "Week 08",
+        title: "Landing Clients, Rates & Portfolio Launch",
+        description: "Upwork/LinkedIn client sourcing, service packaging, contracts, onboarding, and portfolio.",
+        topics: ["Client acquisition", "Hourly vs Retainer", "Onboarding intake", "Portfolio page"],
+        handsOnLab: "Build service packages, client onboarding checklist, and present final portfolio."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "VA Service Package & Appointment Setting Campaign",
+        description: "Niche service packages, CRM pipeline with 30 prospects, multi-touch outreach sequence, and onboarding checklist.",
+        technologies: ["Google Workspace", "Notion", "HubSpot CRM", "Calendly", "ChatGPT"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Executive VA Faculty",
+        role: "Lead Instructors & Remote Operations Specialists",
+        bio: "Veteran executive virtual assistants supporting global founders and high-ticket sales teams.",
+        companyBackground: "Vixora Digital Hub"
+      }
+    ],
+    faqs: [
+      {
+        q: "Do I need prior experience?",
+        a: "No prior experience is required. We teach administrative fundamentals, CRM tools, and outreach scripts from scratch."
+      }
+    ],
+    certificateType: "Vixora Certificate of Completion in Virtual Assistance & Appointment Setting"
+  },
+  {
+    id: "course-web-dev-c2",
+    slug: "ai-web-development-vibe-coding",
+    title: "AI Web Development & Vibe Coding",
+    subtitle: "Build web applications, React frontends, backend databases, and AI features using modern vibe coding toolchains.",
+    badge: "2026 Curriculum • ₦60,000",
+    level: "Beginner",
+    status: "active",
+    track: "Engineering & AI",
+    format: "12-Week Hybrid Cohort (Online + Coding Labs)",
+    duration: "12 Weeks",
+    commitment: "5-6 hrs/week (Live Sessions & Build Labs)",
+    nextCohortDate: "November 16, 2026",
+    tuition: "₦60,000",
+    tuitionNote: "Standard 2026 tuition: ₦60,000 ($50 USD). Includes live coding labs, code reviews, and hosting deployment.",
+    seatsRemaining: 18,
+    targetAudience: "Beginners, Aspiring Web Developers, Freelancers, and Entrepreneurs building digital products.",
+    description: "Learn to build and launch real websites and web apps using HTML, CSS, JavaScript, React, cloud databases, and AI coding assistants like Cursor and Claude.",
+    heroPitch: "Turn product ideas into deployed full-stack web applications with React, databases, and AI pair-programming assistants.",
+    highlights: [
+      "12 weeks of full-stack web development and vibe coding",
+      "Master HTML5, CSS3, JavaScript ES6+, React 19, Tailwind, and Supabase",
+      "Integrate live AI APIs (Gemini/OpenAI) into web applications",
+      "Deploy production web apps with custom domains on Vercel"
+    ],
+    outcomes: [
+      "Build responsive web applications with HTML, CSS, JavaScript, and React",
+      "Use AI tools to write, test, debug, and audit code safely",
+      "Connect backend cloud databases and persist user data",
+      "Integrate AI features via REST APIs and deploy live to production"
     ],
     prerequisites: [
       "A laptop with internet access",
-      "Zero prior coding, math, or statistics background required (taught from the ground up)",
-      "No expensive software — learn tools businesses already use daily",
-      "Curiosity and willingness to practice hands-on projects"
+      "Zero prior coding required (taught from the ground up)"
     ],
     curriculum: [
-      "Module 1 — Introduction to Data Analysis (The Analyst Workflow)",
-      "Module 2 — Excel Fundamentals (Formulas & Business Sales Project)",
-      "Module 3 — Data Cleaning & Preparation (Messy Data into Insights)",
-      "Module 4 — Data Analysis with Excel (Statistics, Trends & Pivot Tables)",
-      "Module 5 — Data Visualization (Chart Principles & Visual Storytelling)",
-      "Module 6 — SQL for Data Analysis (Queries, JOINs & Customer Database)",
-      "Module 7 — Power BI (DAX, Modeling & Interactive BI Dashboards)",
-      "Module 8 — AI for Data Analysis (AI Formulas, SQL Generation & Debugging)",
-      "Module 9 — Business & Real-World Data Analysis (Sales, Marketing & Ops)",
-      "Module 10 — Data Storytelling & Reporting (Executive Presentations)",
-      "Module 11 — Data Analyst Portfolio (Showcase Ready for Hiring Managers)",
-      "Module 12 — From Skill to Opportunity (Careers, Freelancing & Proposals)",
-      "Final Capstone Project — Complete Real-World Business Analysis"
+      "Phase 1 — Web Foundations (HTML5, CSS3, Flexbox, Grid & Git)",
+      "Phase 2 — Programming Logic & Vibe Coding (JavaScript DOM & AI Pair Programming)",
+      "Phase 3 — Full-Stack Development (React 19, Supabase PostgreSQL & AI APIs)",
+      "Phase 4 — Production Deployment, Domain Setup & Portfolio Showcase"
     ],
     weeklySyllabus: [
       {
-        week: "Weeks 1-2 (Module 1 & 2)",
-        title: "Introduction to Data Analysis & Excel Fundamentals",
-        description: "Understand what data analysis actually is, the types of data you'll work with, and the full process every analyst follows: Ask → Collect → Clean → Analyze → Visualize → Communicate → Decide. Master essential Excel formulas, functions, text/date tools, and build a real Business Sales Analysis project.",
-        topics: [
-          "The Data Analysis lifecycle & types of structured/unstructured business data",
-          "Essential Excel formulas, functions, text and date manipulation tools",
-          "Cell referencing, XLOOKUP / VLOOKUP, logic formulas (IF, IFS), and error handling",
-          "Business Sales Analysis project: Structuring workbooks and automated KPI metrics"
-        ],
-        handsOnLab: "Build an automated Business Sales Analysis model in Excel with structured lookups and summary metrics."
+        week: "Week 01",
+        title: "How the Web Works & Workspace Setup",
+        description: "Browsers, servers, VS Code, dev tools, and Git/GitHub fundamentals.",
+        topics: ["Client-server architecture", "VS Code setup", "DevTools console", "Git & GitHub"],
+        handsOnLab: "Set up local coding workspace and publish your first HTML page to GitHub."
       },
       {
-        week: "Weeks 3-4 (Module 3 & 4)",
-        title: "Data Cleaning, Preparation & Analysis with Excel",
-        description: "Learn to turn messy, unreliable data into clean, analysis-ready datasets — the unglamorous skill that separates real analysts from beginners. Move from cleaning to insight: descriptive statistics, growth rates, trends, Pivot Tables, and building your first interactive dashboard.",
-        topics: [
-          "Handling missing values, duplicate records, inconsistent formatting, and outliers",
-          "Power Query basics for transforming and reshaping raw data imports",
-          "Descriptive statistics, variance, growth rates, margins, and seasonal trends",
-          "Advanced Pivot Tables, calculated fields, dynamic slicers, and interactive dashboard design"
-        ],
-        handsOnLab: "Clean an authentic messy multi-year transactional dataset and build an interactive Excel Sales & Margin Pivot Dashboard."
+        week: "Week 02",
+        title: "HTML & Semantic Page Structure",
+        description: "Boilerplate, typography, links, form validation, and semantic HTML5.",
+        topics: ["Semantic tags", "Forms & inputs", "Accessibility attributes", "DOM planning"],
+        handsOnLab: "Build a personal developer bio page and a business lead intake form."
       },
       {
-        week: "Weeks 5-6 (Module 5 & 6)",
-        title: "Data Visualization & SQL for Data Analysis",
-        description: "Learn to choose the right chart, apply visualization principles, and turn a plain dataset into a report that tells a clear business story. Master SQL from SELECT statements to JOINs, aggregations, CASE statements, subqueries, and window functions — culminating in a Customer & Sales Database project.",
-        topics: [
-          "Visual hierarchy, chart selection matrix, formatting, and reducing cognitive load",
-          "Relational databases: Tables, primary keys, foreign keys, and entity relationships",
-          "Writing SQL queries: SELECT, WHERE, GROUP BY, HAVING, ORDER BY, and math aggregations",
-          "Multi-table JOINs (INNER, LEFT, RIGHT), subqueries, CASE statements, and window functions"
-        ],
-        handsOnLab: "Query a multi-table Customer & Sales Database to extract revenue cohorts, retention rates, and top customer segments."
+        week: "Week 03",
+        title: "CSS Styling, Flexbox & Responsive Design",
+        description: "Selectors, box model, Flexbox alignment, CSS Grid, and mobile media queries.",
+        topics: ["Box model", "Flexbox layout", "CSS Grid", "Mobile responsive design"],
+        handsOnLab: "Style Week 2 HTML files into a responsive, polished business website."
       },
       {
-        week: "Weeks 7-8 (Module 7 & 8)",
-        title: "Power BI Business Intelligence & AI for Data Analysis",
-        description: "Import, clean, and model data in Power BI; build custom DAX measures; and design professional, interactive Business Intelligence dashboards. Learn to use AI as a genuine analysis accelerator — generating and explaining formulas, writing and debugging SQL, and speeding up reporting while keeping human judgment in control.",
-        topics: [
-          "Power BI architecture, data modeling, star schemas, and active relationships",
-          "DAX fundamentals: CALCULATE, RELATED, time intelligence, and custom business KPIs",
-          "Designing executive-ready visual dashboards with cross-filtering and drill-throughs",
-          "AI for Data Analysis: Generating and explaining formulas, debugging SQL, and accelerating exploratory analysis"
-        ],
-        handsOnLab: "Build a production-ready, interactive Power BI Executive Operations & Revenue Dashboard with dynamic DAX metrics."
+        week: "Week 04",
+        title: "JavaScript Fundamentals",
+        description: "Variables, data types, operators, conditionals, functions, arrays, and objects.",
+        topics: ["Variables & scope", "Arrow functions", "Array methods (map/filter)", "Console debugging"],
+        handsOnLab: "Build two standalone JS programs: a price calculator and an interactive quiz."
       },
       {
-        week: "Weeks 9-11 (Module 9 & 10)",
-        title: "Business Data Analysis & Data Storytelling & Reporting",
-        description: "Apply everything to realistic business scenarios across sales, marketing, finance, customers, and operations — answering the questions real companies ask. Learn to summarize findings, write executive summaries, and present insights using the Finding → Evidence → Meaning → Recommendation framework.",
-        topics: [
-          "Domain analysis: CAC, LTV, churn velocity, marketing ROI, and operational bottleneck diagnostics",
-          "Diagnosing business anomalies: 'Why did revenue drop?' and 'What should we do next?'",
-          "The 4-part Storytelling Framework: Finding → Evidence → Meaning → Recommendation",
-          "Writing 1-page executive summaries and slide decks for non-technical stakeholders"
-        ],
-        handsOnLab: "Conduct a full business diagnostics review on a declining commercial product and present a slide deck with clear executive recommendations."
+        week: "Week 05",
+        title: "JavaScript DOM & Interactive Web Apps",
+        description: "DOM manipulation, event listeners, async/await, fetch API, and LocalStorage.",
+        topics: ["DOM querySelector", "Form events", "Async/await fetch", "LocalStorage state"],
+        handsOnLab: "Build a dynamic To-Do app and an interactive weather app fetching live API data."
       },
       {
-        week: "Weeks 12-16 (Module 11, 12 & Final Capstone)",
-        title: "Data Analyst Portfolio, Freelancing & Final Capstone Project",
-        description: "Build a professional portfolio showcasing your Excel, SQL, and Power BI projects — documented the way hiring managers and clients expect. Turn your skills into income by exploring career pathways (Data Analyst, BI Analyst, Reporting Analyst) and learning freelancing fundamentals. Complete and defend your comprehensive Final Capstone Project.",
-        topics: [
-          "Documenting and packaging projects on GitHub / Notion / portfolio sites the way hiring managers expect",
-          "Career pathways: Data Analyst, BI Analyst, Reporting Analyst, and Operations Analyst roles",
-          "Freelancing fundamentals: Packaging dashboard & data services, pricing, client outreach, and proposal writing",
-          "Final Capstone Project: End-to-end raw data ingestion, cleaning, SQL queries, Power BI dashboard, and executive presentation"
-        ],
-        handsOnLab: "Complete and present your full Final Capstone Project covering raw data to executive strategic recommendations."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "End-to-End Enterprise Sales & Revenue Intelligence Dashboard",
-        description: "A complete data analysis system transforming multi-year messy sales spreadsheets into an automated Power BI dashboard with dynamic DAX metrics and trend forecasting.",
-        technologies: ["Excel", "Power Query", "Power BI", "DAX", "AI Data Tools"]
+        week: "Week 06",
+        title: "Vibe Coding & AI Coding Assistants",
+        description: "Prompting AI coding assistants, step-by-step feature prompts, and code auditing.",
+        topics: ["Vibe coding models", "Context-rich prompts", "Code auditing", "API key security"],
+        handsOnLab: "Build a complete mini web app using AI prompting, then audit and refactor the code."
       },
       {
-        title: "Customer Retention & Lifetime Value SQL Database Analysis",
-        description: "A comprehensive relational database analysis querying 50,000+ customer records to identify churn patterns, repeat purchase velocity, and high-value customer cohorts.",
-        technologies: ["PostgreSQL / MySQL", "SQL Subqueries & Window Functions", "Data Modeling"]
+        week: "Week 07",
+        title: "High-Converting Landing Pages with AI",
+        description: "Landing page architecture, responsive assets, contact form handlers, and Lighthouse tuning.",
+        topics: ["Page structure", "Asset optimization", "Form handlers", "Performance tuning"],
+        handsOnLab: "Build a production-ready landing page for a real or sample business."
       },
       {
-        title: "Executive Business Diagnostic Report & Strategic Presentation",
-        description: "A polished stakeholder deliverable diagnosing a company's marketing and revenue drop, presenting actionable business findings with the Finding-Evidence-Meaning-Recommendation framework.",
-        technologies: ["Data Storytelling", "Excel Pivot Reporting", "Executive Summary Decks"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Vixora Senior Data Analysts & BI Engineers",
-        role: "Lead Instructors & Head of Data Analytics, Vixora Academy",
-        bio: "Practicing data analysts and business intelligence specialists who build analytics infrastructure for enterprises and mentor beginners into employable professionals.",
-        companyBackground: "Vixora Academy Certified Instructors"
-      }
-    ],
-    faqs: [
-      {
-        q: "Do I need a math or coding background?",
-        a: "No. The program takes you from beginner to professional — every tool and concept is taught from the ground up."
+        week: "Week 08",
+        title: "Frontend Frameworks: Introduction to React",
+        description: "JSX, components, props, useState, useEffect, and React 19 Vite setup.",
+        topics: ["React JSX", "useState & useEffect", "Form handling", "Vite build tool"],
+        handsOnLab: "Rebuild an earlier JavaScript app into a modular React application."
       },
       {
-        q: "Is this online or in-person?",
-        a: "Both — the cohort runs hybrid, so you can learn online, in person, or a mix of both."
-      },
-      {
-        q: "What tools will I actually learn?",
-        a: "Excel, SQL, and Power BI as your core tools, plus Power Query, AI tools, and Google Sheets as supporting skills."
-      },
-      {
-        q: "Will I have something to show employers or clients afterward?",
-        a: "Yes — you'll build a full portfolio (Sales Dashboard, Customer Analysis, SQL projects, Power BI dashboard) plus a Final Capstone Project you can present as real analyst work."
-      },
-      {
-        q: "What if I want to freelance instead of getting a job?",
-        a: "Module 12 covers freelancing fundamentals — packaging your services, finding clients, and writing proposals — so both paths are covered."
-      },
-      {
-        q: "What happens after I apply?",
-        a: "You'll receive confirmation and next steps, including your cohort start date and how to secure your seat at the early price."
-      }
-    ],
-    certificateType: "Vixora Certificate of Professional Completion in Data Analysis"
-  },
-  {
-    id: "course-ai-automation-digital-skills",
-    slug: "ai-automation-digital-skills",
-    title: "AI Automation & Digital Skills",
-    subtitle: "While most people are still asking ChatGPT to write birthday messages, you'll be building automations, creating AI content, and getting paid for skills the market is desperate for — no tech background required.",
-    badge: "Early Tuition: ₦30,000",
-    level: "Beginner",
-    track: "Business Automation",
-    format: "12-Week Hybrid Cohort (Online + Practical Sessions)",
-    duration: "12 Weeks",
-    commitment: "4-5 hrs/week (Flexible Bite-Sized Sessions)",
-    nextCohortDate: "October 9, 2026",
-    tuition: "₦30,000",
-    tuitionNote: "Early applicant rate (Standard: ₦35,000). Limited cohort seats available.",
-    seatsRemaining: 14,
-    targetAudience: "Students, Job Seekers, Small Business Owners, Entrepreneurs, and Complete Beginners.",
-    description: "A 12-week, hands-on program built for complete beginners who want to go from 'I've heard of ChatGPT' to 'I automate things for a living' — without writing a single line of code. Master AI productivity tools, scroll-stopping content generation, Make/Zapier/Notion automations, document handling, and client freelancing monetization.",
-    heroPitch: "Everyone's talking about AI. In 12 weeks, you'll actually know how to use it — build automations, create AI content, and get paid for in-demand skills.",
-    highlights: [
-      "12 weeks of structured, hands-on training with zero fluff",
-      "5 comprehensive modules: AI tools, content, automation, documents & monetization",
-      "A real, practical project for your portfolio — not just theory",
-      "Official Vixora Certificate of Completion upon graduation",
-      "Beginner-friendly teaching — zero coding or tech background needed",
-      "Hybrid access — learn online or in practical sessions with community support"
-    ],
-    outcomes: [
-      "Master ChatGPT & frontier AI tools to work 10x faster and clearer",
-      "Create scroll-stopping AI-generated images, videos & high-accuracy prompts",
-      "Build automated workflows with Make, Zapier & Notion to replace repetitive tasks",
-      "Automate PDF & document processing so tedious paperwork runs itself",
-      "Turn your new skills into income — freelancing, skill packaging & client acquisition"
-    ],
-    prerequisites: [
-      "A laptop or smartphone with internet access",
-      "Zero coding or tech background required (if you can send a WhatsApp message, you can do this)",
-      "Willingness to practice hands-on projects"
-    ],
-    curriculum: [
-      "Module 1 — AI Tools Fundamentals (ChatGPT & Prompt Mastery)",
-      "Module 2 — AI Content Creation (Images, Videos & Creative Generation)",
-      "Module 3 — Simple Automation (Make, Zapier & Notion Workflows)",
-      "Module 4 — PDF & Document Automation (Paperwork Streamlining)",
-      "Module 5 — Making Money With AI Skills (Freelancing & Client Acquisition)"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Weeks 1-2 (Module 1)",
-        title: "AI Tools Fundamentals",
-        description: "Master ChatGPT and other leading AI tools to work faster, think clearer, and get more done in less time — the foundation everything else is built on.",
-        topics: [
-          "Understanding Large Language Models without tech jargon",
-          "Prompt Engineering: The precise syntax to get exact results every time",
-          "ChatGPT, Claude & Perplexity workflows for research & writing",
-          "Building customized GPTs and reusable personal productivity assistants"
-        ],
-        handsOnLab: "Build your customized personal AI Productivity Assistant tailored to your career or business."
-      },
-      {
-        week: "Weeks 3-4 (Module 2)",
-        title: "AI Content Creation",
-        description: "Learn to create scroll-stopping AI-generated images and videos, and master the art of prompting so the AI gives you exactly what you want, every time.",
-        topics: [
-          "Photorealistic AI image generation with Midjourney & Ideogram",
-          "Generating realistic voiceovers, avatars & videos with Runway & ElevenLabs",
-          "Social media content repurposing pipelines and hooks",
-          "Graphic design and branding assets creation without Photoshop"
-        ],
-        handsOnLab: "Create a complete visual branding & social media content campaign using 100% AI generation."
-      },
-      {
-        week: "Weeks 5-7 (Module 3)",
-        title: "Simple Automation (Make, Zapier & Notion)",
-        description: "Get hands-on with Make, Zapier, and Notion to automate the repetitive tasks that eat up your day — the same skills businesses pay freelancers to set up.",
-        topics: [
-          "Visual automation basics: Triggers, actions & data passing",
-          "Automating lead notifications from forms to WhatsApp & email",
-          "Connecting Notion databases to Google Sheets and calendar apps",
-          "Building automated client onboarding & task dispatch pipelines"
-        ],
-        handsOnLab: "Deploy a live 3-step automation that collects customer inquiries and dispatches instant WhatsApp notifications."
-      },
-      {
-        week: "Weeks 8-9 (Module 4)",
-        title: "PDF & Document Automation",
-        description: "Stop drowning in paperwork. Learn to automate document handling and processing so tedious admin work runs itself.",
-        topics: [
-          "Extracting structured data from receipts, invoices & PDF contracts",
-          "Automated report generation and document summarization",
-          "Connecting cloud folders (Google Drive / Dropbox) to auto-parsers",
-          "Eliminating hours of manual data entry and spreadsheet typing"
-        ],
-        handsOnLab: "Build an automated PDF Invoice Reader that extracts line items into a structured spreadsheet instantly."
-      },
-      {
-        week: "Weeks 10-12 (Module 5)",
-        title: "Making Money With AI Skills",
-        description: "Turn everything you've learned into income — how to freelance, package your skills, and find your first paying clients.",
-        topics: [
-          "Packaging automation & AI services into high-ticket freelance offers",
-          "Creating an irresistible portfolio with your course capstone projects",
-          "Finding paying clients on Upwork, LinkedIn, WhatsApp & local businesses",
-          "Pricing your services: Charging for value, not hourly time"
-        ],
-        handsOnLab: "Publish your live Capstone Portfolio Website and pitch your first 3 prospective clients."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "End-to-End Business Automation & Lead Pipeline",
-        description: "A complete no-code automation system connecting customer forms, WhatsApp alerts, Google Drive filing, and automated client onboarding.",
-        technologies: ["Make.com", "Zapier", "ChatGPT API", "Notion", "WhatsApp API", "Google Workspace"]
-      },
-      {
-        title: "AI-Powered Content Creation & Social Media Suite",
-        description: "A rapid content generation engine that produces branded graphics, video scripts, synthetic voiceovers, and scheduled social posts.",
-        technologies: ["Midjourney", "ElevenLabs", "ChatGPT", "Canva AI", "Airtable"]
-      },
-      {
-        title: "Automated Document Parser & Invoice Manager",
-        description: "An administrative tool that monitors incoming emails, extracts structured data from attached PDF invoices, and logs expenses into spreadsheets.",
-        technologies: ["Make.com", "AI Document Parser", "Google Sheets", "Gmail Automation"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Vixora Digital Hub Instructors & AI Practitioners",
-        role: "Head of AI Automation Training, Vixora Academy",
-        bio: "Veteran automation architects who build real client systems and teach beginners with zero tech jargon.",
-        companyBackground: "Vixora Academy Certified Instructors"
-      }
-    ],
-    faqs: [
-      {
-        q: "Do I need any tech or coding experience?",
-        a: "None at all. This course is built specifically for beginners — if you can use WhatsApp, you can do this."
-      },
-      {
-        q: "I'm busy. Can I really keep up?",
-        a: "The program is hybrid and structured around real-life schedules. You'll get practical, bite-sized sessions — not a full-time commitment."
-      },
-      {
-        q: "Is this really beginner-friendly, or will I get lost?",
-        a: "Every module starts from zero. Nobody gets left behind — the whole point is to make AI simple, not intimidating."
-      },
-      {
-        q: "What happens after I apply?",
-        a: "You'll receive confirmation and next steps, including your cohort start date and how to secure your seat at the early price."
-      },
-      {
-        q: "What if I finish and still don't know how to make money from this?",
-        a: "Module 5 is built specifically to bridge learning into earning — freelancing strategy and finding your first clients are baked into the curriculum, not an afterthought."
-      }
-    ],
-    certificateType: "Vixora Certificate of Completion in AI Automation & Digital Skills"
-  },
-  {
-    id: "course-ai-automation-digital-business-systems",
-    slug: "ai-automation-digital-business-systems",
-    title: "AI Automation & Digital Business Systems",
-    subtitle: "This isn't the \"learn the basics\" course. This is where you build real automations, real client systems, and a real freelance or business income — with direct mentorship the whole way.",
-    badge: "Early Tuition: ₦60,000 (Reg ₦150,000+)",
-    level: "Advanced",
-    track: "Business Automation",
-    format: "12-Week Implementation & Mentorship-Led Cohort",
-    duration: "12 Weeks",
-    commitment: "5-6 hrs/week (Implementation Labs + Mentorship)",
-    nextCohortDate: "October 9, 2026",
-    tuition: "₦60,000",
-    tuitionNote: "Early bird rate: ₦60,000 (Standard: ₦65,000 — regular value ₦100,000 – ₦150,000+). Includes direct mentorship, client acquisition training & real client projects.",
-    seatsRemaining: 8,
-    targetAudience: "Professionals, Business Owners, Agency Founders, Freelancers, Consultants, and Digital Skills Graduates ready to build & monetize AI systems.",
-    description: "Vixora Academy's advanced, implementation-focused program for people ready to go beyond tools and start building. You'll learn to design, build, and deploy AI-powered automations and solutions — the kind organizations and clients actually pay for — with hands-on mentorship, real business projects, and direct support.",
-    heroPitch: "Stop using AI tools. Start building AI systems businesses pay for — real automations, real client systems, and a real income stream with direct mentorship.",
-    highlights: [
-      "12-Week intensive curriculum covering 6 core pillars from content to deployment",
-      "Hands-on building with Make.com, n8n, GHL, and Vapi autonomous voice agents",
-      "AI-powered PDF & digital product creation, packaging, and commercialization",
-      "Full-stack Vibe Coding with TypeScript, Vite, databases & Paystack checkout",
-      "Direct mentorship and client acquisition training to close ₦200k–$2,500/mo retainers",
-      "Production capstone project and formal portfolio defense for verified certification"
-    ],
-    outcomes: [
-      "Produce commercial AI visuals, UGC video ads, voiceovers & branded media",
-      "Architect autonomous business workflows with Notion, Zapier, Make, GHL, n8n & Vapi voice agents",
-      "Author, design, package, and launch profitable AI-powered PDF digital products",
-      "Build and deploy full-stack web applications with TypeScript, APIs, databases & Paystack payment checkouts",
-      "Master high-ticket freelancing: Upwork proposals, cold outreach, and closing recurring client retainers",
-      "Complete and defend a live production capstone system to earn your Vixora Certificate of Advanced Mastery"
-    ],
-    prerequisites: [
-      "Basic comfort with AI tools (ChatGPT, prompting fundamentals)",
-      "General digital literacy — this is the advanced track, not a from-zero start",
-      "Laptop with reliable internet connection and willingness to build real projects"
-    ],
-    curriculum: [
-      "Module 1 (Weeks 1–2) — AI Foundations & Content Creation",
-      "Module 2 (Weeks 3–5) — AI Automation & Business Tools",
-      "Module 3 (Weeks 6–7) — AI-Powered PDF & Digital Products",
-      "Module 4 (Weeks 8–10) — Vibe Coding & Full-Stack Development",
-      "Module 5 (Week 11) — Freelancing & Client Acquisition",
-      "Module 6 (Week 12) — Capstone & Final Assessment"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Weeks 1–2 (Module 1)",
-        title: "AI Foundations & Content Creation",
-        description: "AI fundamentals, responsible AI, generative AI, UGC ads, AI video and image creation, and everyday productivity tools to accelerate creative output.",
-        topics: [
-          "AI fundamentals, foundational architecture & responsible AI principles",
-          "Generative AI prompt architecture, system instructions & output steering",
-          "High-converting UGC ad frameworks, scripting & visual storyboard strategy",
-          "Commercial AI image generation, consistent character & brand mockup production",
-          "AI video synthesis, voice cloning, sound design & kinetic caption workflows",
-          "Everyday AI productivity toolchains to 10x workflow efficiency"
-        ],
-        handsOnLab: "Produce a complete commercial UGC ad package and high-converting visual brand asset kit."
-      },
-      {
-        week: "Weeks 3–5 (Module 2)",
-        title: "AI Automation & Business Tools",
-        description: "Architect robust multi-app automations with Notion, Zapier, Make.com, GoHighLevel fundamentals, self-hosted n8n workflows, and conversational Vapi voice agents.",
-        topics: [
-          "Notion databases as real-time automation command centers, wikis & client portals",
-          "Zapier & Make.com multi-step triggers, conditional filters & data routers",
-          "GoHighLevel (GHL) CRM fundamentals, pipeline stages & automated messaging funnels",
-          "n8n node architecture: self-hosted instances, webhook payloads & error handling",
-          "Vapi autonomous voice agents: telephony setup, knowledge base injection & inbound call routing",
-          "Automating multi-channel lead capture, appointment booking & client notification loops"
-        ],
-        handsOnLab: "Build an autonomous inbound lead qualification system with Make, GHL, and a live Vapi voice assistant."
-      },
-      {
-        week: "Weeks 6–7 (Module 3)",
-        title: "AI-Powered PDF & Digital Products",
-        description: "Research, write quality PDFs with AI, design professional documents, package value-added bundles, and sell digital products through automated funnels.",
-        topics: [
-          "Market research, audience pain points & high-demand digital product ideation",
-          "Directing LLMs to research and author authoritative, comprehensive guidebooks & SOPs",
-          "Professional PDF typography, layout mathematics, cover art & visual branding",
-          "Product packaging: worksheets, bonus resource packs & digital product mockups",
-          "Checkout page copywriting, Paystack payment gateway setup & automated instant delivery"
-        ],
-        handsOnLab: "Research, write, design, and package an authoritative commercial PDF guide ready to sell online."
-      },
-      {
-        week: "Weeks 8–10 (Module 4)",
-        title: "Vibe Coding & Full-Stack Development",
-        description: "Harness modern AI pair-programming to build production full-stack web applications with TypeScript, Vite, backend APIs, databases, payment gateways, and cloud deployment.",
-        topics: [
-          "Vibe coding mental models: pair-programming with modern AI coding assistants without losing control",
-          "TypeScript & Vite frontend architecture: responsive layouts, components & Tailwind CSS tokens",
-          "Backend endpoints, RESTful APIs, request validation & middleware logic",
-          "Database modeling, persistent storage, and secure client authentication flows",
-          "Paystack payment gateway integration: secure card/transfer checkouts, webhooks & transaction verification",
-          "Production build optimization, custom domain mapping, and cloud deployment"
-        ],
-        handsOnLab: "Build and deploy a live, production-ready full-stack web application with TypeScript, persistent database, and Paystack checkout."
-      },
-      {
-        week: "Week 11 (Module 5)",
-        title: "Freelancing & Client Acquisition",
-        description: "Package your newly acquired technical and automation skills into high-ticket offers, craft winning proposals, conduct client outreach, and close monthly retainers.",
-        topics: [
-          "Positioning yourself as a high-value systems specialist rather than a commodity freelancer",
-          "Packaging service offers into clear deliverables and monthly maintenance retainers",
-          "Upwork profile optimization, algorithmic visibility & winning proposal formulas (80%+ reply rates)",
-          "Cold outreach systems: prospecting foreign decision-makers via email, LinkedIn, and Twitter/X",
-          "Conducting diagnostic client discovery calls, handling objections, and closing contracts"
-        ],
-        handsOnLab: "Package your high-ticket service offer, launch your portfolio, and execute an active 20-lead outreach campaign."
-      },
-      {
-        week: "Week 12 (Module 6)",
-        title: "Capstone & Final Assessment",
-        description: "Complete your end-to-end capstone system, perform rigorous edge-case testing, deliver a live presentation, and complete your formal portfolio review.",
-        topics: [
-          "End-to-end capstone system integration: connecting media, automations, voice agents & web portal",
-          "Rigorous edge-case testing, error handling, rate limiting & security hardening",
-          "Creating polished Loom video walkthroughs and client handover documentation",
-          "Live capstone presentation, mentor defense, and expert portfolio review",
-          "Graduation verification, Vixora Mastery Certificate issuance & alumni mastermind onboarding"
-        ],
-        handsOnLab: "Present and defend your completed production capstone system before faculty mentors to receive certification."
-      }
-    ],
-    capstoneProjects: [
-      {
-        title: "Autonomous Inbound Lead & Voice Agent Engine",
-        description: "A production-grade multi-system automation connecting GoHighLevel CRM, Make.com pipelines, and a conversational Vapi AI voice caller for 24/7 lead triage.",
-        technologies: ["Vapi Voice AI", "GoHighLevel", "Make.com", "n8n", "Notion", "Webhooks"]
-      },
-      {
-        title: "AI Commercial UGC Video & Visual Brand Suite",
-        description: "An automated commercial media pipeline producing consistent-character visual campaigns, promotional UGC video ads, cloned voiceovers, and scheduled deliverables.",
-        technologies: ["Midjourney / Flux", "Runway Gen-3", "ElevenLabs", "CapCut", "Productivity AI"]
-      },
-      {
-        title: "AI-Powered Commercial PDF Guide & Digital Storefront",
-        description: "An authoritative, well-researched digital guidebook written with AI, professionally designed, packaged with bonus assets, and sold via automated checkout.",
-        technologies: ["Research AI", "Layout Design", "Digital Packaging", "Paystack", "Instant Delivery"]
-      },
-      {
-        title: "Full-Stack AI Web App with Paystack Integration",
-        description: "A deployed, production-ready web application built via Vibe Coding with TypeScript, Vite, backend REST APIs, persistent database, and Paystack checkout.",
-        technologies: ["TypeScript", "Vite / React", "Tailwind CSS", "Paystack Gateway", "Cloud Deployment"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Vixora Digital Hub Senior Systems Engineers & Mentors",
-        role: "Director of Enterprise AI Architecture & Training",
-        bio: "Senior automation specialists and business architects who build production automations for high-growth enterprises and guide students 1-on-1.",
-        companyBackground: "Vixora Digital Hub Senior Practitioners"
-      }
-    ],
-    faqs: [
-      {
-        q: "Do I need to take the Mass Market course first?",
-        a: "Not required, but you should already be comfortable with basic AI tools and general digital literacy — Premium builds from there, it doesn't start from zero."
-      },
-      {
-        q: "How is this different from the Mass Market course?",
-        a: "Mass Market teaches you to use AI. Premium teaches you to build and monetize AI systems — with direct mentorship, real client-style projects, and a path to freelance/business income."
-      },
-      {
-        q: "What kind of support do I get?",
-        a: "Direct mentorship, community access, and higher-touch guidance through real project work — not just pre-recorded lessons."
-      },
-      {
-        q: "Can I really start earning from this?",
-        a: "Yes — client acquisition and freelancing strategy are built directly into the curriculum, and real business projects give you portfolio proof to show prospective clients."
-      },
-      {
-        q: "What if I'm not sure Premium is right for me yet?",
-        a: "Start with the Mass Market track — you can move up into Premium whenever you're ready. See the Choose Your Path comparison table on this page."
-      }
-    ],
-    certificateType: "Vixora Certificate of Advanced Mastery in AI Automation & Digital Business Systems"
-  },
-  {
-    id: "course-fullstack-vibe-coding",
-    slug: "full-stack-vibe-coding",
-    title: "Full Stack Vibe Coding",
-    subtitle: "Build real full-stack web applications with AI as your coding partner — from idea and interface design to backend logic, databases, authentication, deployment, and production-ready delivery.",
-    badge: "12-Week Production Cohort",
-    level: "Beginner to Intermediate",
-    status: "upcoming",
-    track: "Engineering & AI",
-    format: "12-Week Hybrid, Project-Based Cohort",
-    duration: "12 weeks",
-    commitment: "5-7 hrs/week (Live Sessions + Build Labs)",
-    nextCohortDate: "Coming Soon",
-    tuition: "₦50,000",
-    tuitionNote: "Full program fee: ₦50,000. International pricing: $100.",
-    seatsRemaining: 20,
-    targetAudience: "Aspiring developers, freelancers, entrepreneurs, students, designers, and professionals who want to build and launch modern web applications with AI-assisted development.",
-    description: "Learn to turn ideas into working full-stack products using modern AI-assisted development workflows. You will learn how to plan an application, build responsive interfaces, create backend APIs, connect databases, add authentication, integrate third-party services, debug with AI, use Git and GitHub, deploy to production, and present a finished portfolio project.",
-    heroPitch: "Stop watching coding tutorials. Start building real products with AI as your development partner.",
-    highlights: [
-      "Learn practical Vibe Coding from idea to deployed application",
-      "Build frontend interfaces with HTML, CSS, JavaScript, React, and modern UI workflows",
-      "Create backend APIs, database models, authentication, and real application logic",
-      "Use AI coding tools for planning, generation, debugging, refactoring, and documentation",
-      "Build and deploy portfolio-ready full-stack projects",
-      "Learn Git, GitHub, environment variables, API security, and production basics",
-      "Finish with a capstone product you can demonstrate to clients, employers, or users"
-    ],
-    outcomes: [
-      "Break a product idea into requirements, user flows, pages, components, data models, and implementation tasks",
-      "Use AI coding assistants effectively without blindly accepting generated code",
-      "Build responsive frontend applications with React and reusable components",
-      "Build backend APIs and connect them to a relational database",
-      "Implement authentication, authorization, validation, error handling, and secure environment configuration",
-      "Connect external APIs and services to create useful real-world product features",
-      "Use Git and GitHub to manage versions, branches, commits, and collaboration",
-      "Debug full-stack applications by reading errors, tracing requests, testing fixes, and using AI as a debugging partner",
-      "Deploy a full-stack application and configure its production environment",
-      "Package and present a portfolio-ready product and explain the technical decisions behind it"
-    ],
-    prerequisites: [
-      "A laptop with reliable internet access",
-      "Basic computer literacy and willingness to learn",
-      "No computer science degree or professional programming experience required",
-      "A willingness to practice between live sessions and build your own project"
-    ],
-    curriculum: [
-      "Module 1 — Vibe Coding Foundations: How to Build with AI",
-      "Module 2 — Web Foundations: HTML, CSS, JavaScript & Git",
-      "Module 3 — React Frontend Development & Modern UI",
-      "Module 4 — Backend APIs & Server-Side Application Logic",
-      "Module 5 — Databases, Authentication & Data Security",
-      "Module 6 — APIs, Integrations & Real-World Product Features",
-      "Module 7 — AI-Assisted Debugging, Testing & Code Quality",
-      "Module 8 — Full-Stack Architecture & Production Readiness",
-      "Module 9 — Build Sprint: From Product Idea to MVP",
-      "Module 10 — Deployment, Domains & Production Operations",
-      "Module 11 — Capstone Development, Review & Portfolio",
-      "Module 12 — Launch, Client Delivery & Monetization"
-    ],
-    weeklySyllabus: [
-      {
-        week: "Week 1",
-        title: "Vibe Coding Foundations: From Idea to Build Plan",
-        description: "Understand the Vibe Coding workflow and learn how to use AI as a development partner while keeping control of architecture, code quality, and product decisions.",
-        topics: [
-          "What Vibe Coding is and where AI-assisted development fits in a real workflow",
-          "Turning an idea into requirements, user stories, pages, features, and acceptance criteria",
-          "Prompting AI for planning, architecture, code generation, explanations, and reviews",
-          "Choosing a practical stack and setting up the development environment"
-        ],
-        handsOnLab: "Turn a product idea into a build specification and use an AI coding assistant to generate the first working project structure."
-      },
-      {
-        week: "Week 2",
-        title: "Web Foundations, JavaScript & Git",
-        description: "Build the core web skills needed to understand and control AI-generated code instead of treating it as a black box.",
-        topics: [
-          "HTML structure, semantic elements, forms, accessibility, and page layout",
-          "CSS fundamentals, responsive design, Flexbox, Grid, and reusable styling patterns",
-          "JavaScript variables, functions, arrays, objects, events, async code, and modules",
-          "Git, GitHub, commits, branches, pull requests, and recovering from mistakes"
-        ],
-        handsOnLab: "Build and publish a responsive landing page from a written specification using AI-assisted development and Git."
-      },
-      {
-        week: "Weeks 3-4",
-        title: "React Frontend Development & Modern UI",
-        description: "Move from static pages to reusable, interactive frontend applications with React.",
-        topics: [
-          "React components, props, state, events, and reusable UI patterns",
-          "Forms, validation, loading states, error states, and conditional rendering",
-          "Routing, layouts, reusable components, and responsive application structure",
-          "Designing clean interfaces with AI-assisted UI generation and iterative refinement"
-        ],
-        handsOnLab: "Build a responsive dashboard with authentication screens, forms, reusable components, and interactive application states."
-      },
-      {
-        week: "Weeks 5-6",
-        title: "Backend APIs & Server-Side Logic",
-        description: "Learn how the frontend communicates with a backend and how business logic is implemented securely on the server.",
-        topics: [
-          "Client-server architecture, HTTP methods, status codes, and REST API design",
-          "Building API routes, controllers, validation, and structured responses",
-          "Environment variables, secrets, server-side configuration, and error handling",
-          "Connecting frontend actions to backend endpoints and tracing requests end to end"
-        ],
-        handsOnLab: "Build a backend API for a simple business application and connect it to the React frontend."
-      },
-      {
-        week: "Weeks 7-8",
-        title: "Databases, Authentication & Integrations",
-        description: "Turn a frontend and API into a real application by persisting data, managing users, and connecting external services.",
-        topics: [
-          "Relational database concepts, tables, relationships, queries, and migrations",
-          "User registration, login, sessions, protected routes, and role-based access",
-          "CRUD operations, validation, authorization, and common application security risks",
-          "Working with third-party APIs, webhooks, file storage, email, and other integrations"
-        ],
-        handsOnLab: "Build a secure authenticated application that stores user data, protects private routes, and consumes an external API."
-      },
-      {
-        week: "Week 9",
-        title: "AI-Assisted Debugging, Testing & Code Quality",
-        description: "Learn to diagnose problems systematically and use AI to accelerate debugging without introducing hidden defects.",
-        topics: [
-          "Reading browser, frontend, backend, and database errors",
-          "Debugging by reproducing, isolating, explaining, testing, and verifying fixes",
-          "Writing practical unit and integration tests for important application behavior",
-          "Refactoring AI-generated code, reducing duplication, improving naming, and documenting decisions"
-        ],
-        handsOnLab: "Take a deliberately broken full-stack application, diagnose its failures, fix them with AI assistance, and verify the result with tests."
+        week: "Week 09",
+        title: "Backend Services & Database Fundamentals",
+        description: "JSON REST APIs, relational database tables, Supabase / PostgreSQL, and CRUD operations.",
+        topics: ["REST API basics", "Relational tables", "Supabase PostgreSQL", "CRUD operations"],
+        handsOnLab: "Add database persistent storage (saving and retrieving records) to your React app."
       },
       {
         week: "Week 10",
-        title: "Full-Stack Architecture & Production Deployment",
-        description: "Prepare an application for real users by understanding architecture, deployment, domains, and production configuration.",
-        topics: [
-          "Separating frontend, backend, database, and external service responsibilities",
-          "Production builds, environment configuration, logs, monitoring, and basic performance checks",
-          "Deploying frontend and backend services and connecting a production database",
-          "Custom domains, HTTPS, CORS, rate limiting, backups, and basic security hardening"
-        ],
-        handsOnLab: "Deploy a complete full-stack application to a live environment and connect it to a custom domain."
+        title: "API Integrations & AI Features",
+        description: "Consuming REST APIs, integrating AI model endpoints, and handling loading/errors.",
+        topics: ["API consumption", "OpenAI / Gemini endpoints", "Loading states", "Error boundaries"],
+        handsOnLab: "Integrate an AI-powered feature (e.g. smart content generator or chatbot) into your web app."
       },
       {
-        week: "Week 11",
-        title: "Capstone Build Sprint & Portfolio Development",
-        description: "Apply the full workflow to a product of your choice and receive structured review during the build.",
-        topics: [
-          "Capstone planning, scope control, architecture review, and milestone planning",
-          "Rapid feature development with AI-assisted coding and manual verification",
-          "User experience polish, responsive testing, accessibility, and edge cases",
-          "Writing a strong README, project case study, technical documentation, and demo script"
-        ],
-        handsOnLab: "Build the core production version of your capstone and complete a mentor-led code and product review."
-      },
-      {
-        week: "Week 12",
-        title: "Launch, Client Delivery & Monetization",
-        description: "Finish the capstone, launch it publicly, and learn how to turn full-stack Vibe Coding into freelance and product opportunities.",
-        topics: [
-          "Final testing, bug fixing, deployment verification, and launch checklist",
-          "Presenting a technical product to clients, employers, partners, or users",
-          "Packaging web development offers, project scoping, proposals, and delivery milestones",
-          "Building a portfolio, finding prospects, and positioning Vibe Coding as a practical business skill"
-        ],
-        handsOnLab: "Launch and present the final capstone, then create a portfolio-ready case study and a client-ready project offer."
+        week: "Weeks 11-12",
+        title: "Deployment, Domains & Capstone Showcase",
+        description: "Vercel hosting, custom domains, SSL certificates, pre-launch QA, and capstone presentation.",
+        topics: ["Vercel hosting", "Custom domain DNS", "Cross-browser QA", "Portfolio showcase"],
+        handsOnLab: "Deploy your web application live on a custom URL and present your capstone project."
       }
     ],
     capstoneProjects: [
       {
-        title: "Full-Stack Business Application",
-        description: "Build and deploy a complete web application that solves a real business problem, with a responsive frontend, backend API, database, authentication, validation, and production deployment.",
-        technologies: ["React", "JavaScript/TypeScript", "Backend API", "Supabase/PostgreSQL", "GitHub", "Vercel"]
-      },
-      {
-        title: "AI-Powered Productivity or Service Tool",
-        description: "Create a focused SaaS-style tool that uses an AI API or automation workflow to deliver a useful feature to a defined audience.",
-        technologies: ["React", "AI API", "Backend API", "Database", "Authentication", "Cloud Deployment"]
+        title: "Production Web Application with AI Feature Integration",
+        description: "Responsive, deployed web application hosted live with database storage and working AI feature API.",
+        technologies: ["React 19", "TypeScript", "Tailwind CSS", "Supabase", "Gemini API", "Vercel"]
       }
     ],
     instructors: [
       {
-        name: "Vixora Academy Instructors",
-        role: "Full-Stack Development & Vibe Coding Instructors",
-        bio: "Practitioners focused on helping learners move from AI-assisted coding experiments to structured, working, and deployable products.",
-        companyBackground: "Vixora Academy"
+        name: "Vixora Engineering Faculty",
+        role: "Lead Instructors & Senior Full-Stack Engineers",
+        bio: "Full-stack software engineers building production Web & AI platforms.",
+        companyBackground: "Vixora Digital Hub"
       }
     ],
     faqs: [
       {
-        q: "Do I need to know how to code before joining?",
-        a: "No. The course starts from the foundations and progressively introduces frontend, backend, databases, APIs, Git, and deployment. You will learn how to work with AI without depending on AI blindly."
-      },
-      {
-        q: "Is Vibe Coding just asking AI to write the whole website?",
-        a: "No. You will learn a structured workflow: plan the product, ask AI for targeted implementation, inspect the generated code, test it, debug it, and understand the important parts before shipping."
-      },
-      {
-        q: "What will I build during the course?",
-        a: "You will complete practical exercises throughout the program and finish with a full-stack capstone that you can deploy and use as a portfolio project."
-      },
-      {
-        q: "Will I learn backend development too?",
-        a: "Yes. The curriculum covers APIs, server-side logic, databases, authentication, integrations, security basics, and deployment so you can understand the complete application lifecycle."
-      },
-      {
-        q: "Can I use this skill to freelance?",
-        a: "Yes. The final module covers packaging your skills into practical web development offers, project scoping, proposals, portfolio presentation, prospecting, and client delivery."
-      },
-      {
-        q: "What do I receive after completing the course?",
-        a: "Learners who complete the required coursework and capstone receive a Vixora certificate of completion and leave with a deployed project suitable for their portfolio."
+        q: "Will my project be live on the internet?",
+        a: "Yes! Every student deploys their capstone project live to Vercel with a custom domain."
       }
     ],
-    certificateType: "Vixora Certificate of Completion in Full Stack Vibe Coding"
+    certificateType: "Vixora Certificate of Completion in AI Web Development & Vibe Coding"
   },
   {
-    id: "course-machine-learning-data-science",
-    slug: "machine-learning-data-science",
-    title: "Machine Learning & Data Science",
-    subtitle: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.",
-    badge: "18-Week Comprehensive Cohort",
-    level: "Beginner to Intermediate",
+    id: "course-content-creation-c2",
+    slug: "ai-content-creation-media",
+    title: "AI Content Creation & Personal Branding",
+    subtitle: "Master AI copywriting, image generation, short video editing, and personal branding in a 10-week sprint.",
+    badge: "2026 Curriculum • ₦20,000",
+    level: "Beginner",
     status: "active",
-    track: "Data & Analytics",
-    format: "Hybrid",
-    duration: "18 weeks",
-    commitment: "5-6 hrs/week (Interactive Sessions & Practical Labs)",
+    track: "Design & Marketing",
+    format: "10-Week Practical Sprint (Online + Creative Labs)",
+    duration: "10 Weeks",
+    commitment: "3-4 hrs/week (Flexible Replays & Hands-On Labs)",
     nextCohortDate: "November 16, 2026",
-    tuition: "₦60,000",
-    tuitionNote: "Practical 18-week hybrid cohort fee: ₦60,000. Limited seats available.",
-    seatsRemaining: 12,
-    targetAudience: "Aspiring Data Scientists, Data Analysts, Software Developers, STEM Graduates, and Professionals looking to build predictive models.",
-    description: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.",
-    heroPitch: "Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. Master data analysis, feature engineering, and predictive algorithms in 18 weeks.",
+    tuition: "₦20,000",
+    tuitionNote: "Standard 2026 tuition: ₦20,000 ($20 USD). Fast-track creative media sprint.",
+    seatsRemaining: 25,
+    targetAudience: "Content Creators, Small Business Owners, Social Media Managers, Marketers, and Beginners.",
+    description: "Create professional content with AI tools: written posts, images, vertical video, synthetic voiceovers, and short-form clips.",
+    heroPitch: "Build an automated content creation engine for social media, YouTube Shorts, Reels, and personal brand monetization.",
     highlights: [
-      "18 weeks of comprehensive, practical training with zero fluff",
-      "Covers data analysis fundamentals, statistical modeling, Scikit-Learn, and ML algorithms",
-      "Hands-on portfolio projects: Exploratory Data Analysis, Predictive Modeling, and Model Deployment",
-      "End-to-end Final Capstone: Build, evaluate, and defend an industry-ready predictive system",
-      "Official Vixora Certificate of Completion upon graduation",
-      "Hybrid learning format with online live labs and practical workshop sessions",
-      "Mentorship from experienced data science and machine learning practitioners"
+      "10 weeks of practical AI creative content production",
+      "Master ChatGPT, Midjourney, Canva, CapCut, and ElevenLabs",
+      "Produce viral short video scripts, synthetic voiceovers, and dynamic captions",
+      "Batch-produce a 30-day content calendar and publish your portfolio"
     ],
     outcomes: [
-      "Clean, explore, and analyze complex multi-dimensional datasets using Python, Pandas, and NumPy",
-      "Perform rigorous exploratory data analysis (EDA) and create executive-ready statistical charts",
-      "Engineer predictive features, handle missing data, perform categorical encoding, and normalize numerical signals",
-      "Train and evaluate regression models (Linear, Ridge, Lasso) and classification models (Logistic, SVM, Decision Trees, Random Forests)",
-      "Apply cross-validation, hyperparameter optimization, and evaluate precision, recall, F1, ROC-AUC, and RMSE metrics",
-      "Build unsupervised learning pipelines with K-Means clustering and PCA dimensionality reduction",
-      "Package and deploy predictive ML models as reusable pipelines and portfolio showcases"
+      "Write captions, scripts, blogs and ad copy with AI in your own voice",
+      "Design graphics and images with AI tools and Canva",
+      "Create and edit short videos with AI and CapCut",
+      "Package content services for clients and earn from them"
     ],
     prerequisites: [
-      "A laptop with internet access",
-      "Basic computer literacy and numeracy",
-      "Curiosity and enthusiasm for working with real datasets (no advanced math or prior ML coding required)"
+      "A smartphone or laptop with internet connection",
+      "Zero prior design or video editing required"
     ],
     curriculum: [
-      "Module 1 — Foundations of Data Science & Python for Analysis",
-      "Module 2 — Data Ingestion, Manipulation & Exploration with Pandas",
-      "Module 3 — Exploratory Data Analysis (EDA) & Data Visualization",
-      "Module 4 — Applied Probability, Statistics & Hypothesis Testing",
-      "Module 5 — Data Preprocessing, Cleaning & Imputation Workflows",
-      "Module 6 — Feature Engineering, Scaling & Encoding Strategies",
-      "Module 7 — Introduction to Machine Learning & Supervised Learning Concepts",
-      "Module 8 — Regression Algorithms (Linear, Polynomial & Regularized)",
-      "Module 9 — Classification Algorithms (Logistic Regression, KNN & SVM)",
-      "Module 10 — Decision Trees, Random Forests & Ensemble Methods",
-      "Module 11 — Model Evaluation, Cross-Validation & Diagnostics",
-      "Module 12 — Hyperparameter Optimization & Pipeline Orchestration",
-      "Module 13 — Unsupervised Learning (K-Means, Hierarchical Clustering & PCA)",
-      "Module 14 — Time Series Analysis & Sequential Forecasting",
-      "Module 15 — Model Explainability, Bias & Feature Importance (SHAP/LIME)",
-      "Module 16 — Model Deployment, Serialization & REST APIs",
-      "Module 17 — Capstone Development & Real-World Dataset Defense",
-      "Module 18 — Machine Learning Career, Portfolio Packaging & Technical Interviews"
+      "Phase 1 — Foundations & AI Copywriting",
+      "Phase 2 — AI Image Generation, Canva & Video Storyboarding",
+      "Phase 3 — CapCut Video Editing & AI Audio Synthesis",
+      "Phase 4 — Social Media Strategy, 30-Day Calendars & Brand Launch"
     ],
     weeklySyllabus: [
       {
-        week: "Weeks 1-2",
-        title: "Foundations of Data Science & Python for Analysis",
-        description: "Set up the Python data science environment, master Jupyter Notebooks, core Python syntax, data structures, functions, and algorithmic thinking for data manipulation.",
-        topics: [
-          "Data science ecosystem overview: Roles, workflows, and business applications",
-          "Python syntax, variables, lists, dictionaries, tuples, and control flow",
-          "Writing reusable functions, list comprehensions, and error handling",
-          "Working with Jupyter Notebooks, VS Code, and virtual environments"
-        ],
-        handsOnLab: "Build an interactive CLI and notebook script to parse and clean raw business sales transaction records."
+        week: "Week 01",
+        title: "Content Creation Fundamentals & AI Toolkit",
+        description: "Niche selection, audience personas, content pillars, and AI creative tools tour.",
+        topics: ["Content pillars", "Niche positioning", "Value framework", "Ethics & disclosure"],
+        handsOnLab: "Draft a niche positioning brief and analyze three top creators in your niche."
       },
       {
-        week: "Weeks 3-4",
-        title: "Data Manipulation & Exploration with Pandas and NumPy",
-        description: "Master multi-dimensional numerical computing with NumPy and tabular data operations with Pandas. Filter, aggregate, slice, and transform complex business datasets.",
-        topics: [
-          "NumPy arrays, vectorization, mathematical operations, and broadcasting",
-          "Pandas Series and DataFrames: Indexing, filtering, sorting, and grouping",
-          "Merging, joining, concatenating, and reshaping tabular datasets",
-          "Time series indexing and rolling statistical calculations in Pandas"
-        ],
-        handsOnLab: "Load, reshape, and calculate multi-store sales trends and customer lifetime metrics on an authentic multi-table retail dataset."
+        week: "Week 02",
+        title: "AI Copywriting & Tone Engineering",
+        description: "Prompt frameworks for copy, viral hooks, captions, video scripts, and newsletter copy.",
+        topics: ["Copy prompt formula", "Viral hook structure", "Tone customization", "Fact-checking"],
+        handsOnLab: "Write 1 week of social captions, a short video script, and a blog outline."
       },
       {
-        week: "Weeks 5-6",
-        title: "Exploratory Data Analysis (EDA) & Statistical Visualization",
-        description: "Learn to visually discover hidden patterns, distributions, correlations, and anomalies in data using Matplotlib, Seaborn, and statistical tests.",
-        topics: [
-          "Visualization principles, color theory, and chart selection for analytics",
-          "Histograms, box plots, scatter plots, pair plots, and correlation heatmaps",
-          "Detecting outliers, skewed distributions, and multi-modal phenomena",
-          "Formulating hypotheses and testing differences in groups (t-tests, ANOVA, Chi-square)"
-        ],
-        handsOnLab: "Perform an exhaustive Exploratory Data Analysis on a real-world healthcare dataset and compile executive visual findings."
+        week: "Week 03",
+        title: "AI Image Generation & Canva Design",
+        description: "Layout, typography, Canva brand kits, and AI text-to-image prompts.",
+        topics: ["Design principles", "Canva mastery", "Image generation prompts", "Commercial usage"],
+        handsOnLab: "Design a brand visual kit, 3 social media graphics, and 1 multi-slide carousel."
       },
       {
-        week: "Weeks 7-8",
-        title: "Data Cleaning, Preprocessing & Feature Engineering",
-        description: "Transform raw, noisy, imperfect datasets into pristine feature matrices ready for machine learning algorithms.",
-        topics: [
-          "Handling missing data: Mean, median, KNN imputation, and indicator flags",
-          "Categorical encoding: One-hot encoding, target encoding, and ordinal mapping",
-          "Numerical scaling: Min-Max normalization, StandardScaler, and RobustScaler",
-          "Feature creation: Polynomial interactions, domain ratios, and text token features"
-        ],
-        handsOnLab: "Build a robust Scikit-Learn data cleaning and feature engineering ColumnTransformer pipeline."
+        week: "Week 04",
+        title: "AI Video Production & Storyboarding",
+        description: "Short-form video structure (0-3s hook, story, CTA), storyboards, and AI avatars.",
+        topics: ["Short-form video formula", "Storyboarding with AI", "Aspect ratios 9:16", "Repurposing"],
+        handsOnLab: "Script, storyboard, and generate a 30 to 60 second video."
       },
       {
-        week: "Weeks 9-10",
-        title: "Supervised Learning: Regression & Classification Algorithms",
-        description: "Understand mathematical foundations, intuition, assumptions, and practical implementation of core predictive models.",
-        topics: [
-          "Supervised learning mechanics: Loss functions, cost optimization, and gradient descent",
-          "Linear regression, Ridge, Lasso, and ElasticNet regularization",
-          "Logistic regression for binary and multi-class classification",
-          "K-Nearest Neighbors (KNN), Naive Bayes, and Support Vector Machines (SVM)"
-        ],
-        handsOnLab: "Train and compare multiple regression models to predict housing prices, evaluating bias-variance tradeoffs."
+        week: "Week 05",
+        title: "Video Editing with CapCut & AI",
+        description: "Trimming, cuts, transitions, automated captions, kinetic subtitles, and sound effects.",
+        topics: ["CapCut editing", "AI auto-captions", "Sound design & SFX", "Export settings"],
+        handsOnLab: "Edit two short-form videos with AI captions, sound effects, and strong hooks."
       },
       {
-        week: "Weeks 11-12",
-        title: "Ensemble Methods, Decision Trees & Random Forests",
-        description: "Dive deep into non-linear modeling, tree-based splits, bagging, boosting, and gradient boosted trees.",
-        topics: [
-          "Decision Trees: Information gain, Gini impurity, tree pruning, and depth constraints",
-          "Random Forests: Bootstrap aggregation, out-of-bag error, and feature importances",
-          "Gradient Boosting mechanics: XGBoost, LightGBM, and CatBoost overviews",
-          "Handling severe class imbalances using SMOTE, class weights, and threshold tuning"
-        ],
-        handsOnLab: "Build a customer churn prediction engine achieving >90% precision on an imbalanced telecom dataset."
+        week: "Week 06",
+        title: "AI Voiceovers, Audio & Music Production",
+        description: "ElevenLabs text-to-speech, audio noise reduction, background music, and voice cloning.",
+        topics: ["AI voice generation", "Audio cleaning", "Royalty-free music", "Voice cloning ethics"],
+        handsOnLab: "Produce a voiceover video and a short audio snippet."
       },
       {
-        week: "Weeks 13-14",
-        title: "Model Evaluation, Diagnostics & Hyperparameter Tuning",
-        description: "Master rigorous evaluation frameworks that prevent data leakage and ensure real-world model reliability.",
-        topics: [
-          "K-Fold Cross-Validation, Stratified splits, and TimeSeriesSplit",
-          "Confusion matrices, Precision, Recall, F1-Score, ROC-AUC, and PR-AUC curves",
-          "Regression metrics: MAE, MSE, RMSE, R-squared, and MAPE",
-          "Systematic tuning with GridSearchCV, RandomizedSearchCV, and Bayesian optimization"
-        ],
-        handsOnLab: "Run hyperparameter optimization sweeps and diagnose learning curves for high-stakes credit risk scoring."
+        week: "Week 07",
+        title: "Social Media Strategy & Platform Optimization",
+        description: "Platform dynamics for Reels, Shorts, TikTok, LinkedIn, and X algorithms.",
+        topics: ["Platform algorithms", "Posting frequency", "Retention hooks", "Analytics metrics"],
+        handsOnLab: "Build a multi-platform strategy and produce 3 tailored short-form pieces."
       },
       {
-        week: "Weeks 15-16",
-        title: "Unsupervised Learning, Clustering & Model Explainability",
-        description: "Extract patterns without labels and decode 'black box' machine learning decisions for stakeholders.",
-        topics: [
-          "K-Means clustering, Elbow method, and Silhouette analysis",
-          "Principal Component Analysis (PCA) for dimensionality reduction and visualization",
-          "Interpreting predictions with SHAP (Shapley Additive exPlanations) and LIME",
-          "Model governance, algorithmic fairness, and ethical data science principles"
-        ],
-        handsOnLab: "Segment an e-commerce customer base using K-Means and generate individualized SHAP explanations for high-value shoppers."
+        week: "Week 08",
+        title: "Content Calendars, Batching & Scheduling",
+        description: "30-day content matrix, batch production pipeline, repurposing, and scheduling.",
+        topics: ["Content matrix", "Batch production", "Asset repurposing", "Automated posting"],
+        handsOnLab: "Build a 30-day content calendar and batch-produce Week 1 content."
       },
       {
-        week: "Weeks 17-18",
-        title: "Model Deployment, Capstone Defense & Career Readiness",
-        description: "Package models into reproducible artifacts, serve predictions through REST APIs, defend the final capstone, and package a job-ready portfolio.",
-        topics: [
-          "Model serialization with Joblib and ONNX",
-          "Creating high-performance inference endpoints with FastAPI",
-          "Docker containerization basics and cloud deployment walkthrough",
-          "Structuring a standout GitHub data science portfolio and technical interview preparation"
-        ],
-        handsOnLab: "Deploy an end-to-end predictive API with FastAPI and defend the final Capstone Project before the academy review board."
+        week: "Weeks 09-10",
+        title: "Personal Brand Launch & Monetization",
+        description: "Social media profile optimization, portfolio site launch, service packages, and pitches.",
+        topics: ["Profile optimization", "Single-page portfolio", "Client retainers", "Final showcase"],
+        handsOnLab: "Create a client service offer sheet and present your final capstone project."
       }
     ],
     capstoneProjects: [
       {
-        title: "End-to-End Predictive Machine Learning & Business Intelligence Engine",
-        description: "An industry-scale predictive modeling system that ingests real-world data, cleans and extracts features, trains and benchmarks multiple ML models, and presents predictions via an interactive dashboard.",
-        technologies: ["Python", "Pandas", "Scikit-Learn", "FastAPI", "Streamlit", "Matplotlib"]
+        title: "30-Day Content System & Portfolio Showcase",
+        description: "Audience brief, 30-day content calendar, 1 week of finished media assets, and published portfolio page.",
+        technologies: ["ChatGPT", "Midjourney", "Canva", "CapCut", "ElevenLabs"]
       }
     ],
     instructors: [
       {
-        name: "Marcus Sterling",
-        role: "Head of Data Systems & Analytics, Vixora",
-        bio: "10+ years engineering enterprise data pipelines, statistical modeling, and predictive analytics platforms.",
-        companyBackground: "Vixora Analytics Collective"
+        name: "Vixora Creative Media Faculty",
+        role: "Lead Instructors & Digital Media Producers",
+        bio: "Generative AI creators and media producers.",
+        companyBackground: "Vixora Digital Hub"
+      }
+    ],
+    faqs: [
+      {
+        q: "Can I take this on smartphone?",
+        a: "Yes! Canva, CapCut, and major AI web apps work on smartphones."
+      }
+    ],
+    certificateType: "Vixora Certificate of Completion in AI Content Creation & Personal Branding"
+  },
+  {
+    id: "course-data-science-ml-c2",
+    slug: "machine-learning-data-science",
+    title: "Data Science & Machine Learning (AI Engineer)",
+    subtitle: "Master Python, R, statistical modeling, supervised/unsupervised ML algorithms, model evaluation, and deployment.",
+    badge: "2026 Flagship Track • ₦150,000",
+    level: "Beginner to Professional",
+    status: "active",
+    track: "Data & Analytics",
+    format: "16-Week Hybrid Cohort (Online + Interactive Labs)",
+    duration: "16 Weeks",
+    commitment: "5-6 hrs/week (Interactive Sessions & Build Labs)",
+    nextCohortDate: "November 16, 2026",
+    tuition: "₦150,000",
+    tuitionNote: "Standard 2026 tuition: ₦150,000 ($120 USD). Flagship AI Engineer program.",
+    seatsRemaining: 10,
+    targetAudience: "Aspiring Data Scientists, ML Engineers, STEM Graduates, Analysts, and Developers.",
+    description: "Go from data science foundations to building, evaluating, and deploying machine learning models in Python and R.",
+    heroPitch: "Master Python, R, Scikit-Learn, statistical hypothesis testing, ML regression/classification, and model deployment APIs in 16 weeks.",
+    highlights: [
+      "16 weeks of rigorous data science and machine learning training",
+      "Master Python (NumPy, Pandas, Scikit-Learn) and R (Tidyverse, ggplot2)",
+      "Train regression, classification, clustering, and ensemble models",
+      "Build an end-to-end ML pipeline with FastAPI model deployment"
+    ],
+    outcomes: [
+      "Clean, manipulate, and explore multi-dimensional business datasets",
+      "Build and evaluate supervised and unsupervised ML models",
+      "Optimize hyperparameters and prevent overfitting / data leakage",
+      "Deploy predictive models as REST API endpoints"
+    ],
+    prerequisites: [
+      "A laptop with internet access",
+      "Basic math comfort helpful (taught step-by-step)"
+    ],
+    curriculum: [
+      "Phase 1 — Python & Data Manipulation (NumPy, Pandas & Data Cleaning)",
+      "Phase 2 — Visualization, Statistics & R Tidyverse (ggplot2 & EDA)",
+      "Phase 3 — Machine Learning (Supervised Regression/Classification & Unsupervised Clustering)",
+      "Phase 4 — AI Tools & Neural Networks Introduction",
+      "Phase 5 — Capstone Pipeline & ML Career Readiness"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Weeks 01-02",
+        title: "Introduction to Data Science & Python Setup",
+        description: "Data science lifecycle, roles, Jupyter Colab notebook setup, and Python logic.",
+        topics: ["Lifecycle stages", "Colab setup", "Python data types", "Control flow"],
+        handsOnLab: "Classify business problems into ML tasks and run an end-to-end Colab notebook."
       },
       {
-        name: "Dr. Adebayo Vance",
-        role: "Principal AI Architect, Vixora Labs",
-        bio: "Former Lead AI Research Scientist with expertise in applied machine learning, neural networks, and scalable model inference.",
+        week: "Weeks 03-04",
+        title: "Python Data Handling (NumPy & Pandas)",
+        description: "Vectorized array math, Pandas DataFrames, indexing, filtering, and data cleaning.",
+        topics: ["NumPy arrays", "Pandas DataFrames", "Data cleaning", "Missing value imputation"],
+        handsOnLab: "Load, clean, filter, and summarize a real-world multi-table dataset."
+      },
+      {
+        week: "Weeks 05-06",
+        title: "Data Visualization & Statistics Essentials",
+        description: "Matplotlib, Seaborn charts, descriptive statistics, probability, and correlation.",
+        topics: ["Seaborn charts", "Descriptive stats", "Normal distribution", "Correlation vs causation"],
+        handsOnLab: "Build a statistical visualization notebook answering key business questions."
+      },
+      {
+        week: "Weeks 07-08",
+        title: "R Programming & Exploratory Data Analysis",
+        description: "RStudio IDE, tidyverse data wrangling, ggplot2 Grammar of Graphics, and R Markdown.",
+        topics: ["RStudio & tidyverse", "dplyr operations", "ggplot2 charts", "R Markdown reports"],
+        handsOnLab: "Perform a full Exploratory Data Analysis on a new dataset in R."
+      },
+      {
+        week: "Weeks 09-10",
+        title: "Supervised Learning: Regression Models",
+        description: "Train/test splits, Linear Regression, Ridge, Lasso, Decision Tree Regressor, and RMSE.",
+        topics: ["Train/test split", "Linear regression", "L1/L2 Regularization", "RMSE evaluation"],
+        handsOnLab: "Build and compare two regression models (e.g. house price or sales prediction)."
+      },
+      {
+        week: "Weeks 11-12",
+        title: "Supervised Learning: Classification & Ensembles",
+        description: "Logistic Regression, Random Forests, Confusion Matrix, F1-Score, and ROC-AUC.",
+        topics: ["Logistic regression", "Random Forests", "Confusion matrix", "ROC-AUC curves"],
+        handsOnLab: "Build and evaluate a customer churn classifier in scikit-learn."
+      },
+      {
+        week: "Weeks 13-14",
+        title: "Unsupervised Learning, Tuning & Pipelines",
+        description: "k-Means clustering, PCA dimensionality reduction, GridSearchCV, and scikit-learn Pipelines.",
+        topics: ["k-Means clustering", "PCA reduction", "Cross-validation", "scikit-learn Pipelines"],
+        handsOnLab: "Build an automated ML Pipeline with hyperparameter tuning and model persistence."
+      },
+      {
+        week: "Weeks 15-16",
+        title: "AI Tools, Model Deployment & Capstone Defense",
+        description: "FastAPI inference endpoints, Joblib model serialization, and live capstone defense.",
+        topics: ["FastAPI endpoints", "Joblib serialization", "GitHub portfolio", "Technical defense"],
+        handsOnLab: "Deploy an end-to-end predictive API with FastAPI and defend the final Capstone Project."
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "End-to-End Machine Learning Model Pipeline & Technical Report",
+        description: "Cleaned dataset, EDA, trained ML model comparison, and FastAPI inference endpoint.",
+        technologies: ["Python", "Scikit-Learn", "FastAPI", "R", "Pandas", "Matplotlib"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Data Science Faculty",
+        role: "Lead Instructors & Senior AI Architects",
+        bio: "Senior AI research scientists and enterprise data pipeline engineers.",
         companyBackground: "Vixora Labs"
       }
     ],
     faqs: [
       {
-        q: "What is the format and duration of this course?",
-        a: "The course is 18 weeks long and delivered in a practical Hybrid format combining interactive online classes, hands-on lab assignments, and project mentorship."
-      },
-      {
-        q: "What is the tuition fee for the 18-week course?",
-        a: "Tuition is ₦60,000 for the full 18-week program, covering all course materials, practical labs, instructor mentorship, and the official Vixora certificate."
-      },
-      {
-        q: "Do I need a background in advanced mathematics or programming?",
-        a: "No. The course begins with foundational Python and data handling before progressing into machine learning algorithms and workflows step by step."
-      },
-      {
-        q: "Will I receive an official certificate upon completion?",
-        a: "Yes. Graduates who fulfill the coursework and successfully defend their final capstone project receive an official cryptographically verifiable Vixora Certificate of Completion."
+        q: "What programming languages will I learn?",
+        a: "Both Python and R, using Jupyter Notebooks, Colab, and RStudio."
       }
     ],
     certificateType: "Official Vixora Certified Machine Learning & Data Science Specialist"
   },
   {
-    id: "course-client-acquisition-freelancing",
-    slug: "client-acquisition-freelancing",
-    title: "Client Acquisition & Freelancing Masterclass",
-    subtitle: "High-ticket positioning, Upwork optimization, cold outreach systems, and winning $1,000+ to $5,000+ monthly client retainers.",
-    badge: "Cohort 1.0 Track • ₦25,000",
-    level: "All Levels",
+    id: "course-data-analysis-cohort",
+    slug: "data-analysis-cohort",
+    title: "Data Analysis & Business Intelligence",
+    subtitle: "Master Excel, SQL, Python, Power BI, and AI-assisted data storytelling in a 16-week practical cohort.",
+    badge: "2026 Curriculum • ₦60,000",
+    level: "Beginner",
     status: "active",
-    track: "Business Automation",
-    format: "4-Week Practical Sprint + Private Telegram Mastermind",
-    duration: "4 Weeks",
-    commitment: "3-4 hrs/week (Flexible Replays & Live Proposal Labs)",
-    nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
-    tuition: "₦25,000",
-    tuitionNote: "Full access to Cohort 1.0 recorded sessions, PDF templates, and private Telegram group.",
-    seatsRemaining: 20,
-    targetAudience: "Freelancers, Agency Owners, Web Developers, AI Creators, Consultants and Service Providers.",
-    description: "Technical skills without sales skills leave you underpaid. In this masterclass, learn the exact client acquisition engines, proposal frameworks, and outreach systems used to close international high-ticket clients on Upwork and direct outbound.",
-    heroPitch: "Stop competing on race-to-the-bottom hourly rates. Learn to position your technical and AI services as high-ROI investments and win international retainers.",
+    track: "Data & Analytics",
+    format: "16-Week Hybrid Cohort (Online & Physical Labs)",
+    duration: "16 Weeks",
+    commitment: "5-6 hrs/week (Flexible Bite-Sized Sessions & Labs)",
+    nextCohortDate: "November 16, 2026",
+    tuition: "₦60,000",
+    tuitionNote: "Standard 2026 tuition: ₦60,000 ($50 USD). Includes Excel, SQL, Power BI, and Capstone review.",
+    seatsRemaining: 12,
+    targetAudience: "Students, Graduates, Job Seekers, Analysts, and Complete Beginners.",
+    description: "A 16-week project-based program covering the complete data analyst toolkit: Excel → SQL → Power BI → Python & AI-assisted analysis.",
+    heroPitch: "Turn raw data into business decisions with Excel, SQL queries, interactive Power BI dashboards, and AI data analysis.",
     highlights: [
-      "Craft Upwork proposals with an 80%+ interview invitation rate",
-      "Plug-and-play cold email templates for US and European founders",
-      "High-converting discovery call script that diagnoses and closes",
-      "Scope of Work (SOW) and Master Services Agreement (MSA) legal contract templates",
-      "Direct admission to the Private Telegram Cohort 1.0 community"
+      "16 weeks of structured data analysis and business intelligence training",
+      "Master Excel, SQL (PostgreSQL/MySQL), Power BI, DAX, and Python",
+      "Build interactive executive dashboards and customer retention models",
+      "Official Vixora Digital Hub Certificate of Completion upon graduation"
     ],
     outcomes: [
-      "Package your AI and tech skills into an irresistible high-ticket service offer",
-      "Optimize your Upwork profile to rank for enterprise search terms",
-      "Close $1,000 to $5,000 monthly service retainers with clear deliverables",
-      "Handle pricing objections with poise and anchor conversations on ROI"
+      "Clean messy datasets using Excel & Power Query",
+      "Write SQL queries with JOINs, aggregations, and window functions",
+      "Build interactive Power BI dashboards with DAX measures",
+      "Present executive data stories using the Finding → Evidence → Meaning → Recommendation framework"
     ],
     prerequisites: [
-      "A laptop or smartphone with internet connection",
-      "A technical or creative skill (or willingness to learn AI services)"
+      "A laptop with internet access",
+      "Zero prior coding or math required (taught from scratch)"
     ],
     curriculum: [
-      "Module 1 — Offer Architecture & Irresistible Positioning",
-      "Module 2 — Upwork Profile Optimization & Proposal Psychology",
-      "Module 3 — Multi-Channel Outbound (Cold Email, LinkedIn & Twitter/X)",
-      "Module 4 — Closing Discovery Calls, Contracts & Client Retainer Retention"
+      "Phase 1 — Excel Fundamentals & Data Cleaning",
+      "Phase 2 — SQL Databases & Visual Analytics",
+      "Phase 3 — Power BI Intelligence & AI Analysis",
+      "Phase 4 — Business Diagnostics & Capstone Defense"
     ],
     weeklySyllabus: [
       {
-        week: "Week 01",
-        title: "Offer Architecture & Market Positioning",
-        description: "Transform generic freelancer titles into specialized outcome-driven agency offers.",
-        topics: [
-          "The High-Ticket Value Equation: Dream Outcome × Perceived Likelihood ÷ Time Delay",
-          "Selecting profitable niches in US, UK, and European markets",
-          "Tiered pricing models: Starter, Growth, and Retainer packages",
-          "Drafting your 1-page irresistible service deck"
-        ],
-        handsOnLab: "Lab 01: Finalize your 1-page high-ticket offer outline with specific deliverables and pricing tiers."
+        week: "Weeks 01-02",
+        title: "Introduction to Data Analysis & Excel Fundamentals",
+        description: "Data analysis lifecycle, Excel formulas, lookup functions (XLOOKUP), and business sales models.",
+        topics: ["Data analysis lifecycle", "Excel formulas & functions", "XLOOKUP & logic", "Sales model building"],
+        handsOnLab: "Build an automated Business Sales Analysis model in Excel with summary metrics."
       },
       {
-        week: "Week 02",
-        title: "Upwork Algorithm & Proposal Mastery",
-        description: "Master the psychology of winning proposals and optimizing your profile for inbound invitations.",
-        topics: [
-          "Profile architecture: Headline, video introduction, case studies, and specialized profiles",
-          "The 4-part winning proposal formula: Hook + Insight + Proof + Call to Action",
-          "How to filter jobs with verified payment and high average hourly rates",
-          "Setting up automated job search alerts"
-        ],
-        handsOnLab: "Lab 02: Submit 3 live proposals using our tested templates and review responses with mentors."
+        week: "Weeks 03-04",
+        title: "Data Cleaning, Preparation & Pivot Tables",
+        description: "Power Query data transformation, descriptive statistics, growth rates, and dynamic Pivot Tables.",
+        topics: ["Power Query", "Data cleaning", "Descriptive stats", "Pivot Tables & Slicers"],
+        handsOnLab: "Clean an authentic messy multi-year transactional dataset and build an Excel Pivot Dashboard."
       },
       {
-        week: "Week 03",
-        title: "Cold Outbound & Multi-Channel Lead Generation",
-        description: "Generate consistent inbound discovery calls using targeted cold email and LinkedIn.",
-        topics: [
-          "Building 100-lead prospect databases using Google Maps, LinkedIn, and Apollo",
-          "Subject lines with 65%+ open rates and conversational pitch copy",
-          "The 3-stage non-annoying follow-up sequence",
-          "Booking calls directly to your calendar"
-        ],
-        handsOnLab: "Lab 03: Launch a 30-prospect outbound pilot campaign with personalized message hooks."
+        week: "Weeks 05-06",
+        title: "Data Visualization & SQL for Data Analysis",
+        description: "Visual hierarchy, relational databases, SELECT, WHERE, GROUP BY, JOINs, and window functions.",
+        topics: ["Visual hierarchy", "Relational databases", "SQL JOINs & aggregations", "Window functions"],
+        handsOnLab: "Query a multi-table Customer & Sales Database to extract revenue cohorts and retention rates."
       },
       {
-        week: "Week 04",
-        title: "Closing Discovery Calls, Legal Contracts & Retainers",
-        description: "Navigate discovery calls, anchor pricing on value, and secure monthly retainers.",
-        topics: [
-          "The 20-minute Diagnostic Discovery Call script",
-          "Overcoming price resistance: 'That's outside our budget'",
-          "Standard Master Service Agreements, NDAs, and payment milestone contracts",
-          "Collecting foreign payments securely via Stripe, Payoneer, and crypto/bank transfers"
-        ],
-        handsOnLab: "Lab 04: Conduct a mock sales call with instructor feedback and draft your standard client SOW."
+        week: "Weeks 07-08",
+        title: "Power BI Business Intelligence & AI Analysis",
+        description: "Star schemas, DAX measures (CALCULATE), cross-filtering, and AI-assisted SQL/formula debugging.",
+        topics: ["Power BI modeling", "DAX measures", "Interactive dashboards", "AI formula generation"],
+        handsOnLab: "Build a production-ready Power BI Executive Operations & Revenue Dashboard."
+      },
+      {
+        week: "Weeks 09-11",
+        title: "Business Data Analysis & Data Storytelling",
+        description: "Domain metrics (CAC, LTV, churn), business diagnostics, and executive slide deck frameworks.",
+        topics: ["Domain metrics", "Diagnostic analysis", "Storytelling framework", "Executive summaries"],
+        handsOnLab: "Conduct a full business diagnostics review on a declining commercial product."
+      },
+      {
+        week: "Weeks 12-16",
+        title: "Data Analyst Portfolio, Freelancing & Final Capstone",
+        description: "Packaging projects on GitHub/Notion, freelancing offers, and final Capstone Project defense.",
+        topics: ["Portfolio packaging", "Freelancing offers", "Proposal writing", "Capstone defense"],
+        handsOnLab: "Complete and present your full Final Capstone Project from raw data to recommendations."
       }
     ],
     capstoneProjects: [
       {
-        title: "Live Client Proposal & Contract Execution",
-        description: "Create a complete client pitch package including market research, personalized proposal, and signed SOW contract.",
-        technologies: ["Upwork", "Cold Email", "Notion Proposal", "Client Agreement Contract"]
+        title: "End-to-End Enterprise Sales & Revenue Intelligence Dashboard",
+        description: "Power BI dashboard, SQL customer retention database analysis, and executive diagnostic report.",
+        technologies: ["Excel", "Power Query", "PostgreSQL", "Power BI", "DAX"]
+      }
+    ],
+    instructors: [
+      {
+        name: "Vixora Data Analytics Faculty",
+        role: "Lead Instructors & Senior BI Engineers",
+        bio: "Senior data analysts and business intelligence specialists.",
+        companyBackground: "Vixora Digital Hub"
+      }
+    ],
+    faqs: [
+      {
+        q: "What tools are covered in this course?",
+        a: "Excel, Power Query, SQL (PostgreSQL/MySQL), and Power BI."
+      }
+    ],
+    certificateType: "Vixora Certificate of Completion in Data Analysis & Business Intelligence"
+  },
+
+  // -------------------------------------------------------------
+  // COHORT 1.0 MASTER VAULT (Preserved Untouched)
+  // -------------------------------------------------------------
+  {
+    id: "course-cohort-1-master-bundle",
+    slug: "cohort-1-master-bundle",
+    title: "Cohort 1.0: 5-in-1 Masterclass All-Access Pass",
+    subtitle: "Complete access to all 5 training tracks: AI Content Creation, AI Automation, AI Web Development, Client Acquisition, and PDF Automation & Digital Products.",
+    badge: "Flagship Bundle • ₦45,000",
+    level: "All Levels",
+    status: "active",
+    track: "Engineering & AI",
+    format: "5 Complete Modular Tracks + 35h Video Vault + 18 PDFs + Private Telegram Mastermind",
+    duration: "Full Lifetime Access",
+    commitment: "Self-Paced with Ongoing Community Mentorship",
+    nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
+    tuition: "₦45,000",
+    tuitionNote: "Includes all 5 courses (Standard price ₦95,000 when purchased separately). Save over 50%.",
+    seatsRemaining: 15,
+    targetAudience: "Ambitious Builders, Creators, Developers, Consultants and Entrepreneurs.",
+    description: "The complete Cohort 1.0 vault. Receive full access to all 5 tracks: AI Content Creation, AI Automation, AI Web Development & Design, Client Acquisition & Freelancing, and PDF Automation & Digital Products. Includes all 35+ hours of session recordings, 18 strategy PDFs, workflow blueprints, and lifetime access to our Private Telegram Mastermind.",
+    heroPitch: "Everything you need to master AI creation, automate business workflows, build modern web apps, sell high-margin PDF products, and acquire high-paying international clients.",
+    highlights: [
+      "Access to all 5 training tracks in one single enrollment pass",
+      "35+ hours of recorded video masterclasses in our private Telegram group",
+      "18 downloadable PDF guidebooks, prompt libraries & workflow blueprints",
+      "Full access to the Private Telegram Mastermind with Dean Sarumi Hammad",
+      "Cryptographically verifiable graduation certification"
+    ],
+    outcomes: [
+      "Generate photorealistic visual media and short-form video pipelines",
+      "Deploy production n8n workflows that automate business operations",
+      "Build and deploy modern responsive web apps with React and Tailwind",
+      "Research, author, and sell commercial PDF products with automated checkout",
+      "Close $1,000 to $5,000 monthly client contracts and international retainers"
+    ],
+    prerequisites: [
+      "A laptop or smartphone with internet connection",
+      "Dedication to apply the frameworks and build real projects"
+    ],
+    curriculum: [
+      "Track 1 — AI Content Creation (Image, Video & Audio)",
+      "Track 2 — AI Automation & Autonomous Workflows (n8n & APIs)",
+      "Track 3 — AI Web Development & Modern Design (React 19 & Tailwind)",
+      "Track 4 — Client Acquisition & Freelancing (High-Ticket Positioning)",
+      "Track 5 — PDF Automation & AI Digital Product Creation (W6 & W7)"
+    ],
+    weeklySyllabus: [
+      {
+        week: "Track 1",
+        title: "AI Content Creation Masterclass",
+        description: "Diffusion models, prompt engineering, voice cloning, and viral short-form video pipelines.",
+        topics: ["Midjourney & Flux prompts", "Character consistency", "ElevenLabs voice cloning", "CapCut video pacing"],
+        handsOnLab: "Deliverable: 3 Complete Viral Short Form Video Creatives"
+      },
+      {
+        week: "Track 2",
+        title: "AI Automation & Autonomous Systems",
+        description: "n8n deployment, webhook architectures, OpenAI function calling, and CRM sync.",
+        topics: ["Self-hosted n8n", "Webhook listeners", "AI email responder", "WhatsApp automation"],
+        handsOnLab: "Deliverable: End-to-End Automated Client Ingestion & CRM Pipeline"
+      },
+      {
+        week: "Track 3",
+        title: "AI Web Development & Modern Design",
+        description: "React 19, Tailwind CSS spatial math, AI-assisted vibe coding, and production deployment.",
+        topics: ["Component architecture", "Dynamic state & hooks", "Paystack checkout integration", "Production deployment"],
+        handsOnLab: "Deliverable: Live Production-Grade Web Application"
+      },
+      {
+        week: "Track 4",
+        title: "Client Acquisition & Freelancing",
+        description: "High-ticket positioning, Upwork optimization, cold email systems, and closing retainers.",
+        topics: ["Irresistible offer design", "Winning Upwork proposals", "Cold outbound campaigns", "Closing discovery calls"],
+        handsOnLab: "Deliverable: Signed Client Contract & 50-Lead Outbound Campaign"
+      },
+      {
+        week: "Track 5",
+        title: "PDF Automation & AI Digital Product Creation (W6 & W7)",
+        description: "Digital product research, validation, AI authoring, visual layout design, and automated storefront delivery.",
+        topics: ["Audience research & validation", "AI fact-checking", "PDF guide & workbook formatting", "Paystack/Selar delivery automation"],
+        handsOnLab: "Deliverable: Published Commercial PDF Product with Live Checkout Link"
+      }
+    ],
+    capstoneProjects: [
+      {
+        title: "Full-Stack AI Business or Agency Launch",
+        description: "Deploy an automated business engine combining AI media, automated CRM pipelines, modern web landing page, and outbound client acquisition.",
+        technologies: ["React 19", "n8n Self-Hosted", "Midjourney & Flux", "Upwork Proposal Deck"]
       }
     ],
     instructors: [
@@ -1853,110 +1506,200 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     ],
     faqs: [
       {
-        q: "Are the Cohort 1.0 sessions recorded?",
-        a: "Yes. All sessions are recorded in high-definition and available inside the Private Telegram Cohort group with accompanying PDFs and templates."
-      },
-      {
-        q: "Can I combine this with the other Cohort 1.0 tracks?",
-        a: "Absolutely. You can enroll in the 4-in-1 Cohort 1.0 Master Bundle for complete access to all 4 tracks at a discounted rate."
+        q: "How do I access the session recordings and materials after payment?",
+        a: "Immediately upon enrollment, you receive direct access instructions and an exclusive invitation link to join the Private Telegram Cohort 1.0 Mastermind where all HD video replays, PDF blueprints, and mentor discussions are hosted."
       }
     ],
+    certificateType: "Official Vixora Certified Autonomous AI & Growth Engineer"
+  },
+
+  // -------------------------------------------------------------
+  // ARCHIVED SPECIALIZATIONS (Separated Catalog Section)
+  // -------------------------------------------------------------
+  {
+    id: "course-ai-image-short-videos-creation",
+    slug: "ai-image-short-videos-creation",
+    title: "AI Image & Short Videos Creation",
+    subtitle: "Fast-track 4-week sprint on prompt engineering, photorealistic image generation, and CapCut video editing.",
+    badge: "Archived Fast-Track • ₦10,000",
+    level: "Beginner",
+    status: "archived",
+    track: "Design & Marketing",
+    format: "4-Week Practical Sprint",
+    duration: "4 Weeks",
+    commitment: "3-4 hrs/week",
+    nextCohortDate: "Archived Sprint",
+    tuition: "₦10,000",
+    tuitionNote: "Fast-track price: ₦10,000 ($10 USD).",
+    seatsRemaining: 0,
+    targetAudience: "Creators, Marketers, and Beginners.",
+    description: "Learn how to use AI tools to create photorealistic images, stylized graphics, synthetic voiceovers, and short-form video scripts.",
+    heroPitch: "Fast-track sprint for AI image generation, viral short-form video production, and social media media assets.",
+    highlights: ["4 weeks fast-track sprint", "Midjourney & CapCut workflows", "Certificate of completion"],
+    outcomes: ["Generate photorealistic images", "Edit short-form 9:16 vertical videos"],
+    prerequisites: ["Smartphone or laptop"],
+    curriculum: ["Module 1 — Image Prompting", "Module 2 — Short Video Production"],
+    weeklySyllabus: [
+      { week: "Week 01", title: "AI Image Generation", description: "Prompt formulas and Midjourney diffusion.", topics: ["Prompts", "Lighting"], handsOnLab: "Generate 5 assets" }
+    ],
+    capstoneProjects: [{ title: "Short Video Campaign", description: "CapCut video edit", technologies: ["CapCut", "Midjourney"] }],
+    instructors: [{ name: "David Adeleke", role: "AI Producer", bio: "Digital media producer.", companyBackground: "Vixora Digital Hub" }],
+    faqs: [{ q: "Is this course active?", a: "This sprint is available in our archived catalog." }],
+    certificateType: "Certificate of Completion"
+  },
+  {
+    id: "course-ai-automation-digital-skills",
+    slug: "ai-automation-digital-skills",
+    title: "AI Automation & Digital Skills",
+    subtitle: "Beginner-friendly 12-week program covering ChatGPT, Make.com, Zapier, and document automation.",
+    badge: "Archived Specialization • ₦30,000",
+    level: "Beginner",
+    status: "archived",
+    track: "Business Automation",
+    format: "12-Week Hybrid Cohort",
+    duration: "12 Weeks",
+    commitment: "4-5 hrs/week",
+    nextCohortDate: "Archived Cohort",
+    tuition: "₦30,000",
+    tuitionNote: "Archived rate: ₦30,000 ($25 USD).",
+    seatsRemaining: 0,
+    targetAudience: "Students, Job Seekers, and Entrepreneurs.",
+    description: "Hands-on program covering prompt engineering, Make/Zapier automations, PDF processing, and freelancing.",
+    heroPitch: "Learn to build no-code automations and AI tools for business productivity.",
+    highlights: ["Make & Zapier automations", "PDF document extraction", "Freelancing guide"],
+    outcomes: ["Master ChatGPT prompts", "Build visual automations"],
+    prerequisites: ["Laptop or smartphone"],
+    curriculum: ["Module 1 — Prompt Mastery", "Module 2 — No-Code Automations"],
+    weeklySyllabus: [
+      { week: "Week 01", title: "Prompt Mastery", description: "LLM prompt frameworks.", topics: ["Prompting"], handsOnLab: "Build AI assistant" }
+    ],
+    capstoneProjects: [{ title: "Business Automation Pipeline", description: "Make.com lead automation", technologies: ["Make.com", "Zapier"] }],
+    instructors: [{ name: "Vixora Instructors", role: "Automation Leads", bio: "Automation architects.", companyBackground: "Vixora" }],
+    faqs: [{ q: "Is this archived?", a: "Yes, superceded by the 2026 AI Automation & Digital Literacy curriculum." }],
+    certificateType: "Certificate of Completion"
+  },
+  {
+    id: "course-ai-automation-digital-business-systems",
+    slug: "ai-automation-digital-business-systems",
+    title: "AI Automation & Digital Business Systems",
+    subtitle: "Advanced 12-week mentorship program on Make.com, n8n, GHL CRM, Vapi voice agents, and high-ticket retainers.",
+    badge: "Archived Advanced • ₦60,000",
+    level: "Advanced",
+    status: "archived",
+    track: "Business Automation",
+    format: "12-Week Mentorship Cohort",
+    duration: "12 Weeks",
+    commitment: "5-6 hrs/week",
+    nextCohortDate: "Archived Cohort",
+    tuition: "₦60,000",
+    tuitionNote: "Archived rate: ₦60,000 ($50 USD).",
+    seatsRemaining: 0,
+    targetAudience: "Professionals, Agency Founders, Consultants.",
+    description: "Implementation-focused program for architects building autonomous n8n workflows, GHL funnels, and Vapi voice bots.",
+    heroPitch: "Build production AI systems businesses pay for—n8n, Vapi voice agents, and full-stack automation.",
+    highlights: ["n8n & Vapi voice agents", "GoHighLevel CRM funnels", "High-ticket retainers"],
+    outcomes: ["Deploy self-hosted n8n workflows", "Build conversational voice bots"],
+    prerequisites: ["Prior comfort with AI tools"],
+    curriculum: ["Module 1 — Advanced Workflows", "Module 2 — Voice Agents"],
+    weeklySyllabus: [
+      { week: "Week 01", title: "Advanced Workflows", description: "n8n and webhooks.", topics: ["n8n"], handsOnLab: "Build n8n workflow" }
+    ],
+    capstoneProjects: [{ title: "Autonomous Lead System", description: "Vapi & GHL integration", technologies: ["Vapi", "GHL", "n8n"] }],
+    instructors: [{ name: "Vixora Senior Mentors", role: "Systems Architects", bio: "Enterprise architects.", companyBackground: "Vixora" }],
+    faqs: [{ q: "Is this archived?", a: "Yes, available in archived specializations." }],
+    certificateType: "Certificate of Advanced Mastery"
+  },
+  {
+    id: "course-fullstack-vibe-coding",
+    slug: "full-stack-vibe-coding",
+    title: "Full Stack Vibe Coding",
+    subtitle: "Build web applications with AI pair programming—React, Express APIs, PostgreSQL, and cloud deployment.",
+    badge: "Archived Cohort • ₦50,000",
+    level: "Beginner to Intermediate",
+    status: "archived",
+    track: "Engineering & AI",
+    format: "12-Week Hybrid Cohort",
+    duration: "12 Weeks",
+    commitment: "5-7 hrs/week",
+    nextCohortDate: "Archived Cohort",
+    tuition: "₦50,000",
+    tuitionNote: "Archived rate: ₦50,000 ($50 USD).",
+    seatsRemaining: 0,
+    targetAudience: "Aspiring developers and designers.",
+    description: "Learn to build full-stack web applications with React, Node.js, databases, and AI coding assistants.",
+    heroPitch: "Build products with AI as your development partner.",
+    highlights: ["React & Node.js", "Database modeling", "Vercel deployment"],
+    outcomes: ["Build full-stack web apps", "Debug with AI assistance"],
+    prerequisites: ["Laptop with internet"],
+    curriculum: ["Module 1 — React Frontend", "Module 2 — Node APIs"],
+    weeklySyllabus: [
+      { week: "Week 01", title: "Web Foundations", description: "HTML/CSS/JS", topics: ["JavaScript"], handsOnLab: "Build landing page" }
+    ],
+    capstoneProjects: [{ title: "Full-Stack Web App", description: "Deployed web app", technologies: ["React", "Express", "PostgreSQL"] }],
+    instructors: [{ name: "Vixora Instructors", role: "Engineers", bio: "Software developers.", companyBackground: "Vixora" }],
+    faqs: [{ q: "Is this archived?", a: "Superceded by 2026 AI Web Development & Vibe Coding." }],
+    certificateType: "Certificate of Completion"
+  },
+  {
+    id: "course-client-acquisition-freelancing",
+    slug: "client-acquisition-freelancing",
+    title: "Client Acquisition & Freelancing Masterclass",
+    subtitle: "High-ticket offer positioning, Upwork optimization, cold outreach systems, and winning $1,000+ retainers.",
+    badge: "Cohort 1.0 Track • ₦25,000",
+    level: "All Levels",
+    status: "archived",
+    track: "Business Automation",
+    format: "4-Week Practical Sprint",
+    duration: "4 Weeks",
+    commitment: "3-4 hrs/week",
+    nextCohortDate: "Immediate Vault Access",
+    tuition: "₦25,000",
+    tuitionNote: "Full access to Cohort 1.0 recorded sessions.",
+    seatsRemaining: 0,
+    targetAudience: "Freelancers, Agency Owners, Consultants.",
+    description: "Learn client acquisition engines, Upwork proposals, and outreach systems to win international clients.",
+    heroPitch: "Stop competing on hourly rates. Position your services as high-ROI investments.",
+    highlights: ["Upwork 80%+ proposal formulas", "Cold email templates", "Discovery call script"],
+    outcomes: ["Package high-ticket offers", "Close monthly retainers"],
+    prerequisites: ["Laptop or smartphone"],
+    curriculum: ["Module 1 — Offer Architecture", "Module 2 — Upwork Mastery"],
+    weeklySyllabus: [
+      { week: "Week 01", title: "Offer Architecture", description: "High-ticket offer design.", topics: ["Offers"], handsOnLab: "Draft offer sheet" }
+    ],
+    capstoneProjects: [{ title: "Live Client Pitch", description: "Pitch deck and contract", technologies: ["Upwork", "Cold Email"] }],
+    instructors: [{ name: "Sarumi Hammad", role: "Dean", bio: "Academic director.", companyBackground: "Vixora" }],
+    faqs: [{ q: "Is this in the vault?", a: "Yes, included in Cohort 1.0 Master Vault." }],
     certificateType: "Official Vixora Certified Digital Business Consultant"
   },
   {
     id: "course-pdf-automation-digital-products",
     slug: "pdf-automation-digital-products",
     title: "PDF Automation & AI Digital Product Creation",
-    subtitle: "Research high-demand audiences, validate market problems, author professional PDF guides with AI, design covers & visual layouts, and automate checkout delivery.",
+    subtitle: "Research audiences, validate problems, author PDF guides with AI, design covers, and automate Paystack delivery.",
     badge: "Cohort 1.0 Track • ₦20,000",
     level: "All Levels",
-    status: "active",
+    status: "archived",
     track: "Business Automation",
-    format: "2-Week Practical Sprint (W6 & W7) + Telegram Mastermind",
+    format: "2-Week Sprint",
     duration: "2 Weeks",
-    commitment: "3-4 hrs/week (Flexible Replays & Publishing Labs)",
-    nextCohortDate: "Immediate Access (Cohort 1.0 Vault)",
+    commitment: "3-4 hrs/week",
+    nextCohortDate: "Immediate Vault Access",
     tuition: "₦20,000",
-    tuitionNote: "Full access to Cohort 1.0 recorded sessions, PDF templates, and private Telegram group.",
-    seatsRemaining: 20,
-    targetAudience: "Digital Creators, Writers, Educators, Freelancers, Consultants, and Knowledge Entrepreneurs.",
-    description: "Learn to build scalable, passive digital income assets by researching hungry audiences, validating urgent problems with AI, crafting structured PDF formats (guides, workbooks, templates, handbooks), designing commercial layouts, and automating checkout delivery with Paystack and Selar.",
-    heroPitch: "Stop trading time for money. Learn to research, write, design, and automate the sale of high-margin commercial PDF products using modern AI workflows.",
-    highlights: [
-      "Find hungry target audiences and validate high-intent commercial problems with AI",
-      "Fact-check and research with precision using frontier AI models",
-      "Choose the right PDF format: guide, workbook, checklist, template or handbook",
-      "Author polished content with AI while preserving originality and human clarity",
-      "Design executive-level layouts, covers, tables, and visual elements",
-      "Wire up automated payment gateways (Paystack/Selar) for instant customer PDF delivery"
-    ],
-    outcomes: [
-      "Identify high-margin digital product niches and validate problem-solution fit",
-      "Produce complete 30-50 page authoritative PDF products in days instead of months",
-      "Format and export professional PDF layouts with visual hierarchy and cover art",
-      "Deploy self-executing checkout pages that deliver products 24/7 without manual intervention"
-    ],
-    prerequisites: [
-      "A laptop or smartphone with internet connection",
-      "Willingness to research and publish a practical digital product"
-    ],
-    curriculum: [
-      "Week 1 (W6) — Digital Product Research and Planning",
-      "Week 2 (W7) — AI Writing, PDF Production and Digital Product Sales"
-    ],
+    tuitionNote: "Full access to Cohort 1.0 recorded sessions.",
+    seatsRemaining: 0,
+    targetAudience: "Creators, Writers, Educators.",
+    description: "Build digital income assets by researching hungry audiences, writing PDFs with AI, and automating sales.",
+    heroPitch: "Research, write, design, and sell commercial PDF products with automated delivery.",
+    highlights: ["Audience research", "AI PDF authoring", "Automated Paystack delivery"],
+    outcomes: ["Create 30-50 page PDF guides", "Deploy automated storefronts"],
+    prerequisites: ["Laptop or smartphone"],
+    curriculum: ["Week 1 — Product Research", "Week 2 — AI Writing & Sales"],
     weeklySyllabus: [
-      {
-        week: "Week 01 (W6)",
-        title: "Digital Product Research and Planning",
-        description: "Find a target audience and validate a problem. Research and fact-check using AI. Choose a PDF product format: guide, workbook, template or handbook. Create an outline and develop a clear value proposition. Plan a quality product from research to publication.",
-        topics: [
-          "Find a target audience and validate a problem",
-          "Research and fact-check using AI",
-          "Choose a PDF product format: guide, workbook, template or handbook",
-          "Create an outline and develop a clear value proposition",
-          "Plan a quality product from research to publication"
-        ],
-        handsOnLab: "Lab W6: Finalize an audience-validated digital product outline with a high-converting value proposition."
-      },
-      {
-        week: "Week 02 (W7)",
-        title: "AI Writing, PDF Production and Digital Product Sales",
-        description: "Use AI to write and refine a high-quality PDF. Improve structure, accuracy, originality and readability. Design layouts, covers, tables and visual elements. Export, proofread and package the final PDF. Introduction to pricing, product listings and delivery systems.",
-        topics: [
-          "Use AI to write and refine a high-quality PDF",
-          "Improve structure, accuracy, originality and readability",
-          "Design layouts, covers, tables and visual elements",
-          "Export, proofread and package the final PDF",
-          "Introduction to pricing, product listings and delivery systems"
-        ],
-        handsOnLab: "Lab W7: Export your finished PDF product and deploy an automated Paystack/Selar checkout delivery page."
-      }
+      { week: "Week 01", title: "Product Research", description: "Audience validation.", topics: ["Research"], handsOnLab: "Finalize PDF outline" }
     ],
-    capstoneProjects: [
-      {
-        title: "Complete Commercial PDF Product & Automated Storefront Launch",
-        description: "Research, write, format, and publish a finished high-quality commercial PDF product connected to an automated instant checkout delivery system.",
-        technologies: ["AI Writing Models", "Visual Design Tools", "PDF Formatting", "Paystack / Selar", "Automated Email Delivery"]
-      }
-    ],
-    instructors: [
-      {
-        name: "Sarumi Hammad",
-        role: "Dean & Academic Director, Vixora Academy",
-        bio: "Director of technical programs and commercial software delivery across enterprise AI and automation clients worldwide.",
-        companyBackground: "Vixora Digital Hub Academic Directorate"
-      }
-    ],
-    faqs: [
-      {
-        q: "What format will my digital product be in?",
-        a: "You can create guides, workbooks, checklists, templates, or full handbooks exported as crisp, professionally formatted PDFs."
-      },
-      {
-        q: "How do customers receive the PDF after paying?",
-        a: "The checkout system automatically redirects them to a secure download screen and sends a verified copy directly to their email address."
-      }
-    ],
+    capstoneProjects: [{ title: "Commercial PDF Product", description: "PDF & Paystack delivery", technologies: ["AI Writing", "Paystack"] }],
+    instructors: [{ name: "Sarumi Hammad", role: "Dean", bio: "Academic director.", companyBackground: "Vixora" }],
+    faqs: [{ q: "Is this in the vault?", a: "Yes, included in Cohort 1.0 Master Vault." }],
     certificateType: "Official Vixora Certified Digital Product Specialist"
   },
   {

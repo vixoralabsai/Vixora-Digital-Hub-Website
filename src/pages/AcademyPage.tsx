@@ -42,6 +42,7 @@ export function AcademyPage({
 }: AcademyPageProps) {
   const { formatPrice, currency } = useCurrency();
   const [selectedTrack, setSelectedTrack] = useState<string>('All Tracks');
+  const [catalogTab, setCatalogTab] = useState<'active' | 'archived'>('active');
   const [sourceIdx, setSourceIdx] = useState(0);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
@@ -210,9 +211,13 @@ export function AcademyPage({
     'Design & Marketing'
   ];
 
+  const baseCourses = ACADEMY_COURSES.filter((c) =>
+    catalogTab === 'archived' ? c.status === 'archived' : c.status !== 'archived'
+  );
+
   const filteredCourses = selectedTrack === 'All Tracks'
-    ? ACADEMY_COURSES
-    : ACADEMY_COURSES.filter((c) => c.track === selectedTrack);
+    ? baseCourses
+    : baseCourses.filter((c) => c.track === selectedTrack);
 
   const corporateOfferings = [
     {
@@ -461,6 +466,30 @@ export function AcademyPage({
             <p className="text-sm text-[#5F6078] max-w-2xl" style={{ color: '#475569' }}>
               Each course features a dedicated landing page with weekly syllabus breakdowns, hands-on production labs, capstone previews, and verified certifications.
             </p>
+
+            {/* Catalog Section Segmented Toggle */}
+            <div className="flex items-center gap-1.5 p-1 bg-[#000048]/10 rounded-xl w-fit mt-3">
+              <button
+                onClick={() => setCatalogTab('active')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  catalogTab === 'active'
+                    ? 'bg-[#000048] text-white shadow-sm'
+                    : 'text-slate-600 hover:text-[#000048]'
+                }`}
+              >
+                Active 2026 Curriculum ({ACADEMY_COURSES.filter(c => c.status !== 'archived').length})
+              </button>
+              <button
+                onClick={() => setCatalogTab('archived')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  catalogTab === 'archived'
+                    ? 'bg-[#000048] text-white shadow-sm'
+                    : 'text-slate-600 hover:text-[#000048]'
+                }`}
+              >
+                Archived Specializations ({ACADEMY_COURSES.filter(c => c.status === 'archived').length})
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">

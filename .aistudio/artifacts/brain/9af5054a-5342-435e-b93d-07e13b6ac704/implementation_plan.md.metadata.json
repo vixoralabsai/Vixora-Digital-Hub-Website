@@ -1,6 +1,6 @@
 {
-  "summary": "Updated implementation plan for building the /training curriculum page with revised Cohort 2 pricing: ₦20,000 for AI Content Creation, ₦150,000 for AI Engineer (Data Science & ML), and ₦60,000 for all other tracks.",
-  "updatedAt": "2026-11-04T19:27:57.241768184Z",
+  "summary": "Implementation plan for updating Vixora Academy course contents and pricing to match the 2026 curriculum from trainingCurriculumData.ts, updating NGN/USD prices in coursePricing.ts, preserving Cohort Vault recordings, and separating non-curriculum courses into an archived section.",
+  "updatedAt": "2026-11-05T08:53:13.374562664Z",
   "requestFeedback": true,
   "userFacing": true
 }

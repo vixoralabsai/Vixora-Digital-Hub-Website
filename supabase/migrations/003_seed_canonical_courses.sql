@@ -16,6 +16,54 @@ INSERT INTO courses (
   status
 ) VALUES 
   (
+    'ai-automation-digital-literacy',
+    'AI Automation & Digital Literacy',
+    'ai-automation-digital-literacy',
+    60000.00,
+    6000000,
+    '12 Weeks',
+    'Beginner',
+    '2026 Curriculum • ₦60,000',
+    'Master AI prompting, no-code workflows, and automated business agents in a 12-week practical cohort.',
+    'published'
+  ),
+  (
+    'virtual-assistance-appointment-setter',
+    'Virtual Assistance & Appointment Setting',
+    'virtual-assistance-appointment-setter',
+    60000.00,
+    6000000,
+    '8 Weeks',
+    'Beginner',
+    '2026 Curriculum • ₦60,000',
+    'Master executive VA operations, AI productivity, CRM lead management, and cold outreach scripts in an 8-week cohort.',
+    'published'
+  ),
+  (
+    'ai-web-development-vibe-coding',
+    'AI Web Development & Vibe Coding',
+    'ai-web-development-vibe-coding',
+    60000.00,
+    6000000,
+    '12 Weeks',
+    'Beginner',
+    '2026 Curriculum • ₦60,000',
+    'Build web applications, React frontends, backend databases, and AI features using modern vibe coding toolchains.',
+    'published'
+  ),
+  (
+    'ai-content-creation-media',
+    'AI Content Creation & Personal Branding',
+    'ai-content-creation-media',
+    20000.00,
+    2000000,
+    '10 Weeks',
+    'Beginner',
+    '2026 Curriculum • ₦20,000',
+    'Master AI copywriting, image generation, short video editing, and personal branding in a 10-week sprint.',
+    'published'
+  ),
+  (
     'ai-image-short-videos-creation',
     'AI Image & Short Videos Creation',
     'ai-image-short-videos-creation',
@@ -24,19 +72,19 @@ INSERT INTO courses (
     '4 Weeks',
     'Beginner',
     'Fast-Track Sprint • ₦10,000',
-    'Learn how to use state-of-the-art AI tools to create photorealistic images, stylized graphics, viral short-form video scripts, synthetic voiceovers, and captivating personal or faceless videos. From Midjourney, Flux, and Ideogram to CapCut, ElevenLabs, and Runway, you''ll build an automated creative content engine from your laptop or smartphone.',
+    'Learn how to use state-of-the-art AI tools to create photorealistic images, stylized graphics, viral short-form video scripts, synthetic voiceovers, and captivating personal or faceless videos.',
     'published'
   ),
   (
     'data-analysis-cohort',
-    'Data Analysis Cohort',
+    'Data Analysis & Business Intelligence',
     'data-analysis-cohort',
     60000.00,
     6000000,
     '16 Weeks',
     'Beginner',
-    'Early Tuition: ₦60,000',
-    'A 16-week, project-based program that takes you through the full analyst toolkit: Excel → SQL → Power BI → AI-Assisted Analysis. You won''t just learn what a pivot table is. You''ll clean real messy datasets, write SQL queries that answer real business questions, build interactive Power BI dashboards, and finish with a portfolio-ready capstone project.',
+    '2026 Curriculum • ₦60,000',
+    'Master Excel, SQL, Python, Power BI, and AI-assisted data storytelling in a 16-week practical cohort.',
     'published'
   ),
   (
@@ -48,7 +96,7 @@ INSERT INTO courses (
     '12 Weeks',
     'Beginner',
     'Early Tuition: ₦30,000',
-    'A 12-week, hands-on program built for complete beginners who want to go from ''I''ve heard of ChatGPT'' to ''I automate things for a living'' — without writing a single line of code. Master AI productivity tools, scroll-stopping content generation, Make/Zapier/Notion automations, document handling, and client freelancing monetization.',
+    'A 12-week, hands-on program built for complete beginners who want to go from ''I''ve heard of ChatGPT'' to ''I automate things for a living''.',
     'published'
   ),
   (
@@ -60,7 +108,7 @@ INSERT INTO courses (
     '12 Weeks',
     'Advanced',
     'Early Tuition: ₦60,000 (Reg ₦150,000+)',
-    'Vixora Academy''s advanced, implementation-focused program for people ready to go beyond tools and start building. You''ll learn to design, build, and deploy AI-powered automations and solutions — the kind organizations and clients actually pay for — with hands-on mentorship, real business projects, and direct support.',
+    'Vixora Academy''s advanced, implementation-focused program for people ready to go beyond tools and start building.',
     'published'
   ),
   (
@@ -72,19 +120,19 @@ INSERT INTO courses (
     '12 weeks',
     'Beginner to Intermediate',
     '12-Week Production Cohort',
-    'Learn to turn ideas into working full-stack products using modern AI-assisted development workflows. You will learn how to plan an application, build responsive interfaces, create backend APIs, connect databases, add authentication, integrate third-party services, debug with AI, use Git and GitHub, deploy to production, and present a finished portfolio project.',
+    'Learn to turn ideas into working full-stack products using modern AI-assisted development workflows.',
     'published'
   ),
   (
     'machine-learning-data-science',
-    'Machine Learning & Data Science',
+    'Data Science & Machine Learning (AI Engineer)',
     'machine-learning-data-science',
-    60000.00,
-    6000000,
-    '18 weeks',
-    'Beginner to Intermediate',
-    '18-Week Comprehensive Cohort',
-    'Learn how to work with data, uncover meaningful insights, build predictive models, and apply machine learning to real-world problems. This practical 18-week course takes learners from data analysis fundamentals through machine learning workflows, model evaluation, and portfolio-ready projects.',
+    150000.00,
+    15000000,
+    '16 weeks',
+    'Beginner to Professional',
+    '2026 Flagship Track • ₦150,000',
+    'Master Python, R, statistical modeling, supervised/unsupervised ML algorithms, model evaluation, and deployment.',
     'published'
   ),
   (
@@ -95,7 +143,7 @@ INSERT INTO courses (
     2500000,
     '4 Weeks',
     'All Levels',
-    'Cohort 1.0 Master Track • ₦25,000',
+    'Cohort 1.0 Track • ₦25,000',
     'A step-by-step masterclass on positioning yourself, packaging your digital & AI skills, finding high-paying clients, writing proposals that win, outreach workflows, and building a sustainable freelance business.',
     'published'
   ),
@@ -120,7 +168,7 @@ INSERT INTO courses (
     'Full Lifetime Access',
     'All Levels',
     'Flagship 5-in-1 Bundle • Save 72%',
-    'One purchase unlocks all five Cohort 1.0 masterclass tracks: AI Content Creation, AI Automation, AI Web Development (Full Stack Vibe Coding), Client Acquisition & Freelancing, and PDF Automation & Digital Products with full Telegram community access and resources.',
+    'One purchase unlocks all five Cohort 1.0 masterclass tracks: AI Content Creation, AI Automation, AI Web Development (Full Stack Vibe Coding), Client Acquisition & Freelancing, and PDF Automation & Digital Products.',
     'published'
   )
 ON CONFLICT (id) DO UPDATE SET

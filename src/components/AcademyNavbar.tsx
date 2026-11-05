@@ -9,7 +9,7 @@ import {
   ArrowRight,
   ExternalLink,
   MessageSquare,
-  Sparkles,
+  Layers,
   Bot,
   Send
 } from 'lucide-react';
@@ -230,7 +230,7 @@ export function AcademyNavbar({
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#000048] border-t border-[#480878]/50 px-4 pt-4 pb-6 space-y-3 animate-in slide-in-from-top-3 duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
-            <span className="font-mono text-[11px] text-emerald-300 bg-white/10 px-2 py-0.5 rounded-md">
+            <span className="font-mono text-[11px] text-purple-200">
               {BRAND_CONFIG.cleanAcademyDomain}
             </span>
             <CurrencySwitcher />
@@ -269,8 +269,8 @@ export function AcademyNavbar({
               className="w-full p-2.5 rounded-xl text-left font-bold text-white bg-purple-950/70 border border-purple-500/40 flex items-center justify-between shadow-xs"
             >
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Cohort 1.0 Master Vault (4 Tracks)</span>
+                <Layers className="w-4 h-4 text-amber-400" />
+                <span>Cohort 1.0 Master Vault (5-in-1)</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
             </button>

@@ -28,8 +28,39 @@ function resolveCourseId(slugOrId: string): string {
   // Direct match
   if (COURSE_PRICING[clean]) return clean;
 
-  // Slugs to IDs mapping
   const mapping: Record<string, string> = {
+    // 2026 Active Curriculum Courses
+    'course-ai-automation-c2': 'course-ai-automation-c2',
+    'ai-automation-digital-literacy': 'course-ai-automation-c2',
+    'ai-automation-c2': 'course-ai-automation-c2',
+
+    'course-va-setter-c2': 'course-va-setter-c2',
+    'virtual-assistance-appointment-setter': 'course-va-setter-c2',
+    'va-setter-c2': 'course-va-setter-c2',
+
+    'course-web-dev-c2': 'course-web-dev-c2',
+    'ai-web-development-vibe-coding': 'course-web-dev-c2',
+    'web-dev-c2': 'course-web-dev-c2',
+
+    'course-content-creation-c2': 'course-content-creation-c2',
+    'ai-content-creation-media': 'course-content-creation-c2',
+    'content-creation-c2': 'course-content-creation-c2',
+
+    'course-data-science-ml-c2': 'course-data-science-ml-c2',
+    'machine-learning-data-science': 'course-data-science-ml-c2',
+    'data-science-ml-c2': 'course-data-science-ml-c2',
+
+    'course-data-analysis-c2': 'course-data-analysis-cohort',
+    'data-analysis-cohort': 'course-data-analysis-cohort',
+    'course-data-analysis-cohort': 'course-data-analysis-cohort',
+
+    // Cohort 1.0 Master Vault (Preserved)
+    'cohort-1': 'course-cohort-1-master-bundle',
+    'cohort-1-master-bundle': 'course-cohort-1-master-bundle',
+    'cohort-1-bundle': 'course-cohort-1-master-bundle',
+    'bundle': 'course-cohort-1-master-bundle',
+
+    // Legacy Course Aliases
     'ai-content-creation': 'course-ai-image-short-videos-creation',
     'track-content-creation': 'course-ai-image-short-videos-creation',
     'ai-image-short-videos-creation': 'course-ai-image-short-videos-creation',
@@ -49,14 +80,6 @@ function resolveCourseId(slugOrId: string): string {
     'client-acquisition': 'course-client-acquisition-freelancing',
     'track-client-acquisition': 'course-client-acquisition-freelancing',
     'client-acquisition-freelancing': 'course-client-acquisition-freelancing',
-
-    'cohort-1': 'course-cohort-1-master-bundle',
-    'cohort-1-master-bundle': 'course-cohort-1-master-bundle',
-    'cohort-1-bundle': 'course-cohort-1-master-bundle',
-    'bundle': 'course-cohort-1-master-bundle',
-
-    'data-analysis-cohort': 'course-data-analysis-cohort',
-    'machine-learning-data-science': 'course-machine-learning-data-science',
   };
 
   return mapping[clean] || clean;
