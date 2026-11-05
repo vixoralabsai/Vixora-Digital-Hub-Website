@@ -138,7 +138,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
         readTime: "5 min read",
         author: "Vixora AI Architecture Lab",
         authorRole: "Technical Solutions Team",
-        excerpt: "How leading brands resolve 70% of inbound customer queries instantly while maintaining 99.4% customer satisfaction ratings.",
+        excerpt: "How leading brands resolve 70% of inbound customer queries instantly while maintaining verified customer satisfaction ratings.",
         keyTakeaways: [
           "Sentiment anomaly detection allows the system to instantly escalate frustrated clients to human managers.",
           "Pre-computed contextual summaries save human agents 4-5 minutes per support ticket.",

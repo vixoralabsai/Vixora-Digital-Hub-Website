@@ -75,24 +75,23 @@ export const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
               </div>
 
               {/* Trust & Proof Strip */}
-              <div className="pt-4 border-t-2 border-[#1A1D4F]/10 flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-slate-700 font-semibold">
+              <div className="pt-4 border-t border-purple-900/40 flex flex-wrap items-center gap-y-3 gap-x-6 text-xs font-semibold">
                 <div className="flex items-center gap-1">
                   <div className="flex text-[#FFC107]">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4" />
+                      <Star key={i} className="w-4 h-4 fill-current" />
                     ))}
                   </div>
-                  <span className="font-black text-[#1A1D4F] ml-1">4.9/5 Rating</span>
+                  <span className="font-black text-white ml-1">5.0 Rating</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    <div className="w-7 h-7 rounded-full border-2 border-white bg-[#5B5FED] text-white flex items-center justify-center font-bold text-[10px]">OM</div>
-                    <div className="w-7 h-7 rounded-full border-2 border-white bg-[#FF8A65] text-white flex items-center justify-center font-bold text-[10px]">TA</div>
-                    <div className="w-7 h-7 rounded-full border-2 border-white bg-[#10B981] text-white flex items-center justify-center font-bold text-[10px]">CK</div>
-                    <div className="w-7 h-7 rounded-full border-2 border-white bg-[#FFC107] text-[#1A1D4F] flex items-center justify-center font-bold text-[10px]">+1k</div>
+                    <div className="w-7 h-7 rounded-full border-2 border-[#0F1535] bg-[#5B5FED] text-white flex items-center justify-center font-bold text-[10px]">DO</div>
+                    <div className="w-7 h-7 rounded-full border-2 border-[#0F1535] bg-[#FF8A65] text-white flex items-center justify-center font-bold text-[10px]">AC</div>
+                    <div className="w-7 h-7 rounded-full border-2 border-[#0F1535] bg-[#10B981] text-white flex items-center justify-center font-bold text-[10px]">SJ</div>
                   </div>
-                  <span className="font-semibold text-[#1A1D4F]">1,200+ Graduates</span>
+                  <span className="font-semibold text-purple-200">Verified Paid Enrollees</span>
                 </div>
 
                 <div className="flex items-center gap-1.5 font-bold text-[#10B981]">

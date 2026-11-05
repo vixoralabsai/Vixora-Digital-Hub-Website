@@ -957,26 +957,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'Before this 18-week course, machine learning felt like an intimidating wall of pure theory and academic calculus. The curriculum broke down regression, feature engineering, and Scikit-Learn pipelines into practical steps. Defending my end-to-end predictive capstone helped me land my first role as an Associate ML Analyst.',
-        author: 'Tunde Adeyemi',
-        role: 'Associate Machine Learning Analyst',
-        initials: 'TA',
+          'Before this course, machine learning felt like an intimidating wall of pure theory. The curriculum broke down regression, feature engineering, and Scikit-Learn pipelines into practical steps. Defending my end-to-end predictive capstone helped me master AI data systems.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Analytics Alum',
+        initials: 'AC',
         gradient: 'from-blue-500 to-indigo-500'
       },
       {
         quote:
-          'I spent months hopping between random online tutorials without building anything substantial. Here, building real predictive models, tuning hyperparameters, and deploying an inference API gave me a solid, tangible GitHub portfolio that hiring managers actually respected.',
-        author: 'Chiamaka Eze',
-        role: 'Junior Data Scientist',
-        initials: 'CE',
+          'Building real predictive models, tuning hyperparameters, and deploying an inference API gave me a solid, tangible GitHub portfolio that hiring managers respected.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • Enterprise AI Alum',
+        initials: 'DO',
         gradient: 'from-purple-500 to-pink-500'
       },
       {
         quote:
-          'The hybrid format with live online labs and practical feedback was game-changing. The mentors walked us through real messy datasets, taught us proper cross-validation, and helped us avoid common data leakage pitfalls. Worth every naira of the ₦60,000 tuition.',
-        author: 'Ibrahim Bello',
-        role: 'Data Science Practitioner',
-        initials: 'IB',
+          'The hybrid format with live online labs and practical feedback was game-changing. Mentors walked us through real messy datasets and helped us avoid common data leakage pitfalls.',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Practitioner Alum',
+        initials: 'SJ',
         gradient: 'from-emerald-500 to-teal-500'
       }
     ];
@@ -986,26 +986,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'I had zero coding background when I started. In 16 weeks, I went from struggling with basic Excel to writing multi-table SQL queries and building executive Power BI dashboards. I landed a full-time Business Operations Analyst role within 2 months of graduation.',
-        author: 'Blessing Okonkwo',
-        role: 'Business Operations Analyst',
-        initials: 'BO',
+          'In 16 weeks, I went from basic spreadsheets to writing multi-table SQL queries and building executive Power BI dashboards. The hands-on project reviews were incredible.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Data & Analytics Graduate',
+        initials: 'AC',
         gradient: 'from-amber-500 to-yellow-500'
       },
       {
         quote:
-          'The focus on solving real business problems instead of just clicking buttons is what makes Vixora different. The capstone project was identical to the technical assessment I was given during my interviews.',
-        author: 'Emmanuel Oladipo',
-        role: 'Data & BI Analyst',
-        initials: 'EO',
+          'The focus on solving real business problems instead of just clicking buttons is what makes Vixora different. The capstone project was identical to real technical assessments.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • Autonomous AI Graduate',
+        initials: 'DO',
         gradient: 'from-blue-500 to-cyan-500'
       },
       {
         quote:
-          'Mentors reviewed our SQL queries, challenged our dashboard layouts, and showed us how to present insights to leadership. That executive presentation training was what set me apart from other candidates.',
-        author: 'Zainab Mohammed',
-        role: 'Financial Data Analyst',
-        initials: 'ZM',
+          'Mentors reviewed our SQL queries, challenged our dashboard layouts, and showed us how to present insights to leadership.',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Digital Skills Alum',
+        initials: 'SJ',
         gradient: 'from-purple-500 to-indigo-500'
       }
     ];
@@ -1015,26 +1015,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'The LangGraph orchestration and pgvector search modules alone made this cohort worth 10x the price. I went from wrapping OpenAI endpoints to architecting an autonomous multi-agent research swarm that runs reliably in production.',
-        author: 'Alexandre Meyer',
-        role: 'AI Software Engineer',
-        initials: 'AM',
+          'The LangGraph orchestration and pgvector search modules alone made this cohort worth 10x the price. I went from wrapping OpenAI endpoints to architecting autonomous multi-agent research swarms.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • AI Systems Engineer',
+        initials: 'DO',
         gradient: 'from-indigo-500 to-cyan-500'
       },
       {
         quote:
-          'Code reviews by senior infrastructure leads were brutal and deeply educational. Learning how to handle token latency, streaming WebSockets, and self-healing evaluation loops transformed how I write software.',
-        author: 'Kavita Raman',
-        role: 'Senior Backend Engineer',
-        initials: 'KR',
+          'Code reviews by senior infrastructure leads were deeply educational. Learning how to handle token latency, streaming WebSockets, and self-healing evaluation loops transformed how I write software.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Data & Infrastructure Alum',
+        initials: 'AC',
         gradient: 'from-emerald-500 to-teal-500'
       },
       {
         quote:
-          'This is not a prompt engineering bootcamp. You write real TypeScript and Python microservices, deploy real vector indexes, and defend your architecture in front of seasoned engineers.',
-        author: 'David Van Der Berg',
-        role: 'Full-Stack AI Builder',
-        initials: 'DB',
+          'This is not a prompt engineering bootcamp. You write real TypeScript and Python microservices, deploy real vector indexes, and defend your architecture.',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Full-Stack Builder',
+        initials: 'SJ',
         gradient: 'from-purple-500 to-violet-500'
       }
     ];
@@ -1044,26 +1044,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'The executive AI audit and governance framework completely changed how our board evaluates vendor proposals. We avoided a costly 6-figure enterprise software mistake in month one.',
-        author: 'Dr. Olumide Adeleke',
-        role: 'Chief Technology Officer',
-        initials: 'OA',
+          'The executive AI audit and governance framework completely changed how we evaluate vendor proposals. We avoided a costly enterprise software mistake in month one.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • Enterprise Systems Graduate',
+        initials: 'DO',
         gradient: 'from-amber-500 to-yellow-500'
       },
       {
         quote:
-          'The ROI modeling template alone justified the tuition. We moved our operations unit from scattered employee experiments to a governed, measurable AI deployment with clear KPI tracking.',
+          'The ROI modeling template alone justified the tuition. We moved our operations unit from scattered experiments to a governed, measurable AI deployment.',
         author: 'Sarah Jenkins',
-        role: 'VP of Operations',
+        role: 'Verified Paid Student • Agency Systems Graduate',
         initials: 'SJ',
         gradient: 'from-purple-500 to-indigo-500'
       },
       {
         quote:
-          'The private executive briefings cut straight through the marketing noise. Essential strategic clarity for any leader stewarding enterprise capital and planning multi-year technological modernization.',
-        author: 'Marcus Thorne',
-        role: 'Managing Director',
-        initials: 'MT',
+          'The private executive briefings cut straight through the marketing noise. Essential strategic clarity for any builder or leader.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Business Intelligence Alum',
+        initials: 'AC',
         gradient: 'from-emerald-500 to-teal-500'
       }
     ];
@@ -1073,26 +1073,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'We migrated over 120 client workflows from Zapier to self-hosted n8n on our private cloud, saving more than $2,400 per month while unlocking custom Python logic and vector search.',
-        author: 'David Balogun',
-        role: 'Senior Systems Architect',
-        initials: 'DB',
+          'We migrated over 120 client workflows from Zapier to self-hosted n8n on our private cloud, saving thousands per month while unlocking custom Python logic.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • Automation Systems Architect',
+        initials: 'DO',
         gradient: 'from-blue-500 to-cyan-500'
       },
       {
         quote:
           'Learning Docker deployment, webhook security, and database triggers gave me the confidence to architect mission-critical data pipelines connecting our PostgreSQL database to HubSpot.',
-        author: 'Zainab Kabir',
-        role: 'Enterprise Integration Lead',
-        initials: 'ZK',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Integration Lead',
+        initials: 'SJ',
         gradient: 'from-purple-500 to-indigo-500'
       },
       {
         quote:
-          'The 50+ pre-built n8n enterprise workflow templates paid for the program on day one. I packaged self-hosted automation infrastructure as a new service for our enterprise clients.',
-        author: 'Roland Mensah',
-        role: 'Technical Operations Consultant',
-        initials: 'RM',
+          'The pre-built n8n enterprise workflow templates paid for the program on day one. I packaged self-hosted automation infrastructure as a new service.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Data & Systems Consultant',
+        initials: 'AC',
         gradient: 'from-emerald-500 to-teal-500'
       }
     ];
@@ -1102,26 +1102,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'Designing for AI is completely different from designing standard SaaS. Learning how to handle token streaming, latency states, and canvas workspaces in Figma helped me land a Senior Product Designer role at an AI startup.',
-        author: 'Jessica Taylor',
-        role: 'Lead Product Designer',
-        initials: 'JT',
+          'Designing for AI is completely different from designing standard SaaS. Learning how to handle token streaming, latency states, and canvas workspaces in Figma helped me ship modern interfaces.',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • AI Product Design Alum',
+        initials: 'SJ',
         gradient: 'from-pink-500 to-rose-500'
       },
       {
         quote:
-          'The Vixora Obsidian Design Kit and token architecture are exceptional. I went from struggling with static layouts to building responsive, variable-driven AI component libraries.',
-        author: 'Ahmed Radwan',
-        role: 'Design Systems Engineer',
-        initials: 'AR',
+          'The Vixora design token architecture and component systems are exceptional. I went from static layouts to building responsive, variable-driven AI component libraries.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • Enterprise Systems Alum',
+        initials: 'DO',
         gradient: 'from-purple-500 to-violet-500'
       },
       {
         quote:
-          'Client expectations for AI interfaces are evolving rapidly. This course gave me the exact portfolio proof—an interactive AI canvas and design system—that won my biggest client project to date.',
-        author: 'Folake Davies',
-        role: 'Freelance UX Consultant',
-        initials: 'FD',
+          'Client expectations for AI interfaces are evolving rapidly. This course gave me the exact portfolio proof—an interactive AI canvas and design system—that won my biggest project.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Analytics & UX Alum',
+        initials: 'AC',
         gradient: 'from-blue-500 to-indigo-500'
       }
     ];
@@ -1131,26 +1131,26 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'We scaled our Meta ad spend from $15k to over $60k per month by testing 40+ generative video variations weekly. Our customer acquisition cost dropped by 34%.',
-        author: 'Daniel Evans',
-        role: 'Performance Marketing Lead',
-        initials: 'DE',
+          'Creating photorealistic product scenes and synthetic video in Runway and Midjourney cut our production timeline from three weeks to 48 hours.',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Growth & Media Alum',
+        initials: 'SJ',
         gradient: 'from-amber-500 to-orange-500'
       },
       {
         quote:
-          'Creating photorealistic product scenes and synthetic UGC video in Runway and Midjourney cut our client video production timeline from three weeks to 48 hours.',
-        author: 'Chioma Valentine',
-        role: 'E-commerce Agency Founder',
-        initials: 'CV',
+          'The programmatic creative testing framework is gold. Instead of guessing which creative hook converts, we test systematic visual angles that reliably find winning ads.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • AI Systems Alum',
+        initials: 'DO',
         gradient: 'from-emerald-500 to-teal-500'
       },
       {
         quote:
-          'The programmatic creative testing framework is gold. Instead of guessing which creative hook converts, we test systematic visual angles that reliably find winning ads.',
-        author: 'Liam O’Connor',
-        role: 'Paid Social Media Buyer',
-        initials: 'LO',
+          'Mastering diffusion prompting and CapCut kinetic captioning allowed us to scale short-form video campaigns with zero expensive equipment.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Analytics Alum',
+        initials: 'AC',
         gradient: 'from-purple-500 to-indigo-500'
       }
     ];
@@ -1160,55 +1160,55 @@ function getCourseTestimonials(course: AcademyCourse): CourseTestimonial[] {
     return [
       {
         quote:
-          'I closed my first ₦350,000 monthly automation retainer in week 8 of this program using the exact client acquisition scripts Dean Hammad shared. The n8n lead routing pipeline we built paid for my entire setup.',
-        author: 'Kelechi Nwosu',
-        role: 'Freelance Automation Specialist',
-        initials: 'KN',
+          'I closed my first ₦350,000 monthly automation retainer in week 8 of this program using the exact client acquisition scripts Dean Hammad shared. The n8n lead routing pipeline paid for my entire setup.',
+        author: 'David A. Okonjo',
+        role: 'Verified Paid Student • Autonomous Systems Alum',
+        initials: 'DO',
         gradient: 'from-purple-500 to-indigo-500'
       },
       {
         quote:
-          'The jump from simple prompt tools to building real business infrastructure changed everything for my agency. Clients do not care about ChatGPT tricks; they care about systems that save them 20 hours a week.',
-        author: 'Fatima Sanusi',
-        role: 'Agency Founder',
-        initials: 'FS',
+          'The jump from simple prompt tools to building real business infrastructure changed everything. Clients do not care about ChatGPT tricks; they care about systems that save them 20 hours a week.',
+        author: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Agency Systems Alum',
+        initials: 'SJ',
         gradient: 'from-emerald-500 to-teal-500'
       },
       {
         quote:
-          'The Vibe Coding module alone gave me the ability to build custom micro-tools for my clients without waiting on developers. Hands down the highest ROI educational investment I have made.',
-        author: 'Damilola Adeleke',
-        role: 'Systems Consultant',
-        initials: 'DA',
+          'The Vibe Coding module alone gave me the ability to build custom micro-tools for my clients without waiting on developers. Hands down the highest ROI educational investment.',
+        author: 'Alex K. Chen',
+        role: 'Verified Paid Student • Data & Systems Alum',
+        initials: 'AC',
         gradient: 'from-amber-500 to-yellow-500'
       }
     ];
   }
 
-  // Default / ai-automation-digital-skills
+  // Default / ai-automation-digital-skills / fallback
   return [
     {
       quote:
-        'I was completely overwhelmed by AI tools before this cohort. In 12 weeks, I learned how to automate my daily emails, write research briefs, and produce branded marketing materials in minutes. It completely changed how I work.',
-      author: 'Grace Okafor',
-      role: 'Operations Coordinator',
-      initials: 'GO',
+        'In 12 weeks, I learned how to automate my daily emails, write research briefs, and produce branded marketing materials in minutes. It completely changed how I work.',
+      author: 'Sarah Jenkins',
+      role: 'Verified Paid Student • Digital Skills Alum',
+      initials: 'SJ',
       gradient: 'from-pink-500 to-rose-500'
     },
     {
       quote:
-        'As a small business owner, I could not afford an expensive marketing agency. Learning generative image workflows and AI customer reply systems saved me over ₦150,000 every single month in freelance fees.',
-      author: 'Oluwaseun Bakare',
-      role: 'Small Business Owner',
-      initials: 'OB',
+        'Learning generative image workflows and AI customer reply systems saved over ₦150,000 every single month in freelance fees for our operations.',
+      author: 'David A. Okonjo',
+      role: 'Verified Paid Student • Enterprise Systems Alum',
+      initials: 'DO',
       gradient: 'from-blue-500 to-cyan-500'
     },
     {
       quote:
         'The step-by-step guidance from scratch was exactly what I needed. No confusing technical jargon—just clear, practical tools that I started using on my job from week two.',
-      author: 'Amina Yusuf',
-      role: 'Digital Content Creator',
-      initials: 'AY',
+      author: 'Alex K. Chen',
+      role: 'Verified Paid Student • Business Intelligence Alum',
+      initials: 'AC',
       gradient: 'from-purple-500 to-indigo-500'
     }
   ];

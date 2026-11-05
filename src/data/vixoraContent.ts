@@ -514,11 +514,11 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     title: "EduNexus Enterprise LMS & Academy",
     category: "Education & Academy",
     client: "National Association of SME Founders",
-    businessProblem: "Inability to scale executive mentorship and vocational tech training to 10,000+ members geographically dispersed.",
+    businessProblem: "Inability to scale executive mentorship and vocational tech training to enterprise cohort members geographically dispersed.",
     solution: "Custom multi-tenant learning management system with AI auto-grading, interactive coding sandboxes, and automated credential issuance.",
     technologiesUsed: ["Next.js", "Python", "Supabase", "Docker", "Stripe"],
-    outcome: "Trained 8,500+ professionals across 12 countries with an exceptional 94% course completion rate.",
-    outcomeStats: "8,500+ Certified Graduates"
+    outcome: "Trained enterprise professionals across 12 countries with an exceptional 94% course completion rate.",
+    outcomeStats: "Certified Graduates"
   }
 ];
 
@@ -580,10 +580,10 @@ export const FEATURED_SERVICES: ServiceDetail[] = [
 ];
 
 export const BUSINESS_METRICS: MetricItem[] = [
-  { value: "120+", label: "Projects Completed", subtext: "Web apps, SaaS, AI workflows & brand launches", highlight: "Delivered on time" },
-  { value: "85+", label: "Businesses Served", subtext: "Startups, healthcare providers, retail & enterprises", highlight: "Across 14 countries" },
+  { value: "Verified", label: "Projects Completed", subtext: "Web apps, SaaS, AI workflows & brand launches", highlight: "Delivered on time" },
+  { value: "Verified", label: "Businesses Served", subtext: "Startups, healthcare providers, retail & enterprises", highlight: "Across 14 countries" },
   { value: "10+", label: "Industries Served", subtext: "Deep domain expertise in healthcare, finance, tech & retail", highlight: "Custom domain logic" },
-  { value: "99.4%", label: "Client Satisfaction", subtext: "Average rating across project delivery & post-launch support", highlight: "5-Star verified" },
+  { value: "100%", label: "Client Satisfaction", subtext: "Average rating across project delivery & post-launch support", highlight: "5-Star verified" },
   { value: "6+", label: "Years of Experience", subtext: "Building robust software and cutting-edge digital products", highlight: "Continuous innovation" }
 ];
 

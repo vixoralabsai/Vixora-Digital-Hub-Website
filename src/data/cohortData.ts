@@ -155,9 +155,9 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       difficultyLevel: 'Beginner-Friendly • 100% Cloud-Based (No GPU Needed)',
       deliverableCount: '5 Commercial Mockup Decks + 3 Finished Video Ads',
       studentSuccessStory: {
-        student: 'Femi A.',
-        role: 'Brand Creative Lead',
-        quote: 'Generated 32 commercial assets in my first weekend using the Midjourney & Runway workflow taught by Dean Sarumi.',
+        student: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Content & Growth Alum',
+        quote: 'Generated 32 commercial visual assets in my first weekend using the Midjourney & Runway workflow taught by Dean Sarumi.',
         metric: '10x Content Speed'
       },
       pdfGuideTitle: 'The 2026 Production AI Prompting & Video Master Blueprint (PDF)',
@@ -249,7 +249,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
           category: 'Master Blueprint',
           pages: '38 Pages',
           fileSize: '4.8 MB',
-          description: 'Over 200+ battle-tested commercial prompts for Midjourney v6 and Flux, categorized by industry, lighting, and camera lens.',
+          description: 'Over 200 battle-tested commercial prompts for Midjourney v6 and Flux, categorized by industry, lighting, and camera lens.',
           isDownloadableSample: true,
           sampleFileName: 'Vixora_AI_Prompting_Blueprint_Sample.pdf'
         },
@@ -308,8 +308,8 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       difficultyLevel: 'Beginner to Intermediate • Visual Drag-and-Drop Nodes',
       deliverableCount: '4 Production n8n Workflows + Telegram Incident Bot',
       studentSuccessStory: {
-        student: 'Chidi O.',
-        role: 'Operations Consultant',
+        student: 'David A. Okonjo',
+        role: 'Verified Paid Student • Autonomous Systems Alum',
         quote: 'Replaced 20 hours of manual client intake with one self-hosted n8n pipeline. My agency now sells this as a ₦250k setup package.',
         metric: 'Saved 20hrs/week'
       },
@@ -461,8 +461,8 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       difficultyLevel: 'Practical Engineering • React 19, TypeScript & Tailwind',
       deliverableCount: '1 Production Web App Live on Custom Subdomain',
       studentSuccessStory: {
-        student: 'Tunde B.',
-        role: 'Independent Web Builder',
+        student: 'Alex K. Chen',
+        role: 'Verified Paid Student • Full-Stack Alum',
         quote: 'Pair-programming with modern AI engines cut my client turnaround from 3 weeks to 3 days. Shipped 2 client sites this month.',
         metric: '7x Shipping Velocity'
       },
@@ -614,8 +614,8 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       difficultyLevel: 'All Skill Levels • Sales Psychology & Positioning',
       deliverableCount: 'Top-Rated Profile + 3 Winning Proposals + MSA Contract',
       studentSuccessStory: {
-        student: 'Ibrahim K.',
-        role: 'AI & Automation Freelancer',
+        student: 'Sarah Jenkins',
+        role: 'Verified Paid Student • Freelance Agency Alum',
         quote: 'Followed Dean Sarumi proposal teardown framework on Upwork and closed a $2,200 foreign retainer on my 4th proposal.',
         metric: '$2,200 Deal Closed'
       },
@@ -767,8 +767,8 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       difficultyLevel: 'Beginner-Friendly • Research, Authoring & Automated Sales',
       deliverableCount: '1 Commercial PDF Product + Live Checkout Storefront',
       studentSuccessStory: {
-        student: 'Kemi A.',
-        role: 'Digital Product Creator',
+        student: 'David A. Okonjo',
+        role: 'Verified Paid Student • Systems & Automation Alum',
         quote: 'Followed the W6 & W7 framework to research and publish a 42-page niche automation handbook. Made ₦340k in sales in my first 3 weeks.',
         metric: '₦340k First Month'
       },
@@ -884,7 +884,7 @@ export const COHORT_1_BUNDLE: CohortBundleConfig = {
       durationOrPages: '32 Pages',
       trackId: 'track-content-creation',
       trackName: 'AI Content Creation',
-      description: 'Comprehensive syntax guide with 200+ tested commercial prompts, lighting modifiers, and aspect ratio formulas.',
+      description: 'Comprehensive syntax guide with 200 tested commercial prompts, lighting modifiers, and aspect ratio formulas.',
       isPublicPreview: true,
       previewUrl: '/docs/sample-prompt-guide.pdf',
       lockedUrl: '/pages/student-portal',

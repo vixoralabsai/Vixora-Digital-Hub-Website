@@ -324,7 +324,7 @@ export function CohortBundlePage({
                 </p>
                 <div className="pt-1 flex items-center justify-between text-xs border-t border-white/10">
                   <span className="text-[11px] font-mono text-slate-300">Dean Sarumi Hammad • Active Daily</span>
-                  <span className="text-[11px] text-amber-300 font-bold">120+ Active Students</span>
+                  <span className="text-[11px] text-amber-300 font-bold">Verified Active Enrollees</span>
                 </div>
               </div>
 

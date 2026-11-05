@@ -795,7 +795,7 @@ export function CohortTrackSubpage({
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-400" />
-                  <span>120+ active student peer network</span>
+                  <span>Active student peer network</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-400" />

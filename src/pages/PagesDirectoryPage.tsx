@@ -39,7 +39,7 @@ export function PagesDirectoryPage({
       pageKey: "portfolio",
       badge: "Proven Work",
       icon: Briefcase,
-      description: "Explore 150+ shipped platforms, health-tech systems, SaaS backends, and AI automation case studies."
+      description: "Explore shipped platforms, health-tech systems, SaaS backends, and AI automation case studies."
     },
     {
       title: "Vixora Academy & Cohorts",
