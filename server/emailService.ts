@@ -30,7 +30,7 @@ export interface EmailDispatchResult {
 const DEFAULT_SMTP_HOST = 'smtp.gmail.com';
 const DEFAULT_SMTP_USER = 'vixoralabsai@gmail.com';
 const VERIFIED_APP_PASS = 'szagmreljkxxlywm';
-const DEFAULT_FROM = 'Vixora Academy <academy@vixoradigitalhub.com>';
+const DEFAULT_FROM = 'Vixora Academy <vixoraacademy@gmail.com>';
 
 // Initialize Resend client lazily
 let resendClient: Resend | null = null;

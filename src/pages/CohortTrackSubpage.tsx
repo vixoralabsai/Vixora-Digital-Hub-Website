@@ -47,6 +47,13 @@ import { BRAND_CONFIG, getWhatsAppUrl } from '../data/brandConfig';
 import { BankPaymentDetailsCard } from '../components/BankPaymentDetailsCard';
 import { WhatsAppContactButton } from '../components/WhatsAppContactButton';
 import { useCurrency } from '../context/CurrencyContext';
+import {
+  getCompletedSessionKeys,
+  isSessionCompleted,
+  toggleSessionCompletion,
+  clearTrackSessionProgress,
+  calculateTrackProgress
+} from '../utils/sessionProgress';
 
 interface CohortTrackSubpageProps {
   trackSlug?: string;
@@ -83,6 +90,7 @@ export function CohortTrackSubpage({
   const [downloadAlert, setDownloadAlert] = useState<string | null>(null);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
   const [showBankDetails, setShowBankDetails] = useState<boolean>(false);
+  const [completedSessions, setCompletedSessions] = useState<Set<string>>(() => getCompletedSessionKeys());
 
   // Video playback ref inside modal
   const modalVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -151,6 +159,26 @@ export function CohortTrackSubpage({
       telegramMessageRef: 'Archive Post #02'
     }
   ];
+
+  // Learning progress calculations & handlers
+  const trackProgress = calculateTrackProgress(completedSessions, track.slug, sessions);
+
+  const handleToggleSession = (sessionNumber: string) => {
+    const updated = toggleSessionCompletion(completedSessions, track.slug, sessionNumber);
+    setCompletedSessions(updated);
+    const isCompleted = isSessionCompleted(updated, track.slug, sessionNumber);
+    if (isCompleted) {
+      setDownloadAlert(`Marked ${sessionNumber} as completed! 🎉`);
+      setTimeout(() => setDownloadAlert(null), 3500);
+    }
+  };
+
+  const handleResetTrackProgress = () => {
+    const updated = clearTrackSessionProgress(completedSessions, track.slug);
+    setCompletedSessions(updated);
+    setDownloadAlert(`Reset progress for ${track.shortTitle}`);
+    setTimeout(() => setDownloadAlert(null), 3000);
+  };
 
   const pdfDownloads: TrackPdfResource[] = track.pdfDownloads || [
     {
@@ -464,9 +492,13 @@ export function CohortTrackSubpage({
             </div>
 
             <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
-              <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Live Sessions</div>
-              <div className="text-lg sm:text-xl font-black text-[#0F1535]">{sessions.length} Recorded</div>
-              <div className="text-[11px] text-slate-500 font-mono">HD Telegram Replays</div>
+              <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Track Progress</div>
+              <div className="text-lg sm:text-xl font-black text-[#0F1535]">
+                {trackProgress.completedCount} / {sessions.length} Completed
+              </div>
+              <div className="text-[11px] text-emerald-600 font-mono font-bold">
+                {trackProgress.isFullyCompleted ? '100% Completed 🎉' : `${trackProgress.percentage}% Finished`}
+              </div>
             </div>
 
             <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
@@ -507,98 +539,174 @@ export function CohortTrackSubpage({
           </div>
         </div>
 
+        {/* Learning Journey Interactive Progress Banner */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-purple-100 text-[#5B5FED]">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#0F1535]">
+                  Student Learning Journey Progress ({track.shortTitle})
+                </h3>
+                <p className="text-xs text-slate-500 font-mono">
+                  {trackProgress.completedCount} of {trackProgress.totalCount} sessions marked complete
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className={`text-xs font-mono px-3 py-1 rounded-full font-bold ${
+                trackProgress.isFullyCompleted
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  : trackProgress.completedCount > 0
+                  ? 'bg-purple-100 text-[#5B5FED] border border-purple-200'
+                  : 'bg-slate-100 text-slate-600'
+              }`}>
+                {trackProgress.isFullyCompleted ? 'Track Completed 🎉' : `${trackProgress.percentage}% Completed`}
+              </span>
+
+              {trackProgress.completedCount > 0 && (
+                <button
+                  onClick={handleResetTrackProgress}
+                  className="text-xs font-mono text-slate-400 hover:text-rose-600 underline cursor-pointer transition-colors"
+                >
+                  Reset Progress
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/80">
+            <div
+              className="bg-gradient-to-r from-[#5B5FED] via-purple-500 to-emerald-500 h-full transition-all duration-500 rounded-full"
+              style={{ width: `${trackProgress.percentage}%` }}
+            />
+          </div>
+        </div>
+
         {/* Sessions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sessions.map((session, idx) => (
-            <div
-              key={idx}
-              className={`rounded-2xl border transition-all p-5 sm:p-6 flex flex-col justify-between space-y-4 ${
-                session.isPreviewAvailable
-                  ? 'bg-white border-[#5B5FED]/40 shadow-lg shadow-purple-900/5 hover:border-[#5B5FED]'
-                  : 'bg-white/70 border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <div className="space-y-3">
-                
-                {/* Session Header */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono font-bold uppercase text-[#5B5FED] bg-purple-50 px-2.5 py-0.5 rounded border border-purple-200">
-                      {session.sessionNumber}
-                    </span>
-                    <span className="text-xs font-mono text-slate-500 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-slate-400" />
-                      {session.duration}
-                    </span>
-                  </div>
-
-                  {session.isPreviewAvailable ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      <Play className="w-3 h-3 fill-emerald-600" />
-                      Free Preview
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      <Lock className="w-3 h-3 text-slate-400" />
-                      Telegram Vault
-                    </span>
-                  )}
-                </div>
-
-                {/* Session Title */}
-                <h3 className="text-base sm:text-lg font-bold text-[#0F1535]">
-                  {session.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {session.description}
-                </p>
-
-                {/* Topics Covered */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Key Topics Covered:</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {session.topics.map((topic, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200/80"
-                      >
-                        {topic}
+          {sessions.map((session, idx) => {
+            const isCompleted = isSessionCompleted(completedSessions, track.slug, session.sessionNumber);
+            return (
+              <div
+                key={idx}
+                className={`rounded-2xl border transition-all p-5 sm:p-6 flex flex-col justify-between space-y-4 ${
+                  isCompleted
+                    ? 'bg-emerald-50/40 border-emerald-500/60 shadow-md shadow-emerald-900/5'
+                    : session.isPreviewAvailable
+                    ? 'bg-white border-[#5B5FED]/40 shadow-lg shadow-purple-900/5 hover:border-[#5B5FED]'
+                    : 'bg-white/70 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="space-y-3">
+                  
+                  {/* Session Header */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-mono font-bold uppercase text-[#5B5FED] bg-purple-50 px-2.5 py-0.5 rounded border border-purple-200">
+                        {session.sessionNumber}
                       </span>
-                    ))}
+                      <span className="text-xs font-mono text-slate-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        {session.duration}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isCompleted && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Done
+                        </span>
+                      )}
+
+                      {session.isPreviewAvailable ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          <Play className="w-3 h-3 fill-emerald-600" />
+                          Free Preview
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          <Lock className="w-3 h-3 text-slate-400" />
+                          Telegram Vault
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Session Title */}
+                  <h3 className="text-base sm:text-lg font-bold text-[#0F1535]">
+                    {session.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    {session.description}
+                  </p>
+
+                  {/* Topics Covered */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Key Topics Covered:</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {session.topics.map((topic, tIdx) => (
+                        <span
+                          key={tIdx}
+                          className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200/80"
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Action Button & Mark as Complete Toggle */}
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <button
+                    onClick={() => handleToggleSession(session.sessionNumber)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto ${
+                      isCompleted
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-[#0F1535] border border-slate-200'
+                    }`}
+                  >
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${isCompleted ? 'text-white fill-emerald-600' : 'text-slate-400'}`} />
+                    <span>{isCompleted ? 'Completed ✓' : 'Mark as Complete'}</span>
+                  </button>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-2">
+                    <span className="text-[10px] font-mono text-slate-400 hidden lg:inline">
+                      {session.telegramMessageRef || 'Vault Recording'}
+                    </span>
+
+                    {session.isPreviewAvailable ? (
+                      <button
+                        onClick={() => setActiveVideoModal(session)}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#5B5FED] hover:bg-[#480878] text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Play className="w-3 h-3 fill-white" />
+                        <span>Watch Preview</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onEnrollCourse(trackCourse)}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#5B5FED] bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        <Lock className="w-3 h-3" />
+                        <span>Unlock Full Video</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
               </div>
-
-              {/* Action Button */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] font-mono text-slate-400">
-                  {session.telegramMessageRef || 'Vault Recording'}
-                </span>
-
-                {session.isPreviewAvailable ? (
-                  <button
-                    onClick={() => setActiveVideoModal(session)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-[#5B5FED] hover:bg-[#480878] text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Play className="w-3 h-3 fill-white" />
-                    <span>Watch Preview</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onEnrollCourse(trackCourse)}
-                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#5B5FED] bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-all cursor-pointer flex items-center gap-1"
-                  >
-                    <Lock className="w-3 h-3" />
-                    <span>Unlock Full Video</span>
-                  </button>
-                )}
-              </div>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

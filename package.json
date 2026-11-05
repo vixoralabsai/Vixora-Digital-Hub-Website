@@ -12,7 +12,7 @@
     "lint": "tsc --noEmit",
     "db:migrate": "tsx server/migrations/runner.ts",
     "db:status": "tsx server/migrations/runner.ts --status",
-    "test": "tsx tests/paystack.test.ts && tsx tests/paystackFrontend.test.ts && tsx tests/authFocused.test.ts && tsx tests/aiAdvisor.test.ts && tsx tests/migrations.test.ts && tsx tests/telegramAccess.test.ts"
+    "test": "tsx tests/paystack.test.ts && tsx tests/paystackFrontend.test.ts && tsx tests/authFocused.test.ts && tsx tests/aiAdvisor.test.ts && tsx tests/migrations.test.ts && tsx tests/telegramAccess.test.ts && tsx tests/sessionProgress.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
