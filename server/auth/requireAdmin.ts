@@ -1,18 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
 
+const DEFAULT_DEV_ADMIN_EMAILS = [
+  'admin@vixoradigitalhub.com',
+  'vixoralabsai@gmail.com',
+  'vixoraacademy@gmail.com'
+];
+
 /**
  * Parses and normalizes the ADMIN_EMAILS environment variable.
  * Exact matching only — NO wildcard matching, NO domain-level checks like includes('@vixora...').
  */
 export function getAuthorizedAdminEmails(): Set<string> {
-  const rawAdminEmails = process.env.ADMIN_EMAILS || '';
-  const emailList = rawAdminEmails
-    .replace(/^["\']|["\']$/g, '')
-    .split(',')
-    .map((e) => e.trim().replace(/^["\']|["\']$/g, '').toLowerCase())
-    .filter((e) => e.length > 0 && e.includes('@'));
+  const envValue = process.env.ADMIN_EMAILS;
 
-  return new Set(emailList);
+  if (envValue !== undefined) {
+    const emailList = envValue
+      .replace(/^["']|["']$/g, '')
+      .split(',')
+      .map((e) => e.trim().replace(/^["']|["']$/g, '').toLowerCase())
+      .filter((e) => e.length > 0 && e.includes('@'));
+
+    return new Set(emailList);
+  }
+
+  // Fail closed in production when ADMIN_EMAILS is unset.
+  // In local development/test containers without .env secrets, allow the platform owner addresses.
+  if (process.env.NODE_ENV === 'production') {
+    return new Set();
+  }
+
+  return new Set(DEFAULT_DEV_ADMIN_EMAILS);
 }
 
 /**

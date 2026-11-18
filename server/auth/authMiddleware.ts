@@ -1,12 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
+import {
+  getPublicSupabaseClient,
+  shouldUseDevAdminFallback,
+  verifyAdminDevToken
+} from './adminSessionStore.js';
 import './authTypes.js';
 
 /**
  * requireAuthentication Middleware
- * Verifies Supabase Auth Bearer JWT token on the server.
+ * Verifies Supabase Auth Bearer JWT token on the server (or HMAC dev admin token in non-production when Supabase admin is unconfigured).
  * Rejects requests with missing or invalid tokens.
- * Extracts the verified user identity directly from Supabase auth.users.
  */
 export async function requireAuthentication(
   req: Request,
@@ -30,7 +34,26 @@ export async function requireAuthentication(
     });
   }
 
-  const supabase = getSupabaseAdmin();
+  // 1. In non-production when Supabase Admin is not configured, check HMAC-signed dev admin session tokens
+  if (shouldUseDevAdminFallback()) {
+    const devUser = verifyAdminDevToken(token);
+    if (devUser) {
+      req.user = {
+        id: devUser.id,
+        email: devUser.email,
+        role: devUser.role,
+        user_metadata: {
+          full_name: devUser.name,
+          name: devUser.name,
+          role: 'admin'
+        }
+      };
+      return next();
+    }
+  }
+
+  // 2. Verify with authoritative Supabase Admin client if available, or public Supabase Auth client
+  const supabase = getSupabaseAdmin() || getPublicSupabaseClient();
   if (!supabase) {
     return res.status(503).json({
       error: 'Authentication service unavailable. Supabase credentials are not configured.',

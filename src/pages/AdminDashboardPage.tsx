@@ -27,10 +27,12 @@ import {
   Building2,
   Terminal,
   Activity,
-  Calendar
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import {
   AdminSession,
+  adminLogout,
   getAdminSession,
   setAdminSession,
   fetchAdminOverview,
@@ -62,7 +64,7 @@ export function AdminDashboardPage({
   onNavigateToEnterpriseDashboard
 }: AdminDashboardPageProps) {
   const [session, setSession] = useState<AdminSession | null>(() => getAdminSession());
-  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'credentials' | 'outbox' | 'students' | 'system'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sales' | 'projects' | 'credentials' | 'outbox' | 'students' | 'rbac' | 'system'>('overview');
 
   // Overview data from API
   const [overviewData, setOverviewData] = useState<AdminOverviewResponse | null>(null);
@@ -99,6 +101,10 @@ export function AdminDashboardPage({
       const data = await fetchAdminOverview();
       if (data) {
         setOverviewData(data);
+      } else if (!getAdminSession()) {
+        // Token expired or invalidated (e.g. server restart) — return cleanly to login gate
+        setSession(null);
+        return;
       }
       const clientProjs = getSavedClientProjects();
       setProjects(clientProjs);
@@ -120,7 +126,7 @@ export function AdminDashboardPage({
 
   // Load students when switching to students tab
   useEffect(() => {
-    if (session && activeTab === 'students' && students.length === 0) {
+    if (session && activeTab === 'students') {
       setLoadingStudents(true);
       fetchAdminStudents()
         .then((res) => setStudents(res))
@@ -133,7 +139,8 @@ export function AdminDashboardPage({
     setAdminSession(newSession);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await adminLogout();
     setSession(null);
     setAdminSession(null);
   };
@@ -195,12 +202,14 @@ export function AdminDashboardPage({
 
   const filteredStudents = students.filter(
     (s) =>
-      (s.full_name || s.fullName || '').toLowerCase().includes(studentSearch.toLowerCase()) ||
-      (s.email || '').toLowerCase().includes(studentSearch.toLowerCase())
+      (s.name || s.full_name || s.fullName || '').toLowerCase().includes(studentSearch.toLowerCase()) ||
+      (s.email || '').toLowerCase().includes(studentSearch.toLowerCase()) ||
+      (s.course_title || '').toLowerCase().includes(studentSearch.toLowerCase())
   );
 
-  const activeProvider = overviewData?.metrics.activeProvider || 'resend';
-  const activeSender = overviewData?.metrics.activeSender || 'Vixora Academy <noreply@vixoradigitalhub.com>';
+  const activeProvider = overviewData?.metrics.activeProvider || 'none';
+  const activeSender = overviewData?.metrics.activeSender || 'Vixora Academy <vixoraacademy@gmail.com>';
+  const salesData = overviewData?.sales;
 
   return (
     <div className="pt-24 pb-24 min-h-screen bg-[#070314] text-neutral-100 selection:bg-purple-600 selection:text-white">
@@ -314,10 +323,17 @@ export function AdminDashboardPage({
           <div className="flex items-center gap-2 mt-6 pt-5 border-t border-purple-900/30 overflow-x-auto pb-1">
             {[
               { id: 'overview', label: 'Executive Overview', icon: LayoutDashboard },
+              {
+                id: 'sales',
+                label: 'Sales & Revenue',
+                icon: DollarSign,
+                badge: salesData ? salesData.verifiedPaymentsCount : undefined
+              },
               { id: 'projects', label: 'Agency Client Projects', icon: FolderKanban, badge: projects.length },
               { id: 'credentials', label: 'Certificate Directorate', icon: Award, badge: overviewData?.metrics.totalCertificates },
-              { id: 'outbox', label: 'Email Outbox & Resend', icon: Send, badge: overviewData?.recentEmailLogs.length },
+              { id: 'outbox', label: 'Email Outbox & Resend', icon: Send, badge: overviewData?.metrics.totalEmailDispatches },
               { id: 'students', label: 'Academy Students', icon: Users, badge: overviewData?.metrics.totalStudents },
+              { id: 'rbac', label: 'User Roles & RBAC', icon: ShieldCheck },
               { id: 'system', label: 'System & Security', icon: Server }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -394,8 +410,8 @@ export function AdminDashboardPage({
                   </div>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                    {overviewData?.metrics.totalCertificates ?? 3}
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono tabular-nums">
+                    {overviewData?.metrics.totalCertificates ?? 0}
                   </span>
                   <span className="text-xs font-mono text-amber-400">Verified &amp; Active</span>
                 </div>
@@ -421,10 +437,10 @@ export function AdminDashboardPage({
                   </div>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                    {overviewData?.metrics.totalStudents ?? 4}
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono tabular-nums">
+                    {overviewData?.metrics.totalStudents ?? 0}
                   </span>
-                  <span className="text-xs font-mono text-indigo-400">Active Cohort</span>
+                  <span className="text-xs font-mono text-indigo-400">Registered Profiles</span>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-3 border-t border-purple-900/20">
                   <span>Coursework Tracking</span>
@@ -448,13 +464,15 @@ export function AdminDashboardPage({
                   </div>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                    {overviewData?.recentEmailLogs.length ?? 0}
+                  <span className="text-3xl sm:text-4xl font-extrabold text-white font-mono tabular-nums">
+                    {overviewData?.metrics.totalEmailDispatches ?? overviewData?.recentEmailLogs.length ?? 0}
                   </span>
                   <span className="text-xs font-mono text-emerald-400">Logged &amp; Tracked</span>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-3 border-t border-purple-900/20">
-                  <span>Engine: {activeProvider === 'resend' ? 'Resend API' : 'SMTP'}</span>
+                  <span>
+                    Engine: {activeProvider === 'resend' ? 'Resend API' : activeProvider === 'smtp' ? 'SMTP' : 'Outbox Preview'}
+                  </span>
                   <button
                     onClick={() => setActiveTab('outbox')}
                     className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
@@ -479,8 +497,8 @@ export function AdminDashboardPage({
                       Live status of Vixora Digital Hub transactional microservices
                     </p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">
-                    All Systems Operational
+                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">
+                    Backend Connected
                   </span>
                 </div>
 
@@ -489,33 +507,39 @@ export function AdminDashboardPage({
                   <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <div className={`w-2 h-2 rounded-full ${overviewData?.emailConfig.hasResend ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                         <span className="text-xs font-bold text-white">Resend API Provider</span>
                       </div>
-                      <span className="text-[10px] font-mono text-emerald-400 font-semibold">Active Engine</span>
+                      <span className={`text-[10px] font-mono font-semibold ${overviewData?.emailConfig.hasResend ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {overviewData?.emailConfig.hasResend ? 'Active Engine' : 'Standby'}
+                      </span>
                     </div>
                     <p className="text-[11px] text-neutral-400 font-mono break-all">
                       Sender: {activeSender}
                     </p>
                     <div className="text-[10px] text-neutral-500 font-mono">
-                      Restricted Send Key &bull; Real PDF Attachment Streaming
+                      {overviewData?.emailConfig.hasResend
+                        ? 'Configured in server environment • Real PDF attachments'
+                        : 'Set RESEND_API_KEY in secrets for live API delivery'}
                     </div>
                   </div>
 
-                  {/* Service 2: Google Workspace SMTP Fallback */}
+                  {/* Service 2: SMTP Relay */}
                   <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span className="text-xs font-bold text-white">Google SMTP Relay</span>
+                        <div className={`w-2 h-2 rounded-full ${overviewData?.emailConfig.hasSmtp ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                        <span className="text-xs font-bold text-white">SMTP Failover Relay</span>
                       </div>
-                      <span className="text-[10px] font-mono text-emerald-400 font-semibold">Verified</span>
+                      <span className={`text-[10px] font-mono font-semibold ${overviewData?.emailConfig.hasSmtp ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {overviewData?.emailConfig.hasSmtp ? 'Connected' : 'Unconfigured'}
+                      </span>
                     </div>
                     <p className="text-[11px] text-neutral-400 font-mono">
-                      Host: smtp.gmail.com:465 &bull; Dual-Engine Failover
+                      Host: {overviewData?.emailConfig.smtpHost || 'Not configured'}
                     </p>
                     <div className="text-[10px] text-neutral-500 font-mono">
-                      Account: vixoralabsai@gmail.com
+                      Account: {overviewData?.emailConfig.smtpUser || 'Set SMTP_USER / SMTP_PASS'}
                     </div>
                   </div>
 
@@ -986,16 +1010,21 @@ export function AdminDashboardPage({
                       filteredStudents.map((st, idx) => (
                         <tr key={st.id || idx} className="hover:bg-purple-950/20 transition-colors">
                           <td className="py-3.5 px-4 font-bold text-white">
-                            {st.full_name || st.fullName || 'Student'}
+                            {st.name || st.full_name || st.fullName || 'Student'}
                           </td>
                           <td className="py-3.5 px-4 text-purple-300 font-mono">
                             {st.email}
                           </td>
                           <td className="py-3.5 px-4 text-neutral-300">
-                            {st.course_title || st.trackBadge || 'Autonomous AI Systems'}
+                            <div>{st.course_title || st.courses?.[0]?.title || 'No active track'}</div>
+                            {typeof st.coursesCount === 'number' && st.coursesCount > 1 && (
+                              <div className="text-[10px] text-purple-400 font-mono">
+                                +{st.coursesCount - 1} additional enrolled track(s)
+                              </div>
+                            )}
                           </td>
                           <td className="py-3.5 px-4 text-neutral-400">
-                            {st.enrolled_date || st.enrolledDate || 'September 2026'}
+                            {st.enrolledDate || st.enrolled_date || '—'}
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <button
@@ -1032,10 +1061,10 @@ export function AdminDashboardPage({
               <div className="border-b border-purple-900/30 pb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <Server className="w-5 h-5 text-purple-400" />
-                  System Diagnostics &amp; Secrets Matrix
+                  System Diagnostics &amp; Configuration Matrix
                 </h2>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Real-time configuration parameters running within the container
+                  Real-time configuration status reported by the backend server
                 </p>
               </div>
 
@@ -1044,47 +1073,63 @@ export function AdminDashboardPage({
                 <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-1.5 font-mono">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-neutral-400">RESEND_API_KEY</span>
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Injected &bull; Active
-                    </span>
+                    {overviewData?.emailConfig.hasResend ? (
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Configured &bull; Active
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-bold flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> Not Set in Env
+                      </span>
+                    )}
                   </div>
                   <div className="text-[11px] text-purple-300">
-                    re_SQMaafym_************************
+                    {overviewData?.emailConfig.hasResend
+                      ? 'Masked on server (API key active)'
+                      : 'Add RESEND_API_KEY in server secrets for API delivery'}
                   </div>
                   <div className="text-[10px] text-neutral-500">
-                    Restricted email dispatch capability configured in Settings &bull; Secrets
+                    Primary transactional provider: {overviewData?.emailConfig.primaryProvider || 'none'}
                   </div>
                 </div>
 
-                {/* RESEND_FROM */}
+                {/* SENDER / SMTP */}
                 <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-1.5 font-mono">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-400">RESEND_FROM</span>
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Custom Domain Live
-                    </span>
+                    <span className="text-neutral-400">EMAIL SENDER &amp; SMTP</span>
+                    {overviewData?.emailConfig.hasSmtp ? (
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> SMTP Active
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-bold flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" /> Standby
+                      </span>
+                    )}
                   </div>
-                  <div className="text-[11px] text-purple-300">
+                  <div className="text-[11px] text-purple-300 break-all">
                     {activeSender}
                   </div>
                   <div className="text-[10px] text-neutral-500">
-                    Verified sender matching domain DNS SPF / DKIM
+                    {overviewData?.emailConfig.smtpHost
+                      ? `Host: ${overviewData.emailConfig.smtpHost}`
+                      : 'Configure SMTP_HOST, SMTP_USER & SMTP_PASS for relay'}
                   </div>
                 </div>
 
                 {/* Database Tier */}
                 <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-1.5 font-mono">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-400">SUPABASE DATABASE</span>
+                    <span className="text-neutral-400">DATA STORAGE LAYER</span>
                     <span className="text-purple-400 font-bold flex items-center gap-1">
-                      <Database className="w-3.5 h-3.5" /> PostgreSQL
+                      <Database className="w-3.5 h-3.5" /> Live Query
                     </span>
                   </div>
                   <div className="text-[11px] text-neutral-300">
-                    {overviewData?.metrics.databaseTier || 'Supabase Cloud (PostgreSQL)'}
+                    {overviewData?.metrics.databaseTier || 'Detecting...'}
                   </div>
                   <div className="text-[10px] text-neutral-500">
-                    Stores certificates, students, courses, enrollments &amp; email logs
+                    Backs certificates, students, courses, enrollments, payments &amp; email logs
                   </div>
                 </div>
 
@@ -1096,8 +1141,8 @@ export function AdminDashboardPage({
                       <Zap className="w-3.5 h-3.5" /> Port 3000 Ingress
                     </span>
                   </div>
-                  <div className="text-[11px] text-neutral-300">
-                    Server Uptime: {overviewData?.metrics.serverUptimeSec ?? 120} seconds
+                  <div className="text-[11px] text-neutral-300 tabular-nums">
+                    Server Uptime: {overviewData?.metrics.serverUptimeSec ?? 0} seconds
                   </div>
                   <div className="text-[10px] text-neutral-500">
                     Node.js Express 4 &bull; Vite SPA Reverse Proxy
@@ -1107,6 +1152,391 @@ export function AdminDashboardPage({
             </div>
           </div>
         )}
+
+        {/* =========================================================================
+            TAB 2: SALES & REVENUE LEDGER (LIVE BACKEND AGGREGATION)
+            ========================================================================= */}
+        {activeTab === 'sales' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Live Sales KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-emerald-400 uppercase tracking-wider">Verified Revenue (₦)</span>
+                  <div className="p-2.5 rounded-xl bg-emerald-950/80 text-emerald-400 border border-emerald-800/40">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                  ₦{(salesData?.totalRevenueNgn ?? 0).toLocaleString()}
+                </div>
+                <div className="text-[11px] font-mono text-neutral-400">
+                  {salesData?.verifiedPaymentsCount ?? 0} settled Paystack payment{(salesData?.verifiedPaymentsCount ?? 0) === 1 ? '' : 's'}
+                </div>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-purple-300 uppercase tracking-wider">Course Enrollments</span>
+                  <div className="p-2.5 rounded-xl bg-purple-950/80 text-purple-400 border border-purple-800/40">
+                    <Users className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                  {salesData?.totalEnrollmentsCount ?? 0}
+                </div>
+                <div className="text-[11px] font-mono text-neutral-400">
+                  Across {salesData?.courseBreakdown.length ?? 0} active curriculum tracks
+                </div>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-amber-300 uppercase tracking-wider">Pending / Failed</span>
+                  <div className="p-2.5 rounded-xl bg-amber-950/80 text-amber-400 border border-amber-800/40">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                  {salesData?.pendingPaymentsCount ?? 0} <span className="text-base font-normal text-neutral-400">/ {salesData?.failedPaymentsCount ?? 0}</span>
+                </div>
+                <div className="text-[11px] font-mono text-neutral-400">
+                  Pending vs failed or abandoned checkouts
+                </div>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-sky-300 uppercase tracking-wider">Checkout Success Rate</span>
+                  <div className="p-2.5 rounded-xl bg-sky-950/80 text-sky-400 border border-sky-800/40">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                  {salesData?.successRatePercent !== null && salesData?.successRatePercent !== undefined
+                    ? `${salesData.successRatePercent}%`
+                    : '—'}
+                </div>
+                <div className="text-[11px] font-mono text-neutral-400">
+                  {salesData?.totalTransactionsCount ?? 0} total recorded transaction{(salesData?.totalTransactionsCount ?? 0) === 1 ? '' : 's'}
+                </div>
+              </div>
+            </div>
+
+            {/* Course Sales Breakdown Table */}
+            <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-6">
+              <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-white">Course Revenue &amp; Enrollment Breakdown</h3>
+                  <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                    Live backend aggregation per canonical curriculum track
+                  </p>
+                </div>
+                <span className="text-xs font-mono px-3 py-1 rounded-lg bg-purple-900/40 text-purple-300 border border-purple-700/50">
+                  {overviewData?.metrics.databaseTier || 'Backend Ledger'}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-purple-900/40 text-neutral-400">
+                      <th className="py-3 px-4">Course Title</th>
+                      <th className="py-3 px-4">Approved Tuition</th>
+                      <th className="py-3 px-4">Enrollments</th>
+                      <th className="py-3 px-4">Verified Payments</th>
+                      <th className="py-3 px-4 text-right">Revenue (₦)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-purple-900/20 text-neutral-200 tabular-nums">
+                    {(salesData?.courseBreakdown || []).length > 0 ? (
+                      salesData!.courseBreakdown.map((course) => (
+                        <tr key={course.courseId} className="hover:bg-purple-950/20 transition-colors">
+                          <td className="py-3.5 px-4 font-bold text-white font-sans">{course.courseTitle}</td>
+                          <td className="py-3.5 px-4 text-neutral-300">
+                            {course.priceNgn !== null ? `₦${course.priceNgn.toLocaleString()}` : ''}
+                            {course.priceNgn !== null && course.priceUsd !== null ? ' / ' : ''}
+                            {course.priceUsd !== null ? `$${course.priceUsd.toLocaleString()}` : ''}
+                            {course.priceNgn === null && course.priceUsd === null ? course.tuitionDisplay : ''}
+                          </td>
+                          <td className="py-3.5 px-4">{course.enrolledStudents}</td>
+                          <td className="py-3.5 px-4">{course.verifiedPayments}</td>
+                          <td className="py-3.5 px-4 text-right text-emerald-400 font-bold">
+                            ₦{course.revenueNgn.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-neutral-500 font-sans">
+                          Click refresh to load live catalog &amp; revenue telemetry.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recent Paystack Transactions Ledger */}
+            <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-5">
+              <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-white">Recent Paystack Checkout Transactions</h3>
+                  <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                    Real-time verified, pending, and failed payment records
+                  </p>
+                </div>
+                <span className="text-xs font-mono text-neutral-400 tabular-nums">
+                  Showing {salesData?.recentPayments.length ?? 0} record{(salesData?.recentPayments.length ?? 0) === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-purple-900/40 text-neutral-400">
+                      <th className="py-3 px-4">Reference</th>
+                      <th className="py-3 px-4">Student</th>
+                      <th className="py-3 px-4">Course</th>
+                      <th className="py-3 px-4">Amount</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Fulfillment</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-purple-900/20 text-neutral-200 tabular-nums">
+                    {salesData?.recentPayments && salesData.recentPayments.length > 0 ? (
+                      salesData.recentPayments.map((tx) => (
+                        <tr key={tx.reference} className="hover:bg-purple-950/20 transition-colors">
+                          <td className="py-3.5 px-4 text-purple-300 font-semibold">{tx.reference}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-sans font-semibold text-white">{tx.customerName}</div>
+                            <div className="text-[11px] text-neutral-400">{tx.customerEmail}</div>
+                          </td>
+                          <td className="py-3.5 px-4 font-sans text-neutral-300 max-w-xs truncate">{tx.courseTitle}</td>
+                          <td className="py-3.5 px-4 text-white font-bold">
+                            ₦{tx.amount.toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                                tx.status === 'success'
+                                  ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-800/50'
+                                  : tx.status === 'pending'
+                                  ? 'bg-amber-950/70 text-amber-400 border border-amber-800/50'
+                                  : 'bg-rose-950/70 text-rose-400 border border-rose-800/50'
+                              }`}
+                            >
+                              {tx.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <span className="text-[11px] uppercase text-neutral-300">{tx.fulfillmentStatus}</span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-10 text-center text-neutral-500 font-sans">
+                          No Paystack checkout transactions recorded yet. Verified student payments will appear here automatically.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB 7: USER ROLES & RBAC (05. User Roles Specification)
+            ========================================================================= */}
+        {activeTab === 'rbac' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-purple-400" />
+                    Vixora Digital Hub &bull; 8-Tier User Roles &amp; Personas
+                  </h3>
+                  <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                    Official specification aligned with document 05. User Roles (August 2026)
+                  </p>
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-mono bg-purple-900/40 text-purple-300 border border-purple-700/50">
+                  Strict Access Control
+                </span>
+              </div>
+
+              {/* Roles Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-purple-400 font-bold">01. Visitor</div>
+                  <div className="text-sm font-bold text-white">Unauthenticated</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Generic website visitor. Can view public pages, submit contact forms, read blog posts, and view case studies.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-purple-400 font-bold">02. Subscriber</div>
+                  <div className="text-sm font-bold text-white">Newsletter Opt-In</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Visitor who opted into the email newsletter list. Receives marketing emails and manages subscription preferences.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-purple-400 font-bold">03. Contact Submitter</div>
+                  <div className="text-sm font-bold text-white">Inquiry Form Sender</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Submitted project inquiry form, received confirmation email, and awaits sales team follow-up.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-purple-400 font-bold">04. Academy Inquiry</div>
+                  <div className="text-sm font-bold text-white">Bootcamp Prospect</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Prospect interested in Academy enrollment. Can view landing page and submit enrollment inquiries.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-purple-400 font-bold">05. Blog Commenter</div>
+                  <div className="text-sm font-bold text-white">Community Engagement</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Future role for users commenting on blog posts, replying to comments, and submitting for moderation.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-emerald-400 font-bold">06. Admin / Manager</div>
+                  <div className="text-sm font-bold text-white">Content &amp; Inquiries</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Vixora team member managing website content, testimonials, portfolio items, and form submissions. (No financial/security access).
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-amber-400 font-bold">07. Super Admin</div>
+                  <div className="text-sm font-bold text-white">Full System Access</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Senior team member with full server, database, security configuration, and user management privileges (requires 2FA).
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-950/70 border border-purple-900/30 space-y-2">
+                  <div className="text-xs font-mono text-sky-400 font-bold">08. Analyst</div>
+                  <div className="text-sm font-bold text-white">KPI &amp; Traffic Reports</div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Future role viewing analytics dashboards, conversion funnels, and anonymized form submission metrics.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Permission Matrix Table */}
+            <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-6">
+              <div className="border-b border-purple-900/30 pb-4">
+                <h3 className="text-base font-bold text-white">Official Permission Matrix</h3>
+                <p className="text-xs text-neutral-400 font-mono mt-0.5">Summary of action authorizations across user tiers</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-purple-900/40 text-neutral-400">
+                      <th className="py-3 px-4">Action</th>
+                      <th className="py-3 px-4 text-center">Visitor</th>
+                      <th className="py-3 px-4 text-center">Subscriber</th>
+                      <th className="py-3 px-4 text-center">Inquirer</th>
+                      <th className="py-3 px-4 text-center text-emerald-400">Admin</th>
+                      <th className="py-3 px-4 text-center text-amber-400">Super Admin</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-purple-900/20 text-neutral-200">
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">View public pages</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">Submit forms &amp; inquiries</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">View admin panel</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">Edit pages &amp; content</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">Delete system pages</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">Manage admin users &amp; accounts</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">View analytics &amp; submissions</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">Configure security &amp; 2FA</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3.5 px-4 font-semibold text-white">Database access &amp; migrations</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-red-400 font-bold">✕</td>
+                      <td className="py-3.5 px-4 text-center text-emerald-400 font-bold">✓</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* =========================================================================

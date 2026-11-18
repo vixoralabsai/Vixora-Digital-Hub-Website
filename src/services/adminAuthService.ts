@@ -31,8 +31,47 @@ export interface AdminOverviewMetrics {
   timestamp: string;
 }
 
+export interface AdminSalesCourseBreakdown {
+  courseId: string;
+  courseTitle: string;
+  tuitionDisplay: string;
+  priceNgn: number | null;
+  priceUsd: number | null;
+  enrolledStudents: number;
+  verifiedPayments: number;
+  revenueNgn: number;
+}
+
+export interface AdminSalesTransaction {
+  reference: string;
+  customerEmail: string;
+  customerName: string;
+  courseId: string;
+  courseTitle: string;
+  amount: number;
+  currency: string;
+  channel: string;
+  status: 'pending' | 'success' | 'failed' | 'abandoned' | string;
+  fulfillmentStatus: 'pending' | 'fulfilled' | 'failed' | string;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminSalesSummary {
+  totalRevenueNgn: number;
+  verifiedPaymentsCount: number;
+  pendingPaymentsCount: number;
+  failedPaymentsCount: number;
+  totalTransactionsCount: number;
+  totalEnrollmentsCount: number;
+  successRatePercent: number | null;
+  courseBreakdown: AdminSalesCourseBreakdown[];
+  recentPayments: AdminSalesTransaction[];
+}
+
 export interface AdminOverviewResponse {
   metrics: AdminOverviewMetrics;
+  sales?: AdminSalesSummary;
   emailConfig: {
     hasSmtp: boolean;
     hasResend: boolean;
@@ -93,87 +132,146 @@ export async function getAdminToken(): Promise<string | null> {
 }
 
 /**
- * Authenticate admin using Supabase Auth
+ * First-time Executive Admin setup / registration (server validates ADMIN_EMAILS allowlist)
+ */
+export async function adminRegister(
+  email: string,
+  password: string,
+  name?: string
+): Promise<{
+  success: boolean;
+  session?: AdminSession;
+  message?: string;
+  error?: string;
+  code?: string;
+}> {
+  try {
+    const cleanEmail = email.toLowerCase().trim();
+    const res = await fetch('/api/admin/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cleanEmail,
+        password,
+        name: name?.trim() || undefined
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || 'Unable to activate administrator account.',
+        code: data.code
+      };
+    }
+
+    if (data.token && data.user) {
+      const session: AdminSession = {
+        token: data.token,
+        user: data.user,
+        expiresAt: data.expiresAt || Date.now() + 3600 * 1000
+      };
+      setAdminSession(session);
+      return {
+        success: true,
+        session,
+        message: data.message
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || 'Administrator account created. Please sign in.'
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Network gateway error connecting to admin setup service.'
+    };
+  }
+}
+
+/**
+ * Authenticate admin using Supabase Auth or non-production local command auth
  */
 export async function adminLogin(email: string, password: string): Promise<{
   success: boolean;
   session?: AdminSession;
   error?: string;
+  code?: string;
 }> {
   try {
     const cleanEmail = email.toLowerCase().trim();
 
-    // 1. If client Supabase is initialized, authenticate directly with Supabase Auth
+    // 1. If client Supabase is initialized, attempt Supabase Auth first
     if (supabase) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password
       });
 
-      if (error || !data.session) {
-        return {
-          success: false,
-          error: error?.message || 'Invalid administrator credentials. Please check your credentials.'
-        };
-      }
+      if (!error && data.session) {
+        const token = data.session.access_token;
+        const user = data.user;
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0];
 
-      const token = data.session.access_token;
-      const user = data.user;
-      const name = user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0];
+        // Verify with backend /api/admin/me to enforce server-side ADMIN_EMAILS check
+        const verifyRes = await fetch('/api/admin/me', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-      // 2. Verify with backend /api/admin/me to enforce server-side ADMIN_EMAILS check
-      const verifyRes = await fetch('/api/admin/me', {
-        headers: {
-          Authorization: `Bearer ${token}`
+        if (!verifyRes.ok) {
+          await supabase.auth.signOut();
+          const errData = await verifyRes.json().catch(() => ({}));
+          return {
+            success: false,
+            error: errData.error || 'Access denied: account is not an authorized administrator.',
+            code: errData.code
+          };
         }
-      });
 
-      if (!verifyRes.ok) {
-        await supabase.auth.signOut();
-        const errData = await verifyRes.json().catch(() => ({}));
-        return {
-          success: false,
-          error: errData.error || 'Access denied: account is not an authorized administrator.'
+        const verifyData = await verifyRes.json();
+        const adminSession: AdminSession = {
+          token,
+          user: verifyData.user || {
+            id: user.id,
+            name,
+            email: cleanEmail,
+            role: 'Administrator',
+            title: 'Executive Administrator',
+            permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'manage_sales', 'system_config']
+          },
+          expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600 * 1000
         };
+
+        setAdminSession(adminSession);
+        return { success: true, session: adminSession };
       }
-
-      const verifyData = await verifyRes.json();
-      const adminSession: AdminSession = {
-        token,
-        user: verifyData.user || {
-          id: user.id,
-          name,
-          email: cleanEmail,
-          role: 'Administrator',
-          title: 'Executive Administrator',
-          permissions: ['manage_projects', 'issue_certificates', 'dispatch_emails', 'manage_students', 'system_config']
-        },
-        expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600 * 1000
-      };
-
-      setAdminSession(adminSession);
-      return { success: true, session: adminSession };
     }
 
-    // Fallback: Post to /api/admin/login which calls Supabase Auth server-side
+    // 2. Authenticate via /api/admin/login (handles server-side Supabase Auth & local dev command accounts)
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: cleanEmail, password })
     });
 
-    const resData = await res.json();
+    const resData = await res.json().catch(() => ({}));
     if (!res.ok || !resData.success) {
       return {
         success: false,
-        error: resData.error || 'Authentication failed. Please check your credentials.'
+        error: resData.error || 'Authentication failed. Please check your administrator credentials.',
+        code: resData.code
       };
     }
 
     const session: AdminSession = {
       token: resData.token,
       user: resData.user,
-      expiresAt: resData.expiresAt
+      expiresAt: resData.expiresAt || Date.now() + 3600 * 1000
     };
 
     setAdminSession(session);
@@ -223,6 +321,7 @@ export async function requestAdminPasswordReset(email: string): Promise<{
   message?: string;
   error?: string;
   hasOtp?: boolean;
+  devOtp?: string;
 }> {
   try {
     const cleanEmail = email.toLowerCase().trim();
@@ -251,7 +350,8 @@ export async function requestAdminPasswordReset(email: string): Promise<{
     return {
       success: true,
       message: data.message || `A password reset link and 6-digit code have been dispatched to ${cleanEmail}.`,
-      hasOtp: data.hasOtp
+      hasOtp: data.hasOtp,
+      devOtp: data.devOtp
     };
   } catch (err: any) {
     return {

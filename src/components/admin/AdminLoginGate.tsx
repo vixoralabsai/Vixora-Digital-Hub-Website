@@ -11,12 +11,14 @@ import {
   AlertCircle,
   Building2,
   ArrowLeft,
-  RotateCcw,
   Sparkles,
-  Check
+  Check,
+  UserPlus,
+  User
 } from 'lucide-react';
 import {
   adminLogin,
+  adminRegister,
   requestAdminPasswordReset,
   verifyAdminOtpAndResetPassword,
   updateAdminPasswordDirect,
@@ -30,19 +32,21 @@ interface AdminLoginGateProps {
   onNavigateToClientPortal?: () => void;
 }
 
-type GateMode = 'login' | 'forgot' | 'verify_otp' | 'recovery_direct' | 'success';
+type GateMode = 'login' | 'register' | 'forgot' | 'verify_otp' | 'recovery_direct' | 'success';
 
 export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClientPortal }: AdminLoginGateProps) {
   // Mode State
   const [mode, setMode] = useState<GateMode>('login');
 
   // Input States
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Recovery States
+  // Recovery / Register States
   const [otpCode, setOtpCode] = useState('');
+  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -50,6 +54,7 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
   // Status States
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState<number>(0);
 
@@ -89,11 +94,13 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Please provide both administrator email and password.');
+      setErrorCode(null);
       return;
     }
 
     setIsLoading(true);
     setErrorMessage(null);
+    setErrorCode(null);
     setSuccessMessage(null);
 
     const result = await adminLogin(email.trim(), password.trim());
@@ -103,6 +110,48 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
       onAuthenticated(result.session);
     } else {
       setErrorMessage(result.error || 'Authentication denied. Please check your administrator credentials.');
+      setErrorCode(result.code || null);
+    }
+  };
+
+  // First-Time Executive Admin Account Activation / Sign Up Submit
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setErrorMessage('Please enter a valid authorized administrator email.');
+      setErrorCode(null);
+      return;
+    }
+    if (!password || password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.');
+      setErrorCode(null);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('Password and confirmation do not match.');
+      setErrorCode(null);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+    setErrorCode(null);
+    setSuccessMessage(null);
+
+    const result = await adminRegister(cleanEmail, password, fullName.trim() || undefined);
+    setIsLoading(false);
+
+    if (result.success) {
+      if (result.session) {
+        onAuthenticated(result.session);
+      } else {
+        setSuccessMessage(result.message || 'Executive Admin account created. You may now sign in.');
+        setMode('login');
+      }
+    } else {
+      setErrorMessage(result.error || 'Unable to activate administrator account.');
+      setErrorCode(result.code || null);
     }
   };
 
@@ -117,13 +166,18 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
 
     setIsLoading(true);
     setErrorMessage(null);
+    setErrorCode(null);
     setSuccessMessage(null);
+    setDevOtpHint(null);
 
     const result = await requestAdminPasswordReset(cleanEmail);
     setIsLoading(false);
 
     if (result.success) {
       setSuccessMessage(result.message || `A secure password reset link and verification code have been dispatched to ${cleanEmail}.`);
+      if (result.devOtp) {
+        setDevOtpHint(result.devOtp);
+      }
       setCooldown(60);
       setMode('verify_otp');
     } else {
@@ -234,31 +288,89 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
         <div className="relative rounded-3xl bg-[#0e0724]/90 border border-purple-500/30 backdrop-blur-xl p-8 sm:p-10 shadow-2xl shadow-purple-950/60">
           
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <div className="inline-flex p-3 rounded-2xl bg-purple-900/40 border border-purple-500/40 text-purple-300 mb-4 shadow-inner shadow-purple-500/20">
               <ShieldCheck className="w-8 h-8 text-purple-400" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
-              {mode === 'login' && 'Enterprise Admin Portal'}
+              {mode === 'login' && 'Executive Admin Command'}
+              {mode === 'register' && 'Activate Admin Access'}
               {mode === 'forgot' && 'Reset Admin Password'}
               {mode === 'verify_otp' && 'Verify Security Code'}
               {mode === 'recovery_direct' && 'Set New Admin Password'}
               {mode === 'success' && 'Password Updated'}
             </h1>
             <p className="text-sm text-neutral-300">
-              {mode === 'login' && 'Vixora Digital Hub • Supabase Auth Protected'}
-              {mode === 'forgot' && 'Enter your authorized administrator email for a cryptographic reset link'}
-              {mode === 'verify_otp' && 'Enter the 6-digit code sent to your email to create a new password'}
-              {mode === 'recovery_direct' && 'Supabase recovery session verified. Choose your new password.'}
+              {mode === 'login' && 'Sign in to inspect live revenue, enrollments, and student telemetry'}
+              {mode === 'register' && 'Create credentials for an authorized Vixora administrator email'}
+              {mode === 'forgot' && 'Enter your authorized administrator email for a cryptographic reset code'}
+              {mode === 'verify_otp' && 'Enter the 6-digit code to create a new password'}
+              {mode === 'recovery_direct' && 'Recovery session verified. Choose your new password.'}
               {mode === 'success' && 'Your administrator credentials have been updated securely'}
             </p>
           </div>
 
+          {/* Primary Sign In / Create Admin Account Mode Switcher */}
+          {(mode === 'login' || mode === 'register') && (
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-neutral-950/70 border border-purple-900/40 mb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setErrorMessage(null);
+                  setErrorCode(null);
+                  setSuccessMessage(null);
+                }}
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  mode === 'login'
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-950/50'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setErrorMessage(null);
+                  setErrorCode(null);
+                  setSuccessMessage(null);
+                }}
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  mode === 'register'
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-950/50'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Create Admin Account</span>
+              </button>
+            </div>
+          )}
+
           {/* Feedback Alerts */}
           {errorMessage && (
-            <div className="mb-6 p-4 rounded-xl bg-rose-950/60 border border-rose-500/50 flex items-start gap-3 text-rose-200 text-xs">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <div>{errorMessage}</div>
+            <div className="mb-6 p-4 rounded-xl bg-rose-950/60 border border-rose-500/50 flex flex-col gap-2.5 text-rose-200 text-xs">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div>{errorMessage}</div>
+              </div>
+              {errorCode === 'ACCOUNT_NOT_ACTIVATED' && mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMessage(null);
+                    setErrorCode(null);
+                    setMode('register');
+                  }}
+                  className="self-start ml-7 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Set Up Admin Password Now &rarr;</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -266,6 +378,18 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
             <div className="mb-6 p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/50 flex items-start gap-3 text-emerald-200 text-xs">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>{successMessage}</div>
+            </div>
+          )}
+
+          {devOtpHint && mode === 'verify_otp' && (
+            <div className="mb-5 p-3.5 rounded-xl bg-amber-950/50 border border-amber-600/40 text-amber-200 text-xs font-mono">
+              <div className="text-[10px] uppercase tracking-wider text-amber-400 font-bold mb-1">
+                Local Development Verification Code
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Use 6-digit code:</span>
+                <span className="text-base font-bold tracking-widest text-white select-all">{devOtpHint}</span>
+              </div>
             </div>
           )}
 
@@ -285,7 +409,7 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@vixoradigitalhub.com"
+                    placeholder="vixoralabsai@gmail.com"
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-purple-950/30 border border-purple-800/40 text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono"
                   />
                 </div>
@@ -300,6 +424,7 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
                     type="button"
                     onClick={() => {
                       setErrorMessage(null);
+                      setErrorCode(null);
                       setSuccessMessage(null);
                       setMode('forgot');
                     }}
@@ -338,12 +463,118 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
                 {isLoading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Verifying Supabase Credentials...
+                    Verifying Credentials...
                   </>
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
                     Authorize Command Session
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* MODE 1B: CREATE / ACTIVATE EXECUTIVE ADMIN ACCOUNT */}
+          {mode === 'register' && (
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-mono font-medium text-purple-200 mb-1.5">
+                  Executive Name (Optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-purple-400/60">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Sarumi Hammad"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-purple-950/30 border border-purple-800/40 text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-medium text-purple-200 mb-1.5">
+                  Authorized Administrator Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-purple-400/60">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vixoralabsai@gmail.com"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-purple-950/30 border border-purple-800/40 text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 transition-all font-mono"
+                  />
+                </div>
+                <p className="mt-1.5 text-[11px] text-purple-300/70">
+                  Authorized emails: vixoralabsai@gmail.com, vixoraacademy@gmail.com, or configured ADMIN_EMAILS.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-medium text-purple-200 mb-1.5">
+                  Create Administrator Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-purple-400/60">
+                    <KeyRound className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-purple-950/30 border border-purple-800/40 text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-purple-400/60 hover:text-purple-300 cursor-pointer transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-medium text-purple-200 mb-1.5">
+                  Confirm Password
+                </label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-purple-950/30 border border-purple-800/40 text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 transition-all font-mono"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-purple-900/50 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Activating Command Center...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    Create Account &amp; Enter Dashboard
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </>
                 )}
