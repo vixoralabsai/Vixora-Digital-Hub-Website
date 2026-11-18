@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import express from 'express';
 import http from 'node:http';
+import { execFileSync } from 'node:child_process';
 import { getAuthorizedAdminEmails } from '../server/auth/requireAdmin.js';
 import {
   authenticateDevAdminAccount,
   clearDevAdminStoresForTesting,
   createDevOtp,
+  isSupabaseNetworkError,
   issueAdminDevToken,
   registerDevAdminAccount,
   verifyAdminDevToken,
@@ -49,10 +51,12 @@ async function main() {
       assert.equal(allowed.has('stranger@gmail.com'), false);
     });
 
-    await runTest('2. Explicit ADMIN_EMAILS overrides default list and production fails closed when unset', () => {
-      process.env.ADMIN_EMAILS = 'custom.ceo@vixora.test';
+    await runTest('2. Explicit ADMIN_EMAILS overrides default list cleanly across delimiters and production fails closed when unset', () => {
+      process.env.ADMIN_EMAILS = '"custom.ceo@vixora.test; ops@vixora.test\nlead@vixora.test"';
       const custom = getAuthorizedAdminEmails();
       assert.equal(custom.has('custom.ceo@vixora.test'), true);
+      assert.equal(custom.has('ops@vixora.test'), true);
+      assert.equal(custom.has('lead@vixora.test'), true);
       assert.equal(custom.has('vixoralabsai@gmail.com'), false);
 
       delete process.env.ADMIN_EMAILS;
@@ -90,6 +94,14 @@ async function main() {
       assert.equal(verifyDevOtp('vixoralabsai@gmail.com', otp), false, 'OTP must be single-use');
     });
 
+    await runTest('4. isSupabaseNetworkError identifies DNS/network outages cleanly and ignores auth rejections', () => {
+      assert.equal(isSupabaseNetworkError(new Error('TypeError: fetch failed')), true);
+      assert.equal(isSupabaseNetworkError({ message: 'fetch failed', details: 'ENOTFOUND xenjfszsppwqadgwzpxl.supabase.co' }), true);
+      assert.equal(isSupabaseNetworkError('ECONNREFUSED 127.0.0.1:5432'), true);
+      assert.equal(isSupabaseNetworkError('Invalid login credentials'), false);
+      assert.equal(isSupabaseNetworkError(null), false);
+    });
+
     // Spin up ephemeral Express app mounting portalRouter for live API integration checks
     clearDevAdminStoresForTesting();
     const app = express();
@@ -104,7 +116,7 @@ async function main() {
       const addr = server.address() as { port: number };
       const baseUrl = `http://127.0.0.1:${addr.port}`;
 
-      await runTest('4. POST /api/admin/setup rejects unauthorized email with 403', async () => {
+      await runTest('5. POST /api/admin/setup rejects unauthorized email with 403', async () => {
         const res = await fetch(`${baseUrl}/api/admin/setup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -120,7 +132,7 @@ async function main() {
 
       let authToken = '';
 
-      await runTest('5. POST /api/admin/setup activates authorized admin and grants Bearer session token', async () => {
+      await runTest('6. POST /api/admin/setup activates authorized admin and grants Bearer session token', async () => {
         const res = await fetch(`${baseUrl}/api/admin/setup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -138,7 +150,7 @@ async function main() {
         authToken = data.token;
       });
 
-      await runTest('6. POST /api/admin/login authenticates activated admin and GET /api/admin/me verifies session', async () => {
+      await runTest('7. POST /api/admin/login authenticates activated admin and GET /api/admin/me verifies session', async () => {
         const loginRes = await fetch(`${baseUrl}/api/admin/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -160,7 +172,7 @@ async function main() {
         assert.equal(meData.user.email, 'vixoralabsai@gmail.com');
       });
 
-      await runTest('7. GET /api/admin/overview reflects real payment revenue and student counts (no hardcoded fakes)', async () => {
+      await runTest('8. GET /api/admin/overview reflects real payment revenue and student counts (no hardcoded fakes)', async () => {
         const emptyRes = await fetch(`${baseUrl}/api/admin/overview`, {
           headers: { Authorization: `Bearer ${authToken}` }
         });
@@ -204,7 +216,7 @@ async function main() {
         assert.equal(liveData.sales.recentPayments[0].reference, 'VIX-PS-ADMIN-TEST-01');
       });
 
-      await runTest('8. GET /api/admin/students returns normalized student profiles and rejects unauthenticated requests', async () => {
+      await runTest('9. GET /api/admin/students returns normalized student profiles and rejects unauthenticated requests', async () => {
         const unauth = await fetch(`${baseUrl}/api/admin/students`);
         assert.equal(unauth.status, 401);
 
@@ -217,6 +229,97 @@ async function main() {
         assert.ok(data.students.length > 0);
         assert.ok(data.students[0].name);
         assert.ok(data.students[0].email);
+      });
+
+      await runTest('10. Unreachable SUPABASE_URL in development falls back cleanly across setup, login, overview, students, and OTP reset', () => {
+        const script = `
+          import assert from 'node:assert/strict';
+          import express from 'express';
+          import { portalRouter } from './server/studentPortalServer.js';
+          const app = express();
+          app.use(express.json());
+          app.use('/api', portalRouter);
+          const srv = await new Promise((resolve) => {
+            const s = app.listen(0, '127.0.0.1', () => resolve(s));
+          });
+          try {
+            const port = srv.address().port;
+            const base = 'http://127.0.0.1:' + port;
+
+            const setupRes = await fetch(base + '/api/admin/setup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: 'vixoralabsai@gmail.com', password: 'OfflinePass123!', name: 'Owner' })
+            });
+            const setupData = await setupRes.json();
+            assert.equal(setupRes.status, 200, 'setup status: ' + JSON.stringify(setupData));
+            assert.ok(setupData.token);
+
+            const ovRes = await fetch(base + '/api/admin/overview', {
+              headers: { Authorization: 'Bearer ' + setupData.token }
+            });
+            const ovData = await ovRes.json();
+            assert.equal(ovRes.status, 200, 'overview status: ' + JSON.stringify(ovData));
+            assert.ok(ovData.metrics);
+            assert.ok(ovData.sales);
+
+            const stRes = await fetch(base + '/api/admin/students', {
+              headers: { Authorization: 'Bearer ' + setupData.token }
+            });
+            const stData = await stRes.json();
+            assert.equal(stRes.status, 200);
+            assert.ok(Array.isArray(stData.students));
+
+            const certRes = await fetch(base + '/api/certificates/list', {
+              headers: { Authorization: 'Bearer ' + setupData.token }
+            });
+            const certData = await certRes.json();
+            assert.equal(certRes.status, 200);
+            assert.ok(Array.isArray(certData.certificates));
+
+            const fpRes = await fetch(base + '/api/auth/forgot-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: 'vixoralabsai@gmail.com', portal: 'admin' })
+            });
+            const fpData = await fpRes.json();
+            assert.equal(fpRes.status, 200);
+            assert.match(fpData.devOtp, /^\\d{6}$/);
+
+            const rpRes = await fetch(base + '/api/auth/reset-password-with-otp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: 'vixoralabsai@gmail.com', otp: fpData.devOtp, newPassword: 'NewOfflinePass123!' })
+            });
+            assert.equal(rpRes.status, 200);
+
+            const loginRes = await fetch(base + '/api/admin/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: 'vixoralabsai@gmail.com', password: 'NewOfflinePass123!' })
+            });
+            assert.equal(loginRes.status, 200);
+          } finally {
+            srv.close();
+          }
+        `;
+        execFileSync(
+          'npx',
+          ['tsx', '--input-type=module', '-e', script],
+          {
+            cwd: process.cwd(),
+            env: {
+              ...process.env,
+              NODE_ENV: 'development',
+              ADMIN_EMAILS: 'vixoralabsai@gmail.com',
+              SUPABASE_URL: 'http://127.0.0.1:1',
+              VITE_SUPABASE_URL: 'http://127.0.0.1:1',
+              VITE_SUPABASE_ANON_KEY: 'fake-anon-key',
+              SUPABASE_SERVICE_ROLE_KEY: 'fake-service-role-key'
+            },
+            stdio: 'pipe'
+          }
+        );
       });
     } finally {
       server.close();

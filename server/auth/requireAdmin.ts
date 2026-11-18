@@ -15,8 +15,9 @@ export function getAuthorizedAdminEmails(): Set<string> {
 
   if (envValue !== undefined) {
     const emailList = envValue
+      .trim()
       .replace(/^["']|["']$/g, '')
-      .split(',')
+      .split(/[,;\s]+/)
       .map((e) => e.trim().replace(/^["']|["']$/g, '').toLowerCase())
       .filter((e) => e.length > 0 && e.includes('@'));
 
@@ -53,6 +54,13 @@ export function requireAdmin(
   const verifiedEmail = req.user.email.toLowerCase().trim();
   const allowedAdmins = getAuthorizedAdminEmails();
 
+  if (allowedAdmins.size === 0) {
+    return res.status(403).json({
+      error: 'Administrator allowlist (ADMIN_EMAILS) is not configured on this server. Add your email to ADMIN_EMAILS in your hosting Secrets / Environment Variables and redeploy.',
+      code: 'FORBIDDEN_NOT_ADMIN'
+    });
+  }
+
   if (!allowedAdmins.has(verifiedEmail)) {
     return res.status(403).json({
       error: 'Access denied: verified account is not an authorized administrator.',
@@ -62,3 +70,4 @@ export function requireAdmin(
 
   next();
 }
+

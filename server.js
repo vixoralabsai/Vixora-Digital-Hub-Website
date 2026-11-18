@@ -1616,15 +1616,20 @@ function isProductionAuthEnvironment() {
   return process.env.NODE_ENV === "production";
 }
 function shouldUseDevAdminFallback() {
-  return !isProductionAuthEnvironment() && !isSupabaseConfigured();
+  return !isProductionAuthEnvironment();
+}
+function isSupabaseNetworkError(errOrMsg) {
+  if (!errOrMsg) return false;
+  const msg = typeof errOrMsg === "string" ? errOrMsg : String(errOrMsg?.message || errOrMsg?.details || errOrMsg);
+  const lower = msg.toLowerCase();
+  return lower.includes("fetch failed") || lower.includes("enotfound") || lower.includes("eai_again") || lower.includes("econnrefused") || lower.includes("etimedout") || lower.includes("und_err_") || lower.includes("could not resolve") || lower.includes("networkerror");
 }
 function sanitizeUrl(rawUrl2) {
   if (!rawUrl2) return "";
   return rawUrl2.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
 }
 var cachedPublicClient = null;
-function getPublicSupabaseClient() {
-  if (cachedPublicClient) return cachedPublicClient;
+function getPublicSupabaseConfig() {
   const rawUrl2 = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://xenjfszsppwqadgwzpxl.supabase.co";
   const rawAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "sb_publishable_8xjidcETDkXfYSZpQU7t_Q_su_Pmil4";
   const url = sanitizeUrl(rawUrl2);
@@ -1632,12 +1637,23 @@ function getPublicSupabaseClient() {
   if (!url || !anonKey) {
     return null;
   }
-  cachedPublicClient = createClient2(url, anonKey, {
+  return { url, anonKey };
+}
+function createEphemeralPublicSupabaseClient() {
+  const cfg = getPublicSupabaseConfig();
+  if (!cfg) return null;
+  return createClient2(cfg.url, cfg.anonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
   });
+}
+function getPublicSupabaseClient() {
+  if (cachedPublicClient) return cachedPublicClient;
+  const client = createEphemeralPublicSupabaseClient();
+  if (!client) return null;
+  cachedPublicClient = client;
   return cachedPublicClient;
 }
 function hashPasswordWithSalt(password, salt) {
@@ -1855,7 +1871,7 @@ var DEFAULT_DEV_ADMIN_EMAILS = [
 function getAuthorizedAdminEmails() {
   const envValue = process.env.ADMIN_EMAILS;
   if (envValue !== void 0) {
-    const emailList = envValue.replace(/^["']|["']$/g, "").split(",").map((e) => e.trim().replace(/^["']|["']$/g, "").toLowerCase()).filter((e) => e.length > 0 && e.includes("@"));
+    const emailList = envValue.trim().replace(/^["']|["']$/g, "").split(/[,;\s]+/).map((e) => e.trim().replace(/^["']|["']$/g, "").toLowerCase()).filter((e) => e.length > 0 && e.includes("@"));
     return new Set(emailList);
   }
   if (process.env.NODE_ENV === "production") {
@@ -1872,6 +1888,12 @@ function requireAdmin(req, res, next) {
   }
   const verifiedEmail = req.user.email.toLowerCase().trim();
   const allowedAdmins = getAuthorizedAdminEmails();
+  if (allowedAdmins.size === 0) {
+    return res.status(403).json({
+      error: "Administrator allowlist (ADMIN_EMAILS) is not configured on this server. Add your email to ADMIN_EMAILS in your hosting Secrets / Environment Variables and redeploy.",
+      code: "FORBIDDEN_NOT_ADMIN"
+    });
+  }
   if (!allowedAdmins.has(verifiedEmail)) {
     return res.status(403).json({
       error: "Access denied: verified account is not an authorized administrator.",
@@ -4339,16 +4361,22 @@ async function getCertificateById(id) {
   }
   const cleanId = id.toUpperCase().trim();
   const supabase = getSupabaseAdmin();
+  let useNetworkFallback = false;
   if (supabase) {
     try {
       const { data: certRow, error: certError } = await supabase.from("certificates").select("*").eq("id", cleanId).maybeSingle();
       if (certError) {
-        console.error(`[Supabase] Error querying certificate ${cleanId}:`, certError);
-        if (isProductionEnvironment() || isSupabaseConfigured()) {
-          throw new DatabaseServiceError(`Database query failed for certificate ${cleanId}`, "DATABASE_ERROR", 503);
+        if (!isProductionEnvironment() && isSupabaseNetworkError(certError)) {
+          console.warn(`[Supabase] Network unreachable querying certificate ${cleanId}; falling back to local cache in non-production.`);
+          useNetworkFallback = true;
+        } else {
+          console.error(`[Supabase] Error querying certificate ${cleanId}:`, certError);
+          if (isProductionEnvironment() || isSupabaseConfigured()) {
+            throw new DatabaseServiceError(`Database query failed for certificate ${cleanId}`, "DATABASE_ERROR", 503);
+          }
         }
       }
-      if (certRow) {
+      if (!useNetworkFallback && certRow) {
         const { data: compRows, error: compError } = await supabase.from("certificate_competencies").select("name").eq("certificate_id", cleanId);
         if (compError) {
           console.warn(`[Supabase] Warning reading competencies for ${cleanId}:`, compError);
@@ -4356,16 +4384,21 @@ async function getCertificateById(id) {
         const compList = (compRows || []).map((c) => c.name).filter(Boolean);
         return mapSupabaseCertificateToDomain(certRow, compList);
       }
-      if (isProductionEnvironment() || isSupabaseConfigured()) {
+      if (!useNetworkFallback && (isProductionEnvironment() || isSupabaseConfigured())) {
         return null;
       }
     } catch (err) {
       if (err instanceof DatabaseServiceError) {
         throw err;
       }
-      console.error(`[Supabase] Outage or connection failure querying certificate ${cleanId}:`, err);
-      if (isProductionEnvironment() || isSupabaseConfigured()) {
-        throw new DatabaseServiceError(`Database connection error while querying certificate ${cleanId}`, "DATABASE_UNAVAILABLE", 503);
+      if (!isProductionEnvironment() && isSupabaseNetworkError(err)) {
+        console.warn(`[Supabase] Network exception querying certificate ${cleanId}; falling back to local cache in non-production.`);
+        useNetworkFallback = true;
+      } else {
+        console.error(`[Supabase] Outage or connection failure querying certificate ${cleanId}:`, err);
+        if (isProductionEnvironment() || isSupabaseConfigured()) {
+          throw new DatabaseServiceError(`Database connection error while querying certificate ${cleanId}`, "DATABASE_UNAVAILABLE", 503);
+        }
       }
     }
   } else {
@@ -4373,7 +4406,7 @@ async function getCertificateById(id) {
       throw new DatabaseServiceError("Certificate registry database is not configured in production.", "DATABASE_UNCONFIGURED", 503);
     }
   }
-  if (shouldPermitFallback()) {
+  if (shouldPermitFallback() || !isProductionEnvironment() && useNetworkFallback) {
     return fallbackCertificatesStore.get(cleanId) || null;
   }
   return null;
@@ -4657,6 +4690,11 @@ async function saveIssuedCertificate(cert, competencies) {
       last_email_sent_at: cert.lastEmailSentAt || (/* @__PURE__ */ new Date()).toISOString()
     });
     if (certInsertErr) {
+      if (!isProductionEnvironment() && isSupabaseNetworkError(certInsertErr)) {
+        console.warn(`[Supabase] Network unreachable saving certificate ${cert.id}; caching in local dev store.`);
+        fallbackCertificatesStore.set(cert.id, cert);
+        return;
+      }
       if (shouldPermitFallback()) {
         fallbackCertificatesStore.delete(cert.id);
       }
@@ -4683,6 +4721,11 @@ async function saveIssuedCertificate(cert, competencies) {
       { onConflict: "student_id,course_id" }
     );
   } catch (err) {
+    if (!isProductionEnvironment() && isSupabaseNetworkError(err)) {
+      console.warn(`[Supabase] Network exception saving certificate ${cert.id}; caching in local dev store.`);
+      fallbackCertificatesStore.set(cert.id, cert);
+      return;
+    }
     if (shouldPermitFallback()) {
       fallbackCertificatesStore.delete(cert.id);
     }
@@ -4691,7 +4734,7 @@ async function saveIssuedCertificate(cert, competencies) {
   }
 }
 async function saveEmailLog(log) {
-  if (shouldPermitFallback()) {
+  if (shouldPermitFallback() || !isProductionEnvironment()) {
     fallbackEmailLogsStore.unshift(log);
   }
   const supabase = getSupabaseAdmin();
@@ -4729,6 +4772,7 @@ async function saveEmailLog(log) {
 }
 async function getRecentEmailLogs(limitCount = 50, offsetCount = 0) {
   const supabase = getSupabaseAdmin();
+  let networkUnavailable = false;
   if (supabase) {
     try {
       const { data: rows, error } = await supabase.from("email_logs").select("*").order("created_at", { ascending: false }).range(offsetCount, offsetCount + limitCount - 1);
@@ -4738,9 +4782,18 @@ async function getRecentEmailLogs(limitCount = 50, offsetCount = 0) {
       if (!error && rows && rows.length === 0) {
         return [];
       }
+      if (error && isSupabaseNetworkError(error)) {
+        networkUnavailable = true;
+      }
     } catch (err) {
+      if (isSupabaseNetworkError(err)) {
+        networkUnavailable = true;
+      }
       console.warn("[Supabase] Error fetching email logs, using fallback cache:", err);
     }
+  }
+  if (!isProductionEnvironment() && (networkUnavailable || shouldPermitFallback())) {
+    return fallbackEmailLogsStore.slice(offsetCount, offsetCount + limitCount);
   }
   if (isProductionEnvironment() || isSupabaseConfigured()) {
     return [];
@@ -4928,163 +4981,181 @@ portalRouter.post("/auth/forgot-password", async (req, res) => {
     });
   }
   const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    if (isPortalAdmin && shouldUseDevAdminFallback()) {
-      const emailOtp = createDevOtp(cleanEmail);
-      const resetEmailData = buildPasswordResetEmail({
-        studentName: "Administrator",
-        email: cleanEmail,
-        otpCode: emailOtp,
-        recoveryUrl: `${req.protocol}://${req.get("host")}/admin`
-      });
-      const dispatchResult = await dispatchGenericEmail({
-        to: cleanEmail,
-        toName: "Administrator",
-        subject: resetEmailData.subject,
-        html: resetEmailData.html,
-        text: resetEmailData.text
-      });
-      await saveEmailLog({
-        id: `eml-reset-${Date.now()}-${Math.floor(Math.random() * 1e3)}`,
-        recipientEmail: cleanEmail,
-        recipientName: "Administrator",
-        subject: resetEmailData.subject,
-        status: dispatchResult.delivered ? "delivered" : "simulated",
-        provider: dispatchResult.provider,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-        deliveryLatencyMs: dispatchResult.deliveryLatencyMs,
-        previewHtml: resetEmailData.html,
-        previewText: resetEmailData.text,
-        messageId: dispatchResult.messageId,
-        deliveredToInternet: dispatchResult.deliveredToInternet,
-        infoNotice: "Local development administrator OTP generated."
-      });
-      return res.json({
-        success: true,
-        message: `A 6-digit security verification code has been generated for ${cleanEmail}.`,
-        email: cleanEmail,
-        hasOtp: true,
-        provider: dispatchResult.provider,
-        delivered: dispatchResult.delivered,
-        isDev: true,
-        devOtp: emailOtp
-      });
-    }
-    return res.status(503).json({
-      error: "Authentication service is unavailable. Supabase is not configured.",
-      code: "AUTH_SERVICE_UNCONFIGURED"
-    });
-  }
-  try {
-    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
-    const allUsers = listData?.users || [];
-    let authUser = allUsers.find((u) => u.email?.toLowerCase() === cleanEmail);
-    let recipientName = cleanEmail.split("@")[0];
-    if (!authUser) {
-      if (isPortalAdmin && authorizedAdmins.has(cleanEmail)) {
-        const { data: created, error: createErr } = await supabase.auth.admin.createUser({
-          email: cleanEmail,
-          email_confirm: true,
-          user_metadata: { name: cleanEmail.split("@")[0], role: "admin" }
-        });
-        if (!createErr && created?.user) {
-          authUser = created.user;
-          recipientName = "Administrator";
-        }
+  let useNetworkFallback = false;
+  if (supabase) {
+    try {
+      const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+      if (listErr && isSupabaseNetworkError(listErr)) {
+        useNetworkFallback = true;
       } else {
-        const { data: studentRow } = await supabase.from("students").select("id, name, email").eq("email", cleanEmail).maybeSingle();
-        if (studentRow) {
-          recipientName = studentRow.name || recipientName;
-          const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+        const allUsers = listData?.users || [];
+        let authUser = allUsers.find((u) => u.email?.toLowerCase() === cleanEmail);
+        let recipientName = cleanEmail.split("@")[0];
+        if (!authUser) {
+          if (isPortalAdmin && authorizedAdmins.has(cleanEmail)) {
+            const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+              email: cleanEmail,
+              email_confirm: true,
+              user_metadata: { name: cleanEmail.split("@")[0], role: "admin" }
+            });
+            if (createErr && isSupabaseNetworkError(createErr)) {
+              useNetworkFallback = true;
+            } else if (!createErr && created?.user) {
+              authUser = created.user;
+              recipientName = "Administrator";
+            }
+          } else {
+            const { data: studentRow, error: stuErr } = await supabase.from("students").select("id, name, email").eq("email", cleanEmail).maybeSingle();
+            if (stuErr && isSupabaseNetworkError(stuErr)) {
+              useNetworkFallback = true;
+            } else if (studentRow) {
+              recipientName = studentRow.name || recipientName;
+              const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+                email: cleanEmail,
+                email_confirm: true,
+                user_metadata: { name: studentRow.name, role: "student" }
+              });
+              if (!createErr && created?.user) {
+                authUser = created.user;
+                await supabase.from("students").update({ auth_user_id: created.user.id }).eq("id", studentRow.id);
+              }
+            }
+          }
+        } else {
+          recipientName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || recipientName;
+        }
+        if (!useNetworkFallback) {
+          if (!authUser) {
+            return res.json({
+              success: true,
+              message: "If an account is registered with this email, a password reset link has been dispatched to your inbox.",
+              email: cleanEmail
+            });
+          }
+          const origin = redirectOrigin && typeof redirectOrigin === "string" && redirectOrigin.startsWith("http") ? redirectOrigin.replace(/\/+$/, "") : `${req.protocol}://${req.get("host")}`;
+          const redirectPath = isPortalAdmin ? "/admin?type=recovery" : "/pages/student-portal?type=recovery";
+          const finalRedirect = `${origin}${redirectPath}`;
+          const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+            type: "recovery",
             email: cleanEmail,
-            email_confirm: true,
-            user_metadata: { name: studentRow.name, role: "student" }
+            options: {
+              redirectTo: finalRedirect
+            }
           });
-          if (!createErr && created?.user) {
-            authUser = created.user;
-            await supabase.from("students").update({ auth_user_id: created.user.id }).eq("id", studentRow.id);
+          if (linkErr && isSupabaseNetworkError(linkErr)) {
+            useNetworkFallback = true;
+          } else if (linkErr || !linkData?.properties) {
+            console.error("Supabase recovery link error:", linkErr);
+            return res.status(500).json({
+              error: "Unable to generate a password reset link at this time. Please try again shortly or contact admissions support.",
+              code: "RECOVERY_LINK_GENERATION_FAILED"
+            });
+          } else {
+            const actionLink = linkData.properties.action_link;
+            const emailOtp = linkData.properties.email_otp;
+            const subject = isPortalAdmin ? `\u{1F510} Administrator Password Recovery \u2014 Vixora Digital Hub` : `\u{1F510} Reset Your Password \u2014 Vixora Academy`;
+            const resetEmailData = buildPasswordResetEmail({
+              studentName: recipientName,
+              email: cleanEmail,
+              otpCode: emailOtp || "",
+              recoveryUrl: actionLink
+            });
+            const htmlContent = resetEmailData.html;
+            const textContent = resetEmailData.text;
+            const dispatchResult = await dispatchGenericEmail({
+              to: cleanEmail,
+              toName: recipientName,
+              subject: resetEmailData.subject,
+              html: htmlContent,
+              text: textContent
+            });
+            const logId = `eml-reset-${Date.now()}-${Math.floor(Math.random() * 1e3)}`;
+            await saveEmailLog({
+              id: logId,
+              recipientEmail: cleanEmail,
+              recipientName,
+              subject,
+              status: dispatchResult.delivered ? "delivered" : "simulated",
+              provider: dispatchResult.provider,
+              timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+              deliveryLatencyMs: dispatchResult.deliveryLatencyMs,
+              previewHtml: htmlContent,
+              previewText: textContent,
+              messageId: dispatchResult.messageId,
+              deliveredToInternet: dispatchResult.deliveredToInternet,
+              infoNotice: `Password reset link and OTP generated via Supabase Auth. ${dispatchResult.infoNotice}`
+            });
+            return res.json({
+              success: true,
+              message: `A secure password reset link and 6-digit verification code have been dispatched to ${cleanEmail}.`,
+              email: cleanEmail,
+              hasOtp: Boolean(emailOtp),
+              provider: dispatchResult.provider,
+              delivered: dispatchResult.delivered,
+              isDev: process.env.NODE_ENV !== "production",
+              devActionLink: process.env.NODE_ENV !== "production" ? actionLink : void 0,
+              devOtp: process.env.NODE_ENV !== "production" ? emailOtp : void 0
+            });
           }
         }
       }
-    } else {
-      recipientName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || recipientName;
-    }
-    if (!authUser) {
-      return res.json({
-        success: true,
-        message: "If an account is registered with this email, a password reset link has been dispatched to your inbox.",
-        email: cleanEmail
-      });
-    }
-    const origin = redirectOrigin && typeof redirectOrigin === "string" && redirectOrigin.startsWith("http") ? redirectOrigin.replace(/\/+$/, "") : `${req.protocol}://${req.get("host")}`;
-    const redirectPath = isPortalAdmin ? "/admin?type=recovery" : "/pages/student-portal?type=recovery";
-    const finalRedirect = `${origin}${redirectPath}`;
-    const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
-      type: "recovery",
-      email: cleanEmail,
-      options: {
-        redirectTo: finalRedirect
+    } catch (err) {
+      if (isSupabaseNetworkError(err)) {
+        useNetworkFallback = true;
+      } else {
+        console.error("Password reset handler error:", err);
+        return res.status(500).json({
+          error: "An internal server error occurred while processing your password reset request.",
+          code: "RESET_INTERNAL_ERROR"
+        });
       }
-    });
-    if (linkErr || !linkData?.properties) {
-      console.error("Supabase recovery link error:", linkErr);
-      return res.status(500).json({
-        error: "Unable to generate a password reset link at this time. Please try again shortly or contact admissions support.",
-        code: "RECOVERY_LINK_GENERATION_FAILED"
-      });
     }
-    const actionLink = linkData.properties.action_link;
-    const emailOtp = linkData.properties.email_otp;
-    const subject = isPortalAdmin ? `\u{1F510} Administrator Password Recovery \u2014 Vixora Digital Hub` : `\u{1F510} Reset Your Password \u2014 Vixora Academy`;
+  }
+  if ((!supabase || useNetworkFallback) && isPortalAdmin && shouldUseDevAdminFallback()) {
+    const emailOtp = createDevOtp(cleanEmail);
     const resetEmailData = buildPasswordResetEmail({
-      studentName: recipientName,
+      studentName: "Administrator",
       email: cleanEmail,
-      otpCode: emailOtp || "",
-      recoveryUrl: actionLink
+      otpCode: emailOtp,
+      recoveryUrl: `${req.protocol}://${req.get("host")}/admin`
     });
-    const htmlContent = resetEmailData.html;
-    const textContent = resetEmailData.text;
     const dispatchResult = await dispatchGenericEmail({
       to: cleanEmail,
-      toName: recipientName,
+      toName: "Administrator",
       subject: resetEmailData.subject,
-      html: htmlContent,
-      text: textContent
+      html: resetEmailData.html,
+      text: resetEmailData.text
     });
-    const logId = `eml-reset-${Date.now()}-${Math.floor(Math.random() * 1e3)}`;
     await saveEmailLog({
-      id: logId,
+      id: `eml-reset-${Date.now()}-${Math.floor(Math.random() * 1e3)}`,
       recipientEmail: cleanEmail,
-      recipientName,
-      subject,
+      recipientName: "Administrator",
+      subject: resetEmailData.subject,
       status: dispatchResult.delivered ? "delivered" : "simulated",
       provider: dispatchResult.provider,
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       deliveryLatencyMs: dispatchResult.deliveryLatencyMs,
-      previewHtml: htmlContent,
-      previewText: textContent,
+      previewHtml: resetEmailData.html,
+      previewText: resetEmailData.text,
       messageId: dispatchResult.messageId,
       deliveredToInternet: dispatchResult.deliveredToInternet,
-      infoNotice: `Password reset link and OTP generated via Supabase Auth. ${dispatchResult.infoNotice}`
+      infoNotice: "Local development administrator OTP generated."
     });
     return res.json({
       success: true,
-      message: `A secure password reset link and 6-digit verification code have been dispatched to ${cleanEmail}.`,
+      message: `A 6-digit security verification code has been generated for ${cleanEmail}.`,
       email: cleanEmail,
-      hasOtp: Boolean(emailOtp),
+      hasOtp: true,
       provider: dispatchResult.provider,
       delivered: dispatchResult.delivered,
-      isDev: process.env.NODE_ENV !== "production",
-      devActionLink: process.env.NODE_ENV !== "production" ? actionLink : void 0,
-      devOtp: process.env.NODE_ENV !== "production" ? emailOtp : void 0
-    });
-  } catch (err) {
-    console.error("Password reset handler error:", err);
-    return res.status(500).json({
-      error: "An internal server error occurred while processing your password reset request.",
-      code: "RESET_INTERNAL_ERROR"
+      isDev: true,
+      devOtp: emailOtp
     });
   }
+  return res.status(503).json({
+    error: "Authentication service is unavailable. Supabase is not configured or unreachable.",
+    code: "AUTH_SERVICE_UNCONFIGURED"
+  });
 });
 portalRouter.post("/auth/reset-password-with-otp", async (req, res) => {
   if (!isPlainObject2(req.body)) {
@@ -5118,7 +5189,56 @@ portalRouter.post("/auth/reset-password-with-otp", async (req, res) => {
     });
   }
   const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  let useNetworkFallback = false;
+  if (supabase) {
+    try {
+      const anonSb = getPublicSupabaseClient() || createClient3(
+        sanitizeUrl2(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ""),
+        process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ""
+      );
+      const { data: vData, error: vErr } = await anonSb.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanOtp,
+        type: "recovery"
+      });
+      if (vErr && isSupabaseNetworkError(vErr)) {
+        useNetworkFallback = true;
+      } else if (vErr || !vData?.user) {
+        return res.status(400).json({
+          error: "Your 6-digit verification code has expired or is invalid. Please check your email or request a new code below.",
+          code: "INVALID_OTP"
+        });
+      } else {
+        const { error: uErr } = await supabase.auth.admin.updateUserById(vData.user.id, {
+          password: String(newPassword)
+        });
+        if (uErr && isSupabaseNetworkError(uErr)) {
+          useNetworkFallback = true;
+        } else if (uErr) {
+          return res.status(400).json({
+            error: uErr.message || "Unable to update password. Please ensure it is at least 6 characters long.",
+            code: "PASSWORD_UPDATE_FAILED"
+          });
+        } else {
+          return res.json({
+            success: true,
+            message: "Password successfully updated. You can now sign in with your new credentials."
+          });
+        }
+      }
+    } catch (err) {
+      if (isSupabaseNetworkError(err)) {
+        useNetworkFallback = true;
+      } else {
+        console.error("Error in /api/auth/reset-password-with-otp:", err);
+        return res.status(400).json({
+          error: "Unable to update password with this verification code. Please request a fresh code below.",
+          code: "RESET_FAILED"
+        });
+      }
+    }
+  }
+  if (!supabase || useNetworkFallback) {
     const authorizedAdmins = getAuthorizedAdminEmails();
     if (shouldUseDevAdminFallback() && authorizedAdmins.has(cleanEmail)) {
       if (!verifyDevOtp(cleanEmail, cleanOtp)) {
@@ -5133,43 +5253,12 @@ portalRouter.post("/auth/reset-password-with-otp", async (req, res) => {
         message: "Administrator password updated successfully. You can now sign in with your new credentials."
       });
     }
-    return res.status(503).json({ error: "Supabase is not configured." });
+    return res.status(503).json({ error: "Supabase is not configured or unreachable." });
   }
-  try {
-    const rawSbUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
-    const rawSbAnon = process.env.VITE_SUPABASE_ANON_KEY || "";
-    const anonSb = createClient3(sanitizeUrl2(rawSbUrl), rawSbAnon);
-    const { data: vData, error: vErr } = await anonSb.auth.verifyOtp({
-      email: cleanEmail,
-      token: cleanOtp,
-      type: "recovery"
-    });
-    if (vErr || !vData?.user) {
-      return res.status(400).json({
-        error: "Your 6-digit verification code has expired or is invalid. Please check your email or request a new code below.",
-        code: "INVALID_OTP"
-      });
-    }
-    const { data: uData, error: uErr } = await supabase.auth.admin.updateUserById(vData.user.id, {
-      password: String(newPassword)
-    });
-    if (uErr) {
-      return res.status(400).json({
-        error: uErr.message || "Unable to update password. Please ensure it is at least 6 characters long.",
-        code: "PASSWORD_UPDATE_FAILED"
-      });
-    }
-    return res.json({
-      success: true,
-      message: "Password successfully updated. You can now sign in with your new credentials."
-    });
-  } catch (err) {
-    console.error("Error in /api/auth/reset-password-with-otp:", err);
-    return res.status(400).json({
-      error: "Unable to update password with this verification code. Please request a fresh code below.",
-      code: "RESET_FAILED"
-    });
-  }
+  return res.status(400).json({
+    error: "Unable to update password with this verification code.",
+    code: "RESET_FAILED"
+  });
 });
 portalRouter.post("/auth/reset-password-with-token", async (req, res) => {
   if (!isPlainObject2(req.body)) {
@@ -5535,6 +5624,7 @@ portalRouter.get("/certificates/list", requireAuthentication, requireAdmin, asyn
   }
   const statusFilter = req.query.status;
   const supabase = getSupabaseAdmin();
+  let useNetworkFallback = false;
   if (supabase) {
     try {
       let query = supabase.from("certificates").select("*");
@@ -5550,15 +5640,20 @@ portalRouter.get("/certificates/list", requireAuthentication, requireAdmin, asyn
       query = query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
       const { data: certRows, error } = await query;
       if (error) {
-        console.error("[Supabase] Error listing certificates:", error);
-        if (isProductionEnvironment() || isSupabaseConfigured()) {
-          return res.status(503).json({
-            error: "Failed to retrieve certificates from database.",
-            code: "DATABASE_ERROR"
-          });
+        if (!isProductionEnvironment() && isSupabaseNetworkError(error)) {
+          console.warn("[Supabase] Network unreachable listing certificates; falling back to local cache.");
+          useNetworkFallback = true;
+        } else {
+          console.error("[Supabase] Error listing certificates:", error);
+          if (isProductionEnvironment() || isSupabaseConfigured()) {
+            return res.status(503).json({
+              error: "Failed to retrieve certificates from database.",
+              code: "DATABASE_ERROR"
+            });
+          }
         }
       }
-      if (certRows) {
+      if (!useNetworkFallback && certRows) {
         if (certRows.length === 0) {
           return res.json({ certificates: [] });
         }
@@ -5576,12 +5671,17 @@ portalRouter.get("/certificates/list", requireAuthentication, requireAdmin, asyn
         return res.json({ certificates: list });
       }
     } catch (err) {
-      console.error("[Supabase] Error listing certificates:", err);
-      if (isProductionEnvironment() || isSupabaseConfigured()) {
-        return res.status(503).json({
-          error: "Certificate database service is temporarily unavailable.",
-          code: "DATABASE_UNAVAILABLE"
-        });
+      if (!isProductionEnvironment() && isSupabaseNetworkError(err)) {
+        console.warn("[Supabase] Network exception listing certificates; falling back to local cache.");
+        useNetworkFallback = true;
+      } else {
+        console.error("[Supabase] Error listing certificates:", err);
+        if (isProductionEnvironment() || isSupabaseConfigured()) {
+          return res.status(503).json({
+            error: "Certificate database service is temporarily unavailable.",
+            code: "DATABASE_UNAVAILABLE"
+          });
+        }
       }
     }
   } else {
@@ -5592,7 +5692,7 @@ portalRouter.get("/certificates/list", requireAuthentication, requireAdmin, asyn
       });
     }
   }
-  if (shouldPermitFallback()) {
+  if (shouldPermitFallback() || !isProductionEnvironment() && useNetworkFallback) {
     let list = Array.from(fallbackCertificatesStore.values());
     if (cleanCourseId) {
       list = list.filter((c) => c.courseId === cleanCourseId);
@@ -6197,6 +6297,12 @@ portalRouter.post("/admin/setup", async (req, res) => {
   const cleanEmail = email.toLowerCase().trim();
   const cleanName = typeof name === "string" && name.trim().length > 0 ? name.trim().slice(0, 120) : cleanEmail.split("@")[0];
   const authorizedAdmins = getAuthorizedAdminEmails();
+  if (authorizedAdmins.size === 0) {
+    return res.status(403).json({
+      error: "Administrator allowlist (ADMIN_EMAILS) is not configured on this server. Add your email to ADMIN_EMAILS in your hosting Secrets / Environment Variables and redeploy.",
+      code: "FORBIDDEN_NOT_ADMIN"
+    });
+  }
   if (!authorizedAdmins.has(cleanEmail)) {
     return res.status(403).json({
       error: "Access denied: this email address is not in the authorized administrator allowlist.",
@@ -6207,66 +6313,87 @@ portalRouter.post("/admin/setup", async (req, res) => {
   const title = "Executive Administrator";
   const permissions = ["manage_projects", "issue_certificates", "dispatch_emails", "manage_students", "manage_sales", "system_config"];
   const supabase = getSupabaseAdmin();
+  let useNetworkFallback = false;
   if (supabase) {
     try {
-      const { data: listData } = await supabase.auth.admin.listUsers();
-      const allUsers = listData?.users || [];
-      const existingUser = allUsers.find((u) => u.email?.toLowerCase() === cleanEmail);
-      if (existingUser) {
-        return res.status(409).json({
-          error: "An administrator account already exists for this email. Please sign in or use Forgot Password.",
-          code: "ACCOUNT_EXISTS"
-        });
-      }
-      const { data: created, error: createErr } = await supabase.auth.admin.createUser({
-        email: cleanEmail,
-        password: String(password),
-        email_confirm: true,
-        user_metadata: {
-          full_name: cleanName,
-          name: cleanName,
-          role: "admin"
+      const { data: listData, error: listErr } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1e3 });
+      if (listErr && isSupabaseNetworkError(listErr)) {
+        useNetworkFallback = true;
+      } else {
+        const allUsers = listData?.users || [];
+        const existingUser = allUsers.find((u) => u.email?.toLowerCase() === cleanEmail);
+        if (existingUser) {
+          return res.status(409).json({
+            error: "An administrator account already exists for this email. Please sign in or use Forgot Password.",
+            code: "ACCOUNT_EXISTS"
+          });
         }
-      });
-      if (createErr || !created?.user) {
-        return res.status(400).json({
-          error: createErr?.message || "Unable to provision administrator account in Supabase.",
-          code: "ADMIN_CREATE_FAILED"
-        });
-      }
-      const { data: loginData, error: loginErr } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password: String(password)
-      });
-      if (loginErr || !loginData?.session) {
-        return res.json({
-          success: true,
-          message: `Administrator account created for ${cleanEmail}. Please sign in with your password.`
-        });
-      }
-      return res.json({
-        success: true,
-        message: `Executive Administrator account activated for ${cleanName}.`,
-        token: loginData.session.access_token,
-        user: {
-          id: loginData.user.id,
-          name: cleanName,
+        const { data: created, error: createErr } = await supabase.auth.admin.createUser({
           email: cleanEmail,
-          role,
-          title,
-          permissions
-        },
-        expiresAt: loginData.session.expires_at ? loginData.session.expires_at * 1e3 : Date.now() + 3600 * 1e3
-      });
+          password: String(password),
+          email_confirm: true,
+          user_metadata: {
+            full_name: cleanName,
+            name: cleanName,
+            role: "admin"
+          }
+        });
+        if (createErr && isSupabaseNetworkError(createErr)) {
+          useNetworkFallback = true;
+        } else if (createErr && /already.*(registered|exists)/i.test(createErr.message || "")) {
+          return res.status(409).json({
+            error: "An administrator account already exists for this email. Please sign in or use Forgot Password.",
+            code: "ACCOUNT_EXISTS"
+          });
+        } else if (createErr || !created?.user) {
+          return res.status(400).json({
+            error: createErr?.message || "Unable to provision administrator account in Supabase.",
+            code: "ADMIN_CREATE_FAILED"
+          });
+        } else {
+          const authClient = createEphemeralPublicSupabaseClient() || supabase;
+          const { data: loginData, error: loginErr } = await authClient.auth.signInWithPassword({
+            email: cleanEmail,
+            password: String(password)
+          });
+          if (loginErr && isSupabaseNetworkError(loginErr)) {
+            useNetworkFallback = true;
+          } else if (loginErr || !loginData?.session) {
+            return res.json({
+              success: true,
+              message: `Administrator account created for ${cleanEmail}. Please sign in with your password.`
+            });
+          } else {
+            return res.json({
+              success: true,
+              message: `Executive Administrator account activated for ${cleanName}.`,
+              token: loginData.session.access_token,
+              user: {
+                id: loginData.user.id,
+                name: cleanName,
+                email: cleanEmail,
+                role,
+                title,
+                permissions
+              },
+              expiresAt: loginData.session.expires_at ? loginData.session.expires_at * 1e3 : Date.now() + 3600 * 1e3
+            });
+          }
+        }
+      }
     } catch (err) {
-      console.error("Supabase admin setup error:", err);
-      return res.status(500).json({
-        error: "Internal error provisioning administrator account.",
-        code: "AUTH_EXCEPTION"
-      });
+      if (isSupabaseNetworkError(err)) {
+        useNetworkFallback = true;
+      } else {
+        console.error("Supabase admin setup error:", err);
+        return res.status(500).json({
+          error: "Internal error provisioning administrator account.",
+          code: "AUTH_EXCEPTION"
+        });
+      }
     }
   }
-  if (shouldUseDevAdminFallback()) {
+  if (shouldUseDevAdminFallback() && (!supabase || useNetworkFallback)) {
     if (hasDevAdminAccount(cleanEmail)) {
       return res.status(409).json({
         error: "This administrator account is already activated. Switch to Sign In or use Forgot Password.",
@@ -6292,7 +6419,7 @@ portalRouter.post("/admin/setup", async (req, res) => {
     });
   }
   return res.status(503).json({
-    error: "Authentication service unavailable. Supabase Service Role Key is not configured.",
+    error: "Authentication service unavailable. Supabase Service Role Key is not configured or unreachable.",
     code: "AUTH_SERVICE_UNCONFIGURED"
   });
 });
@@ -6312,6 +6439,12 @@ portalRouter.post("/admin/login", async (req, res) => {
   }
   const cleanEmail = email.toLowerCase().trim();
   const authorizedAdmins = getAuthorizedAdminEmails();
+  if (authorizedAdmins.size === 0) {
+    return res.status(403).json({
+      error: "Administrator allowlist (ADMIN_EMAILS) is not configured on this server. Add your email to ADMIN_EMAILS in your hosting Secrets / Environment Variables and redeploy.",
+      code: "FORBIDDEN_NOT_ADMIN"
+    });
+  }
   if (!authorizedAdmins.has(cleanEmail)) {
     return res.status(403).json({
       error: "Access denied: account is not an authorized administrator.",
@@ -6322,49 +6455,34 @@ portalRouter.post("/admin/login", async (req, res) => {
   const title = "Executive Administrator";
   const permissions = ["manage_projects", "issue_certificates", "dispatch_emails", "manage_students", "manage_sales", "system_config"];
   const supabase = getSupabaseAdmin();
+  let useNetworkFallback = false;
   if (supabase) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const authClient = createEphemeralPublicSupabaseClient() || supabase;
+      const { data, error } = await authClient.auth.signInWithPassword({
         email: cleanEmail,
         password: String(password)
       });
-      if (error || !data.session) {
+      if (error && isSupabaseNetworkError(error)) {
+        useNetworkFallback = true;
+      } else if (error || !data.session) {
+        try {
+          const { data: listData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1e3 });
+          const allUsers = listData?.users || [];
+          const existingUser = allUsers.find((u) => u.email?.toLowerCase() === cleanEmail);
+          if (!existingUser) {
+            return res.status(401).json({
+              error: 'No password has been activated yet for this authorized admin email. Switch to "Create Admin Account" to set your password and enter the dashboard.',
+              code: "ACCOUNT_NOT_ACTIVATED"
+            });
+          }
+        } catch {
+        }
         return res.status(401).json({
           error: error?.message || "Invalid administrator credentials.",
           code: "INVALID_CREDENTIALS"
         });
-      }
-      const name = data.user.user_metadata?.full_name || data.user.user_metadata?.name || cleanEmail.split("@")[0];
-      return res.json({
-        success: true,
-        message: `Welcome back, ${name}. Admin session authorized via Supabase Auth.`,
-        token: data.session.access_token,
-        user: {
-          id: data.user.id,
-          name,
-          email: cleanEmail,
-          role,
-          title,
-          permissions
-        },
-        expiresAt: data.session.expires_at ? data.session.expires_at * 1e3 : Date.now() + 3600 * 1e3
-      });
-    } catch (err) {
-      console.error("Supabase admin login exception:", err);
-      return res.status(500).json({
-        error: "Internal authentication service error.",
-        code: "AUTH_EXCEPTION"
-      });
-    }
-  }
-  const publicSb = getPublicSupabaseClient();
-  if (publicSb) {
-    try {
-      const { data, error } = await publicSb.auth.signInWithPassword({
-        email: cleanEmail,
-        password: String(password)
-      });
-      if (!error && data?.session && data.user) {
+      } else {
         const name = data.user.user_metadata?.full_name || data.user.user_metadata?.name || cleanEmail.split("@")[0];
         return res.json({
           success: true,
@@ -6381,10 +6499,48 @@ portalRouter.post("/admin/login", async (req, res) => {
           expiresAt: data.session.expires_at ? data.session.expires_at * 1e3 : Date.now() + 3600 * 1e3
         });
       }
-    } catch {
+    } catch (err) {
+      if (isSupabaseNetworkError(err)) {
+        useNetworkFallback = true;
+      } else {
+        console.error("Supabase admin login exception:", err);
+        return res.status(500).json({
+          error: "Internal authentication service error.",
+          code: "AUTH_EXCEPTION"
+        });
+      }
     }
   }
-  if (shouldUseDevAdminFallback()) {
+  if (!supabase && !useNetworkFallback) {
+    const publicSb = getPublicSupabaseClient();
+    if (publicSb) {
+      try {
+        const { data, error } = await publicSb.auth.signInWithPassword({
+          email: cleanEmail,
+          password: String(password)
+        });
+        if (!error && data?.session && data.user) {
+          const name = data.user.user_metadata?.full_name || data.user.user_metadata?.name || cleanEmail.split("@")[0];
+          return res.json({
+            success: true,
+            message: `Welcome back, ${name}. Admin session authorized via Supabase Auth.`,
+            token: data.session.access_token,
+            user: {
+              id: data.user.id,
+              name,
+              email: cleanEmail,
+              role,
+              title,
+              permissions
+            },
+            expiresAt: data.session.expires_at ? data.session.expires_at * 1e3 : Date.now() + 3600 * 1e3
+          });
+        }
+      } catch {
+      }
+    }
+  }
+  if (shouldUseDevAdminFallback() && (!supabase || useNetworkFallback)) {
     const authRes = authenticateDevAdminAccount(cleanEmail, String(password));
     if (authRes.ok === true) {
       const { token, expiresAt } = issueAdminDevToken(authRes.user);
@@ -6417,7 +6573,7 @@ portalRouter.post("/admin/login", async (req, res) => {
     }
   }
   return res.status(503).json({
-    error: "Authentication service unavailable. Supabase is not configured.",
+    error: "Authentication service unavailable. Supabase is not configured or unreachable.",
     code: "AUTH_SERVICE_UNCONFIGURED"
   });
 });
@@ -6508,6 +6664,7 @@ function buildSalesSummaryFromData(params) {
 }
 portalRouter.get("/admin/overview", requireAuthentication, requireAdmin, async (req, res) => {
   const supabase = getSupabaseAdmin();
+  let useNetworkFallback = false;
   if (isProductionEnvironment() || isSupabaseConfigured()) {
     if (!supabase) {
       return res.status(503).json({
@@ -6531,62 +6688,80 @@ portalRouter.get("/admin/overview", requireAuthentication, requireAdmin, async (
         supabase.from("enrollments").select("course_id, status"),
         supabase.from("email_logs").select("*", { count: "exact", head: true })
       ]);
-      if (certCountRes.error) {
-        console.error("[Supabase] Overview certificates count error:", certCountRes.error);
-        return res.status(503).json({
-          error: "Failed to retrieve certificate count from database.",
-          code: "DATABASE_ERROR"
+      const anyNetworkError = [
+        certCountRes.error,
+        recentCertsRes.error,
+        studentsCountRes.error,
+        paymentsRes.error,
+        enrollmentsRes.error,
+        emailCountRes.error
+      ].find((e) => e && isSupabaseNetworkError(e));
+      if (anyNetworkError && !isProductionEnvironment()) {
+        console.warn("[Supabase] Overview network unreachable; falling back to local cache in non-production.");
+        useNetworkFallback = true;
+      } else {
+        if (certCountRes.error) {
+          console.error("[Supabase] Overview certificates count error:", certCountRes.error);
+          return res.status(503).json({
+            error: "Failed to retrieve certificate count from database.",
+            code: "DATABASE_ERROR"
+          });
+        }
+        if (recentCertsRes.error) {
+          console.error("[Supabase] Overview recent certificates error:", recentCertsRes.error);
+          return res.status(503).json({
+            error: "Failed to retrieve recent certificates from database.",
+            code: "DATABASE_ERROR"
+          });
+        }
+        if (studentsCountRes.error) {
+          console.error("[Supabase] Overview students count error:", studentsCountRes.error);
+          return res.status(503).json({
+            error: "Failed to retrieve student count from database.",
+            code: "DATABASE_ERROR"
+          });
+        }
+        const certCount = typeof certCountRes.count === "number" ? certCountRes.count : 0;
+        const studentsCount = typeof studentsCountRes.count === "number" ? studentsCountRes.count : 0;
+        const recentCerts = recentCertsRes.data && recentCertsRes.data.length > 0 ? recentCertsRes.data.map((r) => mapSupabaseCertificateToDomain(r)) : [];
+        const recentEmailLogs = await getRecentEmailLogs(20);
+        const totalEmailDispatches = typeof emailCountRes.count === "number" ? emailCountRes.count : recentEmailLogs.length;
+        const emailConfig = getEmailConfigStatus();
+        const sales = buildSalesSummaryFromData({
+          payments: paymentsRes.data || [],
+          enrollments: enrollmentsRes.data || []
+        });
+        return res.json({
+          metrics: {
+            totalCertificates: certCount,
+            totalStudents: studentsCount,
+            totalEmailDispatches,
+            activeProvider: emailConfig.primaryProvider,
+            activeSender: emailConfig.fromAddress,
+            databaseTier: "Supabase Cloud (PostgreSQL)",
+            serverUptimeSec: Math.floor(process.uptime()),
+            timestamp: (/* @__PURE__ */ new Date()).toISOString()
+          },
+          sales,
+          emailConfig,
+          recentCertificates: recentCerts,
+          recentEmailLogs
         });
       }
-      if (recentCertsRes.error) {
-        console.error("[Supabase] Overview recent certificates error:", recentCertsRes.error);
-        return res.status(503).json({
-          error: "Failed to retrieve recent certificates from database.",
-          code: "DATABASE_ERROR"
-        });
-      }
-      if (studentsCountRes.error) {
-        console.error("[Supabase] Overview students count error:", studentsCountRes.error);
-        return res.status(503).json({
-          error: "Failed to retrieve student count from database.",
-          code: "DATABASE_ERROR"
-        });
-      }
-      const certCount = typeof certCountRes.count === "number" ? certCountRes.count : 0;
-      const studentsCount = typeof studentsCountRes.count === "number" ? studentsCountRes.count : 0;
-      const recentCerts = recentCertsRes.data && recentCertsRes.data.length > 0 ? recentCertsRes.data.map((r) => mapSupabaseCertificateToDomain(r)) : [];
-      const recentEmailLogs = await getRecentEmailLogs(20);
-      const totalEmailDispatches = typeof emailCountRes.count === "number" ? emailCountRes.count : recentEmailLogs.length;
-      const emailConfig = getEmailConfigStatus();
-      const sales = buildSalesSummaryFromData({
-        payments: paymentsRes.data || [],
-        enrollments: enrollmentsRes.data || []
-      });
-      return res.json({
-        metrics: {
-          totalCertificates: certCount,
-          totalStudents: studentsCount,
-          totalEmailDispatches,
-          activeProvider: emailConfig.primaryProvider,
-          activeSender: emailConfig.fromAddress,
-          databaseTier: "Supabase Cloud (PostgreSQL)",
-          serverUptimeSec: Math.floor(process.uptime()),
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        },
-        sales,
-        emailConfig,
-        recentCertificates: recentCerts,
-        recentEmailLogs
-      });
     } catch (err) {
-      console.error("[Supabase] Overview query exception:", err);
-      return res.status(503).json({
-        error: "Database service is currently unavailable.",
-        code: "DATABASE_UNAVAILABLE"
-      });
+      if (!isProductionEnvironment() && isSupabaseNetworkError(err)) {
+        console.warn("[Supabase] Overview network exception; falling back to local cache in non-production.");
+        useNetworkFallback = true;
+      } else {
+        console.error("[Supabase] Overview query exception:", err);
+        return res.status(503).json({
+          error: "Database service is currently unavailable.",
+          code: "DATABASE_UNAVAILABLE"
+        });
+      }
     }
   }
-  if (shouldPermitFallback()) {
+  if (shouldPermitFallback() || !isProductionEnvironment() && useNetworkFallback) {
     const certCount = fallbackCertificatesStore.size;
     const allStudents = Array.from(fallbackStudentsStore.values());
     const studentsCount = allStudents.length;
@@ -6611,7 +6786,7 @@ portalRouter.get("/admin/overview", requireAuthentication, requireAdmin, async (
         totalEmailDispatches: fallbackEmailLogsStore.length,
         activeProvider: emailConfig.primaryProvider,
         activeSender: emailConfig.fromAddress,
-        databaseTier: "High-Performance Local Cache",
+        databaseTier: useNetworkFallback ? "Local Dev Cache (Supabase Unreachable)" : "High-Performance Local Cache",
         serverUptimeSec: Math.floor(process.uptime()),
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       },
@@ -6707,6 +6882,7 @@ portalRouter.get("/admin/students", requireAuthentication, requireAdmin, async (
     return res.status(400).json({ error: "Search query must be a string up to 100 characters.", code: "INVALID_QUERY" });
   }
   const supabase = getSupabaseAdmin();
+  let useNetworkFallback = false;
   if (isProductionEnvironment() || isSupabaseConfigured()) {
     if (!supabase) {
       return res.status(503).json({
@@ -6715,52 +6891,61 @@ portalRouter.get("/admin/students", requireAuthentication, requireAdmin, async (
       });
     }
     try {
-      const [{ data: rows, error }, { data: enrollmentRows }] = await Promise.all([
+      const [{ data: rows, error }, { data: enrollmentRows, error: enrollError }] = await Promise.all([
         supabase.from("students").select("*").order("created_at", { ascending: false }).range(offset, offset + limit - 1),
         supabase.from("enrollments").select("student_id, course_id, status, progress_percent")
       ]);
-      if (error) {
+      if ((isSupabaseNetworkError(error) || isSupabaseNetworkError(enrollError)) && !isProductionEnvironment()) {
+        console.warn("[Supabase] Query students network unreachable; falling back to local cache in non-production.");
+        useNetworkFallback = true;
+      } else if (error) {
         console.error("[Supabase] Query students error:", error);
         return res.status(503).json({
           error: "Failed to retrieve students from database.",
           code: "DATABASE_ERROR"
         });
-      }
-      const enrollMap = /* @__PURE__ */ new Map();
-      for (const enr of enrollmentRows || []) {
-        const resolved = findCanonicalCourse(enr.course_id);
-        const list = enrollMap.get(enr.student_id) || [];
-        list.push({
-          courseId: enr.course_id,
-          title: resolved ? resolved.title : enr.course_id,
-          status: enr.status || "enrolled",
-          progressPercent: enr.progress_percent || 0
+      } else {
+        const enrollMap = /* @__PURE__ */ new Map();
+        for (const enr of enrollmentRows || []) {
+          const resolved = findCanonicalCourse(enr.course_id);
+          const list = enrollMap.get(enr.student_id) || [];
+          list.push({
+            courseId: enr.course_id,
+            title: resolved ? resolved.title : enr.course_id,
+            status: enr.status || "enrolled",
+            progressPercent: enr.progress_percent || 0
+          });
+          enrollMap.set(enr.student_id, list);
+        }
+        const normalized = (rows || []).map((row) => {
+          const courses = enrollMap.get(row.id) || [];
+          const displayName = row.full_name || row.name || row.email?.split("@")[0] || "Student";
+          return {
+            ...row,
+            name: displayName,
+            full_name: displayName,
+            enrolledDate: row.enrolled_date || (row.created_at ? new Date(row.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "\u2014"),
+            courses,
+            coursesCount: courses.length,
+            course_title: courses[0]?.title || "No active track"
+          };
         });
-        enrollMap.set(enr.student_id, list);
+        return res.json({ students: normalized });
       }
-      const normalized = (rows || []).map((row) => {
-        const courses = enrollMap.get(row.id) || [];
-        const displayName = row.full_name || row.name || row.email?.split("@")[0] || "Student";
-        return {
-          ...row,
-          name: displayName,
-          full_name: displayName,
-          enrolledDate: row.enrolled_date || (row.created_at ? new Date(row.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "\u2014"),
-          courses,
-          coursesCount: courses.length,
-          course_title: courses[0]?.title || "No active track"
-        };
-      });
-      return res.json({ students: normalized });
     } catch (err) {
-      console.error("[Supabase] Query students exception:", err);
-      return res.status(503).json({
-        error: "Student database service is currently unavailable.",
-        code: "DATABASE_UNAVAILABLE"
-      });
+      if (!isProductionEnvironment() && isSupabaseNetworkError(err)) {
+        console.warn("[Supabase] Query students network exception; falling back to local cache in non-production.");
+        useNetworkFallback = true;
+      } else {
+        console.error("[Supabase] Query students exception:", err);
+        return res.status(503).json({
+          error: "Student database service is currently unavailable.",
+          code: "DATABASE_UNAVAILABLE"
+        });
+      }
     }
   }
-  if (shouldPermitFallback()) {
+  if (shouldPermitFallback() || !isProductionEnvironment() && useNetworkFallback) {
     const list = Array.from(fallbackStudentsStore.values()).map((st) => ({
       ...st,
       full_name: st.name,

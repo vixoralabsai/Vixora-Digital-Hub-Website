@@ -371,6 +371,33 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
                   <span>Set Up Admin Password Now &rarr;</span>
                 </button>
               )}
+              {errorCode === 'ACCOUNT_EXISTS' && mode === 'register' && (
+                <div className="flex flex-wrap items-center gap-2 ml-7">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMessage(null);
+                      setErrorCode(null);
+                      setMode('login');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Switch to Sign In &rarr;</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMessage(null);
+                      setErrorCode(null);
+                      setMode('forgot');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-purple-950/80 border border-purple-700/60 hover:bg-purple-900/80 text-purple-200 text-[11px] font-semibold transition-colors cursor-pointer"
+                  >
+                    Reset Password
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -515,7 +542,7 @@ export function AdminLoginGate({ onAuthenticated, onBackToHome, onNavigateToClie
                   />
                 </div>
                 <p className="mt-1.5 text-[11px] text-purple-300/70">
-                  Authorized emails: vixoralabsai@gmail.com, vixoraacademy@gmail.com, or configured ADMIN_EMAILS.
+                  Must match an email configured in your server ADMIN_EMAILS allowlist (e.g. vixoralabsai@gmail.com).
                 </p>
               </div>
 

@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { isSupabaseConfigured } from '../supabaseAdmin.js';
 
 interface DevAdminAccount {
   id: string;
@@ -32,7 +31,25 @@ export function isProductionAuthEnvironment(): boolean {
 }
 
 export function shouldUseDevAdminFallback(): boolean {
-  return !isProductionAuthEnvironment() && !isSupabaseConfigured();
+  return !isProductionAuthEnvironment();
+}
+
+export function isSupabaseNetworkError(errOrMsg: unknown): boolean {
+  if (!errOrMsg) return false;
+  const msg = typeof errOrMsg === 'string'
+    ? errOrMsg
+    : String((errOrMsg as any)?.message || (errOrMsg as any)?.details || errOrMsg);
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes('fetch failed') ||
+    lower.includes('enotfound') ||
+    lower.includes('eai_again') ||
+    lower.includes('econnrefused') ||
+    lower.includes('etimedout') ||
+    lower.includes('und_err_') ||
+    lower.includes('could not resolve') ||
+    lower.includes('networkerror')
+  );
 }
 
 function sanitizeUrl(rawUrl?: string): string {
@@ -42,13 +59,7 @@ function sanitizeUrl(rawUrl?: string): string {
 
 let cachedPublicClient: SupabaseClient | null = null;
 
-/**
- * Returns a public Supabase client initialized from environment vars (or project anon fallback)
- * so standard JWT user verification can succeed even when SUPABASE_SERVICE_ROLE_KEY is unset.
- */
-export function getPublicSupabaseClient(): SupabaseClient | null {
-  if (cachedPublicClient) return cachedPublicClient;
-
+function getPublicSupabaseConfig(): { url: string; anonKey: string } | null {
   const rawUrl =
     process.env.SUPABASE_URL ||
     process.env.VITE_SUPABASE_URL ||
@@ -65,15 +76,39 @@ export function getPublicSupabaseClient(): SupabaseClient | null {
     return null;
   }
 
-  cachedPublicClient = createClient(url, anonKey, {
+  return { url, anonKey };
+}
+
+/**
+ * Returns a fresh ephemeral public Supabase client for user credential sign-in / OTP checks
+ * so calling signInWithPassword never mutates the singleton service-role client.
+ */
+export function createEphemeralPublicSupabaseClient(): SupabaseClient | null {
+  const cfg = getPublicSupabaseConfig();
+  if (!cfg) return null;
+
+  return createClient(cfg.url, cfg.anonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
   });
+}
 
+/**
+ * Returns a public Supabase client initialized from environment vars (or project anon fallback)
+ * so standard JWT user verification can succeed even when SUPABASE_SERVICE_ROLE_KEY is unset.
+ */
+export function getPublicSupabaseClient(): SupabaseClient | null {
+  if (cachedPublicClient) return cachedPublicClient;
+
+  const client = createEphemeralPublicSupabaseClient();
+  if (!client) return null;
+
+  cachedPublicClient = client;
   return cachedPublicClient;
 }
+
 
 function hashPasswordWithSalt(password: string, salt: string): string {
   return crypto.scryptSync(password, salt, 64).toString('hex');
