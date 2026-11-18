@@ -278,6 +278,8 @@ export function buildStudentOnboardingEmail(params: {
   customerEmail: string;
   courseTitle: string;
   tuitionNaira: number;
+  currency?: 'NGN' | 'USD';
+  gateway?: 'paystack' | 'bachs';
   reference: string;
   nextCohortDate: string;
   channel?: string | null;
@@ -296,6 +298,8 @@ export function buildStudentOnboardingEmail(params: {
     customerEmail,
     courseTitle,
     tuitionNaira,
+    currency = 'NGN',
+    gateway = currency === 'USD' ? 'bachs' : 'paystack',
     reference,
     nextCohortDate,
     channel = 'card',
@@ -306,7 +310,15 @@ export function buildStudentOnboardingEmail(params: {
     telegramInvites = []
   } = params;
 
-  const subject = `🎓 Student Account & Admission Confirmed: ${courseTitle} (₦${tuitionNaira.toLocaleString()})`;
+  const formattedCurrencyDisplay = currency === 'USD'
+    ? `$${tuitionNaira.toLocaleString('en-US', { minimumFractionDigits: Math.round(tuitionNaira * 100) % 100 !== 0 ? 2 : 0, maximumFractionDigits: 2 })} USD`
+    : `₦${tuitionNaira.toLocaleString()} NGN`;
+  const shortPriceDisplay = currency === 'USD'
+    ? `$${tuitionNaira.toLocaleString('en-US')}`
+    : `₦${tuitionNaira.toLocaleString()}`;
+  const gatewayLabel = gateway === 'bachs' ? 'Bachs USD Checkout' : 'Paystack';
+
+  const subject = `🎓 Student Account & Admission Confirmed: ${courseTitle} (${shortPriceDisplay})`;
   const portalUrl = PORTAL_URL;
   const actionButtonUrl = directPasswordSetupLink || portalUrl;
 
@@ -317,7 +329,7 @@ export function buildStudentOnboardingEmail(params: {
         <td style="padding: 20px;">
           <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
             Dear <strong style="color: #ffffff;">${customerName}</strong>,<br /><br />
-            Congratulations! Your tuition payment of <strong style="color: #34d399;">₦${tuitionNaira.toLocaleString()} NGN</strong> has been verified. You are officially enrolled in <strong style="color: #a855f7;">${courseTitle}</strong>. Your student account is active and your seat in the upcoming cohort is secured.
+            Congratulations! Your tuition payment of <strong style="color: #34d399;">${formattedCurrencyDisplay}</strong> has been verified via <strong>${gatewayLabel}</strong>. You are officially enrolled in <strong style="color: #a855f7;">${courseTitle}</strong>. Your student account is active and your seat in the upcoming cohort is secured.
           </p>
         </td>
       </tr>
@@ -396,13 +408,13 @@ export function buildStudentOnboardingEmail(params: {
             <tr>
               <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Tuition Paid:</td>
               <td align="right" style="padding: 4px 0; font-size: 14px; color: #34d399; font-weight: 700;">
-                ₦${tuitionNaira.toLocaleString()} NGN
+                ${formattedCurrencyDisplay}
               </td>
             </tr>
             <tr>
-              <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Payment Channel:</td>
-              <td align="right" style="padding: 4px 0; font-size: 13px; color: #e2e8f0; text-transform: capitalize;">
-                ${channel || 'Online Checkout'}
+              <td style="padding: 4px 0; font-size: 13px; color: #94a3b8;">Payment Gateway:</td>
+              <td align="right" style="padding: 4px 0; font-size: 13px; color: #e2e8f0;">
+                ${gatewayLabel} (${channel || 'Online Checkout'})
               </td>
             </tr>
             <tr>
@@ -511,7 +523,7 @@ Welcome to Vixora Academy!
 Admission Confirmed for: ${courseTitle}
 
 Dear ${customerName},
-Your tuition payment of ₦${tuitionNaira.toLocaleString()} NGN has been verified.
+Your tuition payment of ${formattedCurrencyDisplay} has been verified via ${gatewayLabel}.
 ${textTelegram}
 YOUR STUDENT CREDENTIALS:
 - Student ID / Code: ${studentCode}
@@ -522,7 +534,8 @@ ${actionButtonUrl}
 
 PAYMENT RECEIPT:
 - Reference: ${reference}
-- Amount: ₦${tuitionNaira.toLocaleString()} NGN
+- Gateway: ${gatewayLabel}
+- Amount: ${formattedCurrencyDisplay}
 - Cohort Start: ${nextCohortDate}
 
 WHATSAPP ADMISSIONS GROUP:

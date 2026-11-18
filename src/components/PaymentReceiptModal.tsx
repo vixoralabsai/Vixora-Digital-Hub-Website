@@ -44,9 +44,15 @@ export function PaymentReceiptModal({
     window.print();
   };
 
+  const isBachs =
+    payment.gateway === 'bachs' ||
+    payment.currency === 'USD' ||
+    payment.reference.toUpperCase().startsWith('VIX-BC-');
+  const gatewayLabel = isBachs ? 'Bachs (USD)' : 'Paystack';
+
   const whatsappOnboardingLink = getWhatsAppUrl(
-    'ng',
-    `Hello Vixora Admissions! I just completed my tuition payment of ${payment.currency} ${payment.amount.toLocaleString()} for ${payment.courseTitle} via Paystack. Transaction Reference: ${payment.reference}. My email is ${payment.studentEmail}.`
+    isBachs ? 'us' : 'ng',
+    `Hello Vixora Admissions! I just completed my tuition payment of ${payment.currency} ${payment.amount.toLocaleString()} for ${payment.courseTitle} via ${gatewayLabel}. Transaction Reference: ${payment.reference}. My email is ${payment.studentEmail}.`
   );
 
   return (
@@ -76,14 +82,17 @@ export function PaymentReceiptModal({
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 mb-3">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Payment Verified via Paystack</span>
+            <span>
+              Payment Verified via {gatewayLabel}
+              {payment.gatewayMode === 'sandbox' ? ' • Sandbox' : ''}
+            </span>
           </div>
 
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Official Tuition Receipt
           </h2>
           <p className="text-xs text-neutral-300 mt-1 font-mono">
-            Vixora Digital Hub Admissions &bull; Issued {new Date(payment.paidAt).toLocaleDateString()}
+            Vixora Digital Hub Admissions &bull; Issued {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : 'Confirmed'}
           </p>
         </div>
 

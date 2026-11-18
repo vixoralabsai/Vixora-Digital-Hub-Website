@@ -10,6 +10,10 @@
 
 import { supabase } from './supabaseClient';
 
+export type PaymentGateway = 'paystack' | 'bachs';
+export type PaymentCurrency = 'NGN' | 'USD';
+export type PaymentGatewayMode = 'sandbox' | 'live';
+
 export interface PaystackConfig {
   configured: boolean;
   hasPublicKey: boolean;
@@ -19,8 +23,29 @@ export interface PaystackConfig {
   merchantName: string;
 }
 
+export interface MultiGatewayPaymentsConfig {
+  merchantName: string;
+  currencyGateways: {
+    NGN: PaymentGateway;
+    USD: PaymentGateway;
+  };
+  paystack: {
+    configured: boolean;
+    hasPublicKey: boolean;
+    publicKey: string | null;
+    currency: 'NGN';
+    mode: 'test' | 'live';
+  };
+  bachs: {
+    configured: boolean;
+    currency: 'USD';
+    mode: PaymentGatewayMode;
+  };
+}
+
 export interface InitializePaymentParams {
   courseId: string;
+  currency?: PaymentCurrency;
   studentName?: string;
   email: string;
   phone?: string;
@@ -29,9 +54,14 @@ export interface InitializePaymentParams {
 
 export interface InitializePaymentResponse {
   success: boolean;
+  gateway?: PaymentGateway;
+  gatewayMode?: PaymentGatewayMode;
+  sessionId?: string | null;
   authorizationUrl?: string;
   accessCode?: string;
   reference: string;
+  amount?: number;
+  amountMinor?: number;
   amountNaira?: number;
   amountKobo?: number;
   currency?: string;
@@ -45,6 +75,8 @@ export interface InitializePaymentResponse {
 
 export interface VerifiedPaymentData {
   reference: string;
+  gateway?: PaymentGateway;
+  gatewayMode?: PaymentGatewayMode;
   status: string;
   amount: number;
   currency: string;
@@ -75,6 +107,7 @@ export interface VerifyPaymentResponse {
 }
 
 export interface LaunchCheckoutOptions {
+  gateway?: PaymentGateway;
   authorizationUrl?: string;
   accessCode?: string;
   reference: string;
@@ -274,16 +307,49 @@ export async function getPaystackConfig(): Promise<PaystackConfig> {
   return fallbackConfig;
 }
 
+export function resolveGatewayForCurrency(currency: PaymentCurrency): PaymentGateway {
+  return currency === 'USD' ? 'bachs' : 'paystack';
+}
+
+export async function getPaymentsConfig(): Promise<MultiGatewayPaymentsConfig> {
+  const fallback: MultiGatewayPaymentsConfig = {
+    merchantName: 'Vixora Academy',
+    currencyGateways: { NGN: 'paystack', USD: 'bachs' },
+    paystack: {
+      configured: false,
+      hasPublicKey: false,
+      publicKey: null,
+      currency: 'NGN',
+      mode: 'test'
+    },
+    bachs: {
+      configured: false,
+      currency: 'USD',
+      mode: 'sandbox'
+    }
+  };
+
+  try {
+    const res = await fetch('/api/payments/config');
+    const parsed = await parseSafeResponseJson<MultiGatewayPaymentsConfig>(res);
+    if (parsed.ok && parsed.data && parsed.data.currencyGateways) {
+      return parsed.data;
+    }
+  } catch (err) {
+    console.warn('[Payments Config] Unable to load multi-gateway config:', err);
+  }
+  return fallback;
+}
+
 /**
- * Initialize payment on backend.
- * Only courseId and customer identity are sent.
- * Browser NEVER supplies amount or reference.
+ * Unified Currency-Aware Payment Initialization.
+ * Dynamically routes NGN -> Paystack and USD -> Bachs on the backend.
+ * Browser NEVER supplies amount, price, or tuition.
  */
-export async function initializePaystackPayment(
+export async function initializeDynamicPayment(
   params: InitializePaymentParams
 ): Promise<InitializePaymentResponse> {
   try {
-    // Attach Supabase Auth Bearer token if user is signed in
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     };
@@ -299,24 +365,17 @@ export async function initializePaystackPayment(
       }
     }
 
-    // Only forward safe, non-financial fields
+    const currency: PaymentCurrency = params.currency === 'USD' ? 'USD' : 'NGN';
     const payload = {
       courseId: params.courseId,
+      currency,
       studentName: params.studentName,
       email: params.email,
       phone: params.phone,
       callbackUrl: params.callbackUrl
     };
 
-    console.log('[Paystack Diagnostic: Request]', {
-      courseId: params.courseId,
-      email: params.email,
-      hasPhone: Boolean(params.phone),
-      requestUrl: '/api/payments/paystack/initialize',
-      method: 'POST'
-    });
-
-    let res = await fetch('/api/payments/paystack/initialize', {
+    let res = await fetch('/api/payments/initialize', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload)
@@ -324,22 +383,10 @@ export async function initializePaystackPayment(
 
     let parsed = await parseSafeResponseJson<any>(res, 'Failed to initialize payment.');
 
-    console.log('[Paystack Diagnostic: Response]', {
-      status: res.status,
-      contentType: res.headers.get('content-type'),
-      ok: res.ok,
-      code: parsed.data?.code,
-      hasAuthUrl: Boolean(parsed.data?.authorizationUrl),
-      hasAccessCode: Boolean(parsed.data?.accessCode),
-      hasPublicKey: Boolean(parsed.data?.publicKey),
-      reference: parsed.data?.reference,
-      errorName: parsed.data?.error || parsed.error
-    });
-
-    // If endpoint is not found or method is rejected (e.g. proxy/hosting divergence), fallback to canonical legacy path
-    if ((res.status === 404 || res.status === 405 || !parsed.ok) && (!parsed.data || !parsed.data.success)) {
+    // Backward fallback ONLY for NGN -> Paystack if proxy hasn't mounted /api/payments/initialize
+    if (currency === 'NGN' && (res.status === 404 || res.status === 405)) {
       try {
-        const fallbackRes = await fetch('/api/paystack/initialize', {
+        const fallbackRes = await fetch('/api/payments/paystack/initialize', {
           method: 'POST',
           headers,
           body: JSON.stringify(payload)
@@ -360,6 +407,7 @@ export async function initializePaystackPayment(
       const rawError = data.error || parsed.error || 'Failed to initialize payment.';
       return {
         success: false,
+        gateway: data.gateway || resolveGatewayForCurrency(currency),
         reference: data.reference || '',
         error: cleanErrorMessage(rawError),
         code: data.code || (parsed.status === 429 ? 'RATE_LIMIT_EXCEEDED' : 'INIT_FAILED'),
@@ -369,18 +417,24 @@ export async function initializePaystackPayment(
 
     return {
       success: true,
+      gateway: data.gateway || resolveGatewayForCurrency(currency),
+      gatewayMode: data.gatewayMode,
+      sessionId: data.sessionId || null,
       reference: data.reference,
       authorizationUrl: data.authorizationUrl,
       accessCode: data.accessCode,
+      amount: data.amount ?? data.amountNaira,
+      amountMinor: data.amountMinor ?? data.amountKobo,
       amountNaira: data.amountNaira,
       amountKobo: data.amountKobo,
-      currency: data.currency || 'NGN',
+      currency: data.currency || currency,
       courseId: data.courseId,
       courseTitle: data.courseTitle
     };
   } catch (err: any) {
     return {
       success: false,
+      gateway: resolveGatewayForCurrency(params.currency === 'USD' ? 'USD' : 'NGN'),
       reference: '',
       error: cleanErrorMessage(err?.message) || 'Network error connecting to payment gateway.',
       code: 'NETWORK_ERROR'
@@ -389,10 +443,21 @@ export async function initializePaystackPayment(
 }
 
 /**
- * Verifies transaction reference strictly through backend.
- * Validates reference client-side before calling server.
+ * Legacy NGN-explicit wrapper kept for backward compatibility.
  */
-export async function verifyPaystackPayment(reference: string): Promise<VerifyPaymentResponse> {
+export async function initializePaystackPayment(
+  params: InitializePaymentParams
+): Promise<InitializePaymentResponse> {
+  return initializeDynamicPayment({
+    ...params,
+    currency: 'NGN'
+  });
+}
+
+/**
+ * Verifies any Paystack (NGN) or Bachs (USD) transaction reference strictly through backend.
+ */
+export async function verifyGatewayPayment(reference: string): Promise<VerifyPaymentResponse> {
   const cleanRef = (reference || '').trim();
 
   if (!isValidClientReference(cleanRef)) {
@@ -405,7 +470,7 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
   }
 
   try {
-    let res = await fetch('/api/payments/paystack/verify', {
+    let res = await fetch('/api/payments/verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -415,10 +480,9 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
 
     let parsed = await parseSafeResponseJson<VerifyPaymentResponse>(res, 'Verification error.');
 
-    // If 404 or 405, fallback to canonical legacy path
-    if ((res.status === 404 || res.status === 405 || !parsed.ok) && (!parsed.data || !parsed.data.verified)) {
+    if ((res.status === 404 || res.status === 405) && (!parsed.data || !parsed.data.verified)) {
       try {
-        const fallbackRes = await fetch('/api/paystack/verify', {
+        const fallbackRes = await fetch('/api/payments/paystack/verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -456,38 +520,47 @@ export async function verifyPaystackPayment(reference: string): Promise<VerifyPa
   }
 }
 
+export async function verifyPaystackPayment(reference: string): Promise<VerifyPaymentResponse> {
+  return verifyGatewayPayment(reference);
+}
+
+function isAllowedHostedCheckoutHost(hostname: string, gateway?: PaymentGateway): boolean {
+  const host = hostname.toLowerCase();
+  const isPaystackHost =
+    host === 'checkout.paystack.com' ||
+    host === 'standard.paystack.co' ||
+    host.endsWith('.paystack.com') ||
+    host.endsWith('.paystack.co');
+
+  const isBachsHost =
+    host === 'bachs.io' ||
+    host === 'checkout.bachs.io' ||
+    host === 'pay.bachs.io' ||
+    host.endsWith('.bachs.io');
+
+  if (gateway === 'paystack') return isPaystackHost;
+  if (gateway === 'bachs') return isBachsHost;
+  return isPaystackHost || isBachsHost;
+}
+
 /**
- * Launches Paystack checkout via inline popup or authorizationUrl redirect.
+ * Launches server-initialized hosted checkout for Paystack (NGN) or Bachs (USD).
  */
-export async function launchPaystackCheckout(options: LaunchCheckoutOptions): Promise<void> {
+export async function launchGatewayCheckout(options: LaunchCheckoutOptions): Promise<void> {
   if (typeof window === 'undefined') return;
 
-  /*
-   * Use Paystack's server-initialized hosted checkout as the primary path.
-   * The backend has already created the transaction and returned an
-   * authorization_url. Redirecting to that URL avoids relying on a browser
-   * SDK version/shape and keeps amount/currency/reference server-authoritative.
-   *
-   * Paystack documents this redirect flow as:
-   * backend initialization -> authorization_url -> checkout -> callback.
-   */
   if (options.authorizationUrl) {
     try {
       const checkoutUrl = new URL(options.authorizationUrl);
 
-      // Validate that it is an official Paystack secure HTTPS domain
-      const isPaystackHost =
-        checkoutUrl.protocol === 'https:' &&
-        (checkoutUrl.hostname === 'checkout.paystack.com' ||
-          checkoutUrl.hostname === 'standard.paystack.co' ||
-          checkoutUrl.hostname.endsWith('.paystack.com') ||
-          checkoutUrl.hostname.endsWith('.paystack.co'));
-
-      if (!isPaystackHost) {
-        throw new Error('Paystack returned an invalid checkout link.');
+      if (
+        checkoutUrl.protocol !== 'https:' ||
+        !isAllowedHostedCheckoutHost(checkoutUrl.hostname, options.gateway)
+      ) {
+        const gwLabel = options.gateway === 'bachs' ? 'Bachs' : 'Paystack';
+        throw new Error(`${gwLabel} returned an invalid checkout link.`);
       }
 
-      // Universal cross-browser redirect
       try {
         window.location.assign(checkoutUrl.href);
       } catch {
@@ -495,20 +568,17 @@ export async function launchPaystackCheckout(options: LaunchCheckoutOptions): Pr
       }
       return;
     } catch (err: any) {
-      console.error('[Paystack Checkout] Invalid authorization URL:', err);
+      console.error('[Gateway Checkout] Invalid authorization URL:', err);
       if (options.onError) {
-        options.onError(cleanErrorMessage(err?.message) || 'Paystack returned an invalid checkout link. Please try again or contact admissions.');
+        options.onError(cleanErrorMessage(err?.message) || 'Payment gateway returned an invalid checkout link. Please try again or contact admissions.');
       }
       return;
     }
   }
 
-  /*
-   * No hosted checkout URL means initialization did not produce a usable
-   * transaction. Do not attempt to construct a client-side transaction or
-   * supply an amount here.
-   */
   if (options.onError) {
     options.onError('Payment authorization URL could not be generated. Please try again or contact admissions.');
   }
 }
+
+export const launchPaystackCheckout = launchGatewayCheckout;

@@ -39,17 +39,22 @@ export interface AdminSalesCourseBreakdown {
   priceUsd: number | null;
   enrolledStudents: number;
   verifiedPayments: number;
+  verifiedPaymentsNgn?: number;
+  verifiedPaymentsUsd?: number;
   revenueNgn: number;
+  revenueUsd?: number;
 }
 
 export interface AdminSalesTransaction {
   reference: string;
+  gateway: 'paystack' | 'bachs' | string;
+  gatewayMode?: 'live' | 'sandbox' | string;
   customerEmail: string;
   customerName: string;
   courseId: string;
   courseTitle: string;
   amount: number;
-  currency: string;
+  currency: 'NGN' | 'USD' | string;
   channel: string;
   status: 'pending' | 'success' | 'failed' | 'abandoned' | string;
   fulfillmentStatus: 'pending' | 'fulfilled' | 'failed' | string;
@@ -57,14 +62,33 @@ export interface AdminSalesTransaction {
   createdAt: string;
 }
 
+export interface AdminSalesGatewayStats {
+  verifiedPaymentsCount: number;
+  pendingPaymentsCount: number;
+  failedPaymentsCount: number;
+  totalTransactionsCount: number;
+  successRatePercent: number | null;
+  revenueNgn: number;
+  revenueUsd: number;
+}
+
 export interface AdminSalesSummary {
   totalRevenueNgn: number;
+  totalRevenueUsd?: number;
+  liveRevenueNgn?: number;
+  liveRevenueUsd?: number;
+  sandboxRevenueUsd?: number;
+  sandboxPaymentsCount?: number;
   verifiedPaymentsCount: number;
   pendingPaymentsCount: number;
   failedPaymentsCount: number;
   totalTransactionsCount: number;
   totalEnrollmentsCount: number;
   successRatePercent: number | null;
+  byGateway?: {
+    paystack: AdminSalesGatewayStats;
+    bachs: AdminSalesGatewayStats;
+  };
   courseBreakdown: AdminSalesCourseBreakdown[];
   recentPayments: AdminSalesTransaction[];
 }

@@ -16,10 +16,11 @@ import {
   Send
 } from 'lucide-react';
 import {
-  verifyPaystackPayment,
+  verifyGatewayPayment,
   isValidClientReference,
   cleanErrorMessage,
-  VerifiedPaymentData
+  VerifiedPaymentData,
+  PaymentGateway
 } from '../lib/paystack';
 import { getWhatsAppUrl } from '../data/brandConfig';
 
@@ -38,9 +39,18 @@ export function PaymentCallbackPage({
   const [payment, setPayment] = useState<VerifiedPaymentData | null>(null);
   const [reference, setReference] = useState<string>('');
   const [courseId, setCourseId] = useState<string>('');
+  const [urlGateway, setUrlGateway] = useState<PaymentGateway | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+
+  const inferredGateway: PaymentGateway =
+    payment?.gateway ||
+    (payment?.currency === 'USD' ? 'bachs' : undefined) ||
+    urlGateway ||
+    (reference.toUpperCase().startsWith('VIX-BC-') ? 'bachs' : 'paystack');
+  const isBachs = inferredGateway === 'bachs';
+  const gatewayDisplayName = isBachs ? 'Bachs USD' : 'Paystack';
 
   const executeVerification = useCallback(async (ref: string) => {
     if (!isValidClientReference(ref)) {
@@ -50,19 +60,17 @@ export function PaymentCallbackPage({
     }
 
     try {
-      const res = await verifyPaystackPayment(ref);
+      const res = await verifyGatewayPayment(ref);
 
       if (res.verified && res.payment) {
         setPayment(res.payment);
         setPageState('success');
       } else if (res.code === 'PAYMENT_NOT_SUCCESSFUL' || res.status === 400) {
-        // Payment was recorded as failed or abandoned by Paystack
         setPageState('failed');
         setErrorMessage(
-          res.error || 'Payment could not be completed on Paystack. Your card or bank was not charged.'
+          res.error || 'Payment could not be completed. Your card or bank was not charged.'
         );
       } else {
-        // Temporary server / network / fulfillment verification issue
         setPageState('error');
         setErrorMessage(
           res.error || "We're confirming your payment. Please wait or click retry below."
@@ -80,12 +88,16 @@ export function PaymentCallbackPage({
     if (typeof window === 'undefined') return;
 
     const params = new URLSearchParams(window.location.search);
-    const rawRef = params.get('reference') || params.get('trxref') || '';
+    const rawRef = params.get('reference') || params.get('trxref') || params.get('client_reference_id') || '';
     const rawCourseId = params.get('courseId') || '';
+    const rawGateway = (params.get('gateway') || '').toLowerCase();
     const isCancelled = params.get('cancelled') === 'true' || params.get('status') === 'cancelled';
 
     setReference(rawRef);
     setCourseId(rawCourseId);
+    if (rawGateway === 'bachs' || rawGateway === 'paystack') {
+      setUrlGateway(rawGateway);
+    }
 
     if (isCancelled) {
       setPageState('cancelled');
@@ -148,7 +160,7 @@ export function PaymentCallbackPage({
               We&apos;re confirming your payment. Please wait...
             </h2>
             <p className="text-xs sm:text-sm text-neutral-300 max-w-md mx-auto">
-              Our admissions server is securely communicating with the Paystack network to verify your transaction and activate your academy cohort enrollment.
+              Our admissions server is securely communicating with the {gatewayDisplayName} network to verify your transaction and activate your academy cohort enrollment.
             </p>
             {reference && (
               <div className="pt-2 font-mono text-[11px] text-purple-300 bg-neutral-950/80 py-2 px-4 rounded-xl border border-neutral-800 inline-block">
@@ -170,7 +182,8 @@ export function PaymentCallbackPage({
               </div>
               <h2 className="text-2xl font-bold text-white">Payment Confirmed!</h2>
               <p className="text-xs text-emerald-300 font-mono mt-1">
-                Official Tuition Receipt &bull; Paystack Verified
+                Official Tuition Receipt &bull; {gatewayDisplayName} Verified
+                {payment.gatewayMode === 'sandbox' ? ' (Sandbox)' : ''}
               </p>
             </div>
 
@@ -308,8 +321,8 @@ export function PaymentCallbackPage({
 
                 <a
                   href={getWhatsAppUrl(
-                    'ng',
-                    `Hello Vixora Admissions! I have successfully paid my tuition of ${payment.currency} ${payment.amount.toLocaleString()} for ${payment.courseTitle} on Paystack. Reference: ${payment.reference}. Email: ${payment.studentEmail}.`
+                    isBachs ? 'us' : 'ng',
+                    `Hello Vixora Admissions! I have successfully paid my tuition of ${payment.currency} ${payment.amount.toLocaleString()} for ${payment.courseTitle} via ${gatewayDisplayName}. Reference: ${payment.reference}. Email: ${payment.studentEmail}.`
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -460,8 +473,8 @@ export function PaymentCallbackPage({
 
               <a
                 href={getWhatsAppUrl(
-                  'ng',
-                  `Hello Vixora Admissions! My payment could not be completed via Paystack (Reference: ${reference || 'N/A'}). I would like assistance with enrolling.`
+                  isBachs ? 'us' : 'ng',
+                  `Hello Vixora Admissions! My payment could not be completed via ${gatewayDisplayName} (Reference: ${reference || 'N/A'}). I would like assistance with enrolling.`
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -509,8 +522,8 @@ export function PaymentCallbackPage({
 
               <a
                 href={getWhatsAppUrl(
-                  'ng',
-                  `Hello Vixora Admissions, I am verifying my Paystack payment for reference: ${reference || 'N/A'}. Could you please check on the status?`
+                  isBachs ? 'us' : 'ng',
+                  `Hello Vixora Admissions, I am verifying my ${gatewayDisplayName} payment for reference: ${reference || 'N/A'}. Could you please check on the status?`
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -544,7 +557,7 @@ export function PaymentCallbackPage({
       <div className="text-center text-xs text-neutral-400 mt-8 font-mono">
         <span className="inline-flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          Vixora Academy Admissions &bull; Paystack Certified Integration &bull; 256-bit SSL Security
+          Vixora Academy Admissions &bull; {gatewayDisplayName} Certified Integration &bull; 256-bit SSL Security
         </span>
       </div>
     </div>

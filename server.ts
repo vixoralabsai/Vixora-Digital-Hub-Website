@@ -4,7 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { portalRouter, isPlainObject } from './server/studentPortalServer.js';
-import { paystackRouter } from './server/paystackServer.js';
+import { paystackRouter, paymentsRouter } from './server/paystackServer.js';
 import { aiAdvisorRouter, getGeminiApiKey } from './server/aiAdvisorServer.js';
 
 dotenv.config();
@@ -47,6 +47,10 @@ app.use('/api/payments/paystack', paystackRouter);
 app.use('/api/paystack', paystackRouter);
 app.use('/payments/paystack', paystackRouter);
 app.use('/paystack', paystackRouter);
+
+// Mount Unified Multi-Gateway Payment Router (NGN -> Paystack, USD -> Bachs)
+app.use('/api/payments', paymentsRouter);
+app.use('/payments', paymentsRouter);
 
 // Lazy initialization of Gemini client
 let cachedApiKey = '';

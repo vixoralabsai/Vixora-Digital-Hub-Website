@@ -42,42 +42,45 @@ async function runAllTests() {
   );
 
   // ------------------------------------------------------------------------
-  // Test 1: Enrollment submission calls initialize with courseId/email/name/phone
+  // Test 1: Enrollment submission calls dynamic initializer with courseId/currency/email/name/phone
   // ------------------------------------------------------------------------
-  await runTest('1. Enrollment submission calls initialize with courseId/email/name/phone', () => {
+  await runTest('1. Enrollment submission calls initialize with courseId/currency/email/name/phone', () => {
     assert.ok(
-      modalContent.includes('initializePaystackPayment({'),
-      'CourseEnrollmentModal must call initializePaystackPayment'
+      modalContent.includes('initializeDynamicPayment({'),
+      'CourseEnrollmentModal must call initializeDynamicPayment'
     );
     assert.ok(
       modalContent.includes('courseId: course.id'),
-      'initializePaystackPayment must include courseId'
+      'initializeDynamicPayment must include courseId'
+    );
+    assert.ok(
+      modalContent.includes('currency,') || modalContent.includes('currency:'),
+      'initializeDynamicPayment must pass selected display currency'
     );
     assert.ok(
       modalContent.includes('email: email.trim()'),
-      'initializePaystackPayment must include student email'
+      'initializeDynamicPayment must include student email'
     );
     assert.ok(
       modalContent.includes('studentName: fullName.trim()'),
-      'initializePaystackPayment must include student full name'
+      'initializeDynamicPayment must include student full name'
     );
     assert.ok(
       modalContent.includes('phone: phone.trim()'),
-      'initializePaystackPayment must include optional phone number'
+      'initializeDynamicPayment must include optional phone number'
     );
   });
 
   // ------------------------------------------------------------------------
-  // Test 2: Client does not send authoritative amount
+  // Test 2: Client does not send authoritative amount or tuition
   // ------------------------------------------------------------------------
   await runTest('2. Client does not send authoritative amount', () => {
-    const initCallMatch = modalContent.match(/initializePaystackPayment\(\{([\s\S]*?)\}\)/);
-    assert.ok(initCallMatch, 'initializePaystackPayment call must exist');
+    const initCallMatch = modalContent.match(/initializeDynamicPayment\(\{([\s\S]*?)\}\)/);
+    assert.ok(initCallMatch, 'initializeDynamicPayment call must exist');
     const initCallBody = initCallMatch[1];
     assert.ok(!initCallBody.includes('amount:'), 'initialize call must not send client amount');
     assert.ok(!initCallBody.includes('price:'), 'initialize call must not send client price');
     assert.ok(!initCallBody.includes('tuition:'), 'initialize call must not send client tuition');
-    assert.ok(!initCallBody.includes('currency:'), 'initialize call must not send client currency');
 
     // Also verify TypeScript interface enforces absence of client amount
     const interfaceMatch = paystackLibContent.match(/export interface InitializePaymentParams\s*\{([^}]+)\}/);
@@ -86,6 +89,7 @@ async function runAllTests() {
     assert.ok(!interfaceBody.includes('amount:'), 'InitializePaymentParams must not contain amount:');
     assert.ok(!interfaceBody.includes('price:'), 'InitializePaymentParams must not contain price:');
     assert.ok(!interfaceBody.includes('tuition:'), 'InitializePaymentParams must not contain tuition:');
+    assert.ok(interfaceBody.includes('currency?: PaymentCurrency'), 'InitializePaymentParams must type currency as PaymentCurrency');
   });
 
   // ------------------------------------------------------------------------
@@ -97,8 +101,8 @@ async function runAllTests() {
       'CourseEnrollmentModal must display safe user-friendly initialization error'
     );
     assert.ok(
-      modalContent.includes('PAYSTACK_NOT_CONFIGURED'),
-      'CourseEnrollmentModal must handle unconfigured gateway status safely'
+      modalContent.includes('PAYSTACK_NOT_CONFIGURED') && modalContent.includes('BACHS_NOT_CONFIGURED'),
+      'CourseEnrollmentModal must handle unconfigured gateway status safely for both Paystack and Bachs'
     );
     assert.ok(
       modalContent.includes('setIsSubmitting(false)'),
@@ -107,25 +111,29 @@ async function runAllTests() {
   });
 
   // ------------------------------------------------------------------------
-  // Test 4: Successful initialization launches/redirects to Paystack
+  // Test 4: Successful initialization launches/redirects to Paystack or Bachs
   // ------------------------------------------------------------------------
-  await runTest('4. Successful initialization launches/redirects to Paystack', () => {
+  await runTest('4. Successful initialization launches/redirects to active payment gateway', () => {
     assert.ok(
-      modalContent.includes('launchPaystackCheckout({'),
-      'CourseEnrollmentModal must call launchPaystackCheckout on success'
+      modalContent.includes('launchGatewayCheckout({'),
+      'CourseEnrollmentModal must call launchGatewayCheckout on success'
     );
     assert.ok(
       modalContent.includes('reference: initRes.reference'),
-      'launchPaystackCheckout must receive initialized reference'
+      'launchGatewayCheckout must receive initialized reference'
     );
     assert.ok(
       modalContent.includes('authorizationUrl: initRes.authorizationUrl'),
-      'launchPaystackCheckout must receive authorizationUrl'
+      'launchGatewayCheckout must receive authorizationUrl'
+    );
+    assert.ok(
+      paystackLibContent.includes('bachs.io') && paystackLibContent.includes('paystack.co'),
+      'launchGatewayCheckout must restrict hosted redirects to verified Paystack and Bachs HTTPS domains'
     );
     assert.ok(
       paystackLibContent.includes('window.location.assign') ||
       paystackLibContent.includes('window.location.href'),
-      'launchPaystackCheckout must support authorizationUrl redirect fallback'
+      'launchGatewayCheckout must support authorizationUrl redirect fallback'
     );
   });
 
@@ -137,8 +145,9 @@ async function runAllTests() {
       callbackContent.includes("params.get('reference') || params.get('trxref')"),
       'Callback must extract reference or trxref query parameters'
     );
-    // Reference format validation tests
+    // Reference format validation tests (Paystack & Bachs prefixes)
     assert.equal(isValidClientReference('VIX-PS-1740000000-ABCD1234'), true);
+    assert.equal(isValidClientReference('VIX-BC-1740000000-ABCD1234'), true);
     assert.equal(isValidClientReference('ref_123456789'), true);
     assert.equal(isValidClientReference('T1234567890'), true);
     assert.equal(isValidClientReference(''), false);
@@ -151,18 +160,22 @@ async function runAllTests() {
   // ------------------------------------------------------------------------
   // Test 6: Callback verifies through backend
   // ------------------------------------------------------------------------
-  await runTest('6. Callback verifies through backend POST /api/payments/paystack/verify', () => {
+  await runTest('6. Callback verifies through backend POST /api/payments/verify', () => {
     assert.ok(
-      callbackContent.includes('verifyPaystackPayment(ref)'),
-      'PaymentCallbackPage must invoke verifyPaystackPayment'
+      callbackContent.includes('verifyGatewayPayment(ref)'),
+      'PaymentCallbackPage must invoke verifyGatewayPayment'
     );
     assert.ok(
-      paystackLibContent.includes('/api/payments/paystack/verify'),
-      'verifyPaystackPayment must call backend verification endpoint'
+      paystackLibContent.includes('/api/payments/verify'),
+      'verifyGatewayPayment must call unified backend verification endpoint'
+    );
+    assert.ok(
+      paystackLibContent.includes('/api/payments/initialize'),
+      'initializeDynamicPayment must call dynamic backend initialization endpoint'
     );
     assert.ok(
       paystackLibContent.includes("method: 'POST'"),
-      'verifyPaystackPayment must issue a POST request'
+      'verifyGatewayPayment must issue a POST request'
     );
   });
 
@@ -245,8 +258,8 @@ async function runAllTests() {
       'Submit button must be disabled when isSubmitting is true'
     );
     assert.ok(
-      modalContent.includes('Connecting to Paystack...'),
-      'Submit button must render loading text during network request'
+      modalContent.includes('Connecting to ${gatewayDisplayName}...'),
+      'Submit button must render active gateway loading text during network request'
     );
   });
 
@@ -270,9 +283,9 @@ async function runAllTests() {
   });
 
   // ------------------------------------------------------------------------
-  // Test 12: Security Check - PAYSTACK_SECRET_KEY is absent from src/
+  // Test 12: Security Check - Gateway secrets are absent from src/
   // ------------------------------------------------------------------------
-  await runTest('12. Security Check: PAYSTACK_SECRET_KEY is absent from all frontend code', () => {
+  await runTest('12. Security Check: PAYSTACK_SECRET_KEY and BACHS secrets are absent from all frontend code', () => {
     function scanDirectory(dir: string): string[] {
       const files: string[] = [];
       const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -289,12 +302,13 @@ async function runAllTests() {
 
     const srcFiles = scanDirectory(path.join(process.cwd(), 'src'));
     const violations: { file: string; line: number; text: string }[] = [];
+    const forbiddenTokens = ['PAYSTACK_SECRET_KEY', 'BACHS_API_KEY', 'BACHS_SECRET_KEY', 'BACHS_WEBHOOK_SECRET'];
 
     for (const file of srcFiles) {
       const content = fs.readFileSync(file, 'utf-8');
       const lines = content.split('\n');
       lines.forEach((line, index) => {
-        if (line.includes('PAYSTACK_SECRET_KEY')) {
+        if (forbiddenTokens.some((tok) => line.includes(tok))) {
           violations.push({
             file: path.relative(process.cwd(), file),
             line: index + 1,
@@ -307,7 +321,7 @@ async function runAllTests() {
     assert.equal(
       violations.length,
       0,
-      `PAYSTACK_SECRET_KEY found in frontend src/ files: ${JSON.stringify(violations, null, 2)}`
+      `Gateway secret tokens found in frontend src/ files: ${JSON.stringify(violations, null, 2)}`
     );
   });
 

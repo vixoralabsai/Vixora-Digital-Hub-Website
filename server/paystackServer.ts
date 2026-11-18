@@ -3,11 +3,28 @@ import crypto from 'crypto';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 import { dispatchGenericEmail } from './emailService.js';
 import { BRAND_CONFIG, getWhatsAppUrl } from '../src/data/brandConfig.js';
-import { findCanonicalCourse, type CanonicalCourse } from './payments/courseCatalog.js';
+import {
+  findCanonicalCourse,
+  resolveAuthoritativePrice,
+  resolveGatewayForCurrency,
+  type CanonicalCourse
+} from './payments/courseCatalog.js';
+import {
+  getBachsApiKey,
+  getBachsMode,
+  getBachsWebhookSecret,
+  isBachsConfigured,
+  createBachsCheckoutSession,
+  fetchBachsCheckoutSession,
+  normalizeBachsPayload,
+  sanitizeBachsResponse,
+  verifyBachsWebhookSignature
+} from './payments/bachsGateway.js';
 import { buildStudentOnboardingEmail } from './emailTemplates.js';
 import { getTelegramInvitesForCourse, type TelegramTrackInvite } from './telegramConfig.js';
 
 export const paystackRouter = Router();
+export const paymentsRouter = Router();
 
 // Official Paystack API Base URL
 const PAYSTACK_API_BASE = 'https://api.paystack.co';
@@ -164,9 +181,13 @@ export interface PaymentRecord {
   id: string; // transaction reference
   student_id: string | null;
   course_id: string;
-  amount: number; // in Naira (e.g. 60000.00)
-  amount_kobo: number; // in kobo (e.g. 6000000)
-  currency: 'NGN';
+  gateway?: 'paystack' | 'bachs';
+  gateway_mode?: 'live' | 'sandbox';
+  external_session_id?: string | null;
+  amount: number; // Major units (e.g. 60000.00 NGN or 50.00 USD)
+  amount_kobo: number; // Legacy subunit column (kobo for NGN, minor units or 0 for USD)
+  amount_minor?: number; // Canonical minor units (kobo for NGN, cents for USD)
+  currency: 'NGN' | 'USD';
   channel: string | null;
   status: 'pending' | 'success' | 'failed' | 'abandoned';
   fulfillment_status: 'pending' | 'fulfilled' | 'failed';
@@ -258,6 +279,8 @@ export interface FulfillmentResult {
   alreadyFulfilled?: boolean;
   payment?: {
     reference: string;
+    gateway?: 'paystack' | 'bachs';
+    gatewayMode?: 'live' | 'sandbox';
     status: string;
     amount: number;
     currency: string;
@@ -332,9 +355,35 @@ export async function ensureCourseRecordInDatabase(
   }
 }
 
+function isMissingColumnError(err: any): boolean {
+  const msg = String(err?.message || err?.details || '').toLowerCase();
+  return err?.code === 'PGRST204' || err?.code === '42703' || msg.includes('column') && msg.includes('does not exist');
+}
+
+function stripExtendedPaymentColumns(record: PaymentRecord): Record<string, any> {
+  const { gateway, gateway_mode, external_session_id, amount_minor, ...legacyRecord } = record as any;
+  return legacyRecord;
+}
+
+async function persistPaymentInsert(supabase: any, record: PaymentRecord): Promise<{ error: any }> {
+  const res = await supabase.from('payments').insert(record);
+  if (res.error && isMissingColumnError(res.error) && record.gateway === 'paystack') {
+    return await supabase.from('payments').insert(stripExtendedPaymentColumns(record));
+  }
+  return res;
+}
+
+async function persistPaymentUpsert(supabase: any, record: PaymentRecord): Promise<{ error: any }> {
+  const res = await supabase.from('payments').upsert(record, { onConflict: 'id' });
+  if (res.error && isMissingColumnError(res.error) && record.gateway === 'paystack') {
+    return await supabase.from('payments').upsert(stripExtendedPaymentColumns(record), { onConflict: 'id' });
+  }
+  return res;
+}
+
 export async function processPaymentFulfillment(
   reference: string,
-  verifiedPaystackData?: any
+  verifiedGatewayData?: any
 ): Promise<FulfillmentResult> {
   if (!isValidTransactionReference(reference)) {
     return {
@@ -395,6 +444,15 @@ export async function processPaymentFulfillment(
     existingPayment = fallbackPaymentsStore.get(reference) || null;
   }
 
+  // Determine payment processor cleanly without breaking Paystack currency mismatch checks
+  const inferredGateway: 'paystack' | 'bachs' =
+    verifiedGatewayData?._gateway === 'bachs' ||
+    existingPayment?.gateway === 'bachs' ||
+    existingPayment?.currency === 'USD' ||
+    reference.toUpperCase().startsWith('VIX-BC-')
+      ? 'bachs'
+      : 'paystack';
+
   // Idempotency: Only short-circuit if payment is already 'success' AND course enrollment succeeded
   if (
     existingPayment &&
@@ -409,6 +467,8 @@ export async function processPaymentFulfillment(
       alreadyFulfilled: true,
       payment: {
         reference: existingPayment.id,
+        gateway: existingPayment.gateway || inferredGateway,
+        gatewayMode: existingPayment.gateway_mode || (inferredGateway === 'bachs' ? getBachsMode() : (getPaystackSecretKey().startsWith('sk_live_') ? 'live' : 'sandbox')),
         status: existingPayment.status,
         amount: existingPayment.amount,
         currency: existingPayment.currency,
@@ -424,160 +484,294 @@ export async function processPaymentFulfillment(
     };
   }
 
-  // 2. Fetch authoritative transaction status from Paystack API if not provided
-  let paystackData = verifiedPaystackData;
+  // 2. Normalize & Verify Authoritative Transaction Data for Active Gateway
+  let resolvedCurrency: 'NGN' | 'USD' = inferredGateway === 'bachs' ? 'USD' : 'NGN';
+  let canonicalCourse: CanonicalCourse | null = null;
+  let expectedMajorAmount = 0;
+  let expectedMinorAmount = 0;
+  let customerEmail = '';
+  let customerName = '';
+  let customerPhone: string | null = null;
+  let paidAt = new Date().toISOString();
+  let channel = 'card';
+  let externalTxId = '';
+  let externalSessionId: string | null = existingPayment?.external_session_id || null;
+  let authUserId: string | null = null;
+  let sanitizedRaw: any = null;
+  const gatewayMode: 'live' | 'sandbox' =
+    existingPayment?.gateway_mode ||
+    (inferredGateway === 'bachs'
+      ? getBachsMode()
+      : (getPaystackSecretKey().startsWith('sk_live_') ? 'live' : 'sandbox'));
 
-  if (!paystackData) {
-    const secretKey = getPaystackSecretKey();
-    if (!secretKey) {
+  if (inferredGateway === 'bachs') {
+    let normalizedBachs = verifiedGatewayData?._alreadyNormalized
+      ? verifiedGatewayData
+      : verifiedGatewayData
+      ? normalizeBachsPayload(verifiedGatewayData)
+      : null;
+
+    if (!normalizedBachs) {
+      const lookupId = existingPayment?.external_session_id || reference;
+      const sessionRes = await fetchBachsCheckoutSession(lookupId);
+      if (!sessionRes.ok || !sessionRes.data) {
+        return {
+          verified: false,
+          error: sessionRes.error || 'USD transaction could not be verified on Bachs.',
+          code: sessionRes.status === 503 ? 'BACHS_NOT_CONFIGURED' : 'BACHS_VERIFY_FAILED',
+          status: sessionRes.status || 404
+        };
+      }
+      normalizedBachs = sessionRes.data;
+    }
+
+    if (normalizedBachs.status !== 'success') {
+      const mappedStatus: 'failed' | 'abandoned' | 'pending' =
+        normalizedBachs.status === 'failed' || normalizedBachs.status === 'abandoned'
+          ? normalizedBachs.status
+          : 'pending';
+
+      const failedUpdate = {
+        status: mappedStatus,
+        raw_response: normalizedBachs.raw,
+        updated_at: new Date().toISOString()
+      };
+
+      if (supabase) {
+        try {
+          await supabase.from('payments').update(failedUpdate).eq('id', reference);
+        } catch (dbErr) {
+          console.warn('[Supabase failed status update]:', dbErr);
+        }
+      }
+
+      if (fallbackPaymentsStore.has(reference)) {
+        const rec = fallbackPaymentsStore.get(reference)!;
+        rec.status = mappedStatus;
+        rec.raw_response = normalizedBachs.raw;
+        rec.updated_at = new Date().toISOString();
+      }
+
       return {
         verified: false,
-        error: 'Paystack Secret Key is not configured on the server.',
-        code: 'PAYSTACK_NOT_CONFIGURED',
-        status: 503
+        error: `USD payment is not successful (status: ${normalizedBachs.status}).`,
+        code: 'PAYMENT_NOT_SUCCESSFUL',
+        status: 400
       };
     }
 
-    try {
-      const response = await fetch(`${PAYSTACK_API_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${secretKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+    if (normalizedBachs.currency !== 'USD') {
+      return {
+        verified: false,
+        error: `Currency mismatch: Expected USD for Bachs, received ${normalizedBachs.currency || 'UNKNOWN'}.`,
+        code: 'CURRENCY_MISMATCH',
+        status: 400
+      };
+    }
 
-      const json: any = await response.json();
+    const courseId = existingPayment?.course_id || normalizedBachs.courseId || '';
+    const authPrice = resolveAuthoritativePrice(courseId, 'USD');
+    if (!authPrice) {
+      return {
+        verified: false,
+        error: 'Cannot fulfill USD payment: Course is unrecognized or USD pricing is unconfigured.',
+        code: 'INVALID_COURSE',
+        status: 400
+      };
+    }
 
-      if (!response.ok || !json.status || !json.data) {
+    if (normalizedBachs.amountMinor !== authPrice.minorAmount) {
+      return {
+        verified: false,
+        error: `Amount mismatch: Expected ${authPrice.minorAmount} cents ($${authPrice.majorAmount}), received ${normalizedBachs.amountMinor} cents.`,
+        code: 'AMOUNT_MISMATCH',
+        status: 400
+      };
+    }
+
+    customerEmail = (
+      normalizedBachs.customerEmail ||
+      existingPayment?.customer_email ||
+      ''
+    ).toLowerCase().trim();
+
+    if (!isValidEmail(customerEmail)) {
+      return {
+        verified: false,
+        error: 'Invalid customer email associated with USD transaction.',
+        code: 'INVALID_CUSTOMER_EMAIL',
+        status: 400
+      };
+    }
+
+    canonicalCourse = authPrice.course;
+    resolvedCurrency = 'USD';
+    expectedMajorAmount = authPrice.majorAmount;
+    expectedMinorAmount = authPrice.minorAmount;
+    customerName =
+      normalizedBachs.customerName ||
+      existingPayment?.customer_name ||
+      customerEmail.split('@')[0];
+    customerPhone = existingPayment?.customer_phone || null;
+    paidAt = normalizedBachs.paidAt || new Date().toISOString();
+    channel = normalizedBachs.channel || 'card';
+    externalTxId = normalizedBachs.externalTxId || '';
+    externalSessionId = existingPayment?.external_session_id || normalizedBachs.sessionId || null;
+    authUserId = normalizedBachs.authUserId || null;
+    sanitizedRaw = normalizedBachs.raw;
+  } else {
+    // Paystack NGN path
+    let paystackData = verifiedGatewayData;
+
+    if (!paystackData) {
+      const secretKey = getPaystackSecretKey();
+      if (!secretKey) {
         return {
           verified: false,
-          error: json.message || 'Transaction could not be verified on Paystack.',
-          code: 'PAYSTACK_VERIFY_FAILED',
-          status: 404
+          error: 'Paystack Secret Key is not configured on the server.',
+          code: 'PAYSTACK_NOT_CONFIGURED',
+          status: 503
         };
       }
 
-      paystackData = json.data;
-    } catch (netErr: any) {
-      return {
-        verified: false,
-        error: 'Network error connecting to Paystack API.',
-        code: 'PAYSTACK_NETWORK_ERROR',
-        status: 502
-      };
-    }
-  }
-
-  // 3. Strict verification of transaction state & parameters
-  // FIX 3: Record failed/abandoned transactions in the database rather than leaving as pending
-  if (paystackData.status !== 'success') {
-    let mappedStatus: 'failed' | 'abandoned' | 'pending' = 'pending';
-    if (paystackData.status === 'failed' || paystackData.status === 'abandoned') {
-      mappedStatus = paystackData.status;
-    }
-
-    const failedUpdate = {
-      status: mappedStatus,
-      raw_response: sanitizePaystackResponse(paystackData),
-      updated_at: new Date().toISOString()
-    };
-
-    if (supabase) {
       try {
-        await supabase.from('payments').update(failedUpdate).eq('id', reference);
-      } catch (dbErr) {
-        console.warn('[Supabase failed status update]:', dbErr);
+        const response = await fetch(`${PAYSTACK_API_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const json: any = await response.json();
+
+        if (!response.ok || !json.status || !json.data) {
+          return {
+            verified: false,
+            error: json.message || 'Transaction could not be verified on Paystack.',
+            code: 'PAYSTACK_VERIFY_FAILED',
+            status: 404
+          };
+        }
+
+        paystackData = json.data;
+      } catch {
+        return {
+          verified: false,
+          error: 'Network error connecting to Paystack API.',
+          code: 'PAYSTACK_NETWORK_ERROR',
+          status: 502
+        };
       }
     }
 
-    if (fallbackPaymentsStore.has(reference)) {
-      const rec = fallbackPaymentsStore.get(reference)!;
-      rec.status = mappedStatus;
-      rec.raw_response = sanitizePaystackResponse(paystackData);
-      rec.updated_at = new Date().toISOString();
+    if (paystackData.status !== 'success') {
+      let mappedStatus: 'failed' | 'abandoned' | 'pending' = 'pending';
+      if (paystackData.status === 'failed' || paystackData.status === 'abandoned') {
+        mappedStatus = paystackData.status;
+      }
+
+      const failedUpdate = {
+        status: mappedStatus,
+        raw_response: sanitizePaystackResponse(paystackData),
+        updated_at: new Date().toISOString()
+      };
+
+      if (supabase) {
+        try {
+          await supabase.from('payments').update(failedUpdate).eq('id', reference);
+        } catch (dbErr) {
+          console.warn('[Supabase failed status update]:', dbErr);
+        }
+      }
+
+      if (fallbackPaymentsStore.has(reference)) {
+        const rec = fallbackPaymentsStore.get(reference)!;
+        rec.status = mappedStatus;
+        rec.raw_response = sanitizePaystackResponse(paystackData);
+        rec.updated_at = new Date().toISOString();
+      }
+
+      return {
+        verified: false,
+        error: `Payment is not successful (status: ${paystackData.status}).`,
+        code: 'PAYMENT_NOT_SUCCESSFUL',
+        status: 400
+      };
     }
 
-    return {
-      verified: false,
-      error: `Payment is not successful (status: ${paystackData.status}).`,
-      code: 'PAYMENT_NOT_SUCCESSFUL',
-      status: 400
-    };
+    // Verify Currency strictly matches NGN
+    if (paystackData.currency !== 'NGN') {
+      return {
+        verified: false,
+        error: `Currency mismatch: Expected NGN, received ${paystackData.currency}.`,
+        code: 'CURRENCY_MISMATCH',
+        status: 400
+      };
+    }
+
+    const courseId =
+      existingPayment?.course_id ||
+      paystackData.metadata?.courseId ||
+      paystackData.metadata?.course_id;
+
+    canonicalCourse = findCanonicalCourse(courseId);
+    if (!canonicalCourse) {
+      return {
+        verified: false,
+        error: 'Cannot fulfill payment: Unrecognized or invalid course ID.',
+        code: 'INVALID_COURSE',
+        status: 400
+      };
+    }
+
+    const expectedKobo = canonicalCourse.koboAmount;
+    const actualKobo = Math.round(Number(paystackData.amount));
+
+    if (actualKobo !== expectedKobo) {
+      return {
+        verified: false,
+        error: `Amount mismatch: Expected ${expectedKobo} kobo (₦${canonicalCourse.nairaAmount}), received ${actualKobo} kobo.`,
+        code: 'AMOUNT_MISMATCH',
+        status: 400
+      };
+    }
+
+    customerEmail = (
+      paystackData.customer?.email ||
+      paystackData.metadata?.studentEmail ||
+      existingPayment?.customer_email ||
+      ''
+    ).toLowerCase().trim();
+
+    if (!isValidEmail(customerEmail)) {
+      return {
+        verified: false,
+        error: 'Invalid customer email associated with transaction.',
+        code: 'INVALID_CUSTOMER_EMAIL',
+        status: 400
+      };
+    }
+
+    resolvedCurrency = 'NGN';
+    expectedMajorAmount = canonicalCourse.nairaAmount;
+    expectedMinorAmount = expectedKobo;
+    customerName =
+      paystackData.metadata?.studentName ||
+      existingPayment?.customer_name ||
+      paystackData.customer?.first_name ||
+      customerEmail.split('@')[0];
+    customerPhone =
+      paystackData.metadata?.phone ||
+      existingPayment?.customer_phone ||
+      paystackData.customer?.phone ||
+      null;
+    paidAt = paystackData.paid_at || new Date().toISOString();
+    channel = paystackData.channel || 'card';
+    externalTxId = String(paystackData.id || '');
+    authUserId = paystackData.metadata?.authUserId || null;
+    sanitizedRaw = sanitizePaystackResponse(paystackData);
   }
-
-  // Verify Currency strictly matches NGN
-  if (paystackData.currency !== 'NGN') {
-    return {
-      verified: false,
-      error: `Currency mismatch: Expected NGN, received ${paystackData.currency}.`,
-      code: 'CURRENCY_MISMATCH',
-      status: 400
-    };
-  }
-
-  // Find canonical course from stored payment record or transaction metadata
-  const courseId =
-    existingPayment?.course_id ||
-    paystackData.metadata?.courseId ||
-    paystackData.metadata?.course_id;
-
-  const canonicalCourse = findCanonicalCourse(courseId);
-  if (!canonicalCourse) {
-    return {
-      verified: false,
-      error: 'Cannot fulfill payment: Unrecognized or invalid course ID.',
-      code: 'INVALID_COURSE',
-      status: 400
-    };
-  }
-
-  // Verify Amount matches canonical course price exactly in kobo
-  const expectedKobo = canonicalCourse.koboAmount;
-  const actualKobo = Math.round(Number(paystackData.amount));
-
-  if (actualKobo !== expectedKobo) {
-    return {
-      verified: false,
-      error: `Amount mismatch: Expected ${expectedKobo} kobo (₦${canonicalCourse.nairaAmount}), received ${actualKobo} kobo.`,
-      code: 'AMOUNT_MISMATCH',
-      status: 400
-    };
-  }
-
-  // Customer identity
-  const customerEmail = (
-    paystackData.customer?.email ||
-    paystackData.metadata?.studentEmail ||
-    existingPayment?.customer_email ||
-    ''
-  ).toLowerCase().trim();
-
-  if (!isValidEmail(customerEmail)) {
-    return {
-      verified: false,
-      error: 'Invalid customer email associated with transaction.',
-      code: 'INVALID_CUSTOMER_EMAIL',
-      status: 400
-    };
-  }
-
-  const customerName =
-    paystackData.metadata?.studentName ||
-    existingPayment?.customer_name ||
-    paystackData.customer?.first_name ||
-    customerEmail.split('@')[0];
-
-  const customerPhone =
-    paystackData.metadata?.phone ||
-    existingPayment?.customer_phone ||
-    paystackData.customer?.phone ||
-    null;
-
-  const paidAt = paystackData.paid_at || new Date().toISOString();
-  const channel = paystackData.channel || 'card';
-  const paystackTxId = String(paystackData.id || '');
-  let authUserId = paystackData.metadata?.authUserId || null;
 
   // 4. Student Creation / Matching & Enrollment
   // FIX 2: Enrollment failure must not be silent. Do not report fulfillment success if student/enrollment fails.
@@ -749,47 +943,57 @@ export async function processPaymentFulfillment(
   }
 
   // 5. Durable Payment Record Creation / Update
-  // Preserves that the Paystack payment was genuinely successful, but explicitly tracks fulfillment_status
+  // Preserves that the gateway payment was genuinely successful, while explicitly tracking fulfillment_status
   const updatedPaymentRecord: PaymentRecord = {
     id: reference,
     student_id: studentId,
     course_id: dbCourseId,
-    amount: canonicalCourse.nairaAmount,
-    amount_kobo: canonicalCourse.koboAmount,
-    currency: 'NGN',
+    gateway: inferredGateway,
+    gateway_mode: gatewayMode,
+    external_session_id: externalSessionId,
+    amount: expectedMajorAmount,
+    amount_kobo: resolvedCurrency === 'NGN' ? expectedMinorAmount : 0,
+    amount_minor: expectedMinorAmount,
+    currency: resolvedCurrency,
     channel,
-    status: 'success', // Genuinely successful at Paystack
+    status: 'success',
     fulfillment_status: isFulfilled ? 'fulfilled' : 'failed',
     fulfillment_error: fulfillmentError,
-    paystack_transaction_id: paystackTxId,
+    paystack_transaction_id: externalTxId,
     customer_email: customerEmail,
     customer_name: customerName,
     customer_phone: customerPhone,
     paid_at: paidAt,
     email_dispatched_at: isFulfilled ? (existingPayment?.email_dispatched_at || null) : null,
-    raw_response: sanitizePaystackResponse(paystackData),
+    raw_response: sanitizedRaw,
     created_at: existingPayment?.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
 
+  const formattedPaidDisplay =
+    resolvedCurrency === 'USD'
+      ? `$${expectedMajorAmount.toLocaleString('en-US')}`
+      : `₦${expectedMajorAmount.toLocaleString()}`;
+  const gatewayDisplayName = inferredGateway === 'bachs' ? 'Bachs' : 'Paystack';
+
   if (supabase) {
     try {
-      const { error: paymentUpsertError } = await supabase
-        .from('payments')
-        .upsert(updatedPaymentRecord, { onConflict: 'id' });
+      const { error: paymentUpsertError } = await persistPaymentUpsert(supabase, updatedPaymentRecord);
 
       if (paymentUpsertError) {
         console.error('[Supabase payments upsert failed]:', paymentUpsertError);
         return {
           verified: false,
-          error: 'Paystack confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.',
+          error: `${gatewayDisplayName} confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.`,
           code: 'PAYMENT_RECORD_PERSISTENCE_FAILED',
           status: 503,
           payment: {
             reference,
+            gateway: inferredGateway,
+            gatewayMode,
             status: 'success',
-            amount: canonicalCourse.nairaAmount,
-            currency: 'NGN',
+            amount: expectedMajorAmount,
+            currency: resolvedCurrency,
             channel,
             paidAt,
             studentName: customerName,
@@ -803,7 +1007,7 @@ export async function processPaymentFulfillment(
       console.error('[Supabase payments upsert exception]:', paymentDbErr);
       return {
         verified: false,
-        error: 'Paystack confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.',
+        error: `${gatewayDisplayName} confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.`,
         code: 'PAYMENT_RECORD_PERSISTENCE_FAILED',
         status: 503
       };
@@ -826,14 +1030,16 @@ export async function processPaymentFulfillment(
   if (!isFulfilled) {
     return {
       verified: false,
-      error: `Tuition payment of ₦${canonicalCourse.nairaAmount.toLocaleString()} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
+      error: `Tuition payment of ${formattedPaidDisplay} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
       code: 'ENROLLMENT_FAILED',
       status: 500,
       payment: {
         reference,
+        gateway: inferredGateway,
+        gatewayMode,
         status: 'success',
-        amount: canonicalCourse.nairaAmount,
-        currency: 'NGN',
+        amount: expectedMajorAmount,
+        currency: resolvedCurrency,
         channel,
         paidAt,
         studentName: customerName,
@@ -845,7 +1051,6 @@ export async function processPaymentFulfillment(
   }
 
   // 6. FIX 1: Durable Email Idempotency (Supabase/DB state is the source of truth)
-  // Check if email has already been dispatched in the database record
   let alreadyEmailed = Boolean(existingPayment?.email_dispatched_at);
 
   if (!alreadyEmailed && supabase) {
@@ -869,15 +1074,17 @@ export async function processPaymentFulfillment(
   if (!alreadyEmailed) {
     try {
       const whatsappUrl = getWhatsAppUrl(
-        'ng',
-        `Hello Admissions! I just completed my tuition payment of ₦${canonicalCourse.nairaAmount.toLocaleString()} for ${canonicalCourse.title} via Paystack. Reference: ${reference}. My email is ${customerEmail}.`
+        resolvedCurrency === 'USD' ? 'us' : 'ng',
+        `Hello Admissions! I just completed my tuition payment of ${formattedPaidDisplay} (${resolvedCurrency}) for ${canonicalCourse.title} via ${gatewayDisplayName}. Reference: ${reference}. My email is ${customerEmail}.`
       );
 
       const emailPayload = buildStudentOnboardingEmail({
         customerName,
         customerEmail,
         courseTitle: canonicalCourse.title,
-        tuitionNaira: canonicalCourse.nairaAmount,
+        tuitionNaira: expectedMajorAmount,
+        currency: resolvedCurrency,
+        gateway: inferredGateway,
         reference,
         nextCohortDate: canonicalCourse.nextCohortDate,
         channel,
@@ -896,7 +1103,6 @@ export async function processPaymentFulfillment(
         text: emailPayload.text
       });
 
-      // Requirement 5: Do NOT mark email as sent BEFORE email provider successfully accepts it
       if (emailResult && (emailResult.delivered || emailResult.status === 'delivered')) {
         finalEmailDispatchedAt = new Date().toISOString();
         if (supabase) {
@@ -914,7 +1120,7 @@ export async function processPaymentFulfillment(
         }
       }
     } catch (mailErr) {
-      console.warn('[Paystack Email Dispatch Warning]:', mailErr);
+      console.warn('[Payment Email Dispatch Warning]:', mailErr);
     }
   }
 
@@ -922,9 +1128,11 @@ export async function processPaymentFulfillment(
     verified: true,
     payment: {
       reference,
+      gateway: inferredGateway,
+      gatewayMode,
       status: 'success',
-      amount: canonicalCourse.nairaAmount,
-      currency: 'NGN',
+      amount: expectedMajorAmount,
+      currency: resolvedCurrency,
       channel,
       paidAt,
       studentName: customerName,
@@ -938,8 +1146,7 @@ export async function processPaymentFulfillment(
 }
 
 // ==============================================================================
-// 9. Public Config Endpoint (Safe, no secrets)
-// GET /config
+// 9. Public Config Endpoints (Safe, no secrets)
 // ==============================================================================
 paystackRouter.get('/config', (_req: Request, res: Response) => {
   const configured = isPaystackConfigured();
@@ -955,16 +1162,44 @@ paystackRouter.get('/config', (_req: Request, res: Response) => {
   });
 });
 
+paymentsRouter.get('/config', (_req: Request, res: Response) => {
+  const psConfigured = isPaystackConfigured();
+  const psPublicKey = getPaystackPublicKey();
+  const bachsConfigured = isBachsConfigured();
+  const bachsMode = getBachsMode();
+
+  return res.json({
+    merchantName: 'Vixora Academy',
+    currencyGateways: {
+      NGN: 'paystack',
+      USD: 'bachs'
+    },
+    paystack: {
+      configured: psConfigured,
+      hasPublicKey: Boolean(psPublicKey),
+      publicKey: psPublicKey || null,
+      currency: 'NGN',
+      mode: getPaystackSecretKey().startsWith('sk_live_') ? 'live' : 'test'
+    },
+    bachs: {
+      configured: bachsConfigured,
+      currency: 'USD',
+      mode: bachsMode
+    }
+  });
+});
+
 // ==============================================================================
-// 10. Paystack Initialization Endpoint
-// POST /initialize
+// 10. Unified & Currency-Exclusive Initialization Handler
 // ==============================================================================
-paystackRouter.post('/initialize', async (req: Request, res: Response) => {
+export async function handlePaymentInitializeRequest(
+  req: Request,
+  res: Response,
+  forcedGateway?: 'paystack' | 'bachs'
+) {
   try {
-    // 1. Safe Client IP
     const clientIp = getClientIp(req);
 
-    // 2. Strict Input Validation
     if (!isPlainObject(req.body)) {
       return res.status(400).json({
         error: 'Request body must be a valid JSON object.',
@@ -979,7 +1214,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    const { courseId, email, studentName, phone, callbackUrl } = req.body;
+    const { courseId, email, studentName, phone, callbackUrl, currency: rawCurrency } = req.body;
 
     if (!courseId || typeof courseId !== 'string') {
       return res.status(400).json({
@@ -987,6 +1222,37 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         code: 'COURSE_ID_REQUIRED'
       });
     }
+
+    // Validate currency & enforce exclusive gateway pairing (NGN -> Paystack, USD -> Bachs)
+    const normalizedCurrency =
+      rawCurrency !== undefined && rawCurrency !== null && String(rawCurrency).trim() !== ''
+        ? String(rawCurrency).toUpperCase().trim()
+        : forcedGateway === 'bachs'
+        ? 'USD'
+        : 'NGN';
+
+    if (normalizedCurrency !== 'NGN' && normalizedCurrency !== 'USD') {
+      return res.status(400).json({
+        error: `Unsupported currency "${normalizedCurrency}". Supported currencies are NGN (Paystack) and USD (Bachs).`,
+        code: 'INVALID_CURRENCY'
+      });
+    }
+
+    if (forcedGateway === 'paystack' && normalizedCurrency !== 'NGN') {
+      return res.status(400).json({
+        error: 'Paystack only processes NGN transactions. Use USD checkout for Bachs.',
+        code: 'CURRENCY_GATEWAY_MISMATCH'
+      });
+    }
+
+    if (forcedGateway === 'bachs' && normalizedCurrency !== 'USD') {
+      return res.status(400).json({
+        error: 'Bachs exclusively processes USD transactions. Use Paystack for NGN.',
+        code: 'CURRENCY_GATEWAY_MISMATCH'
+      });
+    }
+
+    const activeGateway = resolveGatewayForCurrency(normalizedCurrency);
 
     if (!email || !isValidEmail(email)) {
       return res.status(400).json({
@@ -999,7 +1265,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
     const cleanStudentName = sanitizeText(studentName || cleanEmail.split('@')[0]);
     const cleanPhone = sanitizeText(phone, 30);
 
-    // 3. Rate Limit (5 requests / 10 minutes per IP+email)
+    // Rate Limit (5 requests / 10 minutes per IP+email)
     const rateLimitKey = `${clientIp}:${cleanEmail}`;
     const rlStatus = payInitRateLimiter.check(rateLimitKey);
     if (!rlStatus.allowed) {
@@ -1010,7 +1276,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // 4. Canonical Course & Price Source of Truth (Client cannot supply amount)
+    // Authoritative server-side course & currency price resolution
     const canonicalCourse = findCanonicalCourse(courseId);
     if (!canonicalCourse) {
       return res.status(400).json({
@@ -1019,41 +1285,54 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // 5. Check Server Paystack Configuration
-    const secretKey = getPaystackSecretKey();
-
-    console.log('[Server Paystack Init Diagnostic: Request]', {
-      courseId,
-      hasEmail: Boolean(email),
-      hasPhone: Boolean(phone),
-      hasSecretKey: Boolean(secretKey),
-      keyPrefix: secretKey ? (secretKey.startsWith('sk_live_') ? 'sk_live_...' : secretKey.startsWith('sk_test_') ? 'sk_test_...' : 'unknown...') : 'none'
-    });
-
-    if (!secretKey) {
-      console.warn('[Server Paystack Init Diagnostic: Rejected]', {
-        reason: 'PAYSTACK_SECRET_KEY is empty in process.env',
-        status: 503
-      });
-      return res.status(503).json({
-        error: 'Paystack Secret Key is not configured on the server. Please add PAYSTACK_SECRET_KEY in Settings -> Secrets.',
-        code: 'PAYSTACK_NOT_CONFIGURED',
-        help: 'Obtain your Secret Key from Paystack Dashboard -> Settings -> API Keys & Webhooks.'
+    const authoritativePrice = resolveAuthoritativePrice(courseId, normalizedCurrency);
+    if (!authoritativePrice) {
+      return res.status(400).json({
+        error: `${normalizedCurrency} pricing is not configured for "${canonicalCourse.title}". Please select NGN or contact admissions.`,
+        code: 'PRICE_NOT_CONFIGURED'
       });
     }
 
-    // 6. Optional Authenticated User
+    // Verify gateway server secret availability BEFORE persisting pending records
+    if (activeGateway === 'paystack') {
+      const secretKey = getPaystackSecretKey();
+      if (!secretKey) {
+        return res.status(503).json({
+          error: 'Paystack Secret Key is not configured on the server. Please add PAYSTACK_SECRET_KEY in Settings -> Secrets.',
+          code: 'PAYSTACK_NOT_CONFIGURED',
+          help: 'Obtain your Secret Key from Paystack Dashboard -> Settings -> API Keys & Webhooks.'
+        });
+      }
+    } else {
+      const apiKey = getBachsApiKey();
+      if (!apiKey) {
+        return res.status(503).json({
+          error: 'Bachs USD API Key is not configured on the server. Please add BACHS_API_KEY in Settings -> Secrets.',
+          code: 'BACHS_NOT_CONFIGURED',
+          help: 'Obtain your Sandbox or Live API key from your Bachs (bachs.io) developer dashboard.'
+        });
+      }
+    }
+
     const authUser = await extractOptionalAuthUser(req);
 
-    // 7. Generate Secure Unique Transaction Reference
-    const reference = `VIX-PS-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    // Generate Gateway-Tagged Reference (VIX-PS-... or VIX-BC-...)
+    const refPrefix = activeGateway === 'bachs' ? 'VIX-BC' : 'VIX-PS';
+    const reference = `${refPrefix}-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-    // Determine secure callback URL
     const reqOrigin = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : '');
-    const finalCallbackUrl =
+    const defaultCallbackUrl = `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}&gateway=${activeGateway}`;
+    let finalCallbackUrl =
       typeof callbackUrl === 'string' && callbackUrl.startsWith('http')
         ? callbackUrl
-        : `${reqOrigin}/payment/callback?reference=${reference}&courseId=${encodeURIComponent(canonicalCourse.id)}`;
+        : defaultCallbackUrl;
+
+    if (activeGateway === 'bachs' && !finalCallbackUrl.includes('reference=')) {
+      const sep = finalCallbackUrl.includes('?') ? '&' : '?';
+      finalCallbackUrl = `${finalCallbackUrl}${sep}reference=${encodeURIComponent(reference)}&gateway=bachs`;
+    }
+
+    const cancelCallbackUrl = `${reqOrigin}/payment/callback?reference=${encodeURIComponent(reference)}&courseId=${encodeURIComponent(canonicalCourse.id)}&gateway=${activeGateway}&cancelled=true`;
 
     const supabase = getSupabaseAdmin();
     if (!supabase && isProductionPaymentEnvironment()) {
@@ -1068,7 +1347,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       try {
         resolvedCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
       } catch (courseDbErr) {
-        console.error('[Paystack Init Course Record Failure]:', courseDbErr);
+        console.error('[Payment Init Course Record Failure]:', courseDbErr);
         return res.status(503).json({
           error: 'The selected course is not available in the payment database yet. Please try again later.',
           code: 'COURSE_DATABASE_UNAVAILABLE'
@@ -1076,14 +1355,22 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       }
     }
 
-    // 8. Pre-create durable pending payment record in database
+    const gatewayMode: 'live' | 'sandbox' =
+      activeGateway === 'bachs'
+        ? getBachsMode()
+        : (getPaystackSecretKey().startsWith('sk_live_') ? 'live' : 'sandbox');
+
     const initialPaymentRecord: PaymentRecord = {
       id: reference,
       student_id: null,
       course_id: resolvedCourseId,
-      amount: canonicalCourse.nairaAmount,
-      amount_kobo: canonicalCourse.koboAmount,
-      currency: 'NGN',
+      gateway: activeGateway,
+      gateway_mode: gatewayMode,
+      external_session_id: null,
+      amount: authoritativePrice.majorAmount,
+      amount_kobo: normalizedCurrency === 'NGN' ? authoritativePrice.minorAmount : 0,
+      amount_minor: authoritativePrice.minorAmount,
+      currency: normalizedCurrency,
       channel: null,
       status: 'pending',
       fulfillment_status: 'pending',
@@ -1101,7 +1388,7 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     if (supabase) {
       try {
-        const { error: insertErr } = await supabase.from('payments').insert(initialPaymentRecord);
+        const { error: insertErr } = await persistPaymentInsert(supabase, initialPaymentRecord);
         if (insertErr) {
           console.error('[Supabase initial payment record insert failed]:', insertErr);
           return res.status(503).json({
@@ -1118,15 +1405,69 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       }
     }
 
-    // Keep an in-memory copy for local development/tests only; production always requires Supabase.
     if (!isProductionPaymentEnvironment()) {
       fallbackPaymentsStore.set(reference, initialPaymentRecord);
     }
 
-    // 9. Initialize External Paystack Transaction
+    // Dispatch to Active Payment Gateway
+    if (activeGateway === 'bachs') {
+      const sessionRes = await createBachsCheckoutSession({
+        reference,
+        amountCents: authoritativePrice.minorAmount,
+        customerEmail: cleanEmail,
+        customerName: cleanStudentName,
+        customerPhone: cleanPhone || null,
+        courseId: canonicalCourse.id,
+        courseTitle: canonicalCourse.title,
+        successUrl: finalCallbackUrl,
+        cancelUrl: cancelCallbackUrl,
+        authUserId: authUser?.id || null
+      });
+
+      if (!sessionRes.ok || !sessionRes.checkoutUrl) {
+        return res.status(sessionRes.status || 502).json({
+          error: sessionRes.error || 'Failed to initialize Bachs USD checkout session.',
+          code: 'BACHS_INIT_FAILED',
+          reference
+        });
+      }
+
+      if (sessionRes.sessionId) {
+        if (fallbackPaymentsStore.has(reference)) {
+          fallbackPaymentsStore.get(reference)!.external_session_id = sessionRes.sessionId;
+        }
+        if (supabase) {
+          try {
+            await supabase
+              .from('payments')
+              .update({ external_session_id: sessionRes.sessionId, raw_response: sessionRes.raw || null })
+              .eq('id', reference);
+          } catch (err) {
+            console.warn('[Bachs Init Session ID Update Warning]:', err);
+          }
+        }
+      }
+
+      return res.json({
+        success: true,
+        gateway: 'bachs',
+        gatewayMode,
+        reference,
+        sessionId: sessionRes.sessionId || null,
+        authorizationUrl: sessionRes.checkoutUrl,
+        amount: authoritativePrice.majorAmount,
+        amountMinor: authoritativePrice.minorAmount,
+        currency: 'USD',
+        courseId: canonicalCourse.id,
+        courseTitle: canonicalCourse.title
+      });
+    }
+
+    // Paystack NGN Initialization
+    const secretKey = getPaystackSecretKey();
     const paystackPayload = {
       email: cleanEmail,
-      amount: canonicalCourse.koboAmount,
+      amount: authoritativePrice.minorAmount,
       currency: 'NGN',
       reference,
       callback_url: finalCallbackUrl,
@@ -1138,16 +1479,9 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
         courseId: canonicalCourse.id,
         courseTitle: canonicalCourse.title,
         authUserId: authUser?.id || null,
-        amountNaira: canonicalCourse.nairaAmount
+        amountNaira: authoritativePrice.majorAmount
       }
     };
-
-    console.log('[Server Paystack Init Diagnostic: Calling Paystack API]', {
-      reference,
-      amountKobo: canonicalCourse.koboAmount,
-      currency: 'NGN',
-      callbackHost: new URL(finalCallbackUrl).hostname
-    });
 
     const response = await fetch(`${PAYSTACK_API_BASE}/transaction/initialize`, {
       method: 'POST',
@@ -1160,15 +1494,6 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
 
     const data: any = await response.json();
 
-    console.log('[Server Paystack Init Diagnostic: Paystack Response]', {
-      status: response.status,
-      ok: response.ok,
-      paystackStatus: data.status,
-      hasAuthUrl: Boolean(data.data?.authorization_url),
-      hasAccessCode: Boolean(data.data?.access_code),
-      reference
-    });
-
     if (!response.ok || !data.status || !data.data) {
       return res.status(response.status >= 400 && response.status < 500 ? 400 : 502).json({
         error: data.message || 'Failed to initialize Paystack transaction.',
@@ -1177,37 +1502,40 @@ paystackRouter.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // Return only public data required by frontend
     return res.json({
       success: true,
+      gateway: 'paystack',
+      gatewayMode,
       reference,
       authorizationUrl: data.data.authorization_url,
       accessCode: data.data.access_code,
-      amountNaira: canonicalCourse.nairaAmount,
-      amountKobo: canonicalCourse.koboAmount,
+      amount: authoritativePrice.majorAmount,
+      amountMinor: authoritativePrice.minorAmount,
+      amountNaira: authoritativePrice.majorAmount,
+      amountKobo: authoritativePrice.minorAmount,
       currency: 'NGN',
       courseId: canonicalCourse.id,
       courseTitle: canonicalCourse.title
     });
   } catch (err: any) {
-    console.error('[Paystack Initialize Exception]:', err);
+    console.error('[Payment Initialize Exception]:', err);
     return res.status(500).json({
       error: 'An internal error occurred while initializing payment.',
       code: 'SERVER_ERROR'
     });
   }
-});
+}
+
+paystackRouter.post('/initialize', (req, res) => handlePaymentInitializeRequest(req, res, 'paystack'));
+paymentsRouter.post('/initialize', (req, res) => handlePaymentInitializeRequest(req, res));
 
 // ==============================================================================
-// 11. Paystack Verification Endpoint
-// POST /verify  (and GET /verify/:reference for backward compatibility)
+// 11. Shared Payment Verification Endpoints
 // ==============================================================================
-
 async function handleVerificationRequest(req: Request, res: Response) {
   try {
     const clientIp = getClientIp(req);
 
-    // Rate Limiting: 15 requests / 1 minute per IP
     const rlStatus = payVerifyRateLimiter.check(clientIp);
     if (!rlStatus.allowed) {
       return res.status(429).json({
@@ -1218,7 +1546,6 @@ async function handleVerificationRequest(req: Request, res: Response) {
       });
     }
 
-    // Extract reference from body or params
     const rawRef = req.body?.reference || req.params?.reference || req.query?.reference;
     if (!isValidTransactionReference(rawRef)) {
       return res.status(400).json({
@@ -1229,8 +1556,6 @@ async function handleVerificationRequest(req: Request, res: Response) {
     }
 
     const reference = String(rawRef).trim();
-
-    // Process idempotent fulfillment
     const result = await processPaymentFulfillment(reference);
 
     if (!result.verified) {
@@ -1239,7 +1564,7 @@ async function handleVerificationRequest(req: Request, res: Response) {
 
     return res.json(result);
   } catch (err: any) {
-    console.error('[Paystack Verify Exception]:', err);
+    console.error('[Payment Verify Exception]:', err);
     return res.status(500).json({
       verified: false,
       error: 'An internal server error occurred while verifying payment.',
@@ -1253,15 +1578,19 @@ paystackRouter.get('/verify', handleVerificationRequest);
 paystackRouter.get('/verify/:reference', handleVerificationRequest);
 paystackRouter.post('/verify/:reference', handleVerificationRequest);
 
+paymentsRouter.post('/verify', handleVerificationRequest);
+paymentsRouter.get('/verify', handleVerificationRequest);
+paymentsRouter.get('/verify/:reference', handleVerificationRequest);
+paymentsRouter.post('/verify/:reference', handleVerificationRequest);
+
 // ==============================================================================
-// 12. Paystack Webhook Endpoint
-// POST /webhook (and GET /webhook for status health check)
+// 12. Paystack Webhook Endpoint (NGN)
 // ==============================================================================
 paystackRouter.get('/webhook', (_req: Request, res: Response) => {
   return res.json({
     status: 'active',
     endpoint: 'Paystack Webhook Listener',
-    service: 'Vixora Academy Payment Gateway',
+    service: 'Vixora Academy NGN Payment Gateway',
     expectedMethod: 'POST',
     configured: isPaystackConfigured(),
     message: 'This endpoint is active and listening for automated webhook POST events from Paystack.'
@@ -1275,13 +1604,11 @@ paystackRouter.post('/webhook', async (req: Request, res: Response) => {
       return res.status(503).json({ error: 'Paystack Secret Key is not configured on server.' });
     }
 
-    // Paystack signature header
     const signature = req.headers['x-paystack-signature'];
     if (!signature || typeof signature !== 'string') {
       return res.status(401).json({ error: 'Missing x-paystack-signature header.' });
     }
 
-    // Retrieve original raw request body buffer
     const rawBody: Buffer | undefined =
       (req as any).rawBody ||
       (Buffer.isBuffer(req.body)
@@ -1296,13 +1623,11 @@ paystackRouter.post('/webhook', async (req: Request, res: Response) => {
       });
     }
 
-    // Compute HMAC SHA-512 signature using official PAYSTACK_SECRET_KEY
     const computedHash = crypto.createHmac('sha512', secretKey).update(rawBody).digest('hex');
 
     const expectedBuffer = Buffer.from(computedHash, 'hex');
     const providedBuffer = Buffer.from(signature, 'hex');
 
-    // Cryptographically safe comparison
     if (
       expectedBuffer.length !== providedBuffer.length ||
       !crypto.timingSafeEqual(expectedBuffer, providedBuffer)
@@ -1315,17 +1640,115 @@ paystackRouter.post('/webhook', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid webhook event payload structure.' });
     }
 
-    // Handle charge.success event
     if (event.event === 'charge.success' && event.data?.reference) {
       const ref = String(event.data.reference).trim();
-      // Execute idempotent fulfillment using the webhook event payload
       await processPaymentFulfillment(ref, event.data);
     }
 
-    // Acknowledge receipt immediately with 200 OK
     return res.status(200).json({ received: true });
   } catch (err: any) {
     console.error('[Paystack Webhook Exception]:', err);
+    return res.status(500).json({ error: 'Webhook processing error.' });
+  }
+});
+
+// ==============================================================================
+// 13. Bachs Webhook Endpoint (USD)
+// ==============================================================================
+paymentsRouter.get('/bachs/webhook', (_req: Request, res: Response) => {
+  return res.json({
+    status: 'active',
+    endpoint: 'Bachs Webhook Listener',
+    service: 'Vixora Academy USD Payment Gateway (bachs.io)',
+    mode: getBachsMode(),
+    expectedMethod: 'POST',
+    configured: isBachsConfigured() && Boolean(getBachsWebhookSecret()),
+    message: 'This endpoint is active and listening for signed USD webhook POST events from Bachs.'
+  });
+});
+
+paymentsRouter.post('/bachs/webhook', async (req: Request, res: Response) => {
+  try {
+    const webhookSecret = getBachsWebhookSecret();
+    if (!webhookSecret) {
+      return res.status(503).json({ error: 'BACHS_WEBHOOK_SECRET is not configured on server.' });
+    }
+
+    const signatureHeader = req.headers['x-bachs-signature'];
+    if (!signatureHeader || typeof signatureHeader !== 'string') {
+      return res.status(401).json({ error: 'Missing X-Bachs-Signature header.' });
+    }
+
+    const rawBody: Buffer | undefined =
+      (req as any).rawBody ||
+      (Buffer.isBuffer(req.body)
+        ? req.body
+        : typeof req.body === 'string'
+        ? Buffer.from(req.body)
+        : undefined);
+
+    if (!rawBody || !Buffer.isBuffer(rawBody)) {
+      return res.status(400).json({
+        error: 'Raw request body buffer unavailable for signature verification.'
+      });
+    }
+
+    if (!verifyBachsWebhookSignature(rawBody, signatureHeader, webhookSecret)) {
+      return res.status(401).json({ error: 'Invalid Bachs webhook signature.' });
+    }
+
+    const event = req.body;
+    if (!event || typeof event !== 'object') {
+      return res.status(400).json({ error: 'Invalid webhook event payload structure.' });
+    }
+
+    const eventType = String(event.event || event.type || '').toLowerCase().trim();
+    const shouldProcess =
+      eventType === 'collection.succeeded' ||
+      eventType === 'checkout.completed' ||
+      eventType === 'checkout.session.completed' ||
+      eventType === 'payment.succeeded' ||
+      eventType === 'collection.failed' ||
+      eventType === 'checkout.session.expired';
+
+    if (shouldProcess && event.data) {
+      const normalized = normalizeBachsPayload(event.data);
+      let ref = normalized.reference;
+
+      // Fallback lookup by external_session_id if webhook omitted metadata.reference
+      if (!ref && normalized.sessionId) {
+        const supabase = getSupabaseAdmin();
+        if (supabase) {
+          const { data: matched } = await supabase
+            .from('payments')
+            .select('id')
+            .eq('external_session_id', normalized.sessionId)
+            .maybeSingle();
+          if (matched?.id) {
+            ref = matched.id;
+          }
+        } else {
+          for (const rec of fallbackPaymentsStore.values()) {
+            if (rec.external_session_id === normalized.sessionId) {
+              ref = rec.id;
+              break;
+            }
+          }
+        }
+      }
+
+      if (ref && isValidTransactionReference(ref)) {
+        await processPaymentFulfillment(ref, {
+          ...normalized,
+          _gateway: 'bachs',
+          _alreadyNormalized: true
+        });
+      }
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err: any) {
+    console.error('[Bachs Webhook Exception]:', err);
     return res.status(500).json({ error: 'Webhook processing error.' });
   }
 });

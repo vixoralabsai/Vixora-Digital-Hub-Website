@@ -25,8 +25,9 @@ import { getWhatsAppUrl } from '../data/brandConfig';
 import { BankPaymentDetailsCard } from './BankPaymentDetailsCard';
 import { PaymentReceiptModal } from './PaymentReceiptModal';
 import {
-  initializePaystackPayment,
-  launchPaystackCheckout,
+  initializeDynamicPayment,
+  launchGatewayCheckout,
+  resolveGatewayForCurrency,
   cleanErrorMessage,
   VerifiedPaymentData
 } from '../lib/paystack';
@@ -46,8 +47,13 @@ export function CourseEnrollmentModal({
   onClose,
   onGoToPortal
 }: CourseEnrollmentModalProps) {
-  const { currency, formatPrice } = useCurrency();
+  const { currency, formatPrice, getNumericPrice } = useCurrency();
   const localizedTuition = course ? formatPrice(course.id, course.tuition) : '';
+  const activeGateway = resolveGatewayForCurrency(currency);
+  const isUsdBachs = activeGateway === 'bachs';
+  const gatewayDisplayName = isUsdBachs ? 'Bachs USD' : 'Paystack';
+  const courseNumericPrice = course ? getNumericPrice(course.id) : null;
+  const isCurrencyCheckoutAvailable = currency === 'NGN' || courseNumericPrice !== null;
 
   // Only 3 required student profile fields: Full Name, Email, and Phone
   const [fullName, setFullName] = useState('');
@@ -56,7 +62,7 @@ export function CourseEnrollmentModal({
 
   // Payment preference state
   const [fundingType, setFundingType] = useState<'self' | 'employer' | 'installments'>('self');
-  const [selfPaymentMethod, setSelfPaymentMethod] = useState<'paystack' | 'bank_transfer'>('paystack');
+  const [selfPaymentMethod, setSelfPaymentMethod] = useState<'online' | 'bank_transfer'>('online');
 
   // UI state
   const { startLoading, stopLoading } = useLoading();
@@ -100,7 +106,7 @@ export function CourseEnrollmentModal({
     setEmail('');
     setPhone('');
     setFundingType('self');
-    setSelfPaymentMethod('paystack');
+    setSelfPaymentMethod('online');
     setShowReceipt(false);
     setVerifiedPayment(null);
     onClose();
@@ -124,21 +130,26 @@ export function CourseEnrollmentModal({
       return;
     }
 
-    // Path 1: Self-Funded via Paystack Instant Online Checkout
-    if (fundingType === 'self' && selfPaymentMethod === 'paystack') {
+    // Path 1: Self-Funded via Currency-Routed Online Checkout (NGN -> Paystack, USD -> Bachs)
+    if (fundingType === 'self' && selfPaymentMethod === 'online') {
+      if (!isCurrencyCheckoutAvailable) {
+        setErrorMessage(
+          `${currency} online checkout is not configured for ${course.title}. Please switch currency to NGN or contact Admissions.`
+        );
+        return;
+      }
+
       setIsSubmitting(true);
-      startLoading('Connecting to Paystack...');
+      startLoading(`Connecting to ${gatewayDisplayName}...`);
 
       try {
-        // Step 1: Backend Paystack Initialize
-        // Note: Frontend sends ONLY trusted student details & courseId.
-        // The authoritative amount is strictly determined server-side from canonical course catalog.
         const callbackUrl = typeof window !== 'undefined'
-          ? `${window.location.origin}/payment/callback?courseId=${encodeURIComponent(course.id)}`
+          ? `${window.location.origin}/payment/callback?courseId=${encodeURIComponent(course.id)}&gateway=${activeGateway}`
           : undefined;
 
-        const initRes = await initializePaystackPayment({
+        const initRes = await initializeDynamicPayment({
           courseId: course.id,
+          currency,
           studentName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
@@ -146,20 +157,20 @@ export function CourseEnrollmentModal({
         });
 
         if (!initRes.success || !initRes.reference) {
-          if (initRes.code === 'PAYSTACK_NOT_CONFIGURED') {
+          if (initRes.code === 'PAYSTACK_NOT_CONFIGURED' || initRes.code === 'BACHS_NOT_CONFIGURED') {
             setErrorMessage(
-              'Payment processing is currently undergoing system setup. Please contact admissions via WhatsApp or try again shortly.'
+              `${gatewayDisplayName} payment processing is currently undergoing system setup. Please contact admissions via WhatsApp or try again shortly.`
             );
           } else {
-            setErrorMessage(initRes.error || 'Failed to initialize payment checkout.');
+            setErrorMessage(initRes.error || `Failed to initialize ${gatewayDisplayName} checkout.`);
           }
           setIsSubmitting(false);
           stopLoading();
           return;
         }
 
-        // Step 2: Paystack Checkout (Inline popup or hosted redirect fallback)
-        await launchPaystackCheckout({
+        await launchGatewayCheckout({
+          gateway: initRes.gateway || activeGateway,
           reference: initRes.reference,
           authorizationUrl: initRes.authorizationUrl,
           accessCode: initRes.accessCode,
@@ -168,8 +179,7 @@ export function CourseEnrollmentModal({
           studentName: fullName.trim(),
           phone: phone.trim() || undefined,
           onSuccess: (confirmedRef) => {
-            // Redirect to canonical /payment/callback for server verification
-            window.location.href = `/payment/callback?reference=${encodeURIComponent(confirmedRef)}&courseId=${encodeURIComponent(course.id)}`;
+            window.location.href = `/payment/callback?reference=${encodeURIComponent(confirmedRef)}&courseId=${encodeURIComponent(course.id)}&gateway=${encodeURIComponent(initRes.gateway || activeGateway)}`;
           },
           onCancel: () => {
             setIsSubmitting(false);
@@ -302,7 +312,7 @@ export function CourseEnrollmentModal({
                   tuitionAmount={localizedTuition}
                   onPayOnline={() => {
                     setIsApplicationSubmitted(false);
-                    setSelfPaymentMethod('paystack');
+                    setSelfPaymentMethod('online');
                   }}
                 />
               ) : (
@@ -411,8 +421,8 @@ export function CourseEnrollmentModal({
                   <label className="text-xs font-black uppercase text-[#1A1D4F]">
                     Payment Preference
                   </label>
-                  <span className="text-xs font-mono text-[#10B981] font-black bg-[#D1F2D9] px-2 py-0.5 rounded border border-[#10B981]">
-                    Tuition: {course.tuition}
+                  <span className="text-xs font-mono text-[#10B981] font-black bg-[#D1F2D9] px-2 py-0.5 rounded border border-[#10B981] tabular-nums">
+                    Tuition: {localizedTuition} ({currency})
                   </span>
                 </div>
 
@@ -475,15 +485,15 @@ export function CourseEnrollmentModal({
                       <button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => setSelfPaymentMethod('paystack')}
+                        onClick={() => setSelfPaymentMethod('online')}
                         className={`flex-1 py-2 px-3 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          selfPaymentMethod === 'paystack'
+                          selfPaymentMethod === 'online'
                             ? 'bg-[#10B981] text-white shadow-sm'
                             : 'text-[#1A1D4F]/70 hover:text-[#1A1D4F]'
                         }`}
                       >
                         <Zap className="w-3.5 h-3.5" />
-                        <span>Instant Online (Paystack)</span>
+                        <span>Instant Online ({gatewayDisplayName})</span>
                       </button>
                       <button
                         type="button"
@@ -500,18 +510,19 @@ export function CourseEnrollmentModal({
                       </button>
                     </div>
 
-                    {selfPaymentMethod === 'paystack' && (
+                    {selfPaymentMethod === 'online' && (
                       <div className="p-3 rounded-xl bg-[#D1F2D9]/40 border-2 border-[#10B981] text-xs text-[#1A1D4F] space-y-1 font-mono">
                         <div className="flex items-center justify-between text-[#1A1D4F] font-bold font-sans">
                           <span className="flex items-center gap-1.5">
-                            <ShieldCheck className="w-4 h-4 text-[#10B981]" /> Paystack Multi-Channel Gateway
+                            <ShieldCheck className="w-4 h-4 text-[#10B981]" />{' '}
+                            {isUsdBachs ? 'Bachs Global USD Gateway' : 'Paystack Multi-Channel Gateway'}
                           </span>
-                          <span className="text-[#10B981] font-black">{localizedTuition}</span>
+                          <span className="text-[#10B981] font-black tabular-nums">{localizedTuition}</span>
                         </div>
                         <p className="text-[11px] text-[#1A1D4F]/75 font-sans">
-                          {currency === 'USD'
-                            ? 'Accepts International Cards (Mastercard, Visa, Amex), Apple Pay & Global Bank Cards.'
-                            : 'Supports Debit/Credit Cards, Bank Transfer, USSD, Apple Pay & Mobile Money.'}
+                          {isUsdBachs
+                            ? 'Exclusively processes USD via International Cards (Visa, Mastercard, Amex) & Digital Wallets.'
+                            : 'Exclusively processes NGN via Debit/Credit Cards, Bank Transfer, USSD, Apple Pay & Mobile Money.'}
                         </p>
                       </div>
                     )}
@@ -527,7 +538,7 @@ export function CourseEnrollmentModal({
                     <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-purple-600" />
                   </div>
                   <div className="text-left text-xs">
-                    <p className="font-bold text-purple-950">Connecting to Secure Paystack Gateway...</p>
+                    <p className="font-bold text-purple-950">Connecting to Secure {gatewayDisplayName} Gateway...</p>
                     <p className="text-[11px] text-purple-700">Securing your cohort seat for {course.nextCohortDate}...</p>
                   </div>
                 </div>
@@ -537,7 +548,7 @@ export function CourseEnrollmentModal({
               <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t-2 border-[#1A1D4F]/10">
                 <div className="flex items-center gap-1.5 text-xs text-[#1A1D4F]/70 font-semibold">
                   <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>256-bit encrypted &bull; Verified Paystack security</span>
+                  <span>256-bit encrypted &bull; Verified {gatewayDisplayName} security</span>
                 </div>
 
                 <div className="flex gap-2.5 w-full sm:w-auto">
@@ -559,9 +570,9 @@ export function CourseEnrollmentModal({
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin text-[#1A1D4F]" />
-                        <span>Connecting to Paystack...</span>
+                        <span>Connecting to {gatewayDisplayName}...</span>
                       </>
-                    ) : fundingType === 'self' && selfPaymentMethod === 'paystack' ? (
+                    ) : fundingType === 'self' && selfPaymentMethod === 'online' ? (
                       <>
                         <span>Submit Enrollment &amp; Pay ({localizedTuition})</span>
                         <ArrowRight className="w-4 h-4" />

@@ -3088,10 +3088,26 @@ portalRouter.post('/admin/logout', requireAuthentication, (req: Request, res: Re
   return res.json({ success: true, message: 'Administrator session terminated.' });
 });
 
+function resolveRecordGateway(p: {
+  id: string;
+  currency?: string;
+  gateway?: string | null;
+}): 'paystack' | 'bachs' {
+  if (p.gateway === 'bachs' || p.gateway === 'paystack') {
+    return p.gateway;
+  }
+  if ((p.currency || '').toUpperCase() === 'USD' || p.id.toUpperCase().startsWith('VIX-BC-')) {
+    return 'bachs';
+  }
+  return 'paystack';
+}
+
 function buildSalesSummaryFromData(params: {
   payments: Array<{
     id: string;
     course_id: string;
+    gateway?: string | null;
+    gateway_mode?: string | null;
     amount: number;
     currency?: string;
     channel?: string | null;
@@ -3105,15 +3121,67 @@ function buildSalesSummaryFromData(params: {
   enrollments: Array<{ course_id: string }>;
 }) {
   const canonicalCourses = getAllCanonicalCourses();
-  const verifiedPayments = params.payments.filter((p) => p.status === 'success');
-  const pendingPayments = params.payments.filter((p) => p.status === 'pending');
-  const failedPayments = params.payments.filter((p) => p.status === 'failed' || p.status === 'abandoned');
+  const normalizedPayments = params.payments.map((p) => {
+    const gateway = resolveRecordGateway(p);
+    const currency = (p.currency || (gateway === 'bachs' ? 'USD' : 'NGN')).toUpperCase();
+    const gatewayMode: 'live' | 'sandbox' =
+      p.gateway_mode === 'sandbox' ? 'sandbox' : 'live';
+    return {
+      ...p,
+      gateway,
+      gatewayMode,
+      currency,
+      numericAmount: Number(p.amount) || 0
+    };
+  });
 
-  const totalRevenueNgn = verifiedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const verifiedPayments = normalizedPayments.filter((p) => p.status === 'success');
+  const pendingPayments = normalizedPayments.filter((p) => p.status === 'pending');
+  const failedPayments = normalizedPayments.filter((p) => p.status === 'failed' || p.status === 'abandoned');
+
+  const ngnVerified = verifiedPayments.filter((p) => p.currency === 'NGN');
+  const usdVerified = verifiedPayments.filter((p) => p.currency === 'USD');
+
+  const totalRevenueNgn = ngnVerified.reduce((sum, p) => sum + p.numericAmount, 0);
+  const totalRevenueUsd = Number(usdVerified.reduce((sum, p) => sum + p.numericAmount, 0).toFixed(2));
+  const liveRevenueNgn = ngnVerified
+    .filter((p) => p.gatewayMode === 'live')
+    .reduce((sum, p) => sum + p.numericAmount, 0);
+  const liveRevenueUsd = Number(
+    usdVerified
+      .filter((p) => p.gatewayMode === 'live')
+      .reduce((sum, p) => sum + p.numericAmount, 0)
+      .toFixed(2)
+  );
+  const sandboxRevenueUsd = Number(
+    usdVerified
+      .filter((p) => p.gatewayMode === 'sandbox')
+      .reduce((sum, p) => sum + p.numericAmount, 0)
+      .toFixed(2)
+  );
+  const sandboxPaymentsCount = normalizedPayments.filter((p) => p.gatewayMode === 'sandbox').length;
+
   const completedAttempts = verifiedPayments.length + failedPayments.length;
   const successRatePercent = completedAttempts > 0
     ? Math.round((verifiedPayments.length / completedAttempts) * 100)
     : null;
+
+  const summarizeGateway = (gw: 'paystack' | 'bachs') => {
+    const list = normalizedPayments.filter((p) => p.gateway === gw);
+    const ver = list.filter((p) => p.status === 'success');
+    const pend = list.filter((p) => p.status === 'pending');
+    const fail = list.filter((p) => p.status === 'failed' || p.status === 'abandoned');
+    const att = ver.length + fail.length;
+    return {
+      verifiedPaymentsCount: ver.length,
+      pendingPaymentsCount: pend.length,
+      failedPaymentsCount: fail.length,
+      totalTransactionsCount: list.length,
+      successRatePercent: att > 0 ? Math.round((ver.length / att) * 100) : null,
+      revenueNgn: gw === 'paystack' ? ver.reduce((s, p) => s + p.numericAmount, 0) : 0,
+      revenueUsd: gw === 'bachs' ? Number(ver.reduce((s, p) => s + p.numericAmount, 0).toFixed(2)) : 0
+    };
+  };
 
   const enrollmentCountByCourse = new Map<string, number>();
   for (const enr of params.enrollments) {
@@ -3122,19 +3190,45 @@ function buildSalesSummaryFromData(params: {
     enrollmentCountByCourse.set(key, (enrollmentCountByCourse.get(key) || 0) + 1);
   }
 
-  const revenueByCourse = new Map<string, { revenueNgn: number; verifiedPayments: number }>();
+  const revenueByCourse = new Map<
+    string,
+    {
+      revenueNgn: number;
+      revenueUsd: number;
+      verifiedPayments: number;
+      verifiedPaymentsNgn: number;
+      verifiedPaymentsUsd: number;
+    }
+  >();
+
   for (const p of verifiedPayments) {
     const resolved = findCanonicalCourse(p.course_id);
     const key = resolved ? resolved.id : p.course_id;
-    const prev = revenueByCourse.get(key) || { revenueNgn: 0, verifiedPayments: 0 };
+    const prev = revenueByCourse.get(key) || {
+      revenueNgn: 0,
+      revenueUsd: 0,
+      verifiedPayments: 0,
+      verifiedPaymentsNgn: 0,
+      verifiedPaymentsUsd: 0
+    };
+    const isUsd = p.currency === 'USD';
     revenueByCourse.set(key, {
-      revenueNgn: prev.revenueNgn + (Number(p.amount) || 0),
-      verifiedPayments: prev.verifiedPayments + 1
+      revenueNgn: prev.revenueNgn + (isUsd ? 0 : p.numericAmount),
+      revenueUsd: Number((prev.revenueUsd + (isUsd ? p.numericAmount : 0)).toFixed(2)),
+      verifiedPayments: prev.verifiedPayments + 1,
+      verifiedPaymentsNgn: prev.verifiedPaymentsNgn + (isUsd ? 0 : 1),
+      verifiedPaymentsUsd: prev.verifiedPaymentsUsd + (isUsd ? 1 : 0)
     });
   }
 
   const courseBreakdown = canonicalCourses.map((course) => {
-    const stats = revenueByCourse.get(course.id) || { revenueNgn: 0, verifiedPayments: 0 };
+    const stats = revenueByCourse.get(course.id) || {
+      revenueNgn: 0,
+      revenueUsd: 0,
+      verifiedPayments: 0,
+      verifiedPaymentsNgn: 0,
+      verifiedPaymentsUsd: 0
+    };
     const enrolledStudents = enrollmentCountByCourse.get(course.id) || 0;
     return {
       courseId: course.id,
@@ -3144,21 +3238,26 @@ function buildSalesSummaryFromData(params: {
       priceUsd: course.prices.USD,
       enrolledStudents,
       verifiedPayments: stats.verifiedPayments,
-      revenueNgn: stats.revenueNgn
+      verifiedPaymentsNgn: stats.verifiedPaymentsNgn,
+      verifiedPaymentsUsd: stats.verifiedPaymentsUsd,
+      revenueNgn: stats.revenueNgn,
+      revenueUsd: stats.revenueUsd
     };
   });
 
-  const recentPayments = params.payments.slice(0, 20).map((p) => {
+  const recentPayments = normalizedPayments.slice(0, 100).map((p) => {
     const resolved = findCanonicalCourse(p.course_id);
     return {
       reference: p.id,
+      gateway: p.gateway,
+      gatewayMode: p.gatewayMode,
       customerEmail: p.customer_email,
       customerName: p.customer_name || p.customer_email.split('@')[0],
       courseId: p.course_id,
       courseTitle: resolved ? resolved.title : p.course_id,
-      amount: Number(p.amount) || 0,
-      currency: p.currency || 'NGN',
-      channel: p.channel || 'paystack',
+      amount: p.numericAmount,
+      currency: p.currency,
+      channel: p.channel || (p.gateway === 'bachs' ? 'card' : 'paystack'),
       status: p.status,
       fulfillmentStatus: p.fulfillment_status || 'pending',
       paidAt: p.paid_at || null,
@@ -3168,12 +3267,21 @@ function buildSalesSummaryFromData(params: {
 
   return {
     totalRevenueNgn,
+    totalRevenueUsd,
+    liveRevenueNgn,
+    liveRevenueUsd,
+    sandboxRevenueUsd,
+    sandboxPaymentsCount,
     verifiedPaymentsCount: verifiedPayments.length,
     pendingPaymentsCount: pendingPayments.length,
     failedPaymentsCount: failedPayments.length,
-    totalTransactionsCount: params.payments.length,
+    totalTransactionsCount: normalizedPayments.length,
     totalEnrollmentsCount: params.enrollments.length,
     successRatePercent,
+    byGateway: {
+      paystack: summarizeGateway('paystack'),
+      bachs: summarizeGateway('bachs')
+    },
     courseBreakdown,
     recentPayments
   };
@@ -3193,18 +3301,31 @@ portalRouter.get('/admin/overview', requireAuthentication, requireAdmin, async (
     }
 
     try {
+      let paymentsRes = await supabase
+        .from('payments')
+        .select('id, course_id, gateway, gateway_mode, amount, currency, channel, status, fulfillment_status, customer_email, customer_name, paid_at, created_at')
+        .order('created_at', { ascending: false })
+        .limit(250);
+
+      // Graceful backward compatibility if migration SQL hasn't run yet on an existing DB
+      if (paymentsRes.error && (paymentsRes.error.code === '42703' || String(paymentsRes.error.message || '').includes('does not exist'))) {
+        paymentsRes = await supabase
+          .from('payments')
+          .select('id, course_id, amount, currency, channel, status, fulfillment_status, customer_email, customer_name, paid_at, created_at')
+          .order('created_at', { ascending: false })
+          .limit(250) as any;
+      }
+
       const [
         certCountRes,
         recentCertsRes,
         studentsCountRes,
-        paymentsRes,
         enrollmentsRes,
         emailCountRes
       ] = await Promise.all([
         supabase.from('certificates').select('*', { count: 'exact', head: true }),
         supabase.from('certificates').select('*').order('created_at', { ascending: false }).limit(6),
         supabase.from('students').select('*', { count: 'exact', head: true }),
-        supabase.from('payments').select('id, course_id, amount, currency, channel, status, fulfillment_status, customer_email, customer_name, paid_at, created_at').order('created_at', { ascending: false }).limit(250),
         supabase.from('enrollments').select('course_id, status'),
         supabase.from('email_logs').select('*', { count: 'exact', head: true })
       ]);

@@ -1,5 +1,11 @@
 import { ACADEMY_COURSES } from '../../src/data/vixoraContent.js';
-import { getCoursePrices, type CoursePrices } from '../../src/data/coursePricing.js';
+import {
+  getCoursePrices,
+  type CoursePrices,
+  type SupportedCourseCurrency
+} from '../../src/data/coursePricing.js';
+
+export type PaymentGatewayProvider = 'paystack' | 'bachs';
 
 export interface CanonicalCourse {
   id: string;
@@ -7,7 +13,7 @@ export interface CanonicalCourse {
   title: string;
   /** Structured commercial prices. Null means that currency is not configured. */
   prices: CoursePrices;
-  /** Legacy NGN payment fields retained during Phase 1 compatibility work. */
+  /** Legacy NGN payment fields retained for backward compatibility. */
   nairaAmount: number;
   koboAmount: number;
   currency: 'NGN';
@@ -16,21 +22,23 @@ export interface CanonicalCourse {
   tuitionDisplay: string;
 }
 
+export interface AuthoritativeCoursePrice {
+  course: CanonicalCourse;
+  currency: SupportedCourseCurrency;
+  gateway: PaymentGatewayProvider;
+  majorAmount: number;
+  minorAmount: number;
+  formattedAmount: string;
+}
+
 /**
- * Phase 1 compatibility helper.
- *
- * The structured course pricing contract is now authoritative. Existing
- * Paystack NGN flows still consume nairaAmount/koboAmount until the currency
- * routing/payment phase is implemented. No live FX conversion is introduced
- * by the new pricing model.
+ * Legacy helper retained for NGN compatibility and database course badge fallback.
+ * Authoritative runtime pricing always uses course.prices[currency] via resolveAuthoritativePrice().
  */
 function getLegacyNairaAmount(courseId: string, tuition: string): number {
   const prices = getCoursePrices(courseId);
   if (prices?.NGN != null) return prices.NGN;
 
-  // Preserve the existing behavior for USD-priced courses during the
-  // transition. This is intentionally temporary and is NOT the new pricing
-  // model. It will be removed when USD checkout is implemented.
   if (prices?.USD != null) return prices.USD * 1000;
 
   if (tuition?.includes('₦')) {
@@ -62,9 +70,7 @@ for (const course of ACADEMY_COURSES) {
     tuitionDisplay: course.tuition
   };
 
-  // Index by full ID (e.g. 'course-data-analysis-cohort')
   canonicalCourseMap.set(course.id.toLowerCase().trim(), canonical);
-  // Index by slug (e.g. 'data-analysis-cohort')
   canonicalCourseMap.set(course.slug.toLowerCase().trim(), canonical);
 }
 
@@ -84,10 +90,58 @@ export function findCanonicalCourse(courseIdentifier: string): CanonicalCourse |
  * Returns all active canonical courses
  */
 export function getAllCanonicalCourses(): CanonicalCourse[] {
-  // Deduplicate by course id
   const unique = new Map<string, CanonicalCourse>();
   for (const course of canonicalCourseMap.values()) {
     unique.set(course.id, course);
   }
   return Array.from(unique.values());
+}
+
+/**
+ * Maps currency strictly to its exclusive payment processor:
+ * - NGN -> Paystack
+ * - USD -> Bachs (bachs.io)
+ */
+export function resolveGatewayForCurrency(currency: SupportedCourseCurrency): PaymentGatewayProvider {
+  return currency === 'USD' ? 'bachs' : 'paystack';
+}
+
+/**
+ * Formats currency amount consistently without synthetic FX conversion.
+ */
+export function formatCurrencyAmount(amount: number, currency: SupportedCourseCurrency): string {
+  if (currency === 'USD') {
+    const hasFraction = Math.round(amount * 100) % 100 !== 0;
+    return `$${amount.toLocaleString('en-US', {
+      minimumFractionDigits: hasFraction ? 2 : 0,
+      maximumFractionDigits: 2
+    })}`;
+  }
+  return `₦${Math.round(amount).toLocaleString('en-NG')}`;
+}
+
+/**
+ * Resolves the server-authoritative fixed price and payment gateway for a course and currency.
+ * Returns null if the course does not exist OR the requested currency price is unconfigured (null).
+ */
+export function resolveAuthoritativePrice(
+  courseIdentifier: string,
+  currency: SupportedCourseCurrency
+): AuthoritativeCoursePrice | null {
+  const course = findCanonicalCourse(courseIdentifier);
+  if (!course) return null;
+
+  const configuredAmount = course.prices?.[currency];
+  if (typeof configuredAmount !== 'number' || !Number.isFinite(configuredAmount) || configuredAmount <= 0) {
+    return null;
+  }
+
+  return {
+    course,
+    currency,
+    gateway: resolveGatewayForCurrency(currency),
+    majorAmount: Number(configuredAmount.toFixed(2)),
+    minorAmount: Math.round(configuredAmount * 100),
+    formattedAmount: formatCurrencyAmount(configuredAmount, currency)
+  };
 }

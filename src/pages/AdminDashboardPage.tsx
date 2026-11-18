@@ -80,6 +80,11 @@ export function AdminDashboardPage({
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [studentSearch, setStudentSearch] = useState('');
 
+  // Unified Sales Ledger filters
+  const [salesGatewayFilter, setSalesGatewayFilter] = useState<'all' | 'paystack' | 'bachs'>('all');
+  const [salesModeFilter, setSalesModeFilter] = useState<'all' | 'live' | 'sandbox'>('all');
+  const [salesSearch, setSalesSearch] = useState('');
+
   // Test Email Modal state
   const [isTestEmailModalOpen, setIsTestEmailModalOpen] = useState(false);
   const [testEmailTo, setTestEmailTo] = useState('vixoralabsai@gmail.com');
@@ -1154,200 +1159,358 @@ export function AdminDashboardPage({
         )}
 
         {/* =========================================================================
-            TAB 2: SALES & REVENUE LEDGER (LIVE BACKEND AGGREGATION)
+            TAB 2: SALES & REVENUE LEDGER (UNIFIED PAYSTACK NGN & BACHS USD)
             ========================================================================= */}
-        {activeTab === 'sales' && (
-          <div className="space-y-8 animate-in fade-in duration-200">
-            {/* Live Sales KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-emerald-400 uppercase tracking-wider">Verified Revenue (₦)</span>
-                  <div className="p-2.5 rounded-xl bg-emerald-950/80 text-emerald-400 border border-emerald-800/40">
-                    <DollarSign className="w-5 h-5" />
+        {activeTab === 'sales' && (() => {
+          const allPayments = salesData?.recentPayments || [];
+          const normalizedQuery = salesSearch.trim().toLowerCase();
+
+          const filteredPayments = allPayments.filter((tx) => {
+            const txGateway = (tx.gateway || (tx.reference.startsWith('VIX-BC-') || tx.currency === 'USD' ? 'bachs' : 'paystack')).toLowerCase();
+            const txMode = (tx.gatewayMode || 'live').toLowerCase();
+            if (salesGatewayFilter !== 'all' && txGateway !== salesGatewayFilter) return false;
+            if (salesModeFilter !== 'all' && txMode !== salesModeFilter) return false;
+            if (normalizedQuery) {
+              const hay = `${tx.reference} ${tx.customerName} ${tx.customerEmail} ${tx.courseTitle}`.toLowerCase();
+              if (!hay.includes(normalizedQuery)) return false;
+            }
+            return true;
+          });
+
+          const isUnfiltered = salesGatewayFilter === 'all' && salesModeFilter === 'all' && !normalizedQuery;
+          const settledFiltered = filteredPayments.filter((t) => t.status === 'success');
+          const ngnRevenue = isUnfiltered
+            ? (salesData?.totalRevenueNgn ?? 0)
+            : settledFiltered
+                .filter((t) => (t.currency || 'NGN').toUpperCase() === 'NGN')
+                .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+          const usdRevenue = isUnfiltered
+            ? (salesData?.totalRevenueUsd ?? 0)
+            : settledFiltered
+                .filter((t) => (t.currency || '').toUpperCase() === 'USD')
+                .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+          const ngnSettledCount = isUnfiltered
+            ? (salesData?.byGateway?.paystack.verifiedPaymentsCount ?? salesData?.verifiedPaymentsCount ?? 0)
+            : settledFiltered.filter((t) => (t.currency || 'NGN').toUpperCase() === 'NGN').length;
+          const usdSettledCount = isUnfiltered
+            ? (salesData?.byGateway?.bachs.verifiedPaymentsCount ?? 0)
+            : settledFiltered.filter((t) => (t.currency || '').toUpperCase() === 'USD').length;
+
+          const pendingCount = isUnfiltered
+            ? (salesData?.pendingPaymentsCount ?? 0)
+            : filteredPayments.filter((t) => t.status === 'pending').length;
+          const failedCount = isUnfiltered
+            ? (salesData?.failedPaymentsCount ?? 0)
+            : filteredPayments.filter((t) => t.status === 'failed' || t.status === 'abandoned').length;
+          const totalTxCount = isUnfiltered
+            ? (salesData?.totalTransactionsCount ?? 0)
+            : filteredPayments.length;
+          const completedCount = settledFiltered.length + failedCount;
+          const filteredSuccessRate = isUnfiltered
+            ? salesData?.successRatePercent
+            : completedCount > 0
+            ? Math.round((settledFiltered.length / completedCount) * 100)
+            : null;
+
+          const paystackTotalCount = salesData?.byGateway?.paystack.totalTransactionsCount ?? allPayments.filter((t) => (t.gateway || 'paystack') === 'paystack').length;
+          const bachsTotalCount = salesData?.byGateway?.bachs.totalTransactionsCount ?? allPayments.filter((t) => t.gateway === 'bachs').length;
+          const sandboxCount = salesData?.sandboxPaymentsCount ?? allPayments.filter((t) => t.gatewayMode === 'sandbox').length;
+
+          return (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              {/* Unified Filter & Gateway Switcher Bar */}
+              <div className="p-4 rounded-2xl bg-[#0B051D] border border-purple-900/40 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex p-1 rounded-xl bg-neutral-950/90 border border-purple-900/40">
+                    {[
+                      { id: 'all', label: `All Gateways (${salesData?.totalTransactionsCount ?? allPayments.length})` },
+                      { id: 'paystack', label: `Paystack · NGN (${paystackTotalCount})` },
+                      { id: 'bachs', label: `Bachs · USD (${bachsTotalCount})` }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setSalesGatewayFilter(opt.id as any)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                          salesGatewayFilter === opt.id
+                            ? 'bg-purple-600 text-white'
+                            : 'text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="inline-flex p-1 rounded-xl bg-neutral-950/90 border border-purple-900/40">
+                    {[
+                      { id: 'all', label: 'All Modes' },
+                      { id: 'live', label: 'Live' },
+                      { id: 'sandbox', label: `Sandbox${sandboxCount > 0 ? ` (${sandboxCount})` : ''}` }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setSalesModeFilter(opt.id as any)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-semibold transition-colors cursor-pointer ${
+                          salesModeFilter === opt.id
+                            ? 'bg-neutral-800 text-white'
+                            : 'text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
-                  ₦{(salesData?.totalRevenueNgn ?? 0).toLocaleString()}
-                </div>
-                <div className="text-[11px] font-mono text-neutral-400">
-                  {salesData?.verifiedPaymentsCount ?? 0} settled Paystack payment{(salesData?.verifiedPaymentsCount ?? 0) === 1 ? '' : 's'}
+
+                <div className="relative w-full lg:w-72">
+                  <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={salesSearch}
+                    onChange={(e) => setSalesSearch(e.target.value)}
+                    placeholder="Search reference, student, course..."
+                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-neutral-950/90 border border-purple-900/40 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500 font-mono"
+                  />
                 </div>
               </div>
 
-              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-purple-300 uppercase tracking-wider">Course Enrollments</span>
-                  <div className="p-2.5 rounded-xl bg-purple-950/80 text-purple-400 border border-purple-800/40">
-                    <Users className="w-5 h-5" />
+              {/* Dual-Currency & Operational KPIs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className={`p-5 rounded-2xl bg-[#0B051D] border border-purple-900/40 space-y-2.5 transition-opacity ${salesGatewayFilter === 'bachs' ? 'opacity-50' : ''}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-emerald-400 uppercase tracking-wider">Verified NGN (Paystack)</span>
+                    <div className="p-2 rounded-xl bg-emerald-950/80 text-emerald-400 border border-emerald-800/40">
+                      <DollarSign className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                    ₦{ngnRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] font-mono text-neutral-400 tabular-nums">
+                    {ngnSettledCount} settled NGN payment{ngnSettledCount === 1 ? '' : 's'}
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
-                  {salesData?.totalEnrollmentsCount ?? 0}
-                </div>
-                <div className="text-[11px] font-mono text-neutral-400">
-                  Across {salesData?.courseBreakdown.length ?? 0} active curriculum tracks
-                </div>
-              </div>
 
-              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-amber-300 uppercase tracking-wider">Pending / Failed</span>
-                  <div className="p-2.5 rounded-xl bg-amber-950/80 text-amber-400 border border-amber-800/40">
-                    <Clock className="w-5 h-5" />
+                <div className={`p-5 rounded-2xl bg-[#0B051D] border border-purple-900/40 space-y-2.5 transition-opacity ${salesGatewayFilter === 'paystack' ? 'opacity-50' : ''}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-sky-400 uppercase tracking-wider">Verified USD (Bachs)</span>
+                    <div className="p-2 rounded-xl bg-sky-950/80 text-sky-400 border border-sky-800/40">
+                      <DollarSign className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                    ${usdRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] font-mono text-neutral-400 tabular-nums">
+                    {usdSettledCount} settled USD payment{usdSettledCount === 1 ? '' : 's'}
+                    {(salesData?.sandboxRevenueUsd ?? 0) > 0 && isUnfiltered
+                      ? ` ($${(salesData?.sandboxRevenueUsd ?? 0).toLocaleString()} sandbox)`
+                      : ''}
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
-                  {salesData?.pendingPaymentsCount ?? 0} <span className="text-base font-normal text-neutral-400">/ {salesData?.failedPaymentsCount ?? 0}</span>
-                </div>
-                <div className="text-[11px] font-mono text-neutral-400">
-                  Pending vs failed or abandoned checkouts
-                </div>
-              </div>
 
-              <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-sky-300 uppercase tracking-wider">Checkout Success Rate</span>
-                  <div className="p-2.5 rounded-xl bg-sky-950/80 text-sky-400 border border-sky-800/40">
-                    <CheckCircle2 className="w-5 h-5" />
+                <div className="p-5 rounded-2xl bg-[#0B051D] border border-purple-900/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-purple-300 uppercase tracking-wider">Course Enrollments</span>
+                    <div className="p-2 rounded-xl bg-purple-950/80 text-purple-400 border border-purple-800/40">
+                      <Users className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                    {salesData?.totalEnrollmentsCount ?? 0}
+                  </div>
+                  <div className="text-[11px] font-mono text-neutral-400">
+                    Across {salesData?.courseBreakdown.length ?? 0} active curriculum tracks
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
-                  {salesData?.successRatePercent !== null && salesData?.successRatePercent !== undefined
-                    ? `${salesData.successRatePercent}%`
-                    : '—'}
-                </div>
-                <div className="text-[11px] font-mono text-neutral-400">
-                  {salesData?.totalTransactionsCount ?? 0} total recorded transaction{(salesData?.totalTransactionsCount ?? 0) === 1 ? '' : 's'}
+
+                <div className="p-5 rounded-2xl bg-[#0B051D] border border-purple-900/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-amber-300 uppercase tracking-wider">Pending / Failed</span>
+                    <div className="p-2 rounded-xl bg-amber-950/80 text-amber-400 border border-amber-800/40">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                    {pendingCount} <span className="text-base font-normal text-neutral-400">/ {failedCount}</span>
+                  </div>
+                  <div className="text-[11px] font-mono text-neutral-400 tabular-nums">
+                    {filteredSuccessRate !== null && filteredSuccessRate !== undefined
+                      ? `${filteredSuccessRate}% checkout rate · ${totalTxCount} total`
+                      : `${totalTxCount} recorded checkout${totalTxCount === 1 ? '' : 's'}`}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Course Sales Breakdown Table */}
-            <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-6">
-              <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
-                <div>
-                  <h3 className="text-base font-bold text-white">Course Revenue &amp; Enrollment Breakdown</h3>
-                  <p className="text-xs text-neutral-400 font-mono mt-0.5">
-                    Live backend aggregation per canonical curriculum track
-                  </p>
+              {/* Course Sales Breakdown Table */}
+              <div className="p-6 rounded-2xl bg-[#0B051D] border border-purple-900/40 space-y-5">
+                <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-white">Course Revenue &amp; Enrollment Breakdown</h3>
+                    <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                      Separated NGN (Paystack) &amp; USD (Bachs) totals per canonical curriculum track — never FX-mixed
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-3 py-1 rounded-lg bg-purple-900/40 text-purple-300 border border-purple-700/50">
+                    {overviewData?.metrics.databaseTier || 'Backend Ledger'}
+                  </span>
                 </div>
-                <span className="text-xs font-mono px-3 py-1 rounded-lg bg-purple-900/40 text-purple-300 border border-purple-700/50">
-                  {overviewData?.metrics.databaseTier || 'Backend Ledger'}
-                </span>
-              </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead>
-                    <tr className="border-b border-purple-900/40 text-neutral-400">
-                      <th className="py-3 px-4">Course Title</th>
-                      <th className="py-3 px-4">Approved Tuition</th>
-                      <th className="py-3 px-4">Enrollments</th>
-                      <th className="py-3 px-4">Verified Payments</th>
-                      <th className="py-3 px-4 text-right">Revenue (₦)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-purple-900/20 text-neutral-200 tabular-nums">
-                    {(salesData?.courseBreakdown || []).length > 0 ? (
-                      salesData!.courseBreakdown.map((course) => (
-                        <tr key={course.courseId} className="hover:bg-purple-950/20 transition-colors">
-                          <td className="py-3.5 px-4 font-bold text-white font-sans">{course.courseTitle}</td>
-                          <td className="py-3.5 px-4 text-neutral-300">
-                            {course.priceNgn !== null ? `₦${course.priceNgn.toLocaleString()}` : ''}
-                            {course.priceNgn !== null && course.priceUsd !== null ? ' / ' : ''}
-                            {course.priceUsd !== null ? `$${course.priceUsd.toLocaleString()}` : ''}
-                            {course.priceNgn === null && course.priceUsd === null ? course.tuitionDisplay : ''}
-                          </td>
-                          <td className="py-3.5 px-4">{course.enrolledStudents}</td>
-                          <td className="py-3.5 px-4">{course.verifiedPayments}</td>
-                          <td className="py-3.5 px-4 text-right text-emerald-400 font-bold">
-                            ₦{course.revenueNgn.toLocaleString()}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-purple-900/40 text-neutral-400">
+                        <th className="py-3 px-4">Course Title</th>
+                        <th className="py-3 px-4">Approved Tuition</th>
+                        <th className="py-3 px-4">Enrollments</th>
+                        <th className="py-3 px-4">Verified Payments</th>
+                        <th className="py-3 px-4 text-right">Revenue (₦)</th>
+                        <th className="py-3 px-4 text-right">Revenue ($)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-purple-900/20 text-neutral-200 tabular-nums">
+                      {(salesData?.courseBreakdown || []).length > 0 ? (
+                        salesData!.courseBreakdown.map((course) => {
+                          const displayVerified =
+                            salesGatewayFilter === 'paystack'
+                              ? (course.verifiedPaymentsNgn ?? course.verifiedPayments)
+                              : salesGatewayFilter === 'bachs'
+                              ? (course.verifiedPaymentsUsd ?? 0)
+                              : course.verifiedPayments;
+                          return (
+                            <tr key={course.courseId} className="hover:bg-purple-950/20 transition-colors">
+                              <td className="py-3.5 px-4 font-bold text-white font-sans">{course.courseTitle}</td>
+                              <td className="py-3.5 px-4 text-neutral-300">
+                                {course.priceNgn !== null ? `₦${course.priceNgn.toLocaleString()}` : ''}
+                                {course.priceNgn !== null && course.priceUsd !== null ? ' / ' : ''}
+                                {course.priceUsd !== null ? `$${course.priceUsd.toLocaleString()}` : ''}
+                                {course.priceNgn === null && course.priceUsd === null ? course.tuitionDisplay : ''}
+                              </td>
+                              <td className="py-3.5 px-4">{course.enrolledStudents}</td>
+                              <td className="py-3.5 px-4">{displayVerified}</td>
+                              <td className="py-3.5 px-4 text-right text-emerald-400 font-bold">
+                                {salesGatewayFilter === 'bachs' ? '—' : `₦${course.revenueNgn.toLocaleString()}`}
+                              </td>
+                              <td className="py-3.5 px-4 text-right text-sky-400 font-bold">
+                                {salesGatewayFilter === 'paystack' ? '—' : `$${(course.revenueUsd ?? 0).toLocaleString()}`}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="py-8 text-center text-neutral-500 font-sans">
+                            Click refresh to load live catalog &amp; revenue telemetry.
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-neutral-500 font-sans">
-                          Click refresh to load live catalog &amp; revenue telemetry.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Recent Paystack Transactions Ledger */}
-            <div className="p-6 rounded-3xl bg-[#0B051D] border border-purple-900/40 shadow-xl space-y-5">
-              <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
-                <div>
-                  <h3 className="text-base font-bold text-white">Recent Paystack Checkout Transactions</h3>
-                  <p className="text-xs text-neutral-400 font-mono mt-0.5">
-                    Real-time verified, pending, and failed payment records
-                  </p>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-                <span className="text-xs font-mono text-neutral-400 tabular-nums">
-                  Showing {salesData?.recentPayments.length ?? 0} record{(salesData?.recentPayments.length ?? 0) === 1 ? '' : 's'}
-                </span>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead>
-                    <tr className="border-b border-purple-900/40 text-neutral-400">
-                      <th className="py-3 px-4">Reference</th>
-                      <th className="py-3 px-4">Student</th>
-                      <th className="py-3 px-4">Course</th>
-                      <th className="py-3 px-4">Amount</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Fulfillment</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-purple-900/20 text-neutral-200 tabular-nums">
-                    {salesData?.recentPayments && salesData.recentPayments.length > 0 ? (
-                      salesData.recentPayments.map((tx) => (
-                        <tr key={tx.reference} className="hover:bg-purple-950/20 transition-colors">
-                          <td className="py-3.5 px-4 text-purple-300 font-semibold">{tx.reference}</td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-sans font-semibold text-white">{tx.customerName}</div>
-                            <div className="text-[11px] text-neutral-400">{tx.customerEmail}</div>
-                          </td>
-                          <td className="py-3.5 px-4 font-sans text-neutral-300 max-w-xs truncate">{tx.courseTitle}</td>
-                          <td className="py-3.5 px-4 text-white font-bold">
-                            ₦{tx.amount.toLocaleString()}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                                tx.status === 'success'
-                                  ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-800/50'
-                                  : tx.status === 'pending'
-                                  ? 'bg-amber-950/70 text-amber-400 border border-amber-800/50'
-                                  : 'bg-rose-950/70 text-rose-400 border border-rose-800/50'
-                              }`}
-                            >
-                              {tx.status}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <span className="text-[11px] uppercase text-neutral-300">{tx.fulfillmentStatus}</span>
+              {/* Unified Checkout Transactions Ledger */}
+              <div className="p-6 rounded-2xl bg-[#0B051D] border border-purple-900/40 space-y-5">
+                <div className="flex items-center justify-between border-b border-purple-900/30 pb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-white">Unified Payment Checkout Ledger</h3>
+                    <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                      Real-time Paystack (NGN) and Bachs (USD) verified, pending, and failed checkouts
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-neutral-400 tabular-nums">
+                    Showing {filteredPayments.length} of {allPayments.length} record{allPayments.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-purple-900/40 text-neutral-400">
+                        <th className="py-3 px-4">Reference</th>
+                        <th className="py-3 px-4">Gateway</th>
+                        <th className="py-3 px-4">Student</th>
+                        <th className="py-3 px-4">Course</th>
+                        <th className="py-3 px-4">Amount</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Fulfillment</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-purple-900/20 text-neutral-200 tabular-nums">
+                      {filteredPayments.length > 0 ? (
+                        filteredPayments.map((tx) => {
+                          const gateway = (tx.gateway || (tx.reference.startsWith('VIX-BC-') || tx.currency === 'USD' ? 'bachs' : 'paystack')).toLowerCase();
+                          const isBachs = gateway === 'bachs';
+                          const isSandbox = tx.gatewayMode === 'sandbox';
+                          const formattedAmount =
+                            (tx.currency || '').toUpperCase() === 'USD'
+                              ? `$${tx.amount.toLocaleString()}`
+                              : `₦${tx.amount.toLocaleString()}`;
+                          return (
+                            <tr key={tx.reference} className="hover:bg-purple-950/20 transition-colors">
+                              <td className="py-3.5 px-4 text-purple-300 font-semibold">{tx.reference}</td>
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                      isBachs
+                                        ? 'bg-sky-950/70 text-sky-300 border border-sky-800/50'
+                                        : 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/50'
+                                    }`}
+                                  >
+                                    {isBachs ? 'Bachs · USD' : 'Paystack · NGN'}
+                                  </span>
+                                  {isSandbox && (
+                                    <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-950/80 text-amber-300 border border-amber-700/50">
+                                      Sandbox
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="font-sans font-semibold text-white">{tx.customerName}</div>
+                                <div className="text-[11px] text-neutral-400">{tx.customerEmail}</div>
+                              </td>
+                              <td className="py-3.5 px-4 font-sans text-neutral-300 max-w-xs truncate">{tx.courseTitle}</td>
+                              <td className="py-3.5 px-4 text-white font-bold">{formattedAmount}</td>
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                                    tx.status === 'success'
+                                      ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-800/50'
+                                      : tx.status === 'pending'
+                                      ? 'bg-amber-950/70 text-amber-400 border border-amber-800/50'
+                                      : 'bg-rose-950/70 text-rose-400 border border-rose-800/50'
+                                  }`}
+                                >
+                                  {tx.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <span className="text-[11px] uppercase text-neutral-300">{tx.fulfillmentStatus}</span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="py-10 text-center text-neutral-500 font-sans">
+                            {allPayments.length === 0
+                              ? 'No Paystack or Bachs checkout transactions recorded yet. Verified student payments will appear here automatically.'
+                              : 'No matching checkout transactions for the selected gateway, mode, or search query.'}
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="py-10 text-center text-neutral-500 font-sans">
-                          No Paystack checkout transactions recorded yet. Verified student payments will appear here automatically.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* =========================================================================
             TAB 7: USER ROLES & RBAC (05. User Roles Specification)

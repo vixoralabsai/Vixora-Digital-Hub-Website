@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { CreditCard, ShieldCheck, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import {
-  initializePaystackPayment,
-  launchPaystackCheckout,
-  verifyPaystackPayment,
+  initializeDynamicPayment,
+  launchGatewayCheckout,
+  verifyGatewayPayment,
+  resolveGatewayForCurrency,
   VerifiedPaymentData
 } from '../lib/paystack';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface PaystackPaymentButtonProps {
   email: string;
@@ -24,12 +26,16 @@ export function PaystackPaymentButton({
   studentName,
   phone,
   courseId,
-  courseTitle,
   tuitionDisplay,
   onSuccess,
   className = '',
   variant = 'primary'
 }: PaystackPaymentButtonProps) {
+  const { currency } = useCurrency();
+  const activeGateway = resolveGatewayForCurrency(currency);
+  const isUsdBachs = activeGateway === 'bachs';
+  const gatewayName = isUsdBachs ? 'Bachs (USD)' : 'Paystack';
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -44,32 +50,31 @@ export function PaystackPaymentButton({
     setIsLoading(true);
 
     try {
-      // 1. Initialize transaction on our server
-      // Note: Frontend sends ONLY customer info & courseId; authoritative amount is determined by backend.
-      const initRes = await initializePaystackPayment({
+      const initRes = await initializeDynamicPayment({
         email,
         studentName,
         phone,
         courseId,
+        currency,
         callbackUrl: typeof window !== 'undefined'
-          ? `${window.location.origin}/payment/callback?courseId=${encodeURIComponent(courseId)}`
+          ? `${window.location.origin}/payment/callback?courseId=${encodeURIComponent(courseId)}&gateway=${activeGateway}`
           : undefined
       });
 
       if (!initRes.success || !initRes.reference) {
-        if (initRes.code === 'PAYSTACK_NOT_CONFIGURED') {
+        if (initRes.code === 'PAYSTACK_NOT_CONFIGURED' || initRes.code === 'BACHS_NOT_CONFIGURED') {
           setErrorMessage(
-            'Payment processing is currently undergoing system setup. Please contact admissions directly or try again shortly.'
+            `${gatewayName} payment processing is currently undergoing system setup. Please contact admissions directly or try again shortly.`
           );
         } else {
-          setErrorMessage(initRes.error || 'Failed to initialize Paystack checkout.');
+          setErrorMessage(initRes.error || `Failed to initialize ${gatewayName} checkout.`);
         }
         setIsLoading(false);
         return;
       }
 
-      // 2. Launch Paystack Checkout
-      await launchPaystackCheckout({
+      await launchGatewayCheckout({
+        gateway: initRes.gateway || activeGateway,
         reference: initRes.reference,
         authorizationUrl: initRes.authorizationUrl,
         accessCode: initRes.accessCode,
@@ -79,7 +84,7 @@ export function PaystackPaymentButton({
         phone,
         onSuccess: (confirmedRef) => {
           setIsLoading(true);
-          verifyPaystackPayment(confirmedRef)
+          verifyGatewayPayment(confirmedRef)
             .then((verifyRes) => {
               setIsLoading(false);
               if (verifyRes.verified && verifyRes.payment) {
@@ -107,8 +112,8 @@ export function PaystackPaymentButton({
         }
       });
     } catch (err: any) {
-      console.error('Paystack Checkout Error:', err);
-      setErrorMessage(err?.message || 'An unexpected error occurred with Paystack checkout.');
+      console.error('Gateway Checkout Error:', err);
+      setErrorMessage(err?.message || `An unexpected error occurred with ${gatewayName} checkout.`);
       setIsLoading(false);
     }
   };
@@ -130,7 +135,7 @@ export function PaystackPaymentButton({
                 <CreditCard className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white">Instant Online Payment (Paystack)</h4>
+                <h4 className="text-sm font-bold text-white">Instant Online Payment ({gatewayName})</h4>
                 <p className="text-[11px] font-mono text-emerald-300">Automated verification &amp; instant seat reservation</p>
               </div>
             </div>
@@ -143,10 +148,12 @@ export function PaystackPaymentButton({
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-300">
             <div>
               <span className="text-neutral-400">Total Tuition: </span>
-              <strong className="text-base text-emerald-400 font-bold">{tuitionDisplay}</strong>
+              <strong className="text-base text-emerald-400 font-bold tabular-nums">{tuitionDisplay}</strong>
             </div>
             <div className="text-[11px] font-mono text-neutral-400">
-              Cards • Bank Transfer • USSD • Mobile Money
+              {isUsdBachs
+                ? 'USD Cards • Visa • Mastercard • Amex • Digital Wallets'
+                : 'NGN Cards • Bank Transfer • USSD • Mobile Money'}
             </div>
           </div>
 
@@ -159,12 +166,12 @@ export function PaystackPaymentButton({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Connecting to Paystack...</span>
+                <span>Connecting to {gatewayName}...</span>
               </>
             ) : (
               <>
                 <CreditCard className="w-4 h-4" />
-                <span>Pay {tuitionDisplay} Online with Paystack</span>
+                <span>Pay {tuitionDisplay} Online with {gatewayName}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -180,28 +187,39 @@ export function PaystackPaymentButton({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Connecting to Paystack...</span>
+              <span>Connecting to {gatewayName}...</span>
             </>
           ) : (
             <>
               <CreditCard className="w-4 h-4" />
-              <span>Pay {tuitionDisplay} via Paystack</span>
+              <span>Pay {tuitionDisplay} via {gatewayName}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
       )}
 
-      {/* Trust & Channels Logos Bar */}
+      {/* Trust & Channels Bar */}
       <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] font-mono text-neutral-400 pt-1">
         <span className="flex items-center gap-1 text-emerald-400">
-          <ShieldCheck className="w-3 h-3" /> Paystack Secured:
+          <ShieldCheck className="w-3 h-3" /> {gatewayName} Secured:
         </span>
-        <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Mastercard</span>
-        <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Visa</span>
-        <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Verve</span>
-        <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Bank Transfer</span>
-        <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">USSD</span>
+        {isUsdBachs ? (
+          <>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Visa</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Mastercard</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Amex</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">USD Checkout</span>
+          </>
+        ) : (
+          <>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Mastercard</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Visa</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Verve</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">Bank Transfer</span>
+            <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">USSD</span>
+          </>
+        )}
       </div>
     </div>
   );
