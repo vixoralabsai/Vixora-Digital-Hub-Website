@@ -3316,22 +3316,31 @@ async function createBachsCheckoutSession(params) {
 function normalizeBachsPayload(rawPayload) {
   const eventType = String(rawPayload?.type || rawPayload?.event || "").toLowerCase().trim();
   const obj = rawPayload?.data && typeof rawPayload.data === "object" ? rawPayload.data : rawPayload || {};
+  const rawObjectType = String(obj.object || "").toLowerCase().trim();
+  const rawId = typeof obj.id === "string" ? obj.id : "";
   const paymentStatus = String(obj.payment_status || "").toLowerCase().trim();
   const sessionStatus = String(obj.status || "").toLowerCase().trim();
+  const isCheckoutSession = rawObjectType === "checkout_session" || rawObjectType === "checkout.session" || eventType.startsWith("checkout.") || rawId.startsWith("chk_") || rawId.startsWith("cs_") || Boolean(obj.checkout_url);
+  const isChargeOrCollection = !isCheckoutSession && (rawObjectType === "collection" || rawObjectType === "charge" || rawObjectType === "payment" || eventType === "collection.succeeded" || eventType === "payment.succeeded" || rawId.startsWith("chg_") || rawId.startsWith("col_"));
+  const totalMinor = parseBachsAmountMinor(obj);
+  const hasExplicitPaidAmount = obj.amount_paid !== void 0 && obj.amount_paid !== null && obj.amount_paid !== "" || obj.paid_amount !== void 0 && obj.paid_amount !== null && obj.paid_amount !== "";
+  const paidMinor = hasExplicitPaidAmount ? parseBachsAmountMinor({ amount: obj.amount_paid ?? obj.paid_amount }) : totalMinor;
+  const isUnderpaid = eventType === "collection.underpaid" || paymentStatus === "underpaid" || sessionStatus === "underpaid" || hasExplicitPaidAmount && totalMinor > 0 && paidMinor < totalMinor;
   let status = "pending";
-  if (paymentStatus === "paid" || paymentStatus === "succeeded" || sessionStatus === "paid" || sessionStatus === "succeeded" || sessionStatus === "complete" || sessionStatus === "completed" || sessionStatus === "success" || (eventType === "collection.succeeded" || eventType === "checkout.completed") && paymentStatus !== "unpaid") {
-    status = "success";
-  } else if (sessionStatus === "failed" || paymentStatus === "failed" || eventType === "collection.failed" || eventType === "collection.underpaid") {
+  if (isUnderpaid || sessionStatus === "failed" || paymentStatus === "failed" || eventType === "collection.failed") {
     status = "failed";
-  } else if (sessionStatus === "expired" || sessionStatus === "cancelled" || sessionStatus === "canceled" || sessionStatus === "abandoned" || eventType === "checkout.expired") {
+  } else if (sessionStatus === "expired" || sessionStatus === "cancelled" || sessionStatus === "canceled" || sessionStatus === "abandoned" || paymentStatus === "expired" || eventType === "checkout.expired" || eventType === "checkout.session.expired") {
     status = "abandoned";
+  } else if (paymentStatus === "paid" || paymentStatus === "succeeded") {
+    status = "success";
+  } else if (isChargeOrCollection && (sessionStatus === "succeeded" || sessionStatus === "paid")) {
+    status = "success";
   }
   const rawCurrency = obj.currency || obj.pricing?.currency || obj.amount_details?.currency || "";
   const currency = String(rawCurrency).toUpperCase().trim();
-  const amountMinor = parseBachsAmountMinor(obj);
+  const amountMinor = hasExplicitPaidAmount && paidMinor >= 0 ? paidMinor : totalMinor;
   const metadata = obj.metadata && typeof obj.metadata === "object" ? obj.metadata : {};
   const customer = (obj.customer && typeof obj.customer === "object" ? obj.customer : null) || (obj.customer_details && typeof obj.customer_details === "object" ? obj.customer_details : null) || {};
-  const rawId = typeof obj.id === "string" ? obj.id : "";
   const sessionId = obj.checkout_id || obj.session_id || obj.checkout_session_id || (rawId.startsWith("chk_") || rawId.startsWith("cs_") ? rawId : null);
   const externalTxId = String(obj.payment_intent || obj.collection_id || obj.id || sessionId || "");
   const reference = metadata.reference || metadata.order_reference || obj.client_reference_id || obj.reference || null;
@@ -3349,6 +3358,8 @@ function normalizeBachsPayload(rawPayload) {
     authUserId: metadata.authUserId || null,
     channel: String(channelRaw || "card"),
     paidAt: obj.paid_at || obj.completed_at || rawPayload?.created_at || null,
+    eventType: eventType || null,
+    paymentStatus: paymentStatus || null,
     raw: sanitizeBachsResponse(obj)
   };
 }
@@ -3396,11 +3407,33 @@ function firstHeaderValue(val) {
   return (Array.isArray(val) ? val[0] : val).trim();
 }
 function isTimestampWithinTolerance(tsRaw, toleranceSeconds, nowSeconds) {
-  if (!tsRaw) return true;
-  const ts = Number(tsRaw);
+  const clean = tsRaw.trim();
+  if (!clean || !/^\d+$/.test(clean)) return false;
+  const ts = Number(clean);
   if (!Number.isFinite(ts) || ts <= 0) return false;
-  if (toleranceSeconds <= 0) return true;
-  return Math.abs(nowSeconds - ts) <= toleranceSeconds;
+  const effectiveTolerance = toleranceSeconds > 0 ? toleranceSeconds : 300;
+  return Math.abs(nowSeconds - ts) <= effectiveTolerance;
+}
+function extractV2SignatureCandidates(headerValue, rawBody, tolerance, nowSec) {
+  let tsValue = "";
+  const v1Tokens = [];
+  for (const part of headerValue.split(",")) {
+    const idx = part.indexOf("=");
+    if (idx <= 0) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    if (k === "t") tsValue = v;
+    if (k === "v1" && v) v1Tokens.push(v.toLowerCase());
+  }
+  if (!tsValue || v1Tokens.length === 0 || !isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
+    return [];
+  }
+  const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
+  return v1Tokens.map((hexToken) => ({
+    payload: signedPayload,
+    providedHex: hexToken,
+    ts: tsValue
+  }));
 }
 function verifyBachsWebhookSignature(rawBody, signatureOrHeaders, webhookSecret = getBachsWebhookSecret()) {
   if (!webhookSecret || !Buffer.isBuffer(rawBody)) {
@@ -3416,57 +3449,26 @@ function verifyBachsWebhookSignature(rawBody, signatureOrHeaders, webhookSecret 
     return false;
   }
   const candidates = [];
-  if (sigV2 && sigV2.includes("t=") && sigV2.includes("v1=")) {
-    let tsValue = "";
-    const v1Tokens = [];
-    for (const part of sigV2.split(",")) {
-      const idx = part.indexOf("=");
-      if (idx <= 0) continue;
-      const k = part.slice(0, idx).trim();
-      const v = part.slice(idx + 1).trim();
-      if (k === "t") tsValue = v;
-      if (k === "v1" && v) v1Tokens.push(v.toLowerCase());
+  if (sigV2) {
+    if (!sigV2.includes("t=") || !sigV2.includes("v1=")) {
+      return false;
     }
-    if (tsValue && v1Tokens.length > 0 && isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
-      const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
-      for (const hexToken of v1Tokens) {
-        candidates.push({ payload: signedPayload, providedHex: hexToken, ts: tsValue });
-      }
-    }
+    candidates.push(...extractV2SignatureCandidates(sigV2, rawBody, tolerance, nowSec));
   }
-  if (sigV1 && sigV1.includes("t=") && sigV1.includes("v1=")) {
-    let tsValue = "";
-    const v1Tokens = [];
-    for (const part of sigV1.split(",")) {
-      const idx = part.indexOf("=");
-      if (idx <= 0) continue;
-      const k = part.slice(0, idx).trim();
-      const v = part.slice(idx + 1).trim();
-      if (k === "t") tsValue = v;
-      if (k === "v1" && v) v1Tokens.push(v.toLowerCase());
-    }
-    if (tsValue && v1Tokens.length > 0 && isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
-      const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
-      for (const hexToken of v1Tokens) {
-        candidates.push({ payload: signedPayload, providedHex: hexToken, ts: tsValue });
-      }
-    }
-  } else if (sigV1) {
-    const normalizedHex = sigV1.toLowerCase().replace(/^sha256=/, "");
-    if (headerTs) {
-      if (isTimestampWithinTolerance(headerTs, tolerance, nowSec)) {
-        candidates.push({
-          payload: Buffer.concat([Buffer.from(`${headerTs}.`), rawBody]),
-          providedHex: normalizedHex,
-          ts: headerTs
-        });
-      }
-    } else {
+  if (sigV1) {
+    if (sigV1.includes("t=") && sigV1.includes("v1=")) {
+      candidates.push(...extractV2SignatureCandidates(sigV1, rawBody, tolerance, nowSec));
+    } else if (headerTs && isTimestampWithinTolerance(headerTs, tolerance, nowSec)) {
+      const normalizedHex = sigV1.toLowerCase().replace(/^sha256=/, "");
       candidates.push({
-        payload: rawBody,
-        providedHex: normalizedHex
+        payload: Buffer.concat([Buffer.from(`${headerTs.trim()}.`), rawBody]),
+        providedHex: normalizedHex,
+        ts: headerTs.trim()
       });
     }
+  }
+  if (candidates.length === 0) {
+    return false;
   }
   for (const candidate of candidates) {
     if (!/^[0-9a-f]{64}$/.test(candidate.providedHex)) {
@@ -3690,6 +3692,8 @@ function sanitizeText(val, maxLen = 120) {
 }
 var fallbackPaymentsStore = /* @__PURE__ */ new Map();
 var simulateEnrollmentFailureForTesting = /* @__PURE__ */ new Set();
+var simulateBachsSessionPersistenceFailureForTesting = false;
+var inFlightFulfillments = /* @__PURE__ */ new Map();
 function sanitizePaystackResponse(data) {
   if (!data || typeof data !== "object") return null;
   const sanitized = { ...data };
@@ -3785,44 +3789,70 @@ async function persistPaymentUpsert(supabase, record) {
   }
   return res;
 }
-async function processPaymentFulfillment(reference, verifiedGatewayData) {
-  if (!isValidTransactionReference(reference)) {
-    return {
-      verified: false,
-      error: "Invalid transaction reference format.",
-      code: "INVALID_REFERENCE",
-      status: 400
-    };
+async function withReferenceLock(key, fn) {
+  const prev = inFlightFulfillments.get(key) || Promise.resolve();
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const tail = prev.catch(() => void 0).then(() => gate);
+  inFlightFulfillments.set(key, tail);
+  try {
+    await prev.catch(() => void 0);
+    return await fn();
+  } finally {
+    release();
+    if (inFlightFulfillments.get(key) === tail) {
+      inFlightFulfillments.delete(key);
+    }
   }
-  const supabase = getSupabaseAdmin();
-  if (!supabase && isProductionPaymentEnvironment()) {
-    return {
-      verified: false,
-      error: "Payment database is not configured. The transaction cannot be fulfilled safely yet.",
-      code: "DATABASE_UNCONFIGURED",
-      status: 503
-    };
+}
+function buildRawResponseWithEventIds(sanitizedGatewayRaw, existingRaw, webhookEventId, recordEventAsProcessed = false) {
+  const prevIds = Array.isArray(existingRaw?._processedEventIds) ? existingRaw._processedEventIds.filter((id) => typeof id === "string") : [];
+  const nextIds = recordEventAsProcessed && webhookEventId && !prevIds.includes(webhookEventId) ? [...prevIds, webhookEventId].slice(-25) : prevIds;
+  const base = sanitizedGatewayRaw && typeof sanitizedGatewayRaw === "object" ? { ...sanitizedGatewayRaw } : {};
+  if (nextIds.length > 0) {
+    base._processedEventIds = nextIds;
   }
-  let lookupReference = reference;
+  return Object.keys(base).length > 0 ? base : null;
+}
+async function lookupPaymentRecord(supabase, primaryRef, allowSessionFallback) {
+  let lookupReference = primaryRef;
   let existingPayment = null;
-  const isBachsSessionPrefix = lookupReference.toLowerCase().startsWith("chk_") || lookupReference.toLowerCase().startsWith("cs_");
   if (supabase) {
     try {
       const { data, error } = await supabase.from("payments").select("*").eq("id", lookupReference).maybeSingle();
       if (error) {
         console.error("[Supabase payments query failed]:", error);
         return {
-          verified: false,
-          error: "Payment record could not be read from the database. Please retry verification.",
-          code: "PAYMENT_RECORD_READ_FAILED",
-          status: 503
+          payment: null,
+          resolvedRef: lookupReference,
+          errorResult: {
+            verified: false,
+            error: "Payment record could not be read from the database. Please retry verification.",
+            code: "PAYMENT_RECORD_READ_FAILED",
+            status: 503
+          }
         };
       }
       if (data) {
         existingPayment = data;
         fallbackPaymentsStore.set(lookupReference, data);
-      } else if (isBachsSessionPrefix) {
-        const { data: sessionMatch } = await supabase.from("payments").select("*").eq("external_session_id", lookupReference).maybeSingle();
+      } else if (allowSessionFallback) {
+        const { data: sessionMatch, error: sessionLookupErr } = await supabase.from("payments").select("*").eq("external_session_id", lookupReference).maybeSingle();
+        if (sessionLookupErr) {
+          console.error("[Supabase session lookup failed]:", sessionLookupErr);
+          return {
+            payment: null,
+            resolvedRef: lookupReference,
+            errorResult: {
+              verified: false,
+              error: "Payment record could not be read from the database. Please retry verification.",
+              code: "PAYMENT_RECORD_READ_FAILED",
+              status: 503
+            }
+          };
+        }
         if (sessionMatch) {
           existingPayment = sessionMatch;
           lookupReference = sessionMatch.id;
@@ -3832,16 +3862,20 @@ async function processPaymentFulfillment(reference, verifiedGatewayData) {
     } catch (dbErr) {
       console.error("[Supabase payments query exception]:", dbErr);
       return {
-        verified: false,
-        error: "Payment database is unavailable. Please retry verification.",
-        code: "DATABASE_UNAVAILABLE",
-        status: 503
+        payment: null,
+        resolvedRef: lookupReference,
+        errorResult: {
+          verified: false,
+          error: "Payment database is unavailable. Please retry verification.",
+          code: "DATABASE_UNAVAILABLE",
+          status: 503
+        }
       };
     }
   }
   if (!existingPayment && (!supabase || !isProductionPaymentEnvironment())) {
     existingPayment = fallbackPaymentsStore.get(lookupReference) || null;
-    if (!existingPayment && isBachsSessionPrefix) {
+    if (!existingPayment && allowSessionFallback) {
       for (const rec of fallbackPaymentsStore.values()) {
         if (rec.external_session_id === lookupReference) {
           existingPayment = rec;
@@ -3851,458 +3885,683 @@ async function processPaymentFulfillment(reference, verifiedGatewayData) {
       }
     }
   }
-  reference = lookupReference;
-  const inferredGateway = verifiedGatewayData?._gateway === "bachs" || existingPayment?.gateway === "bachs" || existingPayment?.currency === "USD" || reference.toUpperCase().startsWith("VIX-BC-") || isBachsSessionPrefix ? "bachs" : "paystack";
-  if (existingPayment && existingPayment.status === "success" && existingPayment.fulfillment_status === "fulfilled" && !simulateEnrollmentFailureForTesting.has(reference)) {
-    fallbackPaymentsStore.set(reference, existingPayment);
-    const canonical = findCanonicalCourse(existingPayment.course_id);
-    return {
-      verified: true,
-      alreadyFulfilled: true,
-      payment: {
-        reference: existingPayment.id,
-        gateway: existingPayment.gateway || inferredGateway,
-        gatewayMode: existingPayment.gateway_mode || (inferredGateway === "bachs" ? getBachsMode() : getPaystackSecretKey().startsWith("sk_live_") ? "live" : "sandbox"),
-        status: existingPayment.status,
-        amount: existingPayment.amount,
-        currency: existingPayment.currency,
-        channel: existingPayment.channel,
-        paidAt: existingPayment.paid_at,
-        studentName: existingPayment.customer_name,
-        studentEmail: existingPayment.customer_email,
-        courseId: existingPayment.course_id,
-        courseTitle: canonical?.title || "Vixora Academy Cohort",
-        emailDispatchedAt: existingPayment.email_dispatched_at,
-        telegramInvites: getTelegramInvitesForCourse(existingPayment.course_id)
-      }
-    };
-  }
-  let resolvedCurrency = inferredGateway === "bachs" ? "USD" : "NGN";
-  let canonicalCourse = null;
-  let expectedMajorAmount = 0;
-  let expectedMinorAmount = 0;
-  let customerEmail = "";
-  let customerName = "";
-  let customerPhone = null;
-  let paidAt = (/* @__PURE__ */ new Date()).toISOString();
-  let channel = "card";
-  let externalTxId = "";
-  let externalSessionId = existingPayment?.external_session_id || null;
-  let authUserId = null;
-  let sanitizedRaw = null;
-  const gatewayMode = existingPayment?.gateway_mode || (inferredGateway === "bachs" ? getBachsMode() : getPaystackSecretKey().startsWith("sk_live_") ? "live" : "sandbox");
-  if (inferredGateway === "bachs") {
-    let normalizedBachs = verifiedGatewayData?._alreadyNormalized ? verifiedGatewayData : verifiedGatewayData ? normalizeBachsPayload(verifiedGatewayData) : null;
-    if (!normalizedBachs) {
-      const lookupId = existingPayment?.external_session_id || reference;
-      const sessionRes = await fetchBachsCheckoutSession(lookupId);
-      if (!sessionRes.ok || !sessionRes.data) {
-        return {
-          verified: false,
-          error: sessionRes.error || "USD transaction could not be verified on Bachs.",
-          code: sessionRes.status === 503 ? "BACHS_NOT_CONFIGURED" : "BACHS_VERIFY_FAILED",
-          status: sessionRes.status || 404
-        };
-      }
-      normalizedBachs = sessionRes.data;
-    }
-    if (normalizedBachs.status !== "success") {
-      const mappedStatus = normalizedBachs.status === "failed" || normalizedBachs.status === "abandoned" ? normalizedBachs.status : "pending";
-      const failedUpdate = {
-        status: mappedStatus,
-        raw_response: normalizedBachs.raw,
-        updated_at: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      if (supabase) {
-        try {
-          await supabase.from("payments").update(failedUpdate).eq("id", reference);
-        } catch (dbErr) {
-          console.warn("[Supabase failed status update]:", dbErr);
-        }
-      }
-      if (fallbackPaymentsStore.has(reference)) {
-        const rec = fallbackPaymentsStore.get(reference);
-        rec.status = mappedStatus;
-        rec.raw_response = normalizedBachs.raw;
-        rec.updated_at = (/* @__PURE__ */ new Date()).toISOString();
-      }
-      return {
-        verified: false,
-        error: `USD payment is not successful (status: ${normalizedBachs.status}).`,
-        code: "PAYMENT_NOT_SUCCESSFUL",
-        status: 400
-      };
-    }
-    if (normalizedBachs.currency !== "USD") {
-      return {
-        verified: false,
-        error: `Currency mismatch: Expected USD for Bachs, received ${normalizedBachs.currency || "UNKNOWN"}.`,
-        code: "CURRENCY_MISMATCH",
-        status: 400
-      };
-    }
-    const courseId = existingPayment?.course_id || normalizedBachs.courseId || "";
-    const authPrice = resolveAuthoritativePrice(courseId, "USD");
-    if (!authPrice) {
-      return {
-        verified: false,
-        error: "Cannot fulfill USD payment: Course is unrecognized or USD pricing is unconfigured.",
-        code: "INVALID_COURSE",
-        status: 400
-      };
-    }
-    if (normalizedBachs.amountMinor !== authPrice.minorAmount) {
-      return {
-        verified: false,
-        error: `Amount mismatch: Expected ${authPrice.minorAmount} cents ($${authPrice.majorAmount}), received ${normalizedBachs.amountMinor} cents.`,
-        code: "AMOUNT_MISMATCH",
-        status: 400
-      };
-    }
-    customerEmail = (normalizedBachs.customerEmail || existingPayment?.customer_email || "").toLowerCase().trim();
-    if (!isValidEmail(customerEmail)) {
-      return {
-        verified: false,
-        error: "Invalid customer email associated with USD transaction.",
-        code: "INVALID_CUSTOMER_EMAIL",
-        status: 400
-      };
-    }
-    canonicalCourse = authPrice.course;
-    resolvedCurrency = "USD";
-    expectedMajorAmount = authPrice.majorAmount;
-    expectedMinorAmount = authPrice.minorAmount;
-    customerName = normalizedBachs.customerName || existingPayment?.customer_name || customerEmail.split("@")[0];
-    customerPhone = existingPayment?.customer_phone || null;
-    paidAt = normalizedBachs.paidAt || (/* @__PURE__ */ new Date()).toISOString();
-    channel = normalizedBachs.channel || "card";
-    externalTxId = normalizedBachs.externalTxId || "";
-    externalSessionId = existingPayment?.external_session_id || normalizedBachs.sessionId || null;
-    authUserId = normalizedBachs.authUserId || null;
-    sanitizedRaw = normalizedBachs.raw;
-  } else {
-    let paystackData = verifiedGatewayData;
-    if (!paystackData) {
-      const secretKey = getPaystackSecretKey();
-      if (!secretKey) {
-        return {
-          verified: false,
-          error: "Paystack Secret Key is not configured on the server.",
-          code: "PAYSTACK_NOT_CONFIGURED",
-          status: 503
-        };
-      }
-      try {
-        const response = await fetch(`${PAYSTACK_API_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-            "Content-Type": "application/json"
-          }
-        });
-        const json = await response.json();
-        if (!response.ok || !json.status || !json.data) {
-          return {
-            verified: false,
-            error: json.message || "Transaction could not be verified on Paystack.",
-            code: "PAYSTACK_VERIFY_FAILED",
-            status: 404
-          };
-        }
-        paystackData = json.data;
-      } catch {
-        return {
-          verified: false,
-          error: "Network error connecting to Paystack API.",
-          code: "PAYSTACK_NETWORK_ERROR",
-          status: 502
-        };
-      }
-    }
-    if (paystackData.status !== "success") {
-      let mappedStatus = "pending";
-      if (paystackData.status === "failed" || paystackData.status === "abandoned") {
-        mappedStatus = paystackData.status;
-      }
-      const failedUpdate = {
-        status: mappedStatus,
-        raw_response: sanitizePaystackResponse(paystackData),
-        updated_at: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      if (supabase) {
-        try {
-          await supabase.from("payments").update(failedUpdate).eq("id", reference);
-        } catch (dbErr) {
-          console.warn("[Supabase failed status update]:", dbErr);
-        }
-      }
-      if (fallbackPaymentsStore.has(reference)) {
-        const rec = fallbackPaymentsStore.get(reference);
-        rec.status = mappedStatus;
-        rec.raw_response = sanitizePaystackResponse(paystackData);
-        rec.updated_at = (/* @__PURE__ */ new Date()).toISOString();
-      }
-      return {
-        verified: false,
-        error: `Payment is not successful (status: ${paystackData.status}).`,
-        code: "PAYMENT_NOT_SUCCESSFUL",
-        status: 400
-      };
-    }
-    if (paystackData.currency !== "NGN") {
-      return {
-        verified: false,
-        error: `Currency mismatch: Expected NGN, received ${paystackData.currency}.`,
-        code: "CURRENCY_MISMATCH",
-        status: 400
-      };
-    }
-    const courseId = existingPayment?.course_id || paystackData.metadata?.courseId || paystackData.metadata?.course_id;
-    canonicalCourse = findCanonicalCourse(courseId);
-    if (!canonicalCourse) {
-      return {
-        verified: false,
-        error: "Cannot fulfill payment: Unrecognized or invalid course ID.",
-        code: "INVALID_COURSE",
-        status: 400
-      };
-    }
-    const expectedKobo = canonicalCourse.koboAmount;
-    const actualKobo = Math.round(Number(paystackData.amount));
-    if (actualKobo !== expectedKobo) {
-      return {
-        verified: false,
-        error: `Amount mismatch: Expected ${expectedKobo} kobo (\u20A6${canonicalCourse.nairaAmount}), received ${actualKobo} kobo.`,
-        code: "AMOUNT_MISMATCH",
-        status: 400
-      };
-    }
-    customerEmail = (paystackData.customer?.email || paystackData.metadata?.studentEmail || existingPayment?.customer_email || "").toLowerCase().trim();
-    if (!isValidEmail(customerEmail)) {
-      return {
-        verified: false,
-        error: "Invalid customer email associated with transaction.",
-        code: "INVALID_CUSTOMER_EMAIL",
-        status: 400
-      };
-    }
-    resolvedCurrency = "NGN";
-    expectedMajorAmount = canonicalCourse.nairaAmount;
-    expectedMinorAmount = expectedKobo;
-    customerName = paystackData.metadata?.studentName || existingPayment?.customer_name || paystackData.customer?.first_name || customerEmail.split("@")[0];
-    customerPhone = paystackData.metadata?.phone || existingPayment?.customer_phone || paystackData.customer?.phone || null;
-    paidAt = paystackData.paid_at || (/* @__PURE__ */ new Date()).toISOString();
-    channel = paystackData.channel || "card";
-    externalTxId = String(paystackData.id || "");
-    authUserId = paystackData.metadata?.authUserId || null;
-    sanitizedRaw = sanitizePaystackResponse(paystackData);
-  }
-  let studentId = existingPayment?.student_id || null;
-  let studentCode = null;
-  let generatedTempPassword = null;
-  let directPasswordSetupLink = null;
-  let fulfillmentError = null;
-  let isFulfilled = false;
-  let dbCourseId = canonicalCourse.id;
-  if (supabase) {
-    try {
-      dbCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
-      if (simulateEnrollmentFailureForTesting.has(reference)) {
-        throw new Error("Simulated database failure during enrollment.");
-      }
-      const studentQuery = supabase.from("students").select("id, email, auth_user_id, student_code").eq("email", customerEmail);
-      const { data: matchedStudent, error: findStudentErr } = await studentQuery.maybeSingle();
-      if (findStudentErr) throw findStudentErr;
-      let studentCode2 = matchedStudent?.student_code;
-      if (matchedStudent) {
-        studentId = matchedStudent.id;
-        if (matchedStudent.auth_user_id) {
-          authUserId = matchedStudent.auth_user_id;
-        }
-      } else {
-        const newStudentId = crypto3.randomUUID();
-        studentCode2 = `STU-${Math.floor(1e3 + Math.random() * 9e3)}`;
-        const { data: createdStudent, error: createStudentErr } = await supabase.from("students").insert({
-          id: newStudentId,
-          name: customerName,
-          email: customerEmail,
-          auth_user_id: authUserId,
-          student_code: studentCode2,
-          enrolled_at: (/* @__PURE__ */ new Date()).toISOString(),
-          role: "student"
-        }).select("id, student_code").maybeSingle();
-        if (createStudentErr) throw createStudentErr;
-        if (createdStudent) {
-          studentId = createdStudent.id;
-          studentCode2 = createdStudent.student_code;
-        } else {
-          throw new Error("Student record could not be created in database.");
-        }
-      }
-      if (supabase.auth?.admin) {
-        try {
-          const portalBaseUrl = "https://academy.vixoradigitalhub.com/pages/student-portal";
-          let authUserExists = false;
-          try {
-            const { data: linkData, error: probeErr } = await supabase.auth.admin.generateLink({
-              type: "recovery",
-              email: customerEmail,
-              options: { redirectTo: portalBaseUrl }
-            });
-            if (linkData?.user && !probeErr) {
-              authUserExists = true;
-              authUserId = linkData.user.id;
-              directPasswordSetupLink = linkData.properties?.action_link || null;
-            }
-          } catch {
-            authUserExists = false;
-          }
-          if (!authUserExists) {
-            generatedTempPassword = `Vixora@${crypto3.randomBytes(3).toString("hex").toUpperCase()}!`;
-            const { data: newAuth } = await supabase.auth.admin.createUser({
-              email: customerEmail,
-              password: generatedTempPassword,
-              email_confirm: true,
-              user_metadata: {
-                name: customerName,
-                role: "student"
-              }
-            });
-            if (newAuth?.user) {
-              authUserId = newAuth.user.id;
-              const { data: linkData } = await supabase.auth.admin.generateLink({
-                type: "recovery",
-                email: customerEmail,
-                options: { redirectTo: portalBaseUrl }
-              });
-              directPasswordSetupLink = linkData?.properties?.action_link || null;
-            }
-          }
-          if (authUserId && studentId) {
-            await supabase.from("students").update({ auth_user_id: authUserId }).eq("id", studentId);
-          }
-        } catch (authProvisionErr) {
-          console.warn("[Student Auth Provisioning Warning]:", authProvisionErr);
-        }
-      }
-      if (!studentId) {
-        throw new Error("Valid student identifier unavailable for enrollment.");
-      }
-      const { data: existingEnrollment, error: findEnrollmentErr } = await supabase.from("enrollments").select("student_id, course_id, status, progress_percent").eq("student_id", studentId).eq("course_id", dbCourseId).maybeSingle();
-      if (findEnrollmentErr) throw findEnrollmentErr;
-      if (!existingEnrollment) {
-        const { error: insertEnrollmentErr } = await supabase.from("enrollments").insert({
-          id: crypto3.randomUUID(),
-          student_id: studentId,
-          course_id: dbCourseId,
-          status: "enrolled",
-          cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
-          progress_percent: 0,
-          completed_modules: 0,
-          total_modules: canonicalCourse.totalModules,
-          enrolled_at: (/* @__PURE__ */ new Date()).toISOString()
-        });
-        if (insertEnrollmentErr) throw insertEnrollmentErr;
-      } else {
-        const { error: updateEnrollmentErr } = await supabase.from("enrollments").update({ status: "enrolled", updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("student_id", studentId).eq("course_id", dbCourseId);
-        if (updateEnrollmentErr) throw updateEnrollmentErr;
-      }
-      isFulfilled = true;
-    } catch (enrollErr) {
-      console.error("[Supabase Enrollment Fulfillment Failure]:", enrollErr);
-      fulfillmentError = enrollErr?.message || String(enrollErr);
-      isFulfilled = false;
-    }
-  } else {
-    if (simulateEnrollmentFailureForTesting.has(reference)) {
-      isFulfilled = false;
-      fulfillmentError = "Simulated database failure during enrollment.";
-    } else {
-      isFulfilled = true;
-      studentId = existingPayment?.student_id || `STU-${Date.now().toString(36).toUpperCase()}`;
-    }
-  }
-  const updatedPaymentRecord = {
-    id: reference,
-    student_id: studentId,
-    course_id: dbCourseId,
-    gateway: inferredGateway,
-    gateway_mode: gatewayMode,
-    external_session_id: externalSessionId,
-    amount: expectedMajorAmount,
-    amount_kobo: resolvedCurrency === "NGN" ? expectedMinorAmount : 0,
-    amount_minor: expectedMinorAmount,
-    currency: resolvedCurrency,
-    channel,
-    status: "success",
-    fulfillment_status: isFulfilled ? "fulfilled" : "failed",
-    fulfillment_error: fulfillmentError,
-    paystack_transaction_id: externalTxId,
-    customer_email: customerEmail,
-    customer_name: customerName,
-    customer_phone: customerPhone,
-    paid_at: paidAt,
-    email_dispatched_at: isFulfilled ? existingPayment?.email_dispatched_at || null : null,
-    raw_response: sanitizedRaw,
-    created_at: existingPayment?.created_at || (/* @__PURE__ */ new Date()).toISOString(),
-    updated_at: (/* @__PURE__ */ new Date()).toISOString()
-  };
-  const formattedPaidDisplay = resolvedCurrency === "USD" ? `$${expectedMajorAmount.toLocaleString("en-US")}` : `\u20A6${expectedMajorAmount.toLocaleString()}`;
-  const gatewayDisplayName = inferredGateway === "bachs" ? "Bachs" : "Paystack";
-  if (supabase) {
-    try {
-      const { error: paymentUpsertError } = await persistPaymentUpsert(supabase, updatedPaymentRecord);
-      if (paymentUpsertError) {
-        console.error("[Supabase payments upsert failed]:", paymentUpsertError);
-        return {
-          verified: false,
-          error: `${gatewayDisplayName} confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.`,
-          code: "PAYMENT_RECORD_PERSISTENCE_FAILED",
-          status: 503,
-          payment: {
-            reference,
-            gateway: inferredGateway,
-            gatewayMode,
-            status: "success",
-            amount: expectedMajorAmount,
-            currency: resolvedCurrency,
-            channel,
-            paidAt,
-            studentName: customerName,
-            studentEmail: customerEmail,
-            courseId: canonicalCourse.id,
-            courseTitle: canonicalCourse.title
-          }
-        };
-      }
-    } catch (paymentDbErr) {
-      console.error("[Supabase payments upsert exception]:", paymentDbErr);
-      return {
-        verified: false,
-        error: `${gatewayDisplayName} confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.`,
-        code: "PAYMENT_RECORD_PERSISTENCE_FAILED",
-        status: 503
-      };
-    }
-  } else if (isProductionPaymentEnvironment()) {
+  return { payment: existingPayment, resolvedRef: lookupReference };
+}
+async function processPaymentFulfillment(reference, verifiedGatewayData, options) {
+  if (!isValidTransactionReference(reference)) {
     return {
       verified: false,
-      error: "Payment database is not configured. The transaction requires manual reconciliation.",
+      error: "Invalid transaction reference format.",
+      code: "INVALID_REFERENCE",
+      status: 400
+    };
+  }
+  const cleanInitialRef = reference.trim();
+  const cleanExpectedCheckoutId = options?.expectedCheckoutId && typeof options.expectedCheckoutId === "string" ? options.expectedCheckoutId.trim() : null;
+  const cleanWebhookEventId = options?.webhookEventId && typeof options.webhookEventId === "string" ? options.webhookEventId.trim() : null;
+  const supabase = getSupabaseAdmin();
+  if (!supabase && isProductionPaymentEnvironment()) {
+    return {
+      verified: false,
+      error: "Payment database is not configured. The transaction cannot be fulfilled safely yet.",
       code: "DATABASE_UNCONFIGURED",
       status: 503
     };
   }
-  if (!isProductionPaymentEnvironment()) {
-    fallbackPaymentsStore.set(reference, updatedPaymentRecord);
+  const isBachsSessionPrefix = cleanInitialRef.toLowerCase().startsWith("chk_") || cleanInitialRef.toLowerCase().startsWith("cs_");
+  const initialLookup = await lookupPaymentRecord(supabase, cleanInitialRef, isBachsSessionPrefix);
+  if (initialLookup.errorResult) {
+    return initialLookup.errorResult;
   }
-  if (!isFulfilled) {
+  const lockKey = initialLookup.resolvedRef;
+  return await withReferenceLock(lockKey, async () => {
+    const lockedLookup = await lookupPaymentRecord(supabase, lockKey, isBachsSessionPrefix);
+    if (lockedLookup.errorResult) {
+      return lockedLookup.errorResult;
+    }
+    let resolvedRef = lockedLookup.resolvedRef;
+    const existingPayment = lockedLookup.payment;
+    const inferredGateway = verifiedGatewayData?._gateway === "bachs" || existingPayment?.gateway === "bachs" || existingPayment?.currency === "USD" || resolvedRef.toUpperCase().startsWith("VIX-BC-") || isBachsSessionPrefix || Boolean(
+      cleanExpectedCheckoutId && (cleanExpectedCheckoutId.toLowerCase().startsWith("chk_") || cleanExpectedCheckoutId.toLowerCase().startsWith("cs_"))
+    ) ? "bachs" : "paystack";
+    const processedEventIds = Array.isArray(existingPayment?.raw_response?._processedEventIds) ? existingPayment.raw_response._processedEventIds : [];
+    const isDuplicateWebhookEvent = Boolean(
+      cleanWebhookEventId && processedEventIds.includes(cleanWebhookEventId) && existingPayment?.status === "success" && existingPayment?.fulfillment_status === "fulfilled"
+    );
+    if (existingPayment && (isDuplicateWebhookEvent || existingPayment.status === "success" && existingPayment.fulfillment_status === "fulfilled") && !simulateEnrollmentFailureForTesting.has(resolvedRef)) {
+      if (inferredGateway === "bachs" && cleanWebhookEventId && !processedEventIds.includes(cleanWebhookEventId)) {
+        const updatedRaw = buildRawResponseWithEventIds(
+          existingPayment.raw_response,
+          existingPayment.raw_response,
+          cleanWebhookEventId,
+          true
+        );
+        existingPayment.raw_response = updatedRaw;
+        if (supabase) {
+          try {
+            await supabase.from("payments").update({ raw_response: updatedRaw, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", resolvedRef);
+          } catch (dbErr) {
+            console.warn("[Supabase webhook event ID record warning]:", dbErr);
+          }
+        }
+      }
+      fallbackPaymentsStore.set(resolvedRef, existingPayment);
+      const canonical = findCanonicalCourse(existingPayment.course_id);
+      return {
+        verified: true,
+        alreadyFulfilled: true,
+        payment: {
+          reference: existingPayment.id,
+          gateway: existingPayment.gateway || inferredGateway,
+          gatewayMode: existingPayment.gateway_mode || (inferredGateway === "bachs" ? getBachsMode() : getPaystackSecretKey().startsWith("sk_live_") ? "live" : "sandbox"),
+          status: existingPayment.status,
+          amount: existingPayment.amount,
+          currency: existingPayment.currency,
+          channel: existingPayment.channel,
+          paidAt: existingPayment.paid_at,
+          studentName: existingPayment.customer_name,
+          studentEmail: existingPayment.customer_email,
+          courseId: existingPayment.course_id,
+          courseTitle: canonical?.title || "Vixora Academy Cohort",
+          emailDispatchedAt: existingPayment.email_dispatched_at,
+          telegramInvites: getTelegramInvitesForCourse(existingPayment.course_id)
+        }
+      };
+    }
+    const refForFulfillment = resolvedRef;
+    let resolvedCurrency = inferredGateway === "bachs" ? "USD" : "NGN";
+    let canonicalCourse = null;
+    let expectedMajorAmount = 0;
+    let expectedMinorAmount = 0;
+    let customerEmail = "";
+    let customerName = "";
+    let customerPhone = null;
+    let paidAt = (/* @__PURE__ */ new Date()).toISOString();
+    let channel = "card";
+    let externalTxId = "";
+    let externalSessionId = existingPayment?.external_session_id || null;
+    let authUserId = null;
+    let sanitizedRaw = null;
+    const gatewayMode = existingPayment?.gateway_mode || (inferredGateway === "bachs" ? getBachsMode() : getPaystackSecretKey().startsWith("sk_live_") ? "live" : "sandbox");
+    if (inferredGateway === "bachs") {
+      if (!existingPayment) {
+        return {
+          verified: false,
+          error: "No matching pending USD payment record was found for this reference.",
+          code: "PAYMENT_NOT_FOUND",
+          status: 404
+        };
+      }
+      if (existingPayment.gateway && existingPayment.gateway !== "bachs") {
+        return {
+          verified: false,
+          error: "Payment gateway mismatch against pending payment record.",
+          code: "PAYMENT_GATEWAY_MISMATCH",
+          status: 400
+        };
+      }
+      if (existingPayment.currency !== "USD") {
+        return {
+          verified: false,
+          error: `Currency mismatch against pending record: Expected USD, found ${existingPayment.currency}.`,
+          code: "CURRENCY_MISMATCH",
+          status: 400
+        };
+      }
+      if (cleanExpectedCheckoutId && existingPayment.external_session_id && cleanExpectedCheckoutId !== existingPayment.external_session_id) {
+        return {
+          verified: false,
+          error: "Checkout session ID does not match the pending payment record.",
+          code: "SESSION_MISMATCH",
+          status: 400
+        };
+      }
+      let normalizedBachs = verifiedGatewayData?._alreadyNormalized ? verifiedGatewayData : verifiedGatewayData ? normalizeBachsPayload(verifiedGatewayData) : null;
+      if (!normalizedBachs) {
+        const lookupId = existingPayment.external_session_id || cleanExpectedCheckoutId || refForFulfillment;
+        const sessionRes = await fetchBachsCheckoutSession(lookupId);
+        if (!sessionRes.ok || !sessionRes.data) {
+          return {
+            verified: false,
+            error: sessionRes.error || "USD transaction could not be verified on Bachs.",
+            code: sessionRes.status === 503 ? "BACHS_NOT_CONFIGURED" : sessionRes.status >= 500 ? "BACHS_NETWORK_ERROR" : "BACHS_VERIFY_FAILED",
+            status: sessionRes.status || 404
+          };
+        }
+        normalizedBachs = sessionRes.data;
+      }
+      if (normalizedBachs.reference && normalizedBachs.reference !== existingPayment.id) {
+        return {
+          verified: false,
+          error: "Payment reference mismatch between Bachs verification data and pending payment record.",
+          code: "REFERENCE_MISMATCH",
+          status: 400
+        };
+      }
+      if (cleanExpectedCheckoutId && normalizedBachs.sessionId && normalizedBachs.sessionId !== cleanExpectedCheckoutId) {
+        return {
+          verified: false,
+          error: "Checkout session ID does not match verified Bachs transaction.",
+          code: "SESSION_MISMATCH",
+          status: 400
+        };
+      }
+      if (existingPayment.external_session_id && normalizedBachs.sessionId && normalizedBachs.sessionId !== existingPayment.external_session_id) {
+        return {
+          verified: false,
+          error: "Checkout session ID does not match pending payment record.",
+          code: "SESSION_MISMATCH",
+          status: 400
+        };
+      }
+      if (!normalizedBachs.reference && (!normalizedBachs.sessionId || normalizedBachs.sessionId !== existingPayment.external_session_id)) {
+        return {
+          verified: false,
+          error: "Bachs verification payload could not be correlated to the pending payment reference.",
+          code: "REFERENCE_MISMATCH",
+          status: 400
+        };
+      }
+      if (normalizedBachs.status !== "success") {
+        const mappedStatus = normalizedBachs.status === "failed" || normalizedBachs.status === "abandoned" ? normalizedBachs.status : "pending";
+        const mergedRaw = buildRawResponseWithEventIds(
+          normalizedBachs.raw,
+          existingPayment.raw_response,
+          cleanWebhookEventId,
+          false
+        );
+        const failedUpdate = {
+          status: mappedStatus,
+          raw_response: mergedRaw,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        if (supabase) {
+          try {
+            const { error: failUpdateErr } = await supabase.from("payments").update(failedUpdate).eq("id", refForFulfillment);
+            if (failUpdateErr) {
+              console.warn("[Supabase Bachs failed status update error]:", failUpdateErr);
+            }
+          } catch (dbErr) {
+            console.warn("[Supabase failed status update]:", dbErr);
+          }
+        }
+        if (fallbackPaymentsStore.has(refForFulfillment)) {
+          const rec = fallbackPaymentsStore.get(refForFulfillment);
+          rec.status = mappedStatus;
+          rec.raw_response = mergedRaw;
+          rec.updated_at = failedUpdate.updated_at;
+        }
+        return {
+          verified: false,
+          error: `USD payment is not successful (status: ${normalizedBachs.status}).`,
+          code: "PAYMENT_NOT_SUCCESSFUL",
+          status: 400
+        };
+      }
+      if (normalizedBachs.currency !== "USD") {
+        return {
+          verified: false,
+          error: `Currency mismatch: Expected USD for Bachs, received ${normalizedBachs.currency || "UNKNOWN"}.`,
+          code: "CURRENCY_MISMATCH",
+          status: 400
+        };
+      }
+      const authPrice = resolveAuthoritativePrice(existingPayment.course_id, "USD");
+      if (!authPrice) {
+        return {
+          verified: false,
+          error: "Cannot fulfill USD payment: Course is unrecognized or USD pricing is unconfigured.",
+          code: "INVALID_COURSE",
+          status: 400
+        };
+      }
+      if (normalizedBachs.courseId) {
+        const reportedCourse = findCanonicalCourse(normalizedBachs.courseId);
+        if (!reportedCourse || reportedCourse.id !== authPrice.course.id) {
+          return {
+            verified: false,
+            error: "Course mismatch between Bachs metadata and pending payment record.",
+            code: "INVALID_COURSE",
+            status: 400
+          };
+        }
+      }
+      const pendingExpectedMinor = typeof existingPayment.amount_minor === "number" && existingPayment.amount_minor > 0 ? existingPayment.amount_minor : Math.round(Number(existingPayment.amount) * 100);
+      if (normalizedBachs.amountMinor !== authPrice.minorAmount || normalizedBachs.amountMinor !== pendingExpectedMinor) {
+        return {
+          verified: false,
+          error: `Amount mismatch: Expected ${pendingExpectedMinor} cents ($${authPrice.majorAmount}), received ${normalizedBachs.amountMinor} cents.`,
+          code: "AMOUNT_MISMATCH",
+          status: 400
+        };
+      }
+      customerEmail = (normalizedBachs.customerEmail || existingPayment.customer_email || "").toLowerCase().trim();
+      if (!isValidEmail(customerEmail)) {
+        return {
+          verified: false,
+          error: "Invalid customer email associated with USD transaction.",
+          code: "INVALID_CUSTOMER_EMAIL",
+          status: 400
+        };
+      }
+      canonicalCourse = authPrice.course;
+      resolvedCurrency = "USD";
+      expectedMajorAmount = authPrice.majorAmount;
+      expectedMinorAmount = authPrice.minorAmount;
+      customerName = normalizedBachs.customerName || existingPayment.customer_name || customerEmail.split("@")[0];
+      customerPhone = existingPayment.customer_phone || null;
+      paidAt = normalizedBachs.paidAt || (/* @__PURE__ */ new Date()).toISOString();
+      channel = normalizedBachs.channel || "card";
+      externalTxId = normalizedBachs.externalTxId || "";
+      externalSessionId = existingPayment.external_session_id || normalizedBachs.sessionId || null;
+      authUserId = normalizedBachs.authUserId || null;
+      sanitizedRaw = normalizedBachs.raw;
+    } else {
+      let paystackData = verifiedGatewayData;
+      if (!paystackData) {
+        const secretKey = getPaystackSecretKey();
+        if (!secretKey) {
+          return {
+            verified: false,
+            error: "Paystack Secret Key is not configured on the server.",
+            code: "PAYSTACK_NOT_CONFIGURED",
+            status: 503
+          };
+        }
+        try {
+          const response = await fetch(`${PAYSTACK_API_BASE}/transaction/verify/${encodeURIComponent(refForFulfillment)}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+              "Content-Type": "application/json"
+            }
+          });
+          const json = await response.json();
+          if (!response.ok || !json.status || !json.data) {
+            return {
+              verified: false,
+              error: json.message || "Transaction could not be verified on Paystack.",
+              code: "PAYSTACK_VERIFY_FAILED",
+              status: 404
+            };
+          }
+          paystackData = json.data;
+        } catch {
+          return {
+            verified: false,
+            error: "Network error connecting to Paystack API.",
+            code: "PAYSTACK_NETWORK_ERROR",
+            status: 502
+          };
+        }
+      }
+      if (paystackData.status !== "success") {
+        let mappedStatus = "pending";
+        if (paystackData.status === "failed" || paystackData.status === "abandoned") {
+          mappedStatus = paystackData.status;
+        }
+        const failedUpdate = {
+          status: mappedStatus,
+          raw_response: sanitizePaystackResponse(paystackData),
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        if (supabase) {
+          try {
+            await supabase.from("payments").update(failedUpdate).eq("id", refForFulfillment);
+          } catch (dbErr) {
+            console.warn("[Supabase failed status update]:", dbErr);
+          }
+        }
+        if (fallbackPaymentsStore.has(refForFulfillment)) {
+          const rec = fallbackPaymentsStore.get(refForFulfillment);
+          rec.status = mappedStatus;
+          rec.raw_response = sanitizePaystackResponse(paystackData);
+          rec.updated_at = (/* @__PURE__ */ new Date()).toISOString();
+        }
+        return {
+          verified: false,
+          error: `Payment is not successful (status: ${paystackData.status}).`,
+          code: "PAYMENT_NOT_SUCCESSFUL",
+          status: 400
+        };
+      }
+      if (paystackData.currency !== "NGN") {
+        return {
+          verified: false,
+          error: `Currency mismatch: Expected NGN, received ${paystackData.currency}.`,
+          code: "CURRENCY_MISMATCH",
+          status: 400
+        };
+      }
+      const courseId = existingPayment?.course_id || paystackData.metadata?.courseId || paystackData.metadata?.course_id;
+      canonicalCourse = findCanonicalCourse(courseId);
+      if (!canonicalCourse) {
+        return {
+          verified: false,
+          error: "Cannot fulfill payment: Unrecognized or invalid course ID.",
+          code: "INVALID_COURSE",
+          status: 400
+        };
+      }
+      const expectedKobo = canonicalCourse.koboAmount;
+      const actualKobo = Math.round(Number(paystackData.amount));
+      if (actualKobo !== expectedKobo) {
+        return {
+          verified: false,
+          error: `Amount mismatch: Expected ${expectedKobo} kobo (\u20A6${canonicalCourse.nairaAmount}), received ${actualKobo} kobo.`,
+          code: "AMOUNT_MISMATCH",
+          status: 400
+        };
+      }
+      customerEmail = (paystackData.customer?.email || paystackData.metadata?.studentEmail || existingPayment?.customer_email || "").toLowerCase().trim();
+      if (!isValidEmail(customerEmail)) {
+        return {
+          verified: false,
+          error: "Invalid customer email associated with transaction.",
+          code: "INVALID_CUSTOMER_EMAIL",
+          status: 400
+        };
+      }
+      resolvedCurrency = "NGN";
+      expectedMajorAmount = canonicalCourse.nairaAmount;
+      expectedMinorAmount = expectedKobo;
+      customerName = paystackData.metadata?.studentName || existingPayment?.customer_name || paystackData.customer?.first_name || customerEmail.split("@")[0];
+      customerPhone = paystackData.metadata?.phone || existingPayment?.customer_phone || paystackData.customer?.phone || null;
+      paidAt = paystackData.paid_at || (/* @__PURE__ */ new Date()).toISOString();
+      channel = paystackData.channel || "card";
+      externalTxId = String(paystackData.id || "");
+      authUserId = paystackData.metadata?.authUserId || null;
+      sanitizedRaw = sanitizePaystackResponse(paystackData);
+    }
+    let studentId = existingPayment?.student_id || null;
+    let studentCode = null;
+    let generatedTempPassword = null;
+    let directPasswordSetupLink = null;
+    let fulfillmentError = null;
+    let isFulfilled = false;
+    let dbCourseId = canonicalCourse.id;
+    if (supabase) {
+      try {
+        dbCourseId = await ensureCourseRecordInDatabase(canonicalCourse, supabase);
+        if (simulateEnrollmentFailureForTesting.has(refForFulfillment)) {
+          throw new Error("Simulated database failure during enrollment.");
+        }
+        const studentQuery = supabase.from("students").select("id, email, auth_user_id, student_code").eq("email", customerEmail);
+        const { data: matchedStudent, error: findStudentErr } = await studentQuery.maybeSingle();
+        if (findStudentErr) throw findStudentErr;
+        let studentCode2 = matchedStudent?.student_code;
+        if (matchedStudent) {
+          studentId = matchedStudent.id;
+          if (matchedStudent.auth_user_id) {
+            authUserId = matchedStudent.auth_user_id;
+          }
+        } else {
+          const newStudentId = crypto3.randomUUID();
+          studentCode2 = `STU-${Math.floor(1e3 + Math.random() * 9e3)}`;
+          const { data: createdStudent, error: createStudentErr } = await supabase.from("students").insert({
+            id: newStudentId,
+            name: customerName,
+            email: customerEmail,
+            auth_user_id: authUserId,
+            student_code: studentCode2,
+            enrolled_at: (/* @__PURE__ */ new Date()).toISOString(),
+            role: "student"
+          }).select("id, student_code").maybeSingle();
+          if (createStudentErr) throw createStudentErr;
+          if (createdStudent) {
+            studentId = createdStudent.id;
+            studentCode2 = createdStudent.student_code;
+          } else {
+            throw new Error("Student record could not be created in database.");
+          }
+        }
+        if (supabase.auth?.admin) {
+          try {
+            const portalBaseUrl = "https://academy.vixoradigitalhub.com/pages/student-portal";
+            let authUserExists = false;
+            try {
+              const { data: linkData, error: probeErr } = await supabase.auth.admin.generateLink({
+                type: "recovery",
+                email: customerEmail,
+                options: { redirectTo: portalBaseUrl }
+              });
+              if (linkData?.user && !probeErr) {
+                authUserExists = true;
+                authUserId = linkData.user.id;
+                directPasswordSetupLink = linkData.properties?.action_link || null;
+              }
+            } catch {
+              authUserExists = false;
+            }
+            if (!authUserExists) {
+              generatedTempPassword = `Vixora@${crypto3.randomBytes(3).toString("hex").toUpperCase()}!`;
+              const { data: newAuth } = await supabase.auth.admin.createUser({
+                email: customerEmail,
+                password: generatedTempPassword,
+                email_confirm: true,
+                user_metadata: {
+                  name: customerName,
+                  role: "student"
+                }
+              });
+              if (newAuth?.user) {
+                authUserId = newAuth.user.id;
+                const { data: linkData } = await supabase.auth.admin.generateLink({
+                  type: "recovery",
+                  email: customerEmail,
+                  options: { redirectTo: portalBaseUrl }
+                });
+                directPasswordSetupLink = linkData?.properties?.action_link || null;
+              }
+            }
+            if (authUserId && studentId) {
+              await supabase.from("students").update({ auth_user_id: authUserId }).eq("id", studentId);
+            }
+          } catch (authProvisionErr) {
+            console.warn("[Student Auth Provisioning Warning]:", authProvisionErr);
+          }
+        }
+        if (!studentId) {
+          throw new Error("Valid student identifier unavailable for enrollment.");
+        }
+        const { data: existingEnrollment, error: findEnrollmentErr } = await supabase.from("enrollments").select("student_id, course_id, status, progress_percent").eq("student_id", studentId).eq("course_id", dbCourseId).maybeSingle();
+        if (findEnrollmentErr) throw findEnrollmentErr;
+        if (!existingEnrollment) {
+          const { error: insertEnrollmentErr } = await supabase.from("enrollments").insert({
+            id: crypto3.randomUUID(),
+            student_id: studentId,
+            course_id: dbCourseId,
+            status: "enrolled",
+            cohort: `Cohort ${canonicalCourse.nextCohortDate}`,
+            progress_percent: 0,
+            completed_modules: 0,
+            total_modules: canonicalCourse.totalModules,
+            enrolled_at: (/* @__PURE__ */ new Date()).toISOString()
+          });
+          if (insertEnrollmentErr) throw insertEnrollmentErr;
+        } else {
+          const { error: updateEnrollmentErr } = await supabase.from("enrollments").update({ status: "enrolled", updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("student_id", studentId).eq("course_id", dbCourseId);
+          if (updateEnrollmentErr) throw updateEnrollmentErr;
+        }
+        isFulfilled = true;
+      } catch (enrollErr) {
+        console.error("[Supabase Enrollment Fulfillment Failure]:", enrollErr);
+        fulfillmentError = enrollErr?.message || String(enrollErr);
+        isFulfilled = false;
+      }
+    } else {
+      if (simulateEnrollmentFailureForTesting.has(refForFulfillment)) {
+        isFulfilled = false;
+        fulfillmentError = "Simulated database failure during enrollment.";
+      } else {
+        isFulfilled = true;
+        studentId = existingPayment?.student_id || `STU-${Date.now().toString(36).toUpperCase()}`;
+      }
+    }
+    const mergedRawResponse = inferredGateway === "bachs" ? buildRawResponseWithEventIds(
+      sanitizedRaw,
+      existingPayment?.raw_response,
+      cleanWebhookEventId,
+      isFulfilled
+    ) : sanitizedRaw;
+    const updatedPaymentRecord = {
+      id: refForFulfillment,
+      student_id: studentId,
+      course_id: dbCourseId,
+      gateway: inferredGateway,
+      gateway_mode: gatewayMode,
+      external_session_id: externalSessionId,
+      amount: expectedMajorAmount,
+      amount_kobo: resolvedCurrency === "NGN" ? expectedMinorAmount : 0,
+      amount_minor: expectedMinorAmount,
+      currency: resolvedCurrency,
+      channel,
+      status: "success",
+      fulfillment_status: isFulfilled ? "fulfilled" : "failed",
+      fulfillment_error: fulfillmentError,
+      paystack_transaction_id: externalTxId,
+      customer_email: customerEmail,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      paid_at: paidAt,
+      email_dispatched_at: isFulfilled ? existingPayment?.email_dispatched_at || null : null,
+      raw_response: mergedRawResponse,
+      created_at: existingPayment?.created_at || (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    const formattedPaidDisplay = resolvedCurrency === "USD" ? `$${expectedMajorAmount.toLocaleString("en-US")}` : `\u20A6${expectedMajorAmount.toLocaleString()}`;
+    const gatewayDisplayName = inferredGateway === "bachs" ? "Bachs" : "Paystack";
+    if (supabase) {
+      try {
+        const { error: paymentUpsertError } = await persistPaymentUpsert(supabase, updatedPaymentRecord);
+        if (paymentUpsertError) {
+          console.error("[Supabase payments upsert failed]:", paymentUpsertError);
+          return {
+            verified: false,
+            error: `${gatewayDisplayName} confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.`,
+            code: "PAYMENT_RECORD_PERSISTENCE_FAILED",
+            status: 503,
+            payment: {
+              reference: refForFulfillment,
+              gateway: inferredGateway,
+              gatewayMode,
+              status: "success",
+              amount: expectedMajorAmount,
+              currency: resolvedCurrency,
+              channel,
+              paidAt,
+              studentName: customerName,
+              studentEmail: customerEmail,
+              courseId: canonicalCourse.id,
+              courseTitle: canonicalCourse.title
+            }
+          };
+        }
+      } catch (paymentDbErr) {
+        console.error("[Supabase payments upsert exception]:", paymentDbErr);
+        return {
+          verified: false,
+          error: `${gatewayDisplayName} confirmed this payment, but the payment record could not be saved. Please retry verification or contact support with your reference.`,
+          code: "PAYMENT_RECORD_PERSISTENCE_FAILED",
+          status: 503
+        };
+      }
+    } else if (isProductionPaymentEnvironment()) {
+      return {
+        verified: false,
+        error: "Payment database is not configured. The transaction requires manual reconciliation.",
+        code: "DATABASE_UNCONFIGURED",
+        status: 503
+      };
+    }
+    if (!isProductionPaymentEnvironment()) {
+      fallbackPaymentsStore.set(refForFulfillment, updatedPaymentRecord);
+    }
+    if (!isFulfilled) {
+      return {
+        verified: false,
+        error: `Tuition payment of ${formattedPaidDisplay} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
+        code: "ENROLLMENT_FAILED",
+        status: 500,
+        payment: {
+          reference: refForFulfillment,
+          gateway: inferredGateway,
+          gatewayMode,
+          status: "success",
+          amount: expectedMajorAmount,
+          currency: resolvedCurrency,
+          channel,
+          paidAt,
+          studentName: customerName,
+          studentEmail: customerEmail,
+          courseId: canonicalCourse.id,
+          courseTitle: canonicalCourse.title
+        }
+      };
+    }
+    let alreadyEmailed = Boolean(existingPayment?.email_dispatched_at);
+    if (!alreadyEmailed && supabase) {
+      try {
+        const { data: latestPayment } = await supabase.from("payments").select("email_dispatched_at").eq("id", refForFulfillment).maybeSingle();
+        if (latestPayment?.email_dispatched_at) {
+          alreadyEmailed = true;
+        }
+      } catch (dbErr) {
+        console.warn("[Supabase email check]:", dbErr);
+      }
+    }
+    let finalEmailDispatchedAt = existingPayment?.email_dispatched_at || null;
+    const telegramInvitesList = getTelegramInvitesForCourse(canonicalCourse.id || canonicalCourse.slug);
+    if (!alreadyEmailed) {
+      try {
+        const whatsappUrl = getWhatsAppUrl(
+          resolvedCurrency === "USD" ? "us" : "ng",
+          `Hello Admissions! I just completed my tuition payment of ${formattedPaidDisplay} (${resolvedCurrency}) for ${canonicalCourse.title} via ${gatewayDisplayName}. Reference: ${refForFulfillment}. My email is ${customerEmail}.`
+        );
+        const emailPayload = buildStudentOnboardingEmail({
+          customerName,
+          customerEmail,
+          courseTitle: canonicalCourse.title,
+          tuitionNaira: expectedMajorAmount,
+          currency: resolvedCurrency,
+          gateway: inferredGateway,
+          reference: refForFulfillment,
+          nextCohortDate: canonicalCourse.nextCohortDate,
+          channel,
+          studentCode: studentCode || "STU-ACTIVE",
+          generatedTempPassword,
+          directPasswordSetupLink,
+          whatsappUrl,
+          telegramInvites: telegramInvitesList
+        });
+        const emailResult = await dispatchGenericEmail({
+          to: customerEmail,
+          toName: customerName,
+          subject: emailPayload.subject,
+          html: emailPayload.html,
+          text: emailPayload.text
+        });
+        if (emailResult && (emailResult.delivered || emailResult.status === "delivered")) {
+          finalEmailDispatchedAt = (/* @__PURE__ */ new Date()).toISOString();
+          if (supabase) {
+            try {
+              await supabase.from("payments").update({ email_dispatched_at: finalEmailDispatchedAt }).eq("id", refForFulfillment);
+            } catch (dbErr) {
+              console.warn("[Supabase email_dispatched_at update]:", dbErr);
+            }
+          }
+          if (fallbackPaymentsStore.has(refForFulfillment)) {
+            fallbackPaymentsStore.get(refForFulfillment).email_dispatched_at = finalEmailDispatchedAt;
+          }
+        }
+      } catch (mailErr) {
+        console.warn("[Payment Email Dispatch Warning]:", mailErr);
+      }
+    }
     return {
-      verified: false,
-      error: `Tuition payment of ${formattedPaidDisplay} was confirmed, but automated course enrollment encountered a database error: ${fulfillmentError}. Your transaction record has been saved for reconciliation.`,
-      code: "ENROLLMENT_FAILED",
-      status: 500,
+      verified: true,
       payment: {
-        reference,
+        reference: refForFulfillment,
         gateway: inferredGateway,
         gatewayMode,
         status: "success",
@@ -4313,88 +4572,12 @@ async function processPaymentFulfillment(reference, verifiedGatewayData) {
         studentName: customerName,
         studentEmail: customerEmail,
         courseId: canonicalCourse.id,
-        courseTitle: canonicalCourse.title
+        courseTitle: canonicalCourse.title,
+        emailDispatchedAt: finalEmailDispatchedAt,
+        telegramInvites: telegramInvitesList
       }
     };
-  }
-  let alreadyEmailed = Boolean(existingPayment?.email_dispatched_at);
-  if (!alreadyEmailed && supabase) {
-    try {
-      const { data: latestPayment } = await supabase.from("payments").select("email_dispatched_at").eq("id", reference).maybeSingle();
-      if (latestPayment?.email_dispatched_at) {
-        alreadyEmailed = true;
-      }
-    } catch (dbErr) {
-      console.warn("[Supabase email check]:", dbErr);
-    }
-  }
-  let finalEmailDispatchedAt = existingPayment?.email_dispatched_at || null;
-  const telegramInvitesList = getTelegramInvitesForCourse(canonicalCourse.id || canonicalCourse.slug);
-  if (!alreadyEmailed) {
-    try {
-      const whatsappUrl = getWhatsAppUrl(
-        resolvedCurrency === "USD" ? "us" : "ng",
-        `Hello Admissions! I just completed my tuition payment of ${formattedPaidDisplay} (${resolvedCurrency}) for ${canonicalCourse.title} via ${gatewayDisplayName}. Reference: ${reference}. My email is ${customerEmail}.`
-      );
-      const emailPayload = buildStudentOnboardingEmail({
-        customerName,
-        customerEmail,
-        courseTitle: canonicalCourse.title,
-        tuitionNaira: expectedMajorAmount,
-        currency: resolvedCurrency,
-        gateway: inferredGateway,
-        reference,
-        nextCohortDate: canonicalCourse.nextCohortDate,
-        channel,
-        studentCode: studentCode || "STU-ACTIVE",
-        generatedTempPassword,
-        directPasswordSetupLink,
-        whatsappUrl,
-        telegramInvites: telegramInvitesList
-      });
-      const emailResult = await dispatchGenericEmail({
-        to: customerEmail,
-        toName: customerName,
-        subject: emailPayload.subject,
-        html: emailPayload.html,
-        text: emailPayload.text
-      });
-      if (emailResult && (emailResult.delivered || emailResult.status === "delivered")) {
-        finalEmailDispatchedAt = (/* @__PURE__ */ new Date()).toISOString();
-        if (supabase) {
-          try {
-            await supabase.from("payments").update({ email_dispatched_at: finalEmailDispatchedAt }).eq("id", reference);
-          } catch (dbErr) {
-            console.warn("[Supabase email_dispatched_at update]:", dbErr);
-          }
-        }
-        if (fallbackPaymentsStore.has(reference)) {
-          fallbackPaymentsStore.get(reference).email_dispatched_at = finalEmailDispatchedAt;
-        }
-      }
-    } catch (mailErr) {
-      console.warn("[Payment Email Dispatch Warning]:", mailErr);
-    }
-  }
-  return {
-    verified: true,
-    payment: {
-      reference,
-      gateway: inferredGateway,
-      gatewayMode,
-      status: "success",
-      amount: expectedMajorAmount,
-      currency: resolvedCurrency,
-      channel,
-      paidAt,
-      studentName: customerName,
-      studentEmail: customerEmail,
-      courseId: canonicalCourse.id,
-      courseTitle: canonicalCourse.title,
-      emailDispatchedAt: finalEmailDispatchedAt,
-      telegramInvites: telegramInvitesList
-    }
-  };
+  });
 }
 paystackRouter.get("/config", (_req, res) => {
   const configured = isPaystackConfigured();
@@ -4616,31 +4799,52 @@ async function handlePaymentInitializeRequest(req, res, forcedGateway) {
         cancelUrl: cancelCallbackUrl,
         authUserId: authUser?.id || null
       });
-      if (!sessionRes.ok || !sessionRes.checkoutUrl) {
+      if (!sessionRes.ok || !sessionRes.checkoutUrl || !sessionRes.sessionId) {
         return res.status(sessionRes.status || 502).json({
           error: sessionRes.error || "Failed to initialize Bachs USD checkout session.",
           code: "BACHS_INIT_FAILED",
           reference
         });
       }
-      if (sessionRes.sessionId) {
-        if (fallbackPaymentsStore.has(reference)) {
-          fallbackPaymentsStore.get(reference).external_session_id = sessionRes.sessionId;
-        }
-        if (supabase) {
-          try {
-            await supabase.from("payments").update({ external_session_id: sessionRes.sessionId, raw_response: sessionRes.raw || null }).eq("id", reference);
-          } catch (err) {
-            console.warn("[Bachs Init Session ID Update Warning]:", err);
+      let sessionPersistError = simulateBachsSessionPersistenceFailureForTesting ? new Error("Simulated database failure persisting external_session_id.") : null;
+      if (!sessionPersistError && supabase) {
+        try {
+          const { error: updateErr } = await supabase.from("payments").update({
+            external_session_id: sessionRes.sessionId,
+            raw_response: sessionRes.raw || null,
+            updated_at: (/* @__PURE__ */ new Date()).toISOString()
+          }).eq("id", reference);
+          if (updateErr) {
+            sessionPersistError = updateErr;
           }
+        } catch (err) {
+          sessionPersistError = err;
         }
+      }
+      if (sessionPersistError) {
+        console.error("[Bachs Init Session ID Persistence Failure]:", {
+          reference,
+          sessionId: sessionRes.sessionId,
+          error: sessionPersistError?.message || sessionPersistError
+        });
+        return res.status(503).json({
+          error: "We could not securely link your USD checkout session. Please try again before paying.",
+          code: "SESSION_PERSISTENCE_FAILED",
+          reference
+        });
+      }
+      if (fallbackPaymentsStore.has(reference)) {
+        const rec = fallbackPaymentsStore.get(reference);
+        rec.external_session_id = sessionRes.sessionId;
+        rec.raw_response = sessionRes.raw || null;
+        rec.updated_at = (/* @__PURE__ */ new Date()).toISOString();
       }
       return res.json({
         success: true,
         gateway: "bachs",
         gatewayMode,
         reference,
-        sessionId: sessionRes.sessionId || null,
+        sessionId: sessionRes.sessionId,
         authorizationUrl: sessionRes.checkoutUrl,
         amount: authoritativePrice.majorAmount,
         amountMinor: authoritativePrice.minorAmount,
@@ -4720,7 +4924,7 @@ async function handleVerificationRequest(req, res) {
         resetInSeconds: rlStatus.resetInSeconds
       });
     }
-    const rawRef = req.body?.reference || req.params?.reference || req.query?.reference;
+    const rawRef = req.body?.reference || req.params?.reference || req.query?.reference || req.body?.checkoutId || req.body?.checkout_id || req.query?.checkout_id;
     if (!isValidTransactionReference(rawRef)) {
       return res.status(400).json({
         verified: false,
@@ -4728,8 +4932,24 @@ async function handleVerificationRequest(req, res) {
         code: "INVALID_REFERENCE"
       });
     }
+    const rawCheckoutId = req.body?.checkoutId || req.body?.checkout_id || req.query?.checkout_id || req.query?.session_id;
+    let expectedCheckoutId = null;
+    if (rawCheckoutId !== void 0 && rawCheckoutId !== null && String(rawCheckoutId).trim() !== "") {
+      if (!isValidTransactionReference(rawCheckoutId)) {
+        return res.status(400).json({
+          verified: false,
+          error: "Invalid checkout session ID format.",
+          code: "INVALID_SESSION_ID"
+        });
+      }
+      expectedCheckoutId = String(rawCheckoutId).trim();
+    }
     const reference = String(rawRef).trim();
-    const result = await processPaymentFulfillment(reference);
+    const result = await processPaymentFulfillment(
+      reference,
+      void 0,
+      expectedCheckoutId ? { expectedCheckoutId } : void 0
+    );
     if (!result.verified) {
       return res.status(result.status || 400).json(result);
     }
@@ -4820,7 +5040,7 @@ paymentsRouter.post("/bachs/webhook", async (req, res) => {
     if (!signatureHeader && !signatureV2Header) {
       return res.status(401).json({ error: "Missing X-Bachs-Signature or X-Bachs-Signature-V2 header." });
     }
-    const rawBody = req.rawBody || (Buffer.isBuffer(req.body) ? req.body : typeof req.body === "string" ? Buffer.from(req.body) : void 0);
+    const rawBody = req.rawBody || (Buffer.isBuffer(req.body) ? req.body : void 0);
     if (!rawBody || !Buffer.isBuffer(rawBody)) {
       return res.status(400).json({
         error: "Raw request body buffer unavailable for signature verification."
@@ -4836,42 +5056,99 @@ paymentsRouter.post("/bachs/webhook", async (req, res) => {
       webhookSecret
     );
     if (!isValidSig) {
-      return res.status(401).json({ error: "Invalid Bachs webhook signature." });
+      return res.status(401).json({ error: "Invalid or stale Bachs webhook signature." });
     }
     const event = req.body;
     if (!event || typeof event !== "object") {
       return res.status(400).json({ error: "Invalid webhook event payload structure." });
     }
+    const eventId = typeof event.id === "string" && event.id.trim() ? event.id.trim() : null;
     const eventType = String(event.type || event.event || "").toLowerCase().trim();
     const shouldProcess = eventType === "collection.succeeded" || eventType === "checkout.completed" || eventType === "checkout.session.completed" || eventType === "payment.succeeded" || eventType === "collection.failed" || eventType === "collection.underpaid" || eventType === "checkout.expired" || eventType === "checkout.session.expired";
-    if (shouldProcess && event.data) {
-      const normalized = normalizeBachsPayload(event);
-      let ref = normalized.reference;
-      if (!ref && normalized.sessionId) {
-        const supabase = getSupabaseAdmin();
-        if (supabase) {
-          const { data: matched } = await supabase.from("payments").select("id").eq("external_session_id", normalized.sessionId).maybeSingle();
-          if (matched?.id) {
-            ref = matched.id;
-          }
-        } else {
-          for (const rec of fallbackPaymentsStore.values()) {
-            if (rec.external_session_id === normalized.sessionId) {
-              ref = rec.id;
-              break;
-            }
+    if (!shouldProcess || !event.data || typeof event.data !== "object") {
+      return res.status(200).json({
+        received: true,
+        ignored: true,
+        eventType: eventType || null
+      });
+    }
+    const normalized = normalizeBachsPayload(event);
+    let ref = normalized.reference;
+    if (!ref && normalized.sessionId) {
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        const { data: matched, error: lookupErr } = await supabase.from("payments").select("id").eq("external_session_id", normalized.sessionId).maybeSingle();
+        if (lookupErr) {
+          console.error("[Bachs Webhook Session Lookup Error]:", lookupErr);
+          return res.status(503).json({
+            received: false,
+            retryable: true,
+            code: "PAYMENT_RECORD_READ_FAILED",
+            error: "Temporary database error looking up Bachs checkout session."
+          });
+        }
+        if (matched?.id) {
+          ref = matched.id;
+        }
+      } else {
+        for (const rec of fallbackPaymentsStore.values()) {
+          if (rec.external_session_id === normalized.sessionId) {
+            ref = rec.id;
+            break;
           }
         }
       }
-      if (ref && isValidTransactionReference(ref)) {
-        await processPaymentFulfillment(ref, {
-          ...normalized,
-          _gateway: "bachs",
-          _alreadyNormalized: true
+    }
+    if (!ref || !isValidTransactionReference(ref)) {
+      return res.status(200).json({
+        received: true,
+        fulfilled: false,
+        code: "PAYMENT_NOT_FOUND"
+      });
+    }
+    const result = await processPaymentFulfillment(
+      ref,
+      {
+        ...normalized,
+        _gateway: "bachs",
+        _alreadyNormalized: true
+      },
+      {
+        expectedCheckoutId: normalized.sessionId,
+        webhookEventId: eventId
+      }
+    );
+    if (!result.verified) {
+      const retryableCodes = /* @__PURE__ */ new Set([
+        "DATABASE_UNCONFIGURED",
+        "DATABASE_UNAVAILABLE",
+        "PAYMENT_RECORD_READ_FAILED",
+        "PAYMENT_RECORD_PERSISTENCE_FAILED",
+        "ENROLLMENT_FAILED",
+        "BACHS_NOT_CONFIGURED",
+        "BACHS_NETWORK_ERROR",
+        "SERVER_ERROR"
+      ]);
+      const isRetryable = typeof result.status === "number" && result.status >= 500 || (result.code ? retryableCodes.has(result.code) : false);
+      if (isRetryable) {
+        return res.status(result.status && result.status >= 500 ? result.status : 503).json({
+          received: false,
+          retryable: true,
+          code: result.code || "FULFILLMENT_RETRY_REQUIRED",
+          error: result.error
         });
       }
+      return res.status(200).json({
+        received: true,
+        fulfilled: false,
+        code: result.code || "PAYMENT_REJECTED"
+      });
     }
-    return res.status(200).json({ received: true });
+    return res.status(200).json({
+      received: true,
+      fulfilled: true,
+      alreadyFulfilled: Boolean(result.alreadyFulfilled)
+    });
   } catch (err) {
     console.error("[Bachs Webhook Exception]:", err);
     return res.status(500).json({ error: "Webhook processing error." });

@@ -457,8 +457,13 @@ export async function initializePaystackPayment(
 /**
  * Verifies any Paystack (NGN) or Bachs (USD) transaction reference strictly through backend.
  */
-export async function verifyGatewayPayment(reference: string): Promise<VerifyPaymentResponse> {
+export async function verifyGatewayPayment(
+  reference: string,
+  checkoutId?: string
+): Promise<VerifyPaymentResponse> {
   const cleanRef = (reference || '').trim();
+  const cleanCheckoutId =
+    checkoutId && isValidClientReference(checkoutId.trim()) ? checkoutId.trim() : undefined;
 
   if (!isValidClientReference(cleanRef)) {
     return {
@@ -470,12 +475,16 @@ export async function verifyGatewayPayment(reference: string): Promise<VerifyPay
   }
 
   try {
+    const verifyBody = cleanCheckoutId
+      ? { reference: cleanRef, checkoutId: cleanCheckoutId }
+      : { reference: cleanRef };
+
     let res = await fetch('/api/payments/verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ reference: cleanRef })
+      body: JSON.stringify(verifyBody)
     });
 
     let parsed = await parseSafeResponseJson<VerifyPaymentResponse>(res, 'Verification error.');
@@ -487,7 +496,7 @@ export async function verifyGatewayPayment(reference: string): Promise<VerifyPay
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ reference: cleanRef })
+          body: JSON.stringify(verifyBody)
         });
         const fallbackParsed = await parseSafeResponseJson<VerifyPaymentResponse>(fallbackRes, 'Verification error.');
         if (fallbackParsed.ok && fallbackParsed.data) {

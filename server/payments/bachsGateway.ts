@@ -79,6 +79,8 @@ export interface NormalizedBachsVerification {
   authUserId: string | null;
   channel: string;
   paidAt: string | null;
+  eventType?: string | null;
+  paymentStatus?: string | null;
   raw: any;
 }
 
@@ -259,26 +261,51 @@ export async function createBachsCheckoutSession(
 export function normalizeBachsPayload(rawPayload: any): NormalizedBachsVerification {
   const eventType = String(rawPayload?.type || rawPayload?.event || '').toLowerCase().trim();
   const obj = rawPayload?.data && typeof rawPayload.data === 'object' ? rawPayload.data : rawPayload || {};
+  const rawObjectType = String(obj.object || '').toLowerCase().trim();
+  const rawId = typeof obj.id === 'string' ? obj.id : '';
   const paymentStatus = String(obj.payment_status || '').toLowerCase().trim();
   const sessionStatus = String(obj.status || '').toLowerCase().trim();
 
+  const isCheckoutSession =
+    rawObjectType === 'checkout_session' ||
+    rawObjectType === 'checkout.session' ||
+    eventType.startsWith('checkout.') ||
+    rawId.startsWith('chk_') ||
+    rawId.startsWith('cs_') ||
+    Boolean(obj.checkout_url);
+
+  const isChargeOrCollection =
+    !isCheckoutSession &&
+    (rawObjectType === 'collection' ||
+      rawObjectType === 'charge' ||
+      rawObjectType === 'payment' ||
+      eventType === 'collection.succeeded' ||
+      eventType === 'payment.succeeded' ||
+      rawId.startsWith('chg_') ||
+      rawId.startsWith('col_'));
+
+  const totalMinor = parseBachsAmountMinor(obj);
+  const hasExplicitPaidAmount =
+    obj.amount_paid !== undefined && obj.amount_paid !== null && obj.amount_paid !== '' ||
+    obj.paid_amount !== undefined && obj.paid_amount !== null && obj.paid_amount !== '';
+  const paidMinor = hasExplicitPaidAmount
+    ? parseBachsAmountMinor({ amount: obj.amount_paid ?? obj.paid_amount })
+    : totalMinor;
+  const isUnderpaid =
+    eventType === 'collection.underpaid' ||
+    paymentStatus === 'underpaid' ||
+    sessionStatus === 'underpaid' ||
+    (hasExplicitPaidAmount && totalMinor > 0 && paidMinor < totalMinor);
+
+  // Determine canonical payment status:
+  // - Checkout sessions / checkout.completed MUST have payment_status 'paid' or 'succeeded' (never grant access merely for status: 'completed').
+  // - Charge / collection events require confirmed 'succeeded' / 'paid' status on the transaction object.
   let status: 'success' | 'failed' | 'abandoned' | 'pending' = 'pending';
   if (
-    paymentStatus === 'paid' ||
-    paymentStatus === 'succeeded' ||
-    sessionStatus === 'paid' ||
-    sessionStatus === 'succeeded' ||
-    sessionStatus === 'complete' ||
-    sessionStatus === 'completed' ||
-    sessionStatus === 'success' ||
-    ((eventType === 'collection.succeeded' || eventType === 'checkout.completed') && paymentStatus !== 'unpaid')
-  ) {
-    status = 'success';
-  } else if (
+    isUnderpaid ||
     sessionStatus === 'failed' ||
     paymentStatus === 'failed' ||
-    eventType === 'collection.failed' ||
-    eventType === 'collection.underpaid'
+    eventType === 'collection.failed'
   ) {
     status = 'failed';
   } else if (
@@ -286,15 +313,21 @@ export function normalizeBachsPayload(rawPayload: any): NormalizedBachsVerificat
     sessionStatus === 'cancelled' ||
     sessionStatus === 'canceled' ||
     sessionStatus === 'abandoned' ||
-    eventType === 'checkout.expired'
+    paymentStatus === 'expired' ||
+    eventType === 'checkout.expired' ||
+    eventType === 'checkout.session.expired'
   ) {
     status = 'abandoned';
+  } else if (paymentStatus === 'paid' || paymentStatus === 'succeeded') {
+    status = 'success';
+  } else if (isChargeOrCollection && (sessionStatus === 'succeeded' || sessionStatus === 'paid')) {
+    status = 'success';
   }
 
   const rawCurrency = obj.currency || obj.pricing?.currency || obj.amount_details?.currency || '';
   const currency = String(rawCurrency).toUpperCase().trim();
 
-  const amountMinor = parseBachsAmountMinor(obj);
+  const amountMinor = hasExplicitPaidAmount && paidMinor >= 0 ? paidMinor : totalMinor;
 
   const metadata = (obj.metadata && typeof obj.metadata === 'object' ? obj.metadata : {}) as Record<string, any>;
   const customer = (
@@ -303,7 +336,6 @@ export function normalizeBachsPayload(rawPayload: any): NormalizedBachsVerificat
     {}
   ) as Record<string, any>;
 
-  const rawId = typeof obj.id === 'string' ? obj.id : '';
   const sessionId =
     obj.checkout_id ||
     obj.session_id ||
@@ -337,6 +369,8 @@ export function normalizeBachsPayload(rawPayload: any): NormalizedBachsVerificat
     authUserId: metadata.authUserId || null,
     channel: String(channelRaw || 'card'),
     paidAt: obj.paid_at || obj.completed_at || rawPayload?.created_at || null,
+    eventType: eventType || null,
+    paymentStatus: paymentStatus || null,
     raw: sanitizeBachsResponse(obj)
   };
 }
@@ -403,18 +437,48 @@ function firstHeaderValue(val?: string | string[]): string {
 }
 
 function isTimestampWithinTolerance(tsRaw: string, toleranceSeconds: number, nowSeconds: number): boolean {
-  if (!tsRaw) return true;
-  const ts = Number(tsRaw);
+  const clean = tsRaw.trim();
+  if (!clean || !/^\d+$/.test(clean)) return false;
+  const ts = Number(clean);
   if (!Number.isFinite(ts) || ts <= 0) return false;
-  if (toleranceSeconds <= 0) return true;
-  return Math.abs(nowSeconds - ts) <= toleranceSeconds;
+  const effectiveTolerance = toleranceSeconds > 0 ? toleranceSeconds : 300;
+  return Math.abs(nowSeconds - ts) <= effectiveTolerance;
+}
+
+function extractV2SignatureCandidates(
+  headerValue: string,
+  rawBody: Buffer,
+  tolerance: number,
+  nowSec: number
+): Array<{ payload: Buffer; providedHex: string; ts: string }> {
+  let tsValue = '';
+  const v1Tokens: string[] = [];
+  for (const part of headerValue.split(',')) {
+    const idx = part.indexOf('=');
+    if (idx <= 0) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    if (k === 't') tsValue = v;
+    if (k === 'v1' && v) v1Tokens.push(v.toLowerCase());
+  }
+
+  if (!tsValue || v1Tokens.length === 0 || !isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
+    return [];
+  }
+
+  const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
+  return v1Tokens.map((hexToken) => ({
+    payload: signedPayload,
+    providedHex: hexToken,
+    ts: tsValue
+  }));
 }
 
 /**
- * Verifies Bachs webhook HMAC-SHA256 signatures per official docs.bachs.io:
+ * Verifies Bachs webhook HMAC-SHA256 signatures strictly against raw request bytes:
  * - `X-Bachs-Signature-V2`: `t={unix_ts},v1={hex}` computed over `"{unix_ts}.{raw_body}"` (supports multiple rotated `v1=` tokens)
  * - `X-Bachs-Timestamp` + `X-Bachs-Signature`: HMAC-SHA256 hex over `"{timestamp}.{raw_body}"`
- * - Also supports plain hex / `sha256={hex}` over raw body when no timestamp header is present.
+ * Rejects stale timestamps, missing timestamps, malformed headers, and invalid signatures.
  */
 export function verifyBachsWebhookSignature(
   rawBody: Buffer,
@@ -440,64 +504,32 @@ export function verifyBachsWebhookSignature(
     return false;
   }
 
-  const candidates: Array<{ payload: Buffer; providedHex: string; ts?: string }> = [];
+  const candidates: Array<{ payload: Buffer; providedHex: string; ts: string }> = [];
 
-  // 1. V2 header (`t=1774300000,v1=abc...,v1=def...`)
-  if (sigV2 && sigV2.includes('t=') && sigV2.includes('v1=')) {
-    let tsValue = '';
-    const v1Tokens: string[] = [];
-    for (const part of sigV2.split(',')) {
-      const idx = part.indexOf('=');
-      if (idx <= 0) continue;
-      const k = part.slice(0, idx).trim();
-      const v = part.slice(idx + 1).trim();
-      if (k === 't') tsValue = v;
-      if (k === 'v1' && v) v1Tokens.push(v.toLowerCase());
+  // 1. Official V2 timestamped header (`t=1774300000,v1=abc...,v1=def...`)
+  if (sigV2) {
+    if (!sigV2.includes('t=') || !sigV2.includes('v1=')) {
+      return false;
     }
-    if (tsValue && v1Tokens.length > 0 && isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
-      const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
-      for (const hexToken of v1Tokens) {
-        candidates.push({ payload: signedPayload, providedHex: hexToken, ts: tsValue });
-      }
+    candidates.push(...extractV2SignatureCandidates(sigV2, rawBody, tolerance, nowSec));
+  }
+
+  // 2. Official V1 headers (`X-Bachs-Timestamp` + `X-Bachs-Signature`), or inline `t=...,v1=...`
+  if (sigV1) {
+    if (sigV1.includes('t=') && sigV1.includes('v1=')) {
+      candidates.push(...extractV2SignatureCandidates(sigV1, rawBody, tolerance, nowSec));
+    } else if (headerTs && isTimestampWithinTolerance(headerTs, tolerance, nowSec)) {
+      const normalizedHex = sigV1.toLowerCase().replace(/^sha256=/, '');
+      candidates.push({
+        payload: Buffer.concat([Buffer.from(`${headerTs.trim()}.`), rawBody]),
+        providedHex: normalizedHex,
+        ts: headerTs.trim()
+      });
     }
   }
 
-  // 2. Legacy/string passed as `t=...,v1=...`
-  if (sigV1 && sigV1.includes('t=') && sigV1.includes('v1=')) {
-    let tsValue = '';
-    const v1Tokens: string[] = [];
-    for (const part of sigV1.split(',')) {
-      const idx = part.indexOf('=');
-      if (idx <= 0) continue;
-      const k = part.slice(0, idx).trim();
-      const v = part.slice(idx + 1).trim();
-      if (k === 't') tsValue = v;
-      if (k === 'v1' && v) v1Tokens.push(v.toLowerCase());
-    }
-    if (tsValue && v1Tokens.length > 0 && isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
-      const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
-      for (const hexToken of v1Tokens) {
-        candidates.push({ payload: signedPayload, providedHex: hexToken, ts: tsValue });
-      }
-    }
-  } else if (sigV1) {
-    const normalizedHex = sigV1.toLowerCase().replace(/^sha256=/, '');
-    if (headerTs) {
-      // Official docs: X-Bachs-Timestamp + X-Bachs-Signature signs "{timestamp}.{raw_body}"
-      if (isTimestampWithinTolerance(headerTs, tolerance, nowSec)) {
-        candidates.push({
-          payload: Buffer.concat([Buffer.from(`${headerTs}.`), rawBody]),
-          providedHex: normalizedHex,
-          ts: headerTs
-        });
-      }
-    } else {
-      // Plain HMAC over rawBody if no timestamp header was sent
-      candidates.push({
-        payload: rawBody,
-        providedHex: normalizedHex
-      });
-    }
+  if (candidates.length === 0) {
+    return false;
   }
 
   for (const candidate of candidates) {

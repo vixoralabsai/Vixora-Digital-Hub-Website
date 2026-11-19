@@ -38,6 +38,7 @@ export function PaymentCallbackPage({
   const [pageState, setPageState] = useState<CallbackPageState>('processing');
   const [payment, setPayment] = useState<VerifiedPaymentData | null>(null);
   const [reference, setReference] = useState<string>('');
+  const [checkoutId, setCheckoutId] = useState<string>('');
   const [courseId, setCourseId] = useState<string>('');
   const [urlGateway, setUrlGateway] = useState<PaymentGateway | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -56,7 +57,7 @@ export function PaymentCallbackPage({
   const isBachs = inferredGateway === 'bachs';
   const gatewayDisplayName = isBachs ? 'Bachs USD' : 'Paystack';
 
-  const executeVerification = useCallback(async (ref: string) => {
+  const executeVerification = useCallback(async (ref: string, sessionId?: string) => {
     if (!isValidClientReference(ref)) {
       setPageState('error');
       setErrorMessage('The transaction reference in the URL is missing or in an unrecognized format.');
@@ -64,7 +65,10 @@ export function PaymentCallbackPage({
     }
 
     try {
-      const res = await verifyGatewayPayment(ref);
+      const res =
+        sessionId && sessionId !== ref
+          ? await verifyGatewayPayment(ref, sessionId)
+          : await verifyGatewayPayment(ref);
 
       if (res.verified && res.payment) {
         setPayment(res.payment);
@@ -92,17 +96,19 @@ export function PaymentCallbackPage({
     if (typeof window === 'undefined') return;
 
     const params = new URLSearchParams(window.location.search);
+    const rawCheckoutId = params.get('checkout_id') || params.get('session_id') || '';
     const rawRef =
       params.get('reference') ||
       params.get('trxref') ||
       params.get('client_reference_id') ||
-      params.get('checkout_id') ||
+      rawCheckoutId ||
       '';
     const rawCourseId = params.get('courseId') || '';
     const rawGateway = (params.get('gateway') || '').toLowerCase();
     const isCancelled = params.get('cancelled') === 'true' || params.get('status') === 'cancelled';
 
     setReference(rawRef);
+    setCheckoutId(rawCheckoutId);
     setCourseId(rawCourseId);
     if (rawGateway === 'bachs' || rawGateway === 'paystack') {
       setUrlGateway(rawGateway);
@@ -119,14 +125,14 @@ export function PaymentCallbackPage({
       return;
     }
 
-    executeVerification(rawRef);
+    executeVerification(rawRef, rawCheckoutId || undefined);
   }, [executeVerification]);
 
   const handleRetryVerification = async () => {
     if (!reference) return;
     setIsRetrying(true);
     setPageState('processing');
-    await executeVerification(reference);
+    await executeVerification(reference, checkoutId || undefined);
     setIsRetrying(false);
   };
 
