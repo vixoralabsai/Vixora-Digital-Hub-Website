@@ -3196,22 +3196,28 @@ function sanitizeBachsResponse(data) {
   const copy = {};
   const allowedKeys = [
     "id",
+    "checkout_id",
     "session_id",
     "object",
     "status",
     "payment_status",
     "currency",
     "amount",
+    "total_amount",
     "amount_total",
+    "settlement_amount",
+    "processing_fee",
     "pricing",
     "channel",
     "payment_method",
+    "payment_method_details",
     "payment_method_types",
     "paid_at",
     "created_at",
     "expires_at",
     "metadata",
-    "customer"
+    "customer",
+    "customer_details"
   ];
   for (const key of allowedKeys) {
     if (data[key] !== void 0) {
@@ -3219,6 +3225,23 @@ function sanitizeBachsResponse(data) {
     }
   }
   return Object.keys(copy).length > 0 ? copy : { status: data.status || null };
+}
+function formatMinorToBachsDecimal(amountCents) {
+  return (amountCents / 100).toFixed(2);
+}
+function parseBachsAmountMinor(obj) {
+  if (typeof obj.amount_minor === "number" && Number.isFinite(obj.amount_minor)) {
+    return Math.round(obj.amount_minor);
+  }
+  const rawMajor = obj.amount_total ?? obj.total_amount ?? obj.amount ?? obj.pricing?.amount ?? obj.settlement_amount;
+  if (rawMajor === void 0 || rawMajor === null || rawMajor === "") {
+    return 0;
+  }
+  const parsed = typeof rawMajor === "number" ? rawMajor : parseFloat(String(rawMajor).trim());
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return 0;
+  }
+  return Math.round(parsed * 100);
 }
 async function createBachsCheckoutSession(params) {
   const apiKey = getBachsApiKey();
@@ -3232,7 +3255,7 @@ async function createBachsCheckoutSession(params) {
   const baseUrl = getBachsBaseUrl();
   const payload = {
     pricing: {
-      amount: params.amountCents,
+      amount: formatMinorToBachsDecimal(params.amountCents),
       currency: "USD"
     },
     customer: {
@@ -3244,6 +3267,7 @@ async function createBachsCheckoutSession(params) {
     client_reference_id: params.reference,
     metadata: {
       reference: params.reference,
+      order_reference: params.reference,
       courseId: params.courseId,
       courseTitle: params.courseTitle,
       studentEmail: params.customerEmail,
@@ -3265,7 +3289,7 @@ async function createBachsCheckoutSession(params) {
     const json = await response.json().catch(() => ({}));
     const sessionObj = json?.data && typeof json.data === "object" ? json.data : json;
     const checkoutUrl = sessionObj?.checkout_url || sessionObj?.url || sessionObj?.authorization_url || json?.checkout_url || json?.url || null;
-    const sessionId = sessionObj?.id || sessionObj?.session_id || json?.id || null;
+    const sessionId = sessionObj?.checkout_id || sessionObj?.id || sessionObj?.session_id || json?.checkout_id || json?.id || null;
     if (!response.ok || !checkoutUrl) {
       return {
         ok: false,
@@ -3290,27 +3314,28 @@ async function createBachsCheckoutSession(params) {
   }
 }
 function normalizeBachsPayload(rawPayload) {
+  const eventType = String(rawPayload?.type || rawPayload?.event || "").toLowerCase().trim();
   const obj = rawPayload?.data && typeof rawPayload.data === "object" ? rawPayload.data : rawPayload || {};
   const paymentStatus = String(obj.payment_status || "").toLowerCase().trim();
   const sessionStatus = String(obj.status || "").toLowerCase().trim();
   let status = "pending";
-  if (paymentStatus === "paid" || paymentStatus === "succeeded" || sessionStatus === "paid" || sessionStatus === "succeeded" || sessionStatus === "complete" || sessionStatus === "completed" || sessionStatus === "success") {
+  if (paymentStatus === "paid" || paymentStatus === "succeeded" || sessionStatus === "paid" || sessionStatus === "succeeded" || sessionStatus === "complete" || sessionStatus === "completed" || sessionStatus === "success" || (eventType === "collection.succeeded" || eventType === "checkout.completed") && paymentStatus !== "unpaid") {
     status = "success";
-  } else if (sessionStatus === "failed" || paymentStatus === "failed") {
+  } else if (sessionStatus === "failed" || paymentStatus === "failed" || eventType === "collection.failed" || eventType === "collection.underpaid") {
     status = "failed";
-  } else if (sessionStatus === "expired" || sessionStatus === "cancelled" || sessionStatus === "canceled" || sessionStatus === "abandoned") {
+  } else if (sessionStatus === "expired" || sessionStatus === "cancelled" || sessionStatus === "canceled" || sessionStatus === "abandoned" || eventType === "checkout.expired") {
     status = "abandoned";
   }
   const rawCurrency = obj.currency || obj.pricing?.currency || obj.amount_details?.currency || "";
   const currency = String(rawCurrency).toUpperCase().trim();
-  const rawMinor = obj.amount_total ?? obj.pricing?.amount ?? obj.amount_minor ?? obj.amount ?? 0;
-  const amountMinor = Math.round(Number(rawMinor) || 0);
+  const amountMinor = parseBachsAmountMinor(obj);
   const metadata = obj.metadata && typeof obj.metadata === "object" ? obj.metadata : {};
-  const customer = obj.customer && typeof obj.customer === "object" ? obj.customer : {};
-  const sessionId = obj.session_id || obj.checkout_session_id || (typeof obj.id === "string" && obj.id.startsWith("cs_") ? obj.id : null);
+  const customer = (obj.customer && typeof obj.customer === "object" ? obj.customer : null) || (obj.customer_details && typeof obj.customer_details === "object" ? obj.customer_details : null) || {};
+  const rawId = typeof obj.id === "string" ? obj.id : "";
+  const sessionId = obj.checkout_id || obj.session_id || obj.checkout_session_id || (rawId.startsWith("chk_") || rawId.startsWith("cs_") ? rawId : null);
   const externalTxId = String(obj.payment_intent || obj.collection_id || obj.id || sessionId || "");
-  const reference = metadata.reference || obj.client_reference_id || obj.reference || null;
-  const channelRaw = obj.channel || obj.payment_method || (Array.isArray(obj.payment_method_types) ? obj.payment_method_types[0] : null) || "card";
+  const reference = metadata.reference || metadata.order_reference || obj.client_reference_id || obj.reference || null;
+  const channelRaw = obj.channel || obj.payment_method_details?.type || obj.payment_method || (Array.isArray(obj.payment_method_types) ? obj.payment_method_types[0] : null) || "card";
   return {
     status,
     currency,
@@ -3323,7 +3348,7 @@ function normalizeBachsPayload(rawPayload) {
     courseId: metadata.courseId || metadata.course_id || null,
     authUserId: metadata.authUserId || null,
     channel: String(channelRaw || "card"),
-    paidAt: obj.paid_at || obj.completed_at || null,
+    paidAt: obj.paid_at || obj.completed_at || rawPayload?.created_at || null,
     raw: sanitizeBachsResponse(obj)
   };
 }
@@ -3366,31 +3391,82 @@ async function fetchBachsCheckoutSession(sessionIdOrRef) {
     };
   }
 }
-function verifyBachsWebhookSignature(rawBody, signatureHeader, webhookSecret = getBachsWebhookSecret()) {
-  if (!webhookSecret || !signatureHeader || !Buffer.isBuffer(rawBody)) {
+function firstHeaderValue(val) {
+  if (!val) return "";
+  return (Array.isArray(val) ? val[0] : val).trim();
+}
+function isTimestampWithinTolerance(tsRaw, toleranceSeconds, nowSeconds) {
+  if (!tsRaw) return true;
+  const ts = Number(tsRaw);
+  if (!Number.isFinite(ts) || ts <= 0) return false;
+  if (toleranceSeconds <= 0) return true;
+  return Math.abs(nowSeconds - ts) <= toleranceSeconds;
+}
+function verifyBachsWebhookSignature(rawBody, signatureOrHeaders, webhookSecret = getBachsWebhookSecret()) {
+  if (!webhookSecret || !Buffer.isBuffer(rawBody)) {
     return false;
   }
-  const trimmed = signatureHeader.trim();
+  const input = typeof signatureOrHeaders === "string" ? { signature: signatureOrHeaders } : signatureOrHeaders || {};
+  const sigV2 = firstHeaderValue(input.signatureV2);
+  const sigV1 = firstHeaderValue(input.signature);
+  const headerTs = firstHeaderValue(input.timestamp);
+  const tolerance = input.toleranceSeconds ?? 300;
+  const nowSec = input.nowSeconds ?? Math.floor(Date.now() / 1e3);
+  if (!sigV2 && !sigV1) {
+    return false;
+  }
   const candidates = [];
-  if (trimmed.includes("t=") && trimmed.includes("v1=")) {
-    const parts = Object.fromEntries(
-      trimmed.split(",").map((part) => {
-        const idx = part.indexOf("=");
-        return idx > 0 ? [part.slice(0, idx).trim(), part.slice(idx + 1).trim()] : [part, ""];
-      })
-    );
-    if (parts.t && parts.v1) {
+  if (sigV2 && sigV2.includes("t=") && sigV2.includes("v1=")) {
+    let tsValue = "";
+    const v1Tokens = [];
+    for (const part of sigV2.split(",")) {
+      const idx = part.indexOf("=");
+      if (idx <= 0) continue;
+      const k = part.slice(0, idx).trim();
+      const v = part.slice(idx + 1).trim();
+      if (k === "t") tsValue = v;
+      if (k === "v1" && v) v1Tokens.push(v.toLowerCase());
+    }
+    if (tsValue && v1Tokens.length > 0 && isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
+      const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
+      for (const hexToken of v1Tokens) {
+        candidates.push({ payload: signedPayload, providedHex: hexToken, ts: tsValue });
+      }
+    }
+  }
+  if (sigV1 && sigV1.includes("t=") && sigV1.includes("v1=")) {
+    let tsValue = "";
+    const v1Tokens = [];
+    for (const part of sigV1.split(",")) {
+      const idx = part.indexOf("=");
+      if (idx <= 0) continue;
+      const k = part.slice(0, idx).trim();
+      const v = part.slice(idx + 1).trim();
+      if (k === "t") tsValue = v;
+      if (k === "v1" && v) v1Tokens.push(v.toLowerCase());
+    }
+    if (tsValue && v1Tokens.length > 0 && isTimestampWithinTolerance(tsValue, tolerance, nowSec)) {
+      const signedPayload = Buffer.concat([Buffer.from(`${tsValue}.`), rawBody]);
+      for (const hexToken of v1Tokens) {
+        candidates.push({ payload: signedPayload, providedHex: hexToken, ts: tsValue });
+      }
+    }
+  } else if (sigV1) {
+    const normalizedHex = sigV1.toLowerCase().replace(/^sha256=/, "");
+    if (headerTs) {
+      if (isTimestampWithinTolerance(headerTs, tolerance, nowSec)) {
+        candidates.push({
+          payload: Buffer.concat([Buffer.from(`${headerTs}.`), rawBody]),
+          providedHex: normalizedHex,
+          ts: headerTs
+        });
+      }
+    } else {
       candidates.push({
-        payload: Buffer.concat([Buffer.from(`${parts.t}.`), rawBody]),
-        providedHex: parts.v1.toLowerCase()
+        payload: rawBody,
+        providedHex: normalizedHex
       });
     }
-  } else {
-    const normalizedHex = trimmed.toLowerCase().replace(/^sha256=/, "");
-    candidates.push({
-      payload: rawBody,
-      providedHex: normalizedHex
-    });
   }
   for (const candidate of candidates) {
     if (!/^[0-9a-f]{64}$/.test(candidate.providedHex)) {
@@ -3727,10 +3803,12 @@ async function processPaymentFulfillment(reference, verifiedGatewayData) {
       status: 503
     };
   }
+  let lookupReference = reference;
   let existingPayment = null;
+  const isBachsSessionPrefix = lookupReference.toLowerCase().startsWith("chk_") || lookupReference.toLowerCase().startsWith("cs_");
   if (supabase) {
     try {
-      const { data, error } = await supabase.from("payments").select("*").eq("id", reference).maybeSingle();
+      const { data, error } = await supabase.from("payments").select("*").eq("id", lookupReference).maybeSingle();
       if (error) {
         console.error("[Supabase payments query failed]:", error);
         return {
@@ -3742,7 +3820,14 @@ async function processPaymentFulfillment(reference, verifiedGatewayData) {
       }
       if (data) {
         existingPayment = data;
-        fallbackPaymentsStore.set(reference, data);
+        fallbackPaymentsStore.set(lookupReference, data);
+      } else if (isBachsSessionPrefix) {
+        const { data: sessionMatch } = await supabase.from("payments").select("*").eq("external_session_id", lookupReference).maybeSingle();
+        if (sessionMatch) {
+          existingPayment = sessionMatch;
+          lookupReference = sessionMatch.id;
+          fallbackPaymentsStore.set(lookupReference, sessionMatch);
+        }
       }
     } catch (dbErr) {
       console.error("[Supabase payments query exception]:", dbErr);
@@ -3755,9 +3840,19 @@ async function processPaymentFulfillment(reference, verifiedGatewayData) {
     }
   }
   if (!existingPayment && (!supabase || !isProductionPaymentEnvironment())) {
-    existingPayment = fallbackPaymentsStore.get(reference) || null;
+    existingPayment = fallbackPaymentsStore.get(lookupReference) || null;
+    if (!existingPayment && isBachsSessionPrefix) {
+      for (const rec of fallbackPaymentsStore.values()) {
+        if (rec.external_session_id === lookupReference) {
+          existingPayment = rec;
+          lookupReference = rec.id;
+          break;
+        }
+      }
+    }
   }
-  const inferredGateway = verifiedGatewayData?._gateway === "bachs" || existingPayment?.gateway === "bachs" || existingPayment?.currency === "USD" || reference.toUpperCase().startsWith("VIX-BC-") ? "bachs" : "paystack";
+  reference = lookupReference;
+  const inferredGateway = verifiedGatewayData?._gateway === "bachs" || existingPayment?.gateway === "bachs" || existingPayment?.currency === "USD" || reference.toUpperCase().startsWith("VIX-BC-") || isBachsSessionPrefix ? "bachs" : "paystack";
   if (existingPayment && existingPayment.status === "success" && existingPayment.fulfillment_status === "fulfilled" && !simulateEnrollmentFailureForTesting.has(reference)) {
     fallbackPaymentsStore.set(reference, existingPayment);
     const canonical = findCanonicalCourse(existingPayment.course_id);
@@ -4720,8 +4815,10 @@ paymentsRouter.post("/bachs/webhook", async (req, res) => {
       return res.status(503).json({ error: "BACHS_WEBHOOK_SECRET is not configured on server." });
     }
     const signatureHeader = req.headers["x-bachs-signature"];
-    if (!signatureHeader || typeof signatureHeader !== "string") {
-      return res.status(401).json({ error: "Missing X-Bachs-Signature header." });
+    const signatureV2Header = req.headers["x-bachs-signature-v2"];
+    const timestampHeader = req.headers["x-bachs-timestamp"];
+    if (!signatureHeader && !signatureV2Header) {
+      return res.status(401).json({ error: "Missing X-Bachs-Signature or X-Bachs-Signature-V2 header." });
     }
     const rawBody = req.rawBody || (Buffer.isBuffer(req.body) ? req.body : typeof req.body === "string" ? Buffer.from(req.body) : void 0);
     if (!rawBody || !Buffer.isBuffer(rawBody)) {
@@ -4729,17 +4826,26 @@ paymentsRouter.post("/bachs/webhook", async (req, res) => {
         error: "Raw request body buffer unavailable for signature verification."
       });
     }
-    if (!verifyBachsWebhookSignature(rawBody, signatureHeader, webhookSecret)) {
+    const isValidSig = verifyBachsWebhookSignature(
+      rawBody,
+      {
+        signature: signatureHeader,
+        signatureV2: signatureV2Header,
+        timestamp: timestampHeader
+      },
+      webhookSecret
+    );
+    if (!isValidSig) {
       return res.status(401).json({ error: "Invalid Bachs webhook signature." });
     }
     const event = req.body;
     if (!event || typeof event !== "object") {
       return res.status(400).json({ error: "Invalid webhook event payload structure." });
     }
-    const eventType = String(event.event || event.type || "").toLowerCase().trim();
-    const shouldProcess = eventType === "collection.succeeded" || eventType === "checkout.completed" || eventType === "checkout.session.completed" || eventType === "payment.succeeded" || eventType === "collection.failed" || eventType === "checkout.session.expired";
+    const eventType = String(event.type || event.event || "").toLowerCase().trim();
+    const shouldProcess = eventType === "collection.succeeded" || eventType === "checkout.completed" || eventType === "checkout.session.completed" || eventType === "payment.succeeded" || eventType === "collection.failed" || eventType === "collection.underpaid" || eventType === "checkout.expired" || eventType === "checkout.session.expired";
     if (shouldProcess && event.data) {
-      const normalized = normalizeBachsPayload(event.data);
+      const normalized = normalizeBachsPayload(event);
       let ref = normalized.reference;
       if (!ref && normalized.sessionId) {
         const supabase = getSupabaseAdmin();

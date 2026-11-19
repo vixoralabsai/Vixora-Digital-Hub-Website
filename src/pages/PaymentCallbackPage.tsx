@@ -48,7 +48,11 @@ export function PaymentCallbackPage({
     payment?.gateway ||
     (payment?.currency === 'USD' ? 'bachs' : undefined) ||
     urlGateway ||
-    (reference.toUpperCase().startsWith('VIX-BC-') ? 'bachs' : 'paystack');
+    (reference.toUpperCase().startsWith('VIX-BC-') ||
+    reference.toLowerCase().startsWith('chk_') ||
+    reference.toLowerCase().startsWith('cs_')
+      ? 'bachs'
+      : 'paystack');
   const isBachs = inferredGateway === 'bachs';
   const gatewayDisplayName = isBachs ? 'Bachs USD' : 'Paystack';
 
@@ -88,7 +92,12 @@ export function PaymentCallbackPage({
     if (typeof window === 'undefined') return;
 
     const params = new URLSearchParams(window.location.search);
-    const rawRef = params.get('reference') || params.get('trxref') || params.get('client_reference_id') || '';
+    const rawRef =
+      params.get('reference') ||
+      params.get('trxref') ||
+      params.get('client_reference_id') ||
+      params.get('checkout_id') ||
+      '';
     const rawCourseId = params.get('courseId') || '';
     const rawGateway = (params.get('gateway') || '').toLowerCase();
     const isCancelled = params.get('cancelled') === 'true' || params.get('status') === 'cancelled';

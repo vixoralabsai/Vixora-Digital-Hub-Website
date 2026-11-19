@@ -206,12 +206,12 @@ async function runAllTests() {
     });
 
     // ----------------------------------------------------------------------
-    // Test 4: Dynamic Initialization Routes USD to Bachs Sandbox with Authoritative Cents
+    // Test 4: Dynamic Initialization Routes USD to Bachs Sandbox with Decimal String Pricing
     // ----------------------------------------------------------------------
     let initializedUsdRef = '';
-    await runTest('4. POST /api/payments/initialize routes USD -> Bachs Sandbox and ignores client amount manipulation', async () => {
+    await runTest('4. POST /api/payments/initialize routes USD -> Bachs Sandbox with decimal string pricing ("50.00")', async () => {
       process.env.BACHS_ENV = 'sandbox';
-      process.env.BACHS_API_KEY = 'sk_test_bachs_sandbox_vixora_001';
+      process.env.BACHS_API_KEY = 'sk_sandbox_bachs_vixora_001';
       process.env.BACHS_WEBHOOK_SECRET = 'whsec_test_bachs_secret_001';
       payInitRateLimiter.reset();
 
@@ -225,11 +225,9 @@ async function runAllTests() {
           capturedBody = init?.body ? JSON.parse(String(init.body)) : null;
           return new Response(
             JSON.stringify({
-              data: {
-                id: 'cs_sandbox_991827',
-                checkout_url: 'https://checkout.sandbox.bachs.io/c/cs_sandbox_991827',
-                status: 'open'
-              }
+              id: 'chk_sandbox_991827',
+              checkout_url: 'https://checkout.bachs.io/pay/chk_sandbox_991827',
+              status: 'open'
             }),
             { status: 200, headers: { 'Content-Type': 'application/json' } }
           );
@@ -258,38 +256,38 @@ async function runAllTests() {
       assert.equal(data.currency, 'USD');
       assert.equal(data.amount, 50);
       assert.equal(data.amountMinor, 5000);
-      assert.equal(data.sessionId, 'cs_sandbox_991827');
-      assert.equal(data.authorizationUrl, 'https://checkout.sandbox.bachs.io/c/cs_sandbox_991827');
+      assert.equal(data.sessionId, 'chk_sandbox_991827');
+      assert.equal(data.authorizationUrl, 'https://checkout.bachs.io/pay/chk_sandbox_991827');
       assert.match(data.reference, /^VIX-BC-/);
 
       assert.equal(capturedUrl, 'https://sandbox-api.bachs.io/v1/checkout-sessions');
-      assert.equal(capturedBody.pricing.amount, 5000, 'Must send authoritative $50 = 5000 cents to Bachs');
+      assert.equal(capturedBody.pricing.amount, '50.00', 'Must send authoritative major decimal string "50.00" per docs.bachs.io');
       assert.equal(capturedBody.pricing.currency, 'USD');
 
       const stored = fallbackPaymentsStore.get(data.reference);
       assert.ok(stored);
       assert.equal(stored.gateway, 'bachs');
       assert.equal(stored.gateway_mode, 'sandbox');
-      assert.equal(stored.external_session_id, 'cs_sandbox_991827');
+      assert.equal(stored.external_session_id, 'chk_sandbox_991827');
       assert.equal(stored.amount_minor, 5000);
 
       initializedUsdRef = data.reference;
     });
 
     // ----------------------------------------------------------------------
-    // Test 5: Bachs Verification Guardrails & Idempotent Fulfillment
+    // Test 5: Bachs Verification Guardrails & Redirected checkout_id (chk_...) Resolution
     // ----------------------------------------------------------------------
-    await runTest('5. Bachs USD verification blocks amount/currency tampering and fulfills valid payment idempotently', async () => {
-      // Wrong amount (underpaid 4900 cents instead of 5000)
+    await runTest('5. Bachs USD verification blocks amount/currency tampering and verifies chk_ redirect idempotently', async () => {
+      // Wrong amount (underpaid "49.00" USD instead of "50.00" USD)
       const wrongAmt = await processPaymentFulfillment(initializedUsdRef, {
         gateway: 'bachs',
-        status: 'success',
+        status: 'complete',
+        payment_status: 'paid',
         currency: 'USD',
-        amountMinor: 4900,
+        amount_total: '49.00',
         reference: initializedUsdRef,
         courseId: 'course-data-analysis-cohort',
-        customerEmail: 'usd.buyer@example.com',
-        customerName: 'Taylor Brooks'
+        customer: { email: 'usd.buyer@example.com', name: 'Taylor Brooks' }
       });
       assert.equal(wrongAmt.verified, false);
       assert.equal(wrongAmt.code, 'AMOUNT_MISMATCH');
@@ -297,38 +295,37 @@ async function runAllTests() {
       // Wrong currency (NGN presented to Bachs USD transaction)
       const wrongCurr = await processPaymentFulfillment(initializedUsdRef, {
         gateway: 'bachs',
-        status: 'success',
+        status: 'complete',
+        payment_status: 'paid',
         currency: 'NGN',
-        amountMinor: 5000,
+        amount_total: '50.00',
         reference: initializedUsdRef,
         courseId: 'course-data-analysis-cohort',
-        customerEmail: 'usd.buyer@example.com'
+        customer: { email: 'usd.buyer@example.com' }
       });
       assert.equal(wrongCurr.verified, false);
       assert.equal(wrongCurr.code, 'CURRENCY_MISMATCH');
 
-      // Valid USD verification via POST /api/payments/verify backed by mocked Bachs session GET
+      // Valid USD verification triggered using Bachs redirect ?checkout_id=chk_sandbox_991827
       globalThis.fetch = (async (url: RequestInfo | URL, init?: RequestInit) => {
         const urlStr = String(url);
-        if (urlStr.startsWith('https://sandbox-api.bachs.io/v1/checkout-sessions/cs_sandbox_991827')) {
+        if (urlStr.startsWith('https://sandbox-api.bachs.io/v1/checkout-sessions/chk_sandbox_991827')) {
           return new Response(
             JSON.stringify({
-              data: {
-                id: 'cs_sandbox_991827',
-                payment_status: 'paid',
-                status: 'complete',
-                currency: 'USD',
-                amount_total: 5000,
-                client_reference_id: initializedUsdRef,
-                payment_method: 'card',
-                paid_at: new Date().toISOString(),
-                customer: { email: 'usd.buyer@example.com', name: 'Taylor Brooks' },
-                metadata: {
-                  reference: initializedUsdRef,
-                  courseId: 'course-data-analysis-cohort',
-                  studentName: 'Taylor Brooks',
-                  studentEmail: 'usd.buyer@example.com'
-                }
+              id: 'chk_sandbox_991827',
+              object: 'checkout_session',
+              payment_status: 'paid',
+              status: 'complete',
+              currency: 'USD',
+              amount_total: '50.00',
+              client_reference_id: initializedUsdRef,
+              paid_at: new Date().toISOString(),
+              customer: { email: 'usd.buyer@example.com', name: 'Taylor Brooks' },
+              metadata: {
+                reference: initializedUsdRef,
+                courseId: 'course-data-analysis-cohort',
+                studentName: 'Taylor Brooks',
+                studentEmail: 'usd.buyer@example.com'
               }
             }),
             { status: 200, headers: { 'Content-Type': 'application/json' } }
@@ -340,7 +337,7 @@ async function runAllTests() {
       const verifyRes = await originalFetch(`${baseUrl}/api/payments/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference: initializedUsdRef })
+        body: JSON.stringify({ reference: 'chk_sandbox_991827' })
       });
       const verifyJson = await verifyRes.json();
 
@@ -365,25 +362,28 @@ async function runAllTests() {
     });
 
     // ----------------------------------------------------------------------
-    // Test 6: Webhook HMAC-SHA256 Validation & Signed Fulfillment
+    // Test 6: Official X-Bachs-Timestamp / X-Bachs-Signature / X-Bachs-Signature-V2 & collection.succeeded
     // ----------------------------------------------------------------------
-    await runTest('6. verifyBachsWebhookSignature & POST /api/payments/bachs/webhook validate HMAC and fulfill idempotently', async () => {
+    await runTest('6. verifyBachsWebhookSignature & POST /api/payments/bachs/webhook verify V1/V2 headers and collection.succeeded', async () => {
       const secret = 'whsec_test_bachs_secret_001';
       process.env.BACHS_WEBHOOK_SECRET = secret;
 
       const webhookRef = 'VIX-BC-TEST-WEBHOOK-006';
       const payloadObj = {
-        event: 'checkout.session.completed',
+        id: 'evt_3ab4e0d5d27445cf8a52ab3d8cb8f0b1',
+        type: 'collection.succeeded',
+        created_at: new Date().toISOString(),
         data: {
-          id: 'cs_sandbox_wh_006',
-          payment_status: 'paid',
-          status: 'completed',
+          id: 'chg_9N2o4P5q6R7s8T9u',
+          checkout_id: 'chk_sandbox_wh_006',
+          status: 'succeeded',
+          amount: '10.00', // $10.00 major decimal string for AI Automation & Digital Skills
           currency: 'USD',
-          amount_total: 1000, // $10 for AI Automation & Digital Skills
-          client_reference_id: webhookRef,
+          settlement_amount: '10.00',
+          payment_method_details: { type: 'card' },
           customer: { email: 'webhook.usd@example.com', name: 'Samira Chen' },
           metadata: {
-            reference: webhookRef,
+            order_reference: webhookRef,
             courseId: 'course-ai-automation-digital-skills',
             studentName: 'Samira Chen',
             studentEmail: 'webhook.usd@example.com'
@@ -393,35 +393,62 @@ async function runAllTests() {
 
       const rawString = JSON.stringify(payloadObj);
       const rawBuf = Buffer.from(rawString);
+      const nowTs = Math.floor(Date.now() / 1000);
+      const staleTs = nowTs - 1000;
 
-      const plainHex = crypto.createHmac('sha256', secret).update(rawBuf).digest('hex');
-      const prefixedHex = `sha256=${plainHex}`;
-      const ts = '1774300000';
-      const timestampedSig = `t=${ts},v1=${crypto.createHmac('sha256', secret).update(Buffer.concat([Buffer.from(`${ts}.`), rawBuf])).digest('hex')}`;
+      const computeTsHex = (ts: number) =>
+        crypto
+          .createHmac('sha256', secret)
+          .update(Buffer.concat([Buffer.from(`${ts}.`), rawBuf]))
+          .digest('hex');
 
-      assert.equal(verifyBachsWebhookSignature(rawBuf, plainHex, secret), true);
-      assert.equal(verifyBachsWebhookSignature(rawBuf, prefixedHex, secret), true);
-      assert.equal(verifyBachsWebhookSignature(rawBuf, timestampedSig, secret), true);
-      assert.equal(verifyBachsWebhookSignature(rawBuf, 'sha256=' + '0'.repeat(64), secret), false);
-      assert.equal(verifyBachsWebhookSignature(Buffer.from('{"tampered":true}'), plainHex, secret), false);
+      const validTsHex = computeTsHex(nowTs);
+      const staleTsHex = computeTsHex(staleTs);
+      const plainBodyHex = crypto.createHmac('sha256', secret).update(rawBuf).digest('hex');
+
+      // 1) Official X-Bachs-Timestamp + X-Bachs-Signature ("{timestamp}.{raw_body}")
+      assert.equal(
+        verifyBachsWebhookSignature(rawBuf, { signature: validTsHex, timestamp: String(nowTs), nowSeconds: nowTs }, secret),
+        true
+      );
+      // 2) Official X-Bachs-Signature-V2 ("t={ts},v1={hex}") with key rotation support
+      assert.equal(
+        verifyBachsWebhookSignature(
+          rawBuf,
+          { signatureV2: `t=${nowTs},v1=deadbeef,v1=${validTsHex}`, nowSeconds: nowTs },
+          secret
+        ),
+        true
+      );
+      // 3) Replay attack with stale timestamp (>300s) rejected
+      assert.equal(
+        verifyBachsWebhookSignature(rawBuf, { signature: staleTsHex, timestamp: String(staleTs), nowSeconds: nowTs }, secret),
+        false
+      );
+      // 4) Plain hex without timestamp rejected if tampered
+      assert.equal(verifyBachsWebhookSignature(rawBuf, plainBodyHex, secret), true);
+      assert.equal(verifyBachsWebhookSignature(Buffer.from('{"tampered":true}'), plainBodyHex, secret), false);
 
       // Unsigned/invalid webhook rejected with 401
       const badHookRes = await originalFetch(`${baseUrl}/api/payments/bachs/webhook`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-bachs-signature': 'sha256=' + 'f'.repeat(64)
+          'x-bachs-timestamp': String(nowTs),
+          'x-bachs-signature': 'f'.repeat(64)
         },
         body: rawString
       });
       assert.equal(badHookRes.status, 401);
 
-      // Valid signed webhook fulfills transaction
+      // Valid signed collection.succeeded webhook using X-Bachs-Timestamp + X-Bachs-Signature & X-Bachs-Signature-V2
       const goodHookRes = await originalFetch(`${baseUrl}/api/payments/bachs/webhook`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-bachs-signature': prefixedHex
+          'x-bachs-timestamp': String(nowTs),
+          'x-bachs-signature': validTsHex,
+          'x-bachs-signature-v2': `t=${nowTs},v1=${validTsHex}`
         },
         body: rawString
       });
@@ -507,15 +534,18 @@ async function runAllTests() {
     });
 
     // ----------------------------------------------------------------------
-    // Test 8: Payload Normalizer Checks
+    // Test 8: Payload Normalizer Checks for checkout.completed & collection.succeeded
     // ----------------------------------------------------------------------
-    await runTest('8. normalizeBachsPayload parses checkout.session variants consistently', () => {
+    await runTest('8. normalizeBachsPayload parses checkout.completed and decimal string amounts accurately', () => {
       const normalized = normalizeBachsPayload({
+        id: 'evt_chk_norm_01',
+        type: 'checkout.completed',
+        created_at: '2026-11-18T12:00:00Z',
         data: {
-          id: 'cs_live_101',
-          payment_status: 'paid',
+          checkout_id: 'chk_live_101',
+          status: 'completed',
           currency: 'usd',
-          amount_total: 12000,
+          amount: '120.00',
           client_reference_id: 'VIX-BC-NORM-01',
           customer: { email: 'ml.intl@example.com', name: 'Devon Park' },
           metadata: { courseId: 'course-machine-learning-data-science' }
@@ -524,6 +554,7 @@ async function runAllTests() {
       assert.equal(normalized.status, 'success');
       assert.equal(normalized.currency, 'USD');
       assert.equal(normalized.amountMinor, 12000);
+      assert.equal(normalized.sessionId, 'chk_live_101');
       assert.equal(normalized.reference, 'VIX-BC-NORM-01');
       assert.equal(normalized.courseId, 'course-machine-learning-data-science');
     });

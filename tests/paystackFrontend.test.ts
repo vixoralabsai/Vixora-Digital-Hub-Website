@@ -142,12 +142,15 @@ async function runAllTests() {
   // ------------------------------------------------------------------------
   await runTest('5. Callback extracts reference correctly and validates format', () => {
     assert.ok(
-      callbackContent.includes("params.get('reference') || params.get('trxref')"),
-      'Callback must extract reference or trxref query parameters'
+      callbackContent.includes("params.get('reference')") &&
+        callbackContent.includes("params.get('trxref')") &&
+        callbackContent.includes("params.get('checkout_id')"),
+      'Callback must extract reference, trxref, or Bachs checkout_id query parameters'
     );
     // Reference format validation tests (Paystack & Bachs prefixes)
     assert.equal(isValidClientReference('VIX-PS-1740000000-ABCD1234'), true);
     assert.equal(isValidClientReference('VIX-BC-1740000000-ABCD1234'), true);
+    assert.equal(isValidClientReference('chk_2N3o4P5q6R7s8T9u'), true);
     assert.equal(isValidClientReference('ref_123456789'), true);
     assert.equal(isValidClientReference('T1234567890'), true);
     assert.equal(isValidClientReference(''), false);

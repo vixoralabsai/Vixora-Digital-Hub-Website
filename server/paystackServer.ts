@@ -407,14 +407,18 @@ export async function processPaymentFulfillment(
   }
 
   // 1. Check existing payment record in database or fallback store
+  let lookupReference = reference;
   let existingPayment: PaymentRecord | null = null;
+  const isBachsSessionPrefix =
+    lookupReference.toLowerCase().startsWith('chk_') ||
+    lookupReference.toLowerCase().startsWith('cs_');
 
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('payments')
         .select('*')
-        .eq('id', reference)
+        .eq('id', lookupReference)
         .maybeSingle();
       if (error) {
         console.error('[Supabase payments query failed]:', error);
@@ -427,7 +431,18 @@ export async function processPaymentFulfillment(
       }
       if (data) {
         existingPayment = data;
-        fallbackPaymentsStore.set(reference, data);
+        fallbackPaymentsStore.set(lookupReference, data);
+      } else if (isBachsSessionPrefix) {
+        const { data: sessionMatch } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('external_session_id', lookupReference)
+          .maybeSingle();
+        if (sessionMatch) {
+          existingPayment = sessionMatch;
+          lookupReference = sessionMatch.id;
+          fallbackPaymentsStore.set(lookupReference, sessionMatch);
+        }
       }
     } catch (dbErr) {
       console.error('[Supabase payments query exception]:', dbErr);
@@ -441,15 +456,28 @@ export async function processPaymentFulfillment(
   }
 
   if (!existingPayment && (!supabase || !isProductionPaymentEnvironment())) {
-    existingPayment = fallbackPaymentsStore.get(reference) || null;
+    existingPayment = fallbackPaymentsStore.get(lookupReference) || null;
+    if (!existingPayment && isBachsSessionPrefix) {
+      for (const rec of fallbackPaymentsStore.values()) {
+        if (rec.external_session_id === lookupReference) {
+          existingPayment = rec;
+          lookupReference = rec.id;
+          break;
+        }
+      }
+    }
   }
+
+  // Normalize reference to canonical internal ID (if resolved via external session ID)
+  reference = lookupReference;
 
   // Determine payment processor cleanly without breaking Paystack currency mismatch checks
   const inferredGateway: 'paystack' | 'bachs' =
     verifiedGatewayData?._gateway === 'bachs' ||
     existingPayment?.gateway === 'bachs' ||
     existingPayment?.currency === 'USD' ||
-    reference.toUpperCase().startsWith('VIX-BC-')
+    reference.toUpperCase().startsWith('VIX-BC-') ||
+    isBachsSessionPrefix
       ? 'bachs'
       : 'paystack';
 
@@ -1675,8 +1703,11 @@ paymentsRouter.post('/bachs/webhook', async (req: Request, res: Response) => {
     }
 
     const signatureHeader = req.headers['x-bachs-signature'];
-    if (!signatureHeader || typeof signatureHeader !== 'string') {
-      return res.status(401).json({ error: 'Missing X-Bachs-Signature header.' });
+    const signatureV2Header = req.headers['x-bachs-signature-v2'];
+    const timestampHeader = req.headers['x-bachs-timestamp'];
+
+    if (!signatureHeader && !signatureV2Header) {
+      return res.status(401).json({ error: 'Missing X-Bachs-Signature or X-Bachs-Signature-V2 header.' });
     }
 
     const rawBody: Buffer | undefined =
@@ -1693,7 +1724,17 @@ paymentsRouter.post('/bachs/webhook', async (req: Request, res: Response) => {
       });
     }
 
-    if (!verifyBachsWebhookSignature(rawBody, signatureHeader, webhookSecret)) {
+    const isValidSig = verifyBachsWebhookSignature(
+      rawBody,
+      {
+        signature: signatureHeader,
+        signatureV2: signatureV2Header,
+        timestamp: timestampHeader
+      },
+      webhookSecret
+    );
+
+    if (!isValidSig) {
       return res.status(401).json({ error: 'Invalid Bachs webhook signature.' });
     }
 
@@ -1702,17 +1743,19 @@ paymentsRouter.post('/bachs/webhook', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid webhook event payload structure.' });
     }
 
-    const eventType = String(event.event || event.type || '').toLowerCase().trim();
+    const eventType = String(event.type || event.event || '').toLowerCase().trim();
     const shouldProcess =
       eventType === 'collection.succeeded' ||
       eventType === 'checkout.completed' ||
       eventType === 'checkout.session.completed' ||
       eventType === 'payment.succeeded' ||
       eventType === 'collection.failed' ||
+      eventType === 'collection.underpaid' ||
+      eventType === 'checkout.expired' ||
       eventType === 'checkout.session.expired';
 
     if (shouldProcess && event.data) {
-      const normalized = normalizeBachsPayload(event.data);
+      const normalized = normalizeBachsPayload(event);
       let ref = normalized.reference;
 
       // Fallback lookup by external_session_id if webhook omitted metadata.reference
